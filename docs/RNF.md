@@ -1,16 +1,20 @@
-# Requisitos Não Funcionais — Aplicação OPSA
+# OPSA — Requisitos Não Funcionais (RNF) e Stack Tecnológica
 
 ## Índice
 
-1. Usabilidade e Acessibilidade
-2. Performance e Escalabilidade
-3. Segurança e Proteção de Dados
-4. Compatibilidade e Integração
-5. Manutenção, Qualidade e Operação
-6. Experiência de IA e Ética
-7. Localização e Internacionalização
-8. Resumo das Prioridades
-9. Stack Tecnológica Sugerida
+1. [Usabilidade e Acessibilidade](#1-usabilidade-e-acessibilidade)
+2. [Performance e Escalabilidade](#2-performance-e-escalabilidade)
+3. [Segurança e Proteção de Dados](#3-segurança-e-proteção-de-dados)
+4. [Compatibilidade e Integração](#4-compatibilidade-e-integração)
+5. [Manutenção, Qualidade e Operação](#5-manutenção-qualidade-e-operação)
+6. [Experiência de IA e Ética](#6-experiência-de-ia-e-ética)
+7. [Localização e Internacionalização](#7-localização-e-internacionalização)
+8. [Resumo das Prioridades](#8-resumo-das-prioridades)
+9. [Stack Tecnológica Sugerida](#9-stack-tecnológica-sugerida)
+10. [Licença](#licença)
+11. [Changelog](#changelog)
+
+-   [Voltar ao início](../README.md)
 
 ---
 
@@ -143,11 +147,14 @@
 -   Algoritmos de análise financeira e previsões de tesouraria
 -   APIs externas opcionais (OpenAI, Hugging Face)
 
-### DevOps
+---
 
-> DevOps é o conjunto de práticas que combina desenvolvimento de software (Dev) e operações de TI (Ops). O objetivo é encurtar o ciclo de vida do desenvolvimento de sistemas, proporcionando entrega contínua com alta qualidade de software.
+## Licença
 
--   Railway / Render / Fly.io
--   GitHub Actions
--   Backups automáticos
--   Monitorização e health-checks
+Projeto académico orientado a fins educativos no âmbito da PAP.
+
+---
+
+## Changelog
+
+-   **2024-06-15** — Versão inicial dos Requisitos Não Funcionais (RNF) e Stack Tecnológica Sugerida.

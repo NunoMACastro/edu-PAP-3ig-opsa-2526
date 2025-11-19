@@ -1,8 +1,8 @@
 # OPSA - ERP Financeiro Integrado
 
-O OPSA é um ERP financeiro integrado desenvolvido para centralizar as operações essenciais de pequenas e médias empresas: faturação, compras, inventário, contabilidade SNC, tesouraria, relatórios e apoio estratégico através de IA. O sistema permite gerir todo o ciclo operacional - desde a compra até à venda, passando pela reconciliação bancária e geração automática de lançamentos - garantindo conformidade legal e eficiência administrativa.
+O OPSA é um ERP (Planeamento de Recursos Empresariais) financeiro integrado desenvolvido para centralizar as operações essenciais de pequenas e médias empresas: faturação, compras, inventário, contabilidade SNC, tesouraria, relatórios e apoio estratégico através de IA. O sistema permite gerir todo o ciclo operacional - desde a compra até à venda, passando pela reconciliação bancária e geração automática de lançamentos - garantindo conformidade legal e eficiência administrativa.
 
-A plataforma suporta multi-empresa e múltiplos papéis (Admin, Gestor, Contabilista, Operacional, Auditor), oferecendo ferramentas completas para gestão de documentos, planos de contas, períodos fiscais, IVA, stock, SAF-T, dashboards e automatizações. Integra ainda um assistente inteligente capaz de gerar insights financeiros, identificar riscos, sugerir ações e responder a perguntas em linguagem natural com base nos dados reais da empresa.
+A plataforma suporta multi-empresa e múltiplos papéis (Admin, Gestor, Contabilista, Operacional, Auditor), oferecendo ferramentas completas para gestão de documentos, planos de contas, períodos fiscais, IVA, stock, dashboards e automatizações. Integra ainda um assistente inteligente capaz de gerar insights financeiros, identificar riscos, sugerir ações e responder a perguntas em linguagem natural com base nos dados reais da empresa.
 
 Projetado com foco em robustez, segurança e escalabilidade, o OPSA adota práticas modernas de desenvolvimento e uma arquitetura modular que facilita manutenção, auditoria, integração com serviços externos e evolução futura. É um projeto desenvolvido no âmbito da PAP do Curso Profissional de Informática de Gestão (2025/2026).
 
