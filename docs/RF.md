@@ -1,4 +1,4 @@
-# Requisitos Funcionais — Aplicação **OPSA**
+# Requisitos Funcionais - Aplicação **OPSA**
 
 ## Índice
 
@@ -32,11 +32,11 @@
 
 | Código | Requisito                                                                                    | Atores        | Prioridade | Dependências |
 | :----- | :------------------------------------------------------------------------------------------- | :------------ | :--------- | :----------- |
-| RF01   | Registo, login e logout com cookies HttpOnly.                                                | Todos         | Must       | —            |
+| RF01   | Registo, login e logout com cookies HttpOnly.                                                | Todos         | Must       | -            |
 | RF02   | Papéis e permissões (**Admin**, **Gestor**, **Contabilista**, **Operacional**, **Auditor**). | Admin         | Must       | RF01         |
 | RF03   | Multi-empresa (um utilizador pode ter papéis diferentes em várias empresas).                 | Admin, Gestor | Must       | RF02         |
 | RF04   | Gestão de utilizadores: convite, remoção e definição de papéis.                              | Admin, Gestor | Must       | RF03         |
-| RF05   | Recuperação de password via email.                                                           | Todos         | Must       | —            |
+| RF05   | Recuperação de password via email.                                                           | Todos         | Must       | -            |
 
 ---
 
@@ -44,8 +44,8 @@
 
 | Código | Requisito                                                                 | Atores               | Prioridade | Dependências |
 | :----- | :------------------------------------------------------------------------ | :------------------- | :--------- | :----------- |
-| RF06   | Registar dados da empresa (NIF, morada, moeda, logótipo, período fiscal). | Gestor, Contabilista | Must       | —            |
-| RF07   | Criar/importar plano de contas (SNC).                                     | Contabilista         | Must       | —            |
+| RF06   | Registar dados da empresa (NIF, morada, moeda, logótipo, período fiscal). | Gestor, Contabilista | Must       | -            |
+| RF07   | Criar/importar plano de contas (SNC).                                     | Contabilista         | Must       | -            |
 | RF08   | Abrir e fechar períodos fiscais, bloqueando lançamentos após fecho.       | Contabilista, Gestor | Must       | RF07         |
 
 ---
@@ -54,11 +54,11 @@
 
 | Código | Requisito                                                 | Atores                    | Prioridade | Dependências |
 | :----- | :-------------------------------------------------------- | :------------------------ | :--------- | :----------- |
-| RF09   | Criar e gerir **clientes**.                               | Operacional, Gestor       | Must       | —            |
-| RF10   | Criar e gerir **fornecedores**.                           | Operacional, Contabilista | Must       | —            |
-| RF11   | Criar **artigos/serviços** (SKU, custo, preço, IVA).      | Operacional               | Must       | —            |
-| RF12   | Criar **armazéns e localizações**.                        | Operacional               | Should     | —            |
-| RF13   | Configurar **tabelas de IVA** (taxas, isenções, códigos). | Contabilista              | Must       | —            |
+| RF09   | Criar e gerir **clientes**.                               | Operacional, Gestor       | Must       | -            |
+| RF10   | Criar e gerir **fornecedores**.                           | Operacional, Contabilista | Must       | -            |
+| RF11   | Criar **artigos/serviços** (SKU, custo, preço, IVA).      | Operacional               | Must       | -            |
+| RF12   | Criar **armazéns e localizações**.                        | Operacional               | Should     | -            |
+| RF13   | Configurar **tabelas de IVA** (taxas, isenções, códigos). | Contabilista              | Must       | -            |
 
 ---
 
@@ -67,9 +67,9 @@
 | Código | Requisito                                                                    | Atores              | Prioridade | Dependências     |
 | :----- | :--------------------------------------------------------------------------- | :------------------ | :--------- | :--------------- |
 | RF14   | Emitir **Fatura, Fatura-Recibo, Nota de Crédito**, com numeração sequencial. | Operacional         | Must       | RF09, RF11, RF13 |
-| RF15   | Registar **recebimentos** (parciais/totais).                                 | Operacional         | Must       | —                |
+| RF15   | Registar **recebimentos** (parciais/totais).                                 | Operacional         | Must       | -                |
 | RF16   | Gerar **lançamentos contabilísticos automáticos** por venda.                 | Contabilista        | Must       | RF14             |
-| RF17   | Consultar **títulos em aberto** e antiguidade de saldos.                     | Gestor, Operacional | Should     | —                |
+| RF17   | Consultar **títulos em aberto** e antiguidade de saldos.                     | Gestor, Operacional | Should     | -                |
 | RF18   | Submeter documentos de venda para **aprovação** antes de emissão definitiva. | Operacional         | Should     | RF14             |
 | RF19   | Definir **fluxos e limites** de aprovação (por papel, valor, cliente).       | Gestor              | Could      | RF18             |
 | RF20   | Registar histórico de **decisões de aprovação** e comentários.               | Sistema             | Should     | RF18             |
@@ -83,7 +83,7 @@
 | RF18   | Registar **Fatura de Fornecedor** e **Nota de Crédito**.                | Operacional  | Must       | RF10, RF11, RF13 |
 | RF19   | Registar **pagamentos** (parciais/totais).                              | Operacional  | Must       | RF18             |
 | RF20   | Gerar **lançamentos contabilísticos automáticos** de compras.           | Contabilista | Must       | RF18             |
-| RF21   | Aprovação de compras com estados “Rascunho → Aprovado → Lançado”.       | Gestor       | Should     | —                |
+| RF21   | Aprovação de compras com estados “Rascunho → Aprovado → Lançado”.       | Gestor       | Should     | -                |
 | RF22   | Configurar **limites e papéis** para aprovações (por fornecedor/valor). | Gestor       | Should     | RF21             |
 | RF23   | Histórico e justificações para aprovações/reprovações.                  | Sistema      | Should     | RF21             |
 
@@ -118,7 +118,7 @@
 
 | Código | Requisito                                                                   | Atores                    | Prioridade | Dependências     |
 | :----- | :-------------------------------------------------------------------------- | :------------------------ | :--------- | :--------------- |
-| RF30   | Criar **contas bancárias/caixa** e respetivos saldos.                       | Contabilista, Operacional | Must       | —                |
+| RF30   | Criar **contas bancárias/caixa** e respetivos saldos.                       | Contabilista, Operacional | Must       | -                |
 | RF31   | Importar **extratos bancários** (CSV/OFX) e fazer reconciliação automática. | Operacional, Contabilista | Must       | RF30, RF14, RF18 |
 | RF32   | Gerar **previsão de tesouraria** (entradas e saídas futuras).               | Gestor                    | Should     | RF15, RF19       |
 
@@ -129,9 +129,9 @@
 | Código | Requisito                                                         | Atores                | Prioridade | Dependências |
 | :----- | :---------------------------------------------------------------- | :-------------------- | :--------- | :----------- |
 | RF33   | Upload de documentos com **OCR** (ler NIF, data, total, IVA).     | Operacional           | Should     | RF18         |
-| RF34   | Importar CSV/Excel de clientes, fornecedores, artigos e extratos. | Admin, Contabilista   | Should     | —            |
-| RF35   | Exportar **SAF-T (PT)** de faturação e contabilidade.             | Contabilista, Auditor | Must       | —            |
-| RF36   | (Opcional) Integração com **e-Fatura**.                           | Contabilista          | Could      | —            |
+| RF34   | Importar CSV/Excel de clientes, fornecedores, artigos e extratos. | Admin, Contabilista   | Should     | -            |
+| RF35   | Exportar **SAF-T (PT)** de faturação e contabilidade.             | Contabilista, Auditor | Must       | -            |
+| RF36   | (Opcional) Integração com **e-Fatura**.                           | Contabilista          | Could      | -            |
 | RF37   | Mapear documentos de integração para **centros de custo**.        | Contabilista          | Should     | RF26         |
 
 ---
@@ -162,8 +162,8 @@
 
 | Código | Requisito                                                   | Atores                            | Prioridade | Dependências |
 | :----- | :---------------------------------------------------------- | :-------------------------------- | :--------- | :----------- |
-| RF46   | Criar/editar lembretes (prazos, pagamentos, impostos).      | Todos                             | Should     | —            |
-| RF47   | Criar e atribuir tarefas com estado e prazo.                | Gestor, Contabilista, Operacional | Should     | —            |
+| RF46   | Criar/editar lembretes (prazos, pagamentos, impostos).      | Todos                             | Should     | -            |
+| RF47   | Criar e atribuir tarefas com estado e prazo.                | Gestor, Contabilista, Operacional | Should     | -            |
 | RF48   | Notificações (in-app/email) para lembretes e alertas da IA. | Todos                             | Should     | RF46, RF44   |
 
 ---
@@ -172,8 +172,8 @@
 
 | Código | Requisito                                                            | Atores               | Prioridade | Dependências |
 | :----- | :------------------------------------------------------------------- | :------------------- | :--------- | :----------- |
-| RF49   | Registar **auditoria**: quem, quando, o quê, em operações sensíveis. | Admin, Auditor       | Must       | —            |
-| RF50   | Registar **logs de integração** (uploads, SAF-T, reconciliações).    | Admin                | Must       | —            |
+| RF49   | Registar **auditoria**: quem, quando, o quê, em operações sensíveis. | Admin, Auditor       | Must       | -            |
+| RF50   | Registar **logs de integração** (uploads, SAF-T, reconciliações).    | Admin                | Must       | -            |
 | RF51   | Permitir **reabertura de períodos** apenas com registo de motivo.    | Gestor, Contabilista | Should     | RF08         |
 
 ---
@@ -192,7 +192,7 @@
 
 ## Critérios de Aceitação
 
-### IA — Insights e Recomendações (RF40–RF44)
+### IA - Insights e Recomendações (RF40–RF44)
 
 -   Ao abrir o painel “Insights”, o sistema apresenta pelo menos **5 cartões** com métrica, variação e período.
 -   Cada insight inclui **origem dos dados** e **ação sugerida**.
@@ -224,10 +224,10 @@
 
 > **Priorizar**: funcionalidades essenciais para um produto funcional e apresentável.
 
--   **Fase 1 — Identidade e Configuração:** RF01–RF13.
--   **Fase 2 — Operações Comerciais:** RF14–RF29 (vendas, compras, inventário e centros analíticos).
--   **Fase 3 — Tesouraria e IA:** RF30–RF45 (bancos, relatórios, dashboards e assistente).
--   **Fase 4 — Operação Avançada:** RF46–RF56 (tarefas, auditoria, aprovações, agendamentos, linhas de crédito e integrações).
+-   **Fase 1 - Identidade e Configuração:** RF01–RF13.
+-   **Fase 2 - Operações Comerciais:** RF14–RF29 (vendas, compras, inventário e centros analíticos).
+-   **Fase 3 - Tesouraria e IA:** RF30–RF45 (bancos, relatórios, dashboards e assistente).
+-   **Fase 4 - Operação Avançada:** RF46–RF56 (tarefas, auditoria, aprovações, agendamentos, linhas de crédito e integrações).
 
 ---
 
@@ -237,6 +237,6 @@ Projeto académico destinado exclusivamente a fins educativos.
 
 ## Changelog
 
--   **2024-04-27** — Reorganização do RF.md para o formato padrão com novas secções (MVP, créditos, licença e changelog).
+-   **2024-04-27** - Reorganização do RF.md para o formato padrão com novas secções (MVP, créditos, licença e changelog).
 
 ---
