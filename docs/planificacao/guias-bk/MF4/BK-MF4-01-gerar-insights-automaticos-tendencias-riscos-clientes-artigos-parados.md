@@ -25,7 +25,7 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Conseguir explicar e executar o BK `BK-MF4-01` de forma autonoma, incluindo caminho feliz, negativos e evidencia pronta para defesa.
+Executar `Gerar insights automáticos (tendências, riscos, clientes, artigos parados).` com rastreabilidade explicita para `RF49` e demonstracao tecnica no contexto da sprint `S08-S09`.
 
 ### Pre-requisitos
 - Ler o requisito `RF49` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.

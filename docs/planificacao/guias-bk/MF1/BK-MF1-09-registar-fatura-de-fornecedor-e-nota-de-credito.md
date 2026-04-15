@@ -25,7 +25,7 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Conseguir explicar e executar o BK `BK-MF1-09` de forma autonoma, incluindo caminho feliz, negativos e evidencia pronta para defesa.
+Executar `Registar Fatura de Fornecedor e Nota de Crédito.` com rastreabilidade explicita para `RF21` e demonstracao tecnica no contexto da sprint `S03-S04`.
 
 ### Pre-requisitos
 - Ler o requisito `RF21` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.

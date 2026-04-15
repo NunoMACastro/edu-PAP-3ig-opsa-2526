@@ -25,7 +25,7 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Conseguir explicar e executar o BK `BK-MF6-02` de forma autonoma, incluindo caminho feliz, negativos e evidencia pronta para defesa.
+Executar `Suportar ≥ 50 utilizadores simultâneos por empresa sem degradação.` com rastreabilidade explicita para `RNF09` e demonstracao tecnica no contexto da sprint `S10-S11`.
 
 ### Pre-requisitos
 - Ler o requisito `RNF09` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.

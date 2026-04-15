@@ -25,7 +25,7 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Conseguir explicar e executar o BK `BK-MF5-06` de forma autonoma, incluindo caminho feliz, negativos e evidencia pronta para defesa.
+Executar `Layout responsivo (desktop > tablet > mobile) com grelhas e tabelas adaptadas.` com rastreabilidade explicita para `RNF02` e demonstracao tecnica no contexto da sprint `S09-S10`.
 
 ### Pre-requisitos
 - Ler o requisito `RNF02` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.

@@ -25,7 +25,7 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Conseguir explicar e executar o BK `BK-MF1-07` de forma autonoma, incluindo caminho feliz, negativos e evidencia pronta para defesa.
+Executar `Definir fluxos e limites de aprovação (por papel, valor, cliente).` com rastreabilidade explicita para `RF19` e demonstracao tecnica no contexto da sprint `S03-S04`.
 
 ### Pre-requisitos
 - Ler o requisito `RF19` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.

@@ -25,7 +25,7 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Conseguir explicar e executar o BK `BK-MF0-05` de forma autonoma, incluindo caminho feliz, negativos e evidencia pronta para defesa.
+Executar `Recuperação de password via email.` com rastreabilidade explicita para `RF05` e demonstracao tecnica no contexto da sprint `S01-S02`.
 
 ### Pre-requisitos
 - Ler o requisito `RF05` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.

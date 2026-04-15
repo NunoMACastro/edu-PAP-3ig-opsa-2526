@@ -40,7 +40,6 @@ OPSA e um ERP financeiro integrado para PME, desenvolvido no contexto da PAP 202
 - [Requisitos Nao Funcionais](docs/RNF.md)
 - [Planificacao (indice)](docs/planificacao/README.md)
 - [Plano de Sprints](docs/planificacao/sprints/PLANO-SPRINTS.md)
-- [Relatorio de Conformidade](docs/planificacao/RELATORIO-CONFORMIDADE-PLANIFICACAO.md)
 
 ## Changelog
 - `2026-04-13`: README convertido para indice canónico de governanca; removida duplicacao detalhada RF/RNF.

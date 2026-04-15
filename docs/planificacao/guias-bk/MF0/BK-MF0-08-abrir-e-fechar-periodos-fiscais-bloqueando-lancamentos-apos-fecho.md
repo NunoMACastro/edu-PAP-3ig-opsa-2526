@@ -25,7 +25,7 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Conseguir explicar e executar o BK `BK-MF0-08` de forma autonoma, incluindo caminho feliz, negativos e evidencia pronta para defesa.
+Executar `Abrir e fechar períodos fiscais, bloqueando lançamentos após fecho.` com rastreabilidade explicita para `RF08` e demonstracao tecnica no contexto da sprint `S01-S02`.
 
 ### Pre-requisitos
 - Ler o requisito `RF08` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.

@@ -51,7 +51,7 @@ Objetivo: explicar termos tecnicos da documentacao e da planificacao sem linguag
 ### RF (Requisito Funcional)
 
 - O que e: o que o sistema tem de fazer.
-- Exemplo: "o utilizador pode criar turma".
+- Exemplo: "o utilizador pode emitir fatura com numeracao sequencial".
 
 ### RNF (Requisito Nao Funcional)
 
@@ -141,7 +141,7 @@ Objetivo: explicar termos tecnicos da documentacao e da planificacao sem linguag
 ### Stakeholder
 
 - O que e: pessoa/grupo interessado no resultado.
-- Exemplo: alunos, professores, orientadores, escola.
+- Exemplo: gestor, contabilista, operacional, auditor e fornecedores.
 
 ## 3) Validacao, testes e entrega
 
@@ -340,7 +340,7 @@ Objetivo: explicar termos tecnicos da documentacao e da planificacao sem linguag
 
 ### SAML
 
-- O que e: padrao de autenticacao muito usado em escolas/organizacoes.
+- O que e: padrao de autenticacao muito usado em empresas/organizacoes.
 
 ### HTTP
 
@@ -402,7 +402,7 @@ Objetivo: explicar termos tecnicos da documentacao e da planificacao sem linguag
 
 ### Quotas de IA
 
-- O que e: limites de uso de IA por utilizador/turma/grupo.
+- O que e: limites de uso de IA por utilizador, empresa ou modulo.
 
 ### Indexacao
 
@@ -451,5 +451,5 @@ Objetivo: explicar termos tecnicos da documentacao e da planificacao sem linguag
 
 ---
 
-Documento pensado para uso transversal nas PAPs desta raiz.
-Se quiseres, no passo seguinte eu transformo isto numa versao "resumo de 1 pagina" para imprimir e usar nas aulas/defesa.
+Documento contextualizado para o dominio do OPSA (ERP financeiro).
+Se quiseres, no passo seguinte eu transformo isto numa versao "resumo de 1 pagina" para revisao da equipa e defesa.

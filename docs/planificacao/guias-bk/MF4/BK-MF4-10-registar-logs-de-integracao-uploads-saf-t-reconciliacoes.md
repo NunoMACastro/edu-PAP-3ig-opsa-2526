@@ -25,7 +25,7 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Conseguir explicar e executar o BK `BK-MF4-10` de forma autonoma, incluindo caminho feliz, negativos e evidencia pronta para defesa.
+Executar `Registar logs de integração (uploads, SAF-T, reconciliações).` com rastreabilidade explicita para `RF58` e demonstracao tecnica no contexto da sprint `S08-S09`.
 
 ### Pre-requisitos
 - Ler o requisito `RF58` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.

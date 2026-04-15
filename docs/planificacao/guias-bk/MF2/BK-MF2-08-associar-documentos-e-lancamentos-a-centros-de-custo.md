@@ -25,7 +25,7 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Conseguir explicar e executar o BK `BK-MF2-08` de forma autonoma, incluindo caminho feliz, negativos e evidencia pronta para defesa.
+Executar `Associar documentos e lançamentos a centros de custo.` com rastreabilidade explicita para `RF32` e demonstracao tecnica no contexto da sprint `S05-S06`.
 
 ### Pre-requisitos
 - Ler o requisito `RF32` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.

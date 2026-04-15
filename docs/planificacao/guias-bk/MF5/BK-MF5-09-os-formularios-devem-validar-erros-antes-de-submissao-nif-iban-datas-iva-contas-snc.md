@@ -25,7 +25,7 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Conseguir explicar e executar o BK `BK-MF5-09` de forma autonoma, incluindo caminho feliz, negativos e evidencia pronta para defesa.
+Executar `Os formulários devem validar erros antes de submissão (NIF, IBAN, datas, IVA, contas SNC).` com rastreabilidade explicita para `RNF05` e demonstracao tecnica no contexto da sprint `S09-S10`.
 
 ### Pre-requisitos
 - Ler o requisito `RNF05` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.

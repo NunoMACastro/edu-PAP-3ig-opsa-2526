@@ -25,7 +25,7 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Conseguir explicar e executar o BK `BK-MF0-09` de forma autonoma, incluindo caminho feliz, negativos e evidencia pronta para defesa.
+Executar `Criar e gerir clientes.` com rastreabilidade explicita para `RF09` e demonstracao tecnica no contexto da sprint `S01-S02`.
 
 ### Pre-requisitos
 - Ler o requisito `RF09` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.

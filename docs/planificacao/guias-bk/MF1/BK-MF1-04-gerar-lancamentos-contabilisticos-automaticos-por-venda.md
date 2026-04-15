@@ -25,7 +25,7 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Conseguir explicar e executar o BK `BK-MF1-04` de forma autonoma, incluindo caminho feliz, negativos e evidencia pronta para defesa.
+Executar `Gerar lançamentos contabilísticos automáticos por venda.` com rastreabilidade explicita para `RF16` e demonstracao tecnica no contexto da sprint `S03-S04`.
 
 ### Pre-requisitos
 - Ler o requisito `RF16` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.

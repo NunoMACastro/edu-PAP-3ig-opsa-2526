@@ -25,7 +25,7 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Conseguir explicar e executar o BK `BK-MF8-11` de forma autonoma, incluindo caminho feliz, negativos e evidencia pronta para defesa.
+Executar `Datas, moedas e separadores no padrão europeu.` com rastreabilidade explicita para `RNF40` e demonstracao tecnica no contexto da sprint `S12`.
 
 ### Pre-requisitos
 - Ler o requisito `RNF40` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.

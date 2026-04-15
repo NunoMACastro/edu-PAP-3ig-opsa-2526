@@ -25,7 +25,7 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Conseguir explicar e executar o BK `BK-MF7-10` de forma autonoma, incluindo caminho feliz, negativos e evidencia pronta para defesa.
+Executar `Frontend modular com componentes reutilizáveis.` com rastreabilidade explicita para `RNF28` e demonstracao tecnica no contexto da sprint `S11-S12`.
 
 ### Pre-requisitos
 - Ler o requisito `RNF28` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.

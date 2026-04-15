@@ -25,7 +25,7 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Conseguir explicar e executar o BK `BK-MF3-12` de forma autonoma, incluindo caminho feliz, negativos e evidencia pronta para defesa.
+Executar `Personalização de relatórios e exportação (PDF/Excel).` com rastreabilidade explicita para `RF48` e demonstracao tecnica no contexto da sprint `S07-S08`.
 
 ### Pre-requisitos
 - Ler o requisito `RF48` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.

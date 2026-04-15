@@ -25,7 +25,7 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Conseguir explicar e executar o BK `BK-MF8-01` de forma autonoma, incluindo caminho feliz, negativos e evidencia pronta para defesa.
+Executar `Logs estruturados (info, warn, error, audit).` com rastreabilidade explicita para `RNF30` e demonstracao tecnica no contexto da sprint `S12`.
 
 ### Pre-requisitos
 - Ler o requisito `RNF30` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.

@@ -25,7 +25,7 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Conseguir explicar e executar o BK `BK-MF3-06` de forma autonoma, incluindo caminho feliz, negativos e evidencia pronta para defesa.
+Executar `Importar CSV/Excel de clientes, fornecedores, artigos e extratos.` com rastreabilidade explicita para `RF42` e demonstracao tecnica no contexto da sprint `S07-S08`.
 
 ### Pre-requisitos
 - Ler o requisito `RF42` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.

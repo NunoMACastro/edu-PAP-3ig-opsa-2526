@@ -25,7 +25,7 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Conseguir explicar e executar o BK `BK-MF6-03` de forma autonoma, incluindo caminho feliz, negativos e evidencia pronta para defesa.
+Executar `Reconciliação bancária deve sugerir correspondências em ≤ 3 segundos.` com rastreabilidade explicita para `RNF10` e demonstracao tecnica no contexto da sprint `S10-S11`.
 
 ### Pre-requisitos
 - Ler o requisito `RNF10` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.

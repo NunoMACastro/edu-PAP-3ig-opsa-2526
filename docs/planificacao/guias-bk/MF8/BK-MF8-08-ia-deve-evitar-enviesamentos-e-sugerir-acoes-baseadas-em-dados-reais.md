@@ -25,7 +25,7 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Conseguir explicar e executar o BK `BK-MF8-08` de forma autonoma, incluindo caminho feliz, negativos e evidencia pronta para defesa.
+Executar `IA deve evitar enviesamentos e sugerir ações baseadas em dados reais.` com rastreabilidade explicita para `RNF37` e demonstracao tecnica no contexto da sprint `S12`.
 
 ### Pre-requisitos
 - Ler o requisito `RNF37` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.

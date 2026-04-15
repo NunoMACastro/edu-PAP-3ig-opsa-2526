@@ -25,7 +25,7 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Conseguir explicar e executar o BK `BK-MF5-05` de forma autonoma, incluindo caminho feliz, negativos e evidencia pronta para defesa.
+Executar `Interface intuitiva, clara e consistente entre módulos (Vendas, Compras, Inventário, Contabilidade).` com rastreabilidade explicita para `RNF01` e demonstracao tecnica no contexto da sprint `S09-S10`.
 
 ### Pre-requisitos
 - Ler o requisito `RNF01` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.

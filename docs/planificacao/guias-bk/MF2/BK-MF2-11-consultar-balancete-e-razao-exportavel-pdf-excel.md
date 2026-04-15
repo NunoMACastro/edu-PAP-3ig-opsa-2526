@@ -25,7 +25,7 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Conseguir explicar e executar o BK `BK-MF2-11` de forma autonoma, incluindo caminho feliz, negativos e evidencia pronta para defesa.
+Executar `Consultar balancete e razão exportável (PDF/Excel).` com rastreabilidade explicita para `RF35` e demonstracao tecnica no contexto da sprint `S05-S06`.
 
 ### Pre-requisitos
 - Ler o requisito `RF35` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.

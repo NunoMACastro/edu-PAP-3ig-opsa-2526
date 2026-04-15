@@ -25,7 +25,7 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Conseguir explicar e executar o BK `BK-MF8-07` de forma autonoma, incluindo caminho feliz, negativos e evidencia pronta para defesa.
+Executar `Alertas configuráveis (ativar/desativar tipos).` com rastreabilidade explicita para `RNF36` e demonstracao tecnica no contexto da sprint `S12`.
 
 ### Pre-requisitos
 - Ler o requisito `RNF36` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.

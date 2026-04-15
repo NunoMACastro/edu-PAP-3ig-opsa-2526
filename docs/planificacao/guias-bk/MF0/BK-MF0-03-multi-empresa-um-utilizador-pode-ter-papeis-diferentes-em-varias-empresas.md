@@ -25,7 +25,7 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Conseguir explicar e executar o BK `BK-MF0-03` de forma autonoma, incluindo caminho feliz, negativos e evidencia pronta para defesa.
+Executar `Multi-empresa (um utilizador pode ter papéis diferentes em várias empresas).` com rastreabilidade explicita para `RF03` e demonstracao tecnica no contexto da sprint `S01-S02`.
 
 ### Pre-requisitos
 - Ler o requisito `RF03` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.

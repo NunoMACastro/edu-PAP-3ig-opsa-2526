@@ -25,7 +25,7 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Conseguir explicar e executar o BK `BK-MF5-04` de forma autonoma, incluindo caminho feliz, negativos e evidencia pronta para defesa.
+Executar `Gerir linhas de crédito (limites, utilização, alertas) por banco.` com rastreabilidade explicita para `RF64` e demonstracao tecnica no contexto da sprint `S09-S10`.
 
 ### Pre-requisitos
 - Ler o requisito `RF64` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.

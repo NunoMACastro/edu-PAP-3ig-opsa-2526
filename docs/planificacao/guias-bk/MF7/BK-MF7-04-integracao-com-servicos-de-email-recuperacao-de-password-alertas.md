@@ -25,7 +25,7 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Conseguir explicar e executar o BK `BK-MF7-04` de forma autonoma, incluindo caminho feliz, negativos e evidencia pronta para defesa.
+Executar `Integração com serviços de email (recuperação de password, alertas).` com rastreabilidade explicita para `RNF22` e demonstracao tecnica no contexto da sprint `S11-S12`.
 
 ### Pre-requisitos
 - Ler o requisito `RNF22` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.

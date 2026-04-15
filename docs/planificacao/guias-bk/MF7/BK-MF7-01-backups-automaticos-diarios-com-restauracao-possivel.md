@@ -25,7 +25,7 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Conseguir explicar e executar o BK `BK-MF7-01` de forma autonoma, incluindo caminho feliz, negativos e evidencia pronta para defesa.
+Executar `Backups automáticos diários com restauração possível.` com rastreabilidade explicita para `RNF19` e demonstracao tecnica no contexto da sprint `S11-S12`.
 
 ### Pre-requisitos
 - Ler o requisito `RNF19` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.

@@ -25,7 +25,7 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Conseguir explicar e executar o BK `BK-MF0-06` de forma autonoma, incluindo caminho feliz, negativos e evidencia pronta para defesa.
+Executar `Registar dados da empresa (NIF, morada, moeda, logótipo, período fiscal).` com rastreabilidade explicita para `RF06` e demonstracao tecnica no contexto da sprint `S01-S02`.
 
 ### Pre-requisitos
 - Ler o requisito `RF06` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.

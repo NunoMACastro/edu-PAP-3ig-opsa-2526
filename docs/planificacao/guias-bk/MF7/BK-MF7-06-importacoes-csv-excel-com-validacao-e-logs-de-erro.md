@@ -25,7 +25,7 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Conseguir explicar e executar o BK `BK-MF7-06` de forma autonoma, incluindo caminho feliz, negativos e evidencia pronta para defesa.
+Executar `Importações CSV/Excel com validação e logs de erro.` com rastreabilidade explicita para `RNF24` e demonstracao tecnica no contexto da sprint `S11-S12`.
 
 ### Pre-requisitos
 - Ler o requisito `RNF24` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.

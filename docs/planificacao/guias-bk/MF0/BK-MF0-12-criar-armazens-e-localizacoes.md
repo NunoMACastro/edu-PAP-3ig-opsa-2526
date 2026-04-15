@@ -25,7 +25,7 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Conseguir explicar e executar o BK `BK-MF0-12` de forma autonoma, incluindo caminho feliz, negativos e evidencia pronta para defesa.
+Executar `Criar armazéns e localizações.` com rastreabilidade explicita para `RF12` e demonstracao tecnica no contexto da sprint `S01-S02`.
 
 ### Pre-requisitos
 - Ler o requisito `RF12` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.

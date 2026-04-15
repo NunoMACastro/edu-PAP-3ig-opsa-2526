@@ -25,7 +25,7 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Conseguir explicar e executar o BK `BK-MF5-10` de forma autonoma, incluindo caminho feliz, negativos e evidencia pronta para defesa.
+Executar `As mensagens de erro devem ser claras e indicar como resolver o problema.` com rastreabilidade explicita para `RNF06` e demonstracao tecnica no contexto da sprint `S09-S10`.
 
 ### Pre-requisitos
 - Ler o requisito `RNF06` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.

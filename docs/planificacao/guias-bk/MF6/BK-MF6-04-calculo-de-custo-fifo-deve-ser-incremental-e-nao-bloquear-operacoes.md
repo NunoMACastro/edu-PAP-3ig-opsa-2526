@@ -25,7 +25,7 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Conseguir explicar e executar o BK `BK-MF6-04` de forma autonoma, incluindo caminho feliz, negativos e evidencia pronta para defesa.
+Executar `Cálculo de custo (FIFO) deve ser incremental e não bloquear operações.` com rastreabilidade explicita para `RNF11` e demonstracao tecnica no contexto da sprint `S10-S11`.
 
 ### Pre-requisitos
 - Ler o requisito `RNF11` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.

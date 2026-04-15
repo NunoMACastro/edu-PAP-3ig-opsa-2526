@@ -25,7 +25,7 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Conseguir explicar e executar o BK `BK-MF4-11` de forma autonoma, incluindo caminho feliz, negativos e evidencia pronta para defesa.
+Executar `Permitir reabertura de períodos apenas com registo de motivo.` com rastreabilidade explicita para `RF59` e demonstracao tecnica no contexto da sprint `S08-S09`.
 
 ### Pre-requisitos
 - Ler o requisito `RF59` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.

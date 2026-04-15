@@ -25,7 +25,7 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Conseguir explicar e executar o BK `BK-MF4-02` de forma autonoma, incluindo caminho feliz, negativos e evidencia pronta para defesa.
+Executar `Sugerir ações (ajustar preços, negociar fornecedor, repor stock).` com rastreabilidade explicita para `RF50` e demonstracao tecnica no contexto da sprint `S08-S09`.
 
 ### Pre-requisitos
 - Ler o requisito `RF50` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.

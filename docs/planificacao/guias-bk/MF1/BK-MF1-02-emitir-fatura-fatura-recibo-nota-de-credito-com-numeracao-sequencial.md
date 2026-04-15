@@ -25,7 +25,7 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Conseguir explicar e executar o BK `BK-MF1-02` de forma autonoma, incluindo caminho feliz, negativos e evidencia pronta para defesa.
+Executar `Emitir Fatura, Fatura-Recibo, Nota de Crédito, com numeração sequencial.` com rastreabilidade explicita para `RF14` e demonstracao tecnica no contexto da sprint `S03-S04`.
 
 ### Pre-requisitos
 - Ler o requisito `RF14` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.

@@ -25,7 +25,7 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Conseguir explicar e executar o BK `BK-MF2-01` de forma autonoma, incluindo caminho feliz, negativos e evidencia pronta para defesa.
+Executar `Configurar limites e papéis para aprovações (por fornecedor/valor).` com rastreabilidade explicita para `RF25` e demonstracao tecnica no contexto da sprint `S05-S06`.
 
 ### Pre-requisitos
 - Ler o requisito `RF25` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.

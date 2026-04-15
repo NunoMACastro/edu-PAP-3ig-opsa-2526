@@ -25,7 +25,7 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Conseguir explicar e executar o BK `BK-MF5-03` de forma autonoma, incluindo caminho feliz, negativos e evidencia pronta para defesa.
+Executar `Agendar pagamentos/recebimentos futuros com integração às previsões de tesouraria.` com rastreabilidade explicita para `RF63` e demonstracao tecnica no contexto da sprint `S09-S10`.
 
 ### Pre-requisitos
 - Ler o requisito `RF63` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.

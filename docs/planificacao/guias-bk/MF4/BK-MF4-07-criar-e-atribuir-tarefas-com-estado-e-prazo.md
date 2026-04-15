@@ -25,7 +25,7 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Conseguir explicar e executar o BK `BK-MF4-07` de forma autonoma, incluindo caminho feliz, negativos e evidencia pronta para defesa.
+Executar `Criar e atribuir tarefas com estado e prazo.` com rastreabilidade explicita para `RF55` e demonstracao tecnica no contexto da sprint `S08-S09`.
 
 ### Pre-requisitos
 - Ler o requisito `RF55` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.

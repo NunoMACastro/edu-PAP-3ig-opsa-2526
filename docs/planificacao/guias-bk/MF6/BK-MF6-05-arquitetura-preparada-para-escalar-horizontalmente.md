@@ -25,7 +25,7 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Conseguir explicar e executar o BK `BK-MF6-05` de forma autonoma, incluindo caminho feliz, negativos e evidencia pronta para defesa.
+Executar `Arquitetura preparada para escalar horizontalmente.` com rastreabilidade explicita para `RNF12` e demonstracao tecnica no contexto da sprint `S10-S11`.
 
 ### Pre-requisitos
 - Ler o requisito `RNF12` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.

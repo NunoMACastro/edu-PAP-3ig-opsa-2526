@@ -25,7 +25,7 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Conseguir explicar e executar o BK `BK-MF5-02` de forma autonoma, incluindo caminho feliz, negativos e evidencia pronta para defesa.
+Executar `Painel para monitorizar aprovações pendentes e SLA por tipo de documento.` com rastreabilidade explicita para `RF62` e demonstracao tecnica no contexto da sprint `S09-S10`.
 
 ### Pre-requisitos
 - Ler o requisito `RF62` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.

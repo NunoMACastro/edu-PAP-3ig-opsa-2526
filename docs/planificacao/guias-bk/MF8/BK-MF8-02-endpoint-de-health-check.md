@@ -25,7 +25,7 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Conseguir explicar e executar o BK `BK-MF8-02` de forma autonoma, incluindo caminho feliz, negativos e evidencia pronta para defesa.
+Executar `Endpoint de health-check.` com rastreabilidade explicita para `RNF31` e demonstracao tecnica no contexto da sprint `S12`.
 
 ### Pre-requisitos
 - Ler o requisito `RNF31` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.

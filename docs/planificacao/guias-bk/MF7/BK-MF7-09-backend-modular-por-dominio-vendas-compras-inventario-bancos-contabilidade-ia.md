@@ -25,7 +25,7 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Conseguir explicar e executar o BK `BK-MF7-09` de forma autonoma, incluindo caminho feliz, negativos e evidencia pronta para defesa.
+Executar `Backend modular por domínio (vendas, compras, inventário, bancos, contabilidade, IA).` com rastreabilidade explicita para `RNF27` e demonstracao tecnica no contexto da sprint `S11-S12`.
 
 ### Pre-requisitos
 - Ler o requisito `RNF27` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.

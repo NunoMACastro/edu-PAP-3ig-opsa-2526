@@ -25,7 +25,7 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Conseguir explicar e executar o BK `BK-MF5-07` de forma autonoma, incluindo caminho feliz, negativos e evidencia pronta para defesa.
+Executar `A interface deve usar feedback imediato em todas as ações (guardar, validar, uploads).` com rastreabilidade explicita para `RNF03` e demonstracao tecnica no contexto da sprint `S09-S10`.
 
 ### Pre-requisitos
 - Ler o requisito `RNF03` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.

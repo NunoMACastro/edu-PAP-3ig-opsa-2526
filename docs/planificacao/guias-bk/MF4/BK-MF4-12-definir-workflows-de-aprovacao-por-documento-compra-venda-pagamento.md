@@ -25,7 +25,7 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Conseguir explicar e executar o BK `BK-MF4-12` de forma autonoma, incluindo caminho feliz, negativos e evidencia pronta para defesa.
+Executar `Definir workflows de aprovação por documento (compra, venda, pagamento).` com rastreabilidade explicita para `RF60` e demonstracao tecnica no contexto da sprint `S08-S09`.
 
 ### Pre-requisitos
 - Ler o requisito `RF60` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.

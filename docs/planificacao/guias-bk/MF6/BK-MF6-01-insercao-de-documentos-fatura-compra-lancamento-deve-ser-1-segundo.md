@@ -25,7 +25,7 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Conseguir explicar e executar o BK `BK-MF6-01` de forma autonoma, incluindo caminho feliz, negativos e evidencia pronta para defesa.
+Executar `Inserção de documentos (fatura, compra, lançamento) deve ser ≤ 1 segundo.` com rastreabilidade explicita para `RNF08` e demonstracao tecnica no contexto da sprint `S10-S11`.
 
 ### Pre-requisitos
 - Ler o requisito `RNF08` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.

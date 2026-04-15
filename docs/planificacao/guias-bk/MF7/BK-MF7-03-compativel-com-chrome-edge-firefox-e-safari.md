@@ -25,7 +25,7 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Conseguir explicar e executar o BK `BK-MF7-03` de forma autonoma, incluindo caminho feliz, negativos e evidencia pronta para defesa.
+Executar `Compatível com Chrome, Edge, Firefox e Safari.` com rastreabilidade explicita para `RNF21` e demonstracao tecnica no contexto da sprint `S11-S12`.
 
 ### Pre-requisitos
 - Ler o requisito `RNF21` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.

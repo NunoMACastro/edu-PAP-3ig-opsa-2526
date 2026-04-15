@@ -25,7 +25,7 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Conseguir explicar e executar o BK `BK-MF6-08` de forma autonoma, incluindo caminho feliz, negativos e evidencia pronta para defesa.
+Executar `Sessões com cookies HttpOnly + Secure + SameSite.` com rastreabilidade explicita para `RNF15` e demonstracao tecnica no contexto da sprint `S10-S11`.
 
 ### Pre-requisitos
 - Ler o requisito `RNF15` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.

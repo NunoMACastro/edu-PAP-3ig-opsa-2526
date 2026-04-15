@@ -8,7 +8,7 @@ from collections import defaultdict
 
 EXPECTED_RF = [f"RF{i:02d}" for i in range(1, 65)]
 EXPECTED_RNF = [f"RNF{i:02d}" for i in range(1, 41)]
-TODAY = "2026-04-13"
+VALID_LAST_UPDATED = {"2026-04-13", "2026-04-14"}
 GUIDE_FILENAME_RE = re.compile(r"^BK-MF[0-8]-\d{2}-[a-z0-9]+(?:-[a-z0-9]+)*\.md$")
 
 
@@ -51,10 +51,19 @@ def parse_table_rows(md_text: str, header_start: str, stop_heading: str | None =
 
 
 def parse_items(raw: str) -> list[str]:
-    raw = raw.strip()
-    if raw == "-":
+    raw = raw.strip().replace("`", "")
+    if raw in {"", "-", "transversal"}:
         return []
-    return [x.strip() for x in raw.split(",") if x.strip()]
+    out: list[str] = []
+    for part in [x.strip() for x in raw.split(",") if x.strip()]:
+        m = re.fullmatch(r"(RF|RNF)(\d{2})\.\.(\d{2})", part)
+        if m:
+            pref, s, e = m.groups()
+            for n in range(int(s), int(e) + 1):
+                out.append(f"{pref}{n:02d}")
+        else:
+            out.extend(re.findall(r"\b(?:RF|RNF)\d{2}\b", part))
+    return out
 
 
 def normalize_guia_path(cell: str) -> str:
@@ -93,14 +102,27 @@ def has_non_placeholder_snippet(text: str) -> bool:
         return False
     if "Adicionar aqui" in text or "Trecho real e aplicavel" in text:
         return False
-    if re.search(r"```[a-zA-Z0-9]*\n.+?```", text, flags=re.DOTALL) is None:
-        return False
-    return True
+    return re.search(r"```[a-zA-Z0-9]*\n.+?```", text, flags=re.DOTALL) is not None
 
 
 def extract_min_negativos(text: str) -> int:
     m = re.search(r"Negativos: minimo `?(\d+)`?", text)
     return int(m.group(1)) if m else 0
+
+
+def scorecard_issues(score_text: str) -> list[str]:
+    expected = {
+        "Cobertura/rastreabilidade": 25,
+        "Coerencia documental": 20,
+        "Pedagogia/guidance/step-by-step": 25,
+        "Adequacao ao 12o": 20,
+        "Governanca/avaliacao": 10,
+    }
+    issues = []
+    for name, weight in expected.items():
+        if not re.search(rf"\|\s*{re.escape(name)}\s*\|\s*{weight}\s*\|", score_text):
+            issues.append(f"missing_or_invalid_score_criterion:{name}")
+    return issues
 
 
 def main() -> None:
@@ -129,6 +151,7 @@ def main() -> None:
     backlog_by_bk = {r["bk_id"]: r for r in backlog_rows}
 
     matrix_refs = set()
+    backlog_refs = set()
     invalid_refs = set()
     for row in matriz_rows:
         for req in parse_items(row["rf_rnf"]):
@@ -137,12 +160,18 @@ def main() -> None:
                 invalid_refs.add(req)
             if req.startswith("RNF") and req not in rnf_expected:
                 invalid_refs.add(req)
+    for row in backlog_rows:
+        for req in parse_items(row["rf_rnf"]):
+            backlog_refs.add(req)
+            if req.startswith("RF") and req not in rf_expected:
+                invalid_refs.add(req)
+            if req.startswith("RNF") and req not in rnf_expected:
+                invalid_refs.add(req)
 
-    rf_covered = {x for x in matrix_refs if x.startswith("RF")}
-    rnf_covered = {x for x in matrix_refs if x.startswith("RNF")}
-
-    missing_rf = sorted(rf_expected - rf_covered)
-    missing_rnf = sorted(rnf_expected - rnf_covered)
+    missing_rf_matrix = sorted(rf_expected - {x for x in matrix_refs if x.startswith("RF")})
+    missing_rnf_matrix = sorted(rnf_expected - {x for x in matrix_refs if x.startswith("RNF")})
+    missing_rf_backlog = sorted(rf_expected - {x for x in backlog_refs if x.startswith("RF")})
+    missing_rnf_backlog = sorted(rnf_expected - {x for x in backlog_refs if x.startswith("RNF")})
 
     mismatches = []
     for bk_id, m in matriz_by_bk.items():
@@ -150,7 +179,11 @@ def main() -> None:
         if not b:
             mismatches.append({"bk_id": bk_id, "type": "missing_in_backlog"})
             continue
-        if m["owner"] != b["owner"] or m["prioridade"] != b["prioridade"] or m["rf_rnf"] != b["rf_rnf"]:
+        if (
+            m["owner"] != b["owner"]
+            or m["prioridade"] != b["prioridade"]
+            or sorted(parse_items(m["rf_rnf"])) != sorted(parse_items(b["rf_rnf"]))
+        ):
             mismatches.append(
                 {
                     "bk_id": bk_id,
@@ -176,6 +209,24 @@ def main() -> None:
         if guia_path not in existing_guide_paths:
             broken_guia_links.append({"bk_id": row["bk_id"], "guia_path": guia_path})
 
+    required_headers = [
+        "bk_id",
+        "macro",
+        "owner",
+        "apoio",
+        "prioridade",
+        "estado",
+        "esforco",
+        "dependencias",
+        "rf_rnf",
+        "fase_documental",
+        "sprint",
+        "core_or_reforco",
+        "proximo_bk",
+        "guia_path",
+        "last_updated",
+    ]
+
     for guide in guide_files:
         text = read(guide)
         bk_id = extract_header_value(text, "bk_id")
@@ -191,11 +242,9 @@ def main() -> None:
 
         if not GUIDE_FILENAME_RE.match(guide.name):
             naming_issues.append({"bk_id": bk_id, "issue": "filename_not_slug_pattern", "file": guide.name})
-
         if not guide.name.startswith(f"{bk_id}-"):
             naming_issues.append({"bk_id": bk_id, "issue": "filename_not_prefixed_by_bk_id", "file": guide.name})
 
-        required_headers = ["sprint", "guia_path", "core_or_reforco"]
         for header in required_headers:
             if not extract_header_value(text, header):
                 guide_header_issues.append({"bk_id": bk_id, "missing": header})
@@ -209,6 +258,12 @@ def main() -> None:
         actual_path = extract_header_value(text, "guia_path")
         if actual_path != expected_path:
             guide_header_issues.append({"bk_id": bk_id, "mismatch": "guia_path_not_matching_file"})
+
+        if sorted(parse_items(extract_header_value(text, "rf_rnf"))) != sorted(parse_items(row["rf_rnf"])):
+            guide_header_issues.append({"bk_id": bk_id, "mismatch": "rf_rnf_not_matching_backlog"})
+
+        if "Conseguir explicar e executar o BK" in text:
+            guide_content_issues.append({"bk_id": bk_id, "issue": "generic_objective_phrase"})
 
         if not has_required_blocks(text):
             guide_content_issues.append({"bk_id": bk_id, "issue": "missing_pedagogic_or_operational_blocks"})
@@ -256,10 +311,13 @@ def main() -> None:
     for n in graph:
         dfs(n, [n])
 
+    scorecard_text = read(plan / "sprints" / "SCORECARD-SPRINTS.md")
+    scorecard_contract_issues = scorecard_issues(scorecard_text)
+
     plan_docs = [
         plan / "README.md",
         plan / "PLANO-IMPLEMENTACAO-TOTAL.md",
-        plan / "RELATORIO-CONFORMIDADE-PLANIFICACAO.md",
+        plan / "CONFORMIDADE-PLANIFICACAO.md",
         plan / "DISTRIBUICAO-RESPONSABILIDADES.md",
         plan / "sprints" / "PLANO-SPRINTS.md",
         plan / "sprints" / "SCORECARD-SPRINTS.md",
@@ -273,7 +331,7 @@ def main() -> None:
     outdated_docs = []
     for p in plan_docs:
         text = read(p)
-        if f"`last_updated`: `{TODAY}`" not in text:
+        if not any(f"`last_updated`: `{d}`" in text for d in VALID_LAST_UPDATED):
             outdated_docs.append(str(p))
 
     result = {
@@ -285,8 +343,10 @@ def main() -> None:
             "guide_bk": len(guide_files),
         },
         "coverage": {
-            "missing_rf": missing_rf,
-            "missing_rnf": missing_rnf,
+            "missing_rf_matrix": missing_rf_matrix,
+            "missing_rnf_matrix": missing_rnf_matrix,
+            "missing_rf_backlog": missing_rf_backlog,
+            "missing_rnf_backlog": missing_rnf_backlog,
             "invalid_refs": sorted(invalid_refs),
         },
         "consistency": {
@@ -295,6 +355,7 @@ def main() -> None:
             "invalid_dependencies": deps_invalid,
             "cycles": cycles,
             "outdated_docs": outdated_docs,
+            "scorecard_contract_issues": scorecard_contract_issues,
         },
         "guides_quality": {
             "guide_header_issues": guide_header_issues,
@@ -303,18 +364,30 @@ def main() -> None:
             "missing_guides": missing_guides,
         },
         "status": {
-            "coverage_pass": not missing_rf and not missing_rnf and not invalid_refs,
-            "consistency_pass": not mismatches and not broken_guia_links and not deps_invalid and not cycles and not outdated_docs,
+            "coverage_pass": not missing_rf_matrix
+            and not missing_rnf_matrix
+            and not missing_rf_backlog
+            and not missing_rnf_backlog
+            and not invalid_refs,
+            "consistency_pass": not mismatches
+            and not broken_guia_links
+            and not deps_invalid
+            and not cycles
+            and not outdated_docs
+            and not scorecard_contract_issues,
             "guides_pass": not guide_header_issues and not guide_content_issues and not naming_issues and not missing_guides,
             "naming_pass": not naming_issues,
-            "overall_pass": not missing_rf
-            and not missing_rnf
+            "overall_pass": not missing_rf_matrix
+            and not missing_rnf_matrix
+            and not missing_rf_backlog
+            and not missing_rnf_backlog
             and not invalid_refs
             and not mismatches
             and not broken_guia_links
             and not deps_invalid
             and not cycles
             and not outdated_docs
+            and not scorecard_contract_issues
             and not guide_header_issues
             and not guide_content_issues
             and not naming_issues

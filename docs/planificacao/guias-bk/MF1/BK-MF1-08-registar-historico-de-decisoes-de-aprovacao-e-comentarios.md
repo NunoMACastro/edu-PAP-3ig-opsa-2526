@@ -25,7 +25,7 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Conseguir explicar e executar o BK `BK-MF1-08` de forma autonoma, incluindo caminho feliz, negativos e evidencia pronta para defesa.
+Executar `Registar histórico de decisões de aprovação e comentários.` com rastreabilidade explicita para `RF20` e demonstracao tecnica no contexto da sprint `S03-S04`.
 
 ### Pre-requisitos
 - Ler o requisito `RF20` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.
