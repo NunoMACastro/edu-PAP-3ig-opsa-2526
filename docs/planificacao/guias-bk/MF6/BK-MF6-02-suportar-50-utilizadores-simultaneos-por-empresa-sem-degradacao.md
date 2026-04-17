@@ -16,7 +16,7 @@
 - `core_or_reforco`: `Core`
 - `proximo_bk`: `BK-MF6-03`
 - `guia_path`: `docs/planificacao/guias-bk/MF6/BK-MF6-02-suportar-50-utilizadores-simultaneos-por-empresa-sem-degradacao.md`
-- `last_updated`: `2026-04-13`
+- `last_updated`: `2026-04-17`
 
 ## Contexto do BK
 - Entrega alvo: implementar `Suportar ≥ 50 utilizadores simultâneos por empresa sem degradação.` com rastreabilidade direta ao requisito `RNF09`.
@@ -25,7 +25,8 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Executar `Suportar ≥ 50 utilizadores simultâneos por empresa sem degradação.` com rastreabilidade explicita para `RNF09` e demonstracao tecnica no contexto da sprint `S10-S11`.
+Executar `Suportar ≥ 50 utilizadores simultâneos por empresa sem degradação.` com autonomia técnica, garantindo cobertura do requisito `RNF09` e evidência objetiva para avaliação.
+- Intenção pedagógica da macro `MF6`: Assegurar robustez tecnica de performance, seguranca e continuidade..
 
 ### Pre-requisitos
 - Ler o requisito `RNF09` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.
@@ -54,12 +55,12 @@ Executar `Suportar ≥ 50 utilizadores simultâneos por empresa sem degradação
 - Artefactos de referencia: `MATRIZ-CANONICA-BK.md`, `BACKLOG-MVP.md`, `PLANO-SPRINTS.md`
 
 ### Passos
-1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do BK-MF6-02 e o requisito `RNF09`.
-2. Verificar pre-condicoes tecnicas (-) e validar ambiente local antes de implementar.
-3. Definir contrato de entrada/saida do fluxo principal para `Suportar ≥ 50 utilizadores simultâneos por empresa sem degradação.`.
-4. Implementar caminho principal com registo de logs/erros relevantes para auditoria.
+1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do `BK-MF6-02` e o requisito `RNF09`.
+2. Validar dependencias técnicas (`-`) e preparar dados de teste mínimos para `Suportar ≥ 50 utilizadores simultâneos por empresa sem degradação.`.
+3. Aplicar hardening/performance no ponto crítico do BK com medição objetiva do limiar definido.
+4. Executar teste negativo de segurança/performance e registar evidência comparativa antes/depois.
 5. Executar pelo menos 1 teste de smoke orientado ao caso principal do BK.
-6. Executar cenarios negativos obrigatorios e registar resultado observado (mensagem/codigo/efeito).
+6. Executar cenários negativos obrigatórios e registar resultado observado (mensagem/código/efeito).
 
 ### Validacao
 - [ ] Smoke: fluxo principal executa sem erro bloqueante.
@@ -73,20 +74,19 @@ Executar `Suportar ≥ 50 utilizadores simultâneos por empresa sem degradação
 - Se houver bloqueio >48h, escalar no scorecard da sprint.
 
 ## Snippet tecnico aplicavel
-**Validador base de entrada de dominio**
+**Validador de output auditavel**
 
 ```ts
-type Payload = Record<string, unknown>;
+type Resultado = { status: 'ok' | 'erro'; mensagem: string; fonte?: string };
 
-export function validarEntradaBK(payload: Payload) {
-  const camposObrigatorios = ['empresaId', 'utilizadorId'];
-  const emFalta = camposObrigatorios.filter((c) => !payload[c]);
-  if (emFalta.length) throw new Error(`BK BK-MF6-02: faltam campos ${emFalta.join(', ')}`);
-  return { ok: true, bk: 'BK-MF6-02', payload };
+export function validarResultado(res: Resultado) {
+  if (res.status === 'ok' && !res.mensagem) throw new Error('Mensagem obrigatoria');
+  if (res.status === 'ok' && !res.fonte) throw new Error('Fonte obrigatoria para rastreabilidade');
+  return { bk: 'BK-MF6-02', validado: true };
 }
 ```
 
-Ponto de entrada seguro para reduzir erros de dados e facilitar diagnostico nos testes de smoke/negativos.
+Impõe resposta auditável e rastreável em fluxos de IA/governança/operação final.
 
 ## Criterios de aceite
 - BK implementado no scope definido, sem romper dependencias.
@@ -100,4 +100,4 @@ Ponto de entrada seguro para reduzir erros de dados e facilitar diagnostico nos 
 - `neg`: cenario negativo executado com resultado esperado.
 
 ## Changelog
-- `2026-04-13`: guia migrado para naming com slug e template pedagogico-operacional executavel.
+- `2026-04-17`: guia migrado para naming com slug e template pedagogico-operacional executavel.

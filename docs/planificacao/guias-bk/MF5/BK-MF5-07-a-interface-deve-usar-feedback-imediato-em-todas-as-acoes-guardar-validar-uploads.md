@@ -16,7 +16,7 @@
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF5-08`
 - `guia_path`: `docs/planificacao/guias-bk/MF5/BK-MF5-07-a-interface-deve-usar-feedback-imediato-em-todas-as-acoes-guardar-validar-uploads.md`
-- `last_updated`: `2026-04-13`
+- `last_updated`: `2026-04-17`
 
 ## Contexto do BK
 - Entrega alvo: implementar `A interface deve usar feedback imediato em todas as ações (guardar, validar, uploads).` com rastreabilidade direta ao requisito `RNF03`.
@@ -25,7 +25,8 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Executar `A interface deve usar feedback imediato em todas as ações (guardar, validar, uploads).` com rastreabilidade explicita para `RNF03` e demonstracao tecnica no contexto da sprint `S09-S10`.
+Executar `A interface deve usar feedback imediato em todas as ações (guardar, validar, uploads).` com autonomia técnica, garantindo cobertura do requisito `RNF03` e evidência objetiva para avaliação.
+- Intenção pedagógica da macro `MF5`: Tornar a UX previsivel, clara e orientada a fluxos reais de trabalho..
 
 ### Pre-requisitos
 - Ler o requisito `RNF03` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.
@@ -54,13 +55,13 @@ Executar `A interface deve usar feedback imediato em todas as ações (guardar, 
 - Artefactos de referencia: `MATRIZ-CANONICA-BK.md`, `BACKLOG-MVP.md`, `PLANO-SPRINTS.md`
 
 ### Passos
-1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do BK-MF5-07 e o requisito `RNF03`.
-2. Verificar pre-condicoes tecnicas (-) e validar ambiente local antes de implementar.
-3. Definir contrato de entrada/saida do fluxo principal para `A interface deve usar feedback imediato em todas as ações (guardar, validar, uploads).`.
-4. Implementar caminho principal com registo de logs/erros relevantes para auditoria.
+1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do `BK-MF5-07` e o requisito `RNF03`.
+2. Validar dependencias técnicas (`-`) e preparar dados de teste mínimos para `A interface deve usar feedback imediato em todas as ações (guardar, validar, uploads).`.
+3. Implementar comportamento UX transversal (validação, feedback, consistência visual e erro claro).
+4. Executar testes de usabilidade rápida em cenário real de operação (desktop e tablet).
 5. Executar pelo menos 1 teste de smoke orientado ao caso principal do BK.
-6. Executar cenarios negativos obrigatorios e registar resultado observado (mensagem/codigo/efeito).
-7. Aplicar reforco tecnico (robustez/performance/seguranca) associado ao risco principal do BK.
+6. Executar cenários negativos obrigatórios e registar resultado observado (mensagem/código/efeito).
+7. Aplicar reforço técnico (robustez/performance/segurança) no risco principal identificado para este BK.
 8. Atualizar evidence (`pr`, `proof`, `neg`) com artefactos concretos e verificaveis.
 
 ### Validacao
@@ -103,4 +104,4 @@ Aplicar no inicio do fluxo de importacao/exportacao para bloquear ficheiros inva
 - `neg`: cenario negativo executado com resultado esperado.
 
 ## Changelog
-- `2026-04-13`: guia migrado para naming com slug e template pedagogico-operacional executavel.
+- `2026-04-17`: guia migrado para naming com slug e template pedagogico-operacional executavel.

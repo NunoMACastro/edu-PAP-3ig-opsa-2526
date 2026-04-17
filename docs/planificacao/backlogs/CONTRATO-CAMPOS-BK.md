@@ -6,7 +6,7 @@
 - `area`: `project`
 - `owner`: `Nuno`
 - `status`: `ativo`
-- `last_updated`: `2026-04-13`
+- `last_updated`: `2026-04-17`
 
 ## Objetivo
 Formalizar os campos obrigatorios por BK para manter coerencia entre `MATRIZ-CANONICA-BK`, `BACKLOG-MVP`, `PLANO-SPRINTS` e `guias-bk`.
@@ -39,10 +39,10 @@ Formalizar os campos obrigatorios por BK para manter coerencia entre `MATRIZ-CAN
 | BK-MF0-06 | MF0 | S01-S02 | Oleksii | RF06 | - | docs/planificacao/guias-bk/MF0/BK-MF0-06-registar-dados-da-empresa-nif-morada-moeda-logotipo-periodo-fiscal.md | Reforco |
 | BK-MF0-07 | MF0 | S01-S02 | Oleksii | RF07 | - | docs/planificacao/guias-bk/MF0/BK-MF0-07-criar-importar-plano-de-contas-snc.md | Reforco |
 | BK-MF0-08 | MF0 | S01-S02 | Oleksii | RF08 | BK-MF0-07 | docs/planificacao/guias-bk/MF0/BK-MF0-08-abrir-e-fechar-periodos-fiscais-bloqueando-lancamentos-apos-fecho.md | Reforco |
-| BK-MF0-09 | MF0 | S01-S02 | Oleksii | RF09 | - | docs/planificacao/guias-bk/MF0/BK-MF0-09-criar-e-gerir-clientes.md | Reforco |
-| BK-MF0-10 | MF0 | S01-S02 | Oleksii | RF10 | - | docs/planificacao/guias-bk/MF0/BK-MF0-10-criar-e-gerir-fornecedores.md | Reforco |
-| BK-MF0-11 | MF0 | S01-S02 | Oleksii | RF11 | - | docs/planificacao/guias-bk/MF0/BK-MF0-11-criar-artigos-servicos-sku-custo-preco-iva.md | Reforco |
-| BK-MF0-12 | MF0 | S01-S02 | Oleksii | RF12 | - | docs/planificacao/guias-bk/MF0/BK-MF0-12-criar-armazens-e-localizacoes.md | Core |
+| BK-MF0-09 | MF0 | S01-S02 | Andre | RF09 | - | docs/planificacao/guias-bk/MF0/BK-MF0-09-criar-e-gerir-clientes.md | Reforco |
+| BK-MF0-10 | MF0 | S01-S02 | Pedro | RF10 | - | docs/planificacao/guias-bk/MF0/BK-MF0-10-criar-e-gerir-fornecedores.md | Reforco |
+| BK-MF0-11 | MF0 | S01-S02 | Andre | RF11 | - | docs/planificacao/guias-bk/MF0/BK-MF0-11-criar-artigos-servicos-sku-custo-preco-iva.md | Reforco |
+| BK-MF0-12 | MF0 | S01-S02 | Sofia | RF12 | - | docs/planificacao/guias-bk/MF0/BK-MF0-12-criar-armazens-e-localizacoes.md | Core |
 | BK-MF1-01 | MF1 | S03-S04 | Oleksii | RF13 | - | docs/planificacao/guias-bk/MF1/BK-MF1-01-configurar-tabelas-de-iva-taxas-isencoes-codigos.md | Reforco |
 | BK-MF1-02 | MF1 | S03-S04 | Andre | RF14 | BK-MF0-09, BK-MF0-11, BK-MF1-01 | docs/planificacao/guias-bk/MF1/BK-MF1-02-emitir-fatura-fatura-recibo-nota-de-credito-com-numeracao-sequencial.md | Reforco |
 | BK-MF1-03 | MF1 | S03-S04 | Pedro | RF15 | - | docs/planificacao/guias-bk/MF1/BK-MF1-03-registar-recebimentos-parciais-totais.md | Reforco |
@@ -56,12 +56,12 @@ Formalizar os campos obrigatorios por BK para manter coerencia entre `MATRIZ-CAN
 | BK-MF1-11 | MF1 | S03-S04 | Oleksii | RF23 | BK-MF1-09 | docs/planificacao/guias-bk/MF1/BK-MF1-11-gerar-lancamentos-contabilisticos-automaticos-de-compras.md | Reforco |
 | BK-MF1-12 | MF1 | S03-S04 | Andre | RF24 | - | docs/planificacao/guias-bk/MF1/BK-MF1-12-aprovacao-de-compras-com-estados-rascunho-aprovado-lancado.md | Core |
 | BK-MF2-01 | MF2 | S05-S06 | Pedro | RF25 | BK-MF1-12 | docs/planificacao/guias-bk/MF2/BK-MF2-01-configurar-limites-e-papeis-para-aprovacoes-por-fornecedor-valor.md | Core |
-| BK-MF2-02 | MF2 | S05-S06 | Oleksii | RF26 | BK-MF1-12 | docs/planificacao/guias-bk/MF2/BK-MF2-02-historico-e-justificacoes-para-aprovacoes-reprovacoes.md | Core |
+| BK-MF2-02 | MF2 | S05-S06 | Sofia | RF26 | BK-MF1-12 | docs/planificacao/guias-bk/MF2/BK-MF2-02-historico-e-justificacoes-para-aprovacoes-reprovacoes.md | Core |
 | BK-MF2-03 | MF2 | S05-S06 | Andre | RF27 | BK-MF0-11, BK-MF0-12 | docs/planificacao/guias-bk/MF2/BK-MF2-03-movimentos-de-stock-entradas-saidas-transferencias-devolucoes.md | Reforco |
 | BK-MF2-04 | MF2 | S05-S06 | Pedro | RF28 | BK-MF2-03 | docs/planificacao/guias-bk/MF2/BK-MF2-04-calculo-de-custo-fifo.md | Reforco |
 | BK-MF2-05 | MF2 | S05-S06 | Andre | RF29 | BK-MF2-03 | docs/planificacao/guias-bk/MF2/BK-MF2-05-contagem-fisica-e-ajustes.md | Core |
 | BK-MF2-06 | MF2 | S05-S06 | Pedro | RF30 | BK-MF2-03 | docs/planificacao/guias-bk/MF2/BK-MF2-06-alertas-de-stock-minimos-maximos-artigos-parados.md | Core |
-| BK-MF2-07 | MF2 | S05-S06 | Oleksii | RF31 | BK-MF0-07 | docs/planificacao/guias-bk/MF2/BK-MF2-07-configurar-centros-de-custo-segmentos-analiticos.md | Core |
+| BK-MF2-07 | MF2 | S05-S06 | Sofia | RF31 | BK-MF0-07 | docs/planificacao/guias-bk/MF2/BK-MF2-07-configurar-centros-de-custo-segmentos-analiticos.md | Core |
 | BK-MF2-08 | MF2 | S05-S06 | Andre | RF32 | BK-MF2-07 | docs/planificacao/guias-bk/MF2/BK-MF2-08-associar-documentos-e-lancamentos-a-centros-de-custo.md | Core |
 | BK-MF2-09 | MF2 | S05-S06 | Pedro | RF33 | BK-MF2-08 | docs/planificacao/guias-bk/MF2/BK-MF2-09-relatorios-e-filtros-por-centro-de-custo-segmento.md | Core |
 | BK-MF2-10 | MF2 | S05-S06 | Oleksii | RF34 | BK-MF0-07 | docs/planificacao/guias-bk/MF2/BK-MF2-10-criar-e-editar-lancamentos-manuais-com-anexos.md | Reforco |
@@ -74,27 +74,25 @@ Formalizar os campos obrigatorios por BK para manter coerencia entre `MATRIZ-CAN
 | BK-MF3-05 | MF3 | S07-S08 | Andre | RF41 | BK-MF1-09 | docs/planificacao/guias-bk/MF3/BK-MF3-05-upload-de-documentos-com-ocr-ler-nif-data-total-iva.md | Core |
 | BK-MF3-06 | MF3 | S07-S08 | Pedro | RF42 | - | docs/planificacao/guias-bk/MF3/BK-MF3-06-importar-csv-excel-de-clientes-fornecedores-artigos-e-extratos.md | Core |
 | BK-MF3-07 | MF3 | S07-S08 | Oleksii | RF43 | - | docs/planificacao/guias-bk/MF3/BK-MF3-07-exportar-saf-t-pt-de-faturacao-e-contabilidade.md | Reforco |
-| BK-MF3-08 | MF3 | S07-S08 | Andre | RF44 | - | docs/planificacao/guias-bk/MF3/BK-MF3-08-opcional-integracao-com-e-fatura.md | Core |
-| BK-MF3-09 | MF3 | S07-S08 | Oleksii | RF45 | BK-MF2-07 | docs/planificacao/guias-bk/MF3/BK-MF3-09-mapear-documentos-de-integracao-para-centros-de-custo.md | Core |
-| BK-MF3-10 | MF3 | S07-S08 | Andre | RF46 | BK-MF1-02, BK-MF1-09, BK-MF2-03 | docs/planificacao/guias-bk/MF3/BK-MF3-10-relatorios-de-vendas-compras-margens-e-stock.md | Reforco |
-| BK-MF3-11 | MF3 | S07-S08 | Andre | RF47 | BK-MF3-10 | docs/planificacao/guias-bk/MF3/BK-MF3-11-kpis-executivos-receita-custos-ebitda-pmr-pmp.md | Core |
-| BK-MF3-12 | MF3 | S07-S08 | Pedro | RF48 | BK-MF3-10 | docs/planificacao/guias-bk/MF3/BK-MF3-12-personalizacao-de-relatorios-e-exportacao-pdf-excel.md | Core |
-| BK-MF4-01 | MF4 | S08-S09 | Pedro | RF49 | BK-MF3-10 | docs/planificacao/guias-bk/MF4/BK-MF4-01-gerar-insights-automaticos-tendencias-riscos-clientes-artigos-parados.md | Reforco |
-| BK-MF4-02 | MF4 | S08-S09 | Oleksii | RF50 | BK-MF4-01 | docs/planificacao/guias-bk/MF4/BK-MF4-02-sugerir-acoes-ajustar-precos-negociar-fornecedor-repor-stock.md | Core |
-| BK-MF4-03 | MF4 | S08-S09 | Andre | RF51 | BK-MF3-10 | docs/planificacao/guias-bk/MF4/BK-MF4-03-permitir-perguntas-em-linguagem-natural-e-responder-com-dados-e-fonte.md | Core |
-| BK-MF4-04 | MF4 | S08-S09 | Pedro | RF52 | BK-MF3-04, BK-MF2-06 | docs/planificacao/guias-bk/MF4/BK-MF4-04-emitir-alertas-inteligentes-cashflow-desvios-ruturas.md | Core |
-| BK-MF4-05 | MF4 | S08-S09 | Oleksii | RF53 | BK-MF4-01 | docs/planificacao/guias-bk/MF4/BK-MF4-05-mostrar-explicacoes-e-fontes-de-cada-insight.md | Reforco |
-| BK-MF4-06 | MF4 | S08-S09 | Oleksii | RF54 | - | docs/planificacao/guias-bk/MF4/BK-MF4-06-criar-editar-lembretes-prazos-pagamentos-impostos.md | Core |
-| BK-MF4-07 | MF4 | S08-S09 | Andre | RF55 | - | docs/planificacao/guias-bk/MF4/BK-MF4-07-criar-e-atribuir-tarefas-com-estado-e-prazo.md | Core |
-| BK-MF4-08 | MF4 | S08-S09 | Pedro | RF56 | BK-MF4-06, BK-MF4-04 | docs/planificacao/guias-bk/MF4/BK-MF4-08-notificacoes-in-app-email-para-lembretes-e-alertas-da-ia.md | Core |
-| BK-MF4-09 | MF4 | S08-S09 | Andre | RF57 | - | docs/planificacao/guias-bk/MF4/BK-MF4-09-registar-auditoria-quem-quando-o-que-em-operacoes-sensiveis.md | Reforco |
-| BK-MF4-10 | MF4 | S08-S09 | Pedro | RF58 | - | docs/planificacao/guias-bk/MF4/BK-MF4-10-registar-logs-de-integracao-uploads-saf-t-reconciliacoes.md | Reforco |
-| BK-MF4-11 | MF4 | S08-S09 | Oleksii | RF59 | BK-MF0-08 | docs/planificacao/guias-bk/MF4/BK-MF4-11-permitir-reabertura-de-periodos-apenas-com-registo-de-motivo.md | Core |
-| BK-MF4-12 | MF4 | S08-S09 | Andre | RF60 | BK-MF1-09, BK-MF2-06 | docs/planificacao/guias-bk/MF4/BK-MF4-12-definir-workflows-de-aprovacao-por-documento-compra-venda-pagamento.md | Core |
-| BK-MF5-01 | MF5 | S09-S10 | Pedro | RF61 | BK-MF4-12 | docs/planificacao/guias-bk/MF5/BK-MF5-01-configurar-niveis-de-aprovacao-com-limites-financeiros-e-escalamentos.md | Core |
-| BK-MF5-02 | MF5 | S09-S10 | Sofia | RF62 | BK-MF4-12 | docs/planificacao/guias-bk/MF5/BK-MF5-02-painel-para-monitorizar-aprovacoes-pendentes-e-sla-por-tipo-de-documento.md | Core |
-| BK-MF5-03 | MF5 | S09-S10 | Oleksii | RF63 | BK-MF3-03 | docs/planificacao/guias-bk/MF5/BK-MF5-03-agendar-pagamentos-recebimentos-futuros-com-integracao-as-previsoes-de-tesouraria.md | Core |
-| BK-MF5-04 | MF5 | S09-S10 | Andre | RF64 | BK-MF3-02 | docs/planificacao/guias-bk/MF5/BK-MF5-04-gerir-linhas-de-credito-limites-utilizacao-alertas-por-banco.md | Core |
+| BK-MF3-09 | MF3 | S07-S08 | Oleksii | RF44 | BK-MF2-07 | docs/planificacao/guias-bk/MF3/BK-MF3-09-mapear-documentos-de-integracao-para-centros-de-custo.md | Core |
+| BK-MF3-10 | MF3 | S07-S08 | Andre | RF45 | BK-MF1-02, BK-MF1-09, BK-MF2-03 | docs/planificacao/guias-bk/MF3/BK-MF3-10-relatorios-de-vendas-compras-margens-e-stock.md | Reforco |
+| BK-MF3-11 | MF3 | S07-S08 | Andre | RF46 | BK-MF3-10 | docs/planificacao/guias-bk/MF3/BK-MF3-11-kpis-executivos-receita-custos-ebitda-pmr-pmp.md | Core |
+| BK-MF3-12 | MF3 | S07-S08 | Pedro | RF47 | BK-MF3-10 | docs/planificacao/guias-bk/MF3/BK-MF3-12-personalizacao-de-relatorios-e-exportacao-pdf-excel.md | Core |
+| BK-MF4-01 | MF4 | S08-S09 | Pedro | RF48 | BK-MF3-10 | docs/planificacao/guias-bk/MF4/BK-MF4-01-gerar-insights-automaticos-tendencias-riscos-clientes-artigos-parados.md | Reforco |
+| BK-MF4-02 | MF4 | S08-S09 | Sofia | RF49 | BK-MF4-01 | docs/planificacao/guias-bk/MF4/BK-MF4-02-sugerir-acoes-ajustar-precos-negociar-fornecedor-repor-stock.md | Core |
+| BK-MF4-03 | MF4 | S08-S09 | Andre | RF50 | BK-MF3-10 | docs/planificacao/guias-bk/MF4/BK-MF4-03-permitir-perguntas-em-linguagem-natural-e-responder-com-dados-e-fonte.md | Core |
+| BK-MF4-04 | MF4 | S08-S09 | Pedro | RF51 | BK-MF3-04, BK-MF2-06 | docs/planificacao/guias-bk/MF4/BK-MF4-04-emitir-alertas-inteligentes-cashflow-desvios-ruturas.md | Core |
+| BK-MF4-05 | MF4 | S08-S09 | Oleksii | RF52 | BK-MF4-01 | docs/planificacao/guias-bk/MF4/BK-MF4-05-mostrar-explicacoes-e-fontes-de-cada-insight.md | Reforco |
+| BK-MF4-06 | MF4 | S08-S09 | Sofia | RF53 | - | docs/planificacao/guias-bk/MF4/BK-MF4-06-criar-editar-lembretes-essenciais-prazos-pagamentos-e-impostos.md | Core |
+| BK-MF4-07 | MF4 | S08-S09 | Andre | RF54 | - | docs/planificacao/guias-bk/MF4/BK-MF4-07-criar-e-atribuir-tarefas-essenciais-com-estado-e-prazo.md | Core |
+| BK-MF4-08 | MF4 | S08-S09 | Pedro | RF55 | BK-MF4-06, BK-MF4-04 | docs/planificacao/guias-bk/MF4/BK-MF4-08-notificacoes-in-app-para-lembretes-e-alertas-criticos-da-ia.md | Core |
+| BK-MF4-09 | MF4 | S08-S09 | Andre | RF56 | - | docs/planificacao/guias-bk/MF4/BK-MF4-09-registar-auditoria-quem-quando-o-que-em-operacoes-sensiveis.md | Reforco |
+| BK-MF4-10 | MF4 | S08-S09 | Pedro | RF57 | - | docs/planificacao/guias-bk/MF4/BK-MF4-10-registar-logs-de-integracao-uploads-saf-t-reconciliacoes.md | Reforco |
+| BK-MF4-11 | MF4 | S08-S09 | Sofia | RF58 | BK-MF0-08 | docs/planificacao/guias-bk/MF4/BK-MF4-11-permitir-reabertura-de-periodos-apenas-com-registo-de-motivo.md | Core |
+| BK-MF4-12 | MF4 | S08-S09 | Andre | RF59 | BK-MF1-06, BK-MF1-10, BK-MF1-12 | docs/planificacao/guias-bk/MF4/BK-MF4-12-definir-workflows-de-aprovacao-por-documento-compra-venda-pagamento.md | Core |
+| BK-MF5-01 | MF5 | S09-S10 | Pedro | RF60 | BK-MF4-12 | docs/planificacao/guias-bk/MF5/BK-MF5-01-configurar-niveis-de-aprovacao-essenciais-com-limites-financeiros.md | Core |
+| BK-MF5-02 | MF5 | S09-S10 | Sofia | RF61 | BK-MF4-12 | docs/planificacao/guias-bk/MF5/BK-MF5-02-painel-simples-para-monitorizar-aprovacoes-pendentes-por-tipo-de-documento.md | Core |
+| BK-MF5-03 | MF5 | S09-S10 | Sofia | RF62 | BK-MF3-03 | docs/planificacao/guias-bk/MF5/BK-MF5-03-agendar-pagamentos-recebimentos-futuros-com-integracao-as-previsoes-de-tesouraria.md | Core |
 | BK-MF5-05 | MF5 | S09-S10 | Oleksii | RNF01 | - | docs/planificacao/guias-bk/MF5/BK-MF5-05-interface-intuitiva-clara-e-consistente-entre-modulos-vendas-compras-inventario-contabilidade.md | Reforco |
 | BK-MF5-06 | MF5 | S09-S10 | Andre | RNF02 | - | docs/planificacao/guias-bk/MF5/BK-MF5-06-layout-responsivo-desktop-tablet-mobile-com-grelhas-e-tabelas-adaptadas.md | Reforco |
 | BK-MF5-07 | MF5 | S09-S10 | Pedro | RNF03 | - | docs/planificacao/guias-bk/MF5/BK-MF5-07-a-interface-deve-usar-feedback-imediato-em-todas-as-acoes-guardar-validar-uploads.md | Reforco |
@@ -106,35 +104,33 @@ Formalizar os campos obrigatorios por BK para manter coerencia entre `MATRIZ-CAN
 | BK-MF6-02 | MF6 | S10-S11 | Sofia | RNF09 | - | docs/planificacao/guias-bk/MF6/BK-MF6-02-suportar-50-utilizadores-simultaneos-por-empresa-sem-degradacao.md | Core |
 | BK-MF6-03 | MF6 | S10-S11 | Oleksii | RNF10 | - | docs/planificacao/guias-bk/MF6/BK-MF6-03-reconciliacao-bancaria-deve-sugerir-correspondencias-em-3-segundos.md | Core |
 | BK-MF6-04 | MF6 | S10-S11 | Andre | RNF11 | - | docs/planificacao/guias-bk/MF6/BK-MF6-04-calculo-de-custo-fifo-deve-ser-incremental-e-nao-bloquear-operacoes.md | Core |
-| BK-MF6-05 | MF6 | S10-S11 | Pedro | RNF12 | - | docs/planificacao/guias-bk/MF6/BK-MF6-05-arquitetura-preparada-para-escalar-horizontalmente.md | Core |
-| BK-MF6-06 | MF6 | S10-S11 | Andre | RNF13 | - | docs/planificacao/guias-bk/MF6/BK-MF6-06-toda-a-comunicacao-deve-usar-https-tls-1-2.md | Reforco |
-| BK-MF6-07 | MF6 | S10-S11 | Pedro | RNF14 | - | docs/planificacao/guias-bk/MF6/BK-MF6-07-passwords-devem-usar-bcrypt-com-salt-seguro.md | Reforco |
-| BK-MF6-08 | MF6 | S10-S11 | Oleksii | RNF15 | - | docs/planificacao/guias-bk/MF6/BK-MF6-08-sessoes-com-cookies-httponly-secure-samesite.md | Reforco |
-| BK-MF6-09 | MF6 | S10-S11 | Andre | RNF16 | - | docs/planificacao/guias-bk/MF6/BK-MF6-09-prevenir-ataques-sql-nosql-injection-xss-csrf-brute-force.md | Reforco |
-| BK-MF6-10 | MF6 | S10-S11 | Pedro | RNF17 | - | docs/planificacao/guias-bk/MF6/BK-MF6-10-chaves-de-api-e-credenciais-apenas-em-variaveis-de-ambiente.md | Reforco |
-| BK-MF6-11 | MF6 | S10-S11 | Oleksii | RNF18 | - | docs/planificacao/guias-bk/MF6/BK-MF6-11-auditoria-obrigatoria-em-operacoes-sensiveis.md | Reforco |
-| BK-MF7-01 | MF7 | S11-S12 | Pedro | RNF19 | - | docs/planificacao/guias-bk/MF7/BK-MF7-01-backups-automaticos-diarios-com-restauracao-possivel.md | Core |
-| BK-MF7-02 | MF7 | S11-S12 | Andre | RNF20 | - | docs/planificacao/guias-bk/MF7/BK-MF7-02-cumprir-obrigacoes-legais-de-retencao-10-anos-contabilidade.md | Reforco |
-| BK-MF7-03 | MF7 | S11-S12 | Pedro | RNF21 | - | docs/planificacao/guias-bk/MF7/BK-MF7-03-compativel-com-chrome-edge-firefox-e-safari.md | Reforco |
-| BK-MF7-04 | MF7 | S11-S12 | Sofia | RNF22 | - | docs/planificacao/guias-bk/MF7/BK-MF7-04-integracao-com-servicos-de-email-recuperacao-de-password-alertas.md | Reforco |
-| BK-MF7-05 | MF7 | S11-S12 | Sofia | RNF23 | - | docs/planificacao/guias-bk/MF7/BK-MF7-05-exportacoes-disponiveis-em-csv-excel-e-pdf.md | Core |
-| BK-MF7-06 | MF7 | S11-S12 | Oleksii | RNF24 | - | docs/planificacao/guias-bk/MF7/BK-MF7-06-importacoes-csv-excel-com-validacao-e-logs-de-erro.md | Reforco |
-| BK-MF7-07 | MF7 | S11-S12 | Andre | RNF25 | - | docs/planificacao/guias-bk/MF7/BK-MF7-07-geracao-de-saf-t-conforme-especificacoes-legais-pt.md | Reforco |
-| BK-MF7-08 | MF7 | S11-S12 | Oleksii | RNF26 | - | docs/planificacao/guias-bk/MF7/BK-MF7-08-api-interna-estavel-para-futuras-integracoes.md | Core |
-| BK-MF7-09 | MF7 | S11-S12 | Pedro | RNF27 | - | docs/planificacao/guias-bk/MF7/BK-MF7-09-backend-modular-por-dominio-vendas-compras-inventario-bancos-contabilidade-ia.md | Reforco |
-| BK-MF7-10 | MF7 | S11-S12 | Sofia | RNF28 | - | docs/planificacao/guias-bk/MF7/BK-MF7-10-frontend-modular-com-componentes-reutilizaveis.md | Reforco |
-| BK-MF7-11 | MF7 | S11-S12 | Andre | RNF29 | - | docs/planificacao/guias-bk/MF7/BK-MF7-11-testes-automatizados-para-modulos-criticos-faturacao-iva-balancetes-reconciliacao.md | Core |
-| BK-MF8-01 | MF8 | S12 | Oleksii | RNF30 | - | docs/planificacao/guias-bk/MF8/BK-MF8-01-logs-estruturados-info-warn-error-audit.md | Reforco |
-| BK-MF8-02 | MF8 | S12 | Pedro | RNF31 | - | docs/planificacao/guias-bk/MF8/BK-MF8-02-endpoint-de-health-check.md | Core |
-| BK-MF8-03 | MF8 | S12 | Sofia | RNF32 | - | docs/planificacao/guias-bk/MF8/BK-MF8-03-deploy-com-rollback.md | Core |
-| BK-MF8-04 | MF8 | S12 | Oleksii | RNF33 | - | docs/planificacao/guias-bk/MF8/BK-MF8-04-documentacao-tecnica-minima-arquitetura-modelos-fluxo-contabilistico.md | Core |
-| BK-MF8-05 | MF8 | S12 | Andre | RNF34 | - | docs/planificacao/guias-bk/MF8/BK-MF8-05-insights-devem-incluir-explicacao-e-origem-dos-dados-usados.md | Reforco |
-| BK-MF8-06 | MF8 | S12 | Pedro | RNF35 | - | docs/planificacao/guias-bk/MF8/BK-MF8-06-ia-nao-altera-dados-contabilisticos-apenas-analisa-e-recomenda.md | Reforco |
-| BK-MF8-07 | MF8 | S12 | Andre | RNF36 | - | docs/planificacao/guias-bk/MF8/BK-MF8-07-alertas-configuraveis-ativar-desativar-tipos.md | Core |
-| BK-MF8-08 | MF8 | S12 | Pedro | RNF37 | - | docs/planificacao/guias-bk/MF8/BK-MF8-08-ia-deve-evitar-enviesamentos-e-sugerir-acoes-baseadas-em-dados-reais.md | Core |
-| BK-MF8-09 | MF8 | S12 | Sofia | RNF38 | - | docs/planificacao/guias-bk/MF8/BK-MF8-09-interface-em-portugues-de-portugal.md | Reforco |
-| BK-MF8-10 | MF8 | S12 | Sofia | RNF39 | - | docs/planificacao/guias-bk/MF8/BK-MF8-10-preparado-para-futura-traducao-suporte-i18n-basico.md | Core |
-| BK-MF8-11 | MF8 | S12 | Sofia | RNF40 | - | docs/planificacao/guias-bk/MF8/BK-MF8-11-datas-moedas-e-separadores-no-padrao-europeu.md | Core |
+| BK-MF6-06 | MF6 | S10-S11 | Andre | RNF12 | - | docs/planificacao/guias-bk/MF6/BK-MF6-06-toda-a-comunicacao-deve-usar-https-tls-1-2.md | Reforco |
+| BK-MF6-07 | MF6 | S10-S11 | Pedro | RNF13 | - | docs/planificacao/guias-bk/MF6/BK-MF6-07-passwords-devem-usar-bcrypt-com-salt-seguro.md | Reforco |
+| BK-MF6-08 | MF6 | S10-S11 | Oleksii | RNF14 | - | docs/planificacao/guias-bk/MF6/BK-MF6-08-sessoes-com-cookies-httponly-secure-samesite.md | Reforco |
+| BK-MF6-09 | MF6 | S10-S11 | Andre | RNF15 | - | docs/planificacao/guias-bk/MF6/BK-MF6-09-prevenir-ataques-sql-nosql-injection-xss-csrf-brute-force.md | Reforco |
+| BK-MF6-10 | MF6 | S10-S11 | Pedro | RNF16 | - | docs/planificacao/guias-bk/MF6/BK-MF6-10-chaves-de-api-e-credenciais-apenas-em-variaveis-de-ambiente.md | Reforco |
+| BK-MF6-11 | MF6 | S10-S11 | Oleksii | RNF17 | - | docs/planificacao/guias-bk/MF6/BK-MF6-11-auditoria-obrigatoria-em-operacoes-sensiveis.md | Reforco |
+| BK-MF7-01 | MF7 | S11-S12 | Pedro | RNF18 | - | docs/planificacao/guias-bk/MF7/BK-MF7-01-backups-automaticos-diarios-com-restauracao-possivel.md | Core |
+| BK-MF7-02 | MF7 | S11-S12 | Andre | RNF19 | - | docs/planificacao/guias-bk/MF7/BK-MF7-02-cumprir-obrigacoes-legais-de-retencao-10-anos-contabilidade.md | Reforco |
+| BK-MF7-03 | MF7 | S11-S12 | Pedro | RNF20 | - | docs/planificacao/guias-bk/MF7/BK-MF7-03-compativel-com-chrome-edge-firefox-e-safari.md | Reforco |
+| BK-MF7-04 | MF7 | S11-S12 | Sofia | RNF21 | - | docs/planificacao/guias-bk/MF7/BK-MF7-04-integracao-com-servicos-de-email-recuperacao-de-password-alertas.md | Reforco |
+| BK-MF7-05 | MF7 | S11-S12 | Sofia | RNF22 | - | docs/planificacao/guias-bk/MF7/BK-MF7-05-exportacoes-disponiveis-em-csv-excel-e-pdf.md | Core |
+| BK-MF7-06 | MF7 | S11-S12 | Oleksii | RNF23 | - | docs/planificacao/guias-bk/MF7/BK-MF7-06-importacoes-csv-excel-com-validacao-e-logs-de-erro.md | Reforco |
+| BK-MF7-07 | MF7 | S11-S12 | Andre | RNF24 | - | docs/planificacao/guias-bk/MF7/BK-MF7-07-geracao-de-saf-t-conforme-especificacoes-legais-pt.md | Reforco |
+| BK-MF7-08 | MF7 | S11-S12 | Sofia | RNF25 | - | docs/planificacao/guias-bk/MF7/BK-MF7-08-api-interna-estavel-para-futuras-integracoes.md | Core |
+| BK-MF7-09 | MF7 | S11-S12 | Pedro | RNF26 | - | docs/planificacao/guias-bk/MF7/BK-MF7-09-backend-modular-por-dominio-vendas-compras-inventario-bancos-contabilidade-ia.md | Reforco |
+| BK-MF7-10 | MF7 | S11-S12 | Sofia | RNF27 | - | docs/planificacao/guias-bk/MF7/BK-MF7-10-frontend-modular-com-componentes-reutilizaveis.md | Reforco |
+| BK-MF7-11 | MF7 | S11-S12 | Andre | RNF28 | - | docs/planificacao/guias-bk/MF7/BK-MF7-11-testes-automatizados-para-modulos-criticos-faturacao-iva-balancetes-reconciliacao.md | Core |
+| BK-MF8-01 | MF8 | S12 | Oleksii | RNF29 | - | docs/planificacao/guias-bk/MF8/BK-MF8-01-logs-estruturados-info-warn-error-audit.md | Reforco |
+| BK-MF8-02 | MF8 | S12 | Pedro | RNF30 | - | docs/planificacao/guias-bk/MF8/BK-MF8-02-endpoint-de-health-check.md | Core |
+| BK-MF8-03 | MF8 | S12 | Sofia | RNF31 | - | docs/planificacao/guias-bk/MF8/BK-MF8-03-deploy-com-rollback.md | Core |
+| BK-MF8-04 | MF8 | S12 | Sofia | RNF32 | - | docs/planificacao/guias-bk/MF8/BK-MF8-04-documentacao-tecnica-minima-arquitetura-modelos-fluxo-contabilistico.md | Core |
+| BK-MF8-05 | MF8 | S12 | Andre | RNF33 | - | docs/planificacao/guias-bk/MF8/BK-MF8-05-insights-devem-incluir-explicacao-e-origem-dos-dados-usados.md | Reforco |
+| BK-MF8-06 | MF8 | S12 | Pedro | RNF34 | - | docs/planificacao/guias-bk/MF8/BK-MF8-06-ia-nao-altera-dados-contabilisticos-apenas-analisa-e-recomenda.md | Reforco |
+| BK-MF8-07 | MF8 | S12 | Andre | RNF35 | - | docs/planificacao/guias-bk/MF8/BK-MF8-07-alertas-configuraveis-ativar-desativar-tipos.md | Core |
+| BK-MF8-08 | MF8 | S12 | Pedro | RNF36 | - | docs/planificacao/guias-bk/MF8/BK-MF8-08-ia-deve-evitar-enviesamentos-e-sugerir-acoes-baseadas-em-dados-reais.md | Core |
+| BK-MF8-09 | MF8 | S12 | Sofia | RNF37 | - | docs/planificacao/guias-bk/MF8/BK-MF8-09-interface-em-portugues-de-portugal.md | Reforco |
+| BK-MF8-11 | MF8 | S12 | Sofia | RNF38 | - | docs/planificacao/guias-bk/MF8/BK-MF8-11-datas-moedas-e-separadores-no-padrao-europeu.md | Core |
 
 ## Changelog
 - `2026-04-13`: Contrato de campos BK formalizado com regra de derivacao Core/Reforco.

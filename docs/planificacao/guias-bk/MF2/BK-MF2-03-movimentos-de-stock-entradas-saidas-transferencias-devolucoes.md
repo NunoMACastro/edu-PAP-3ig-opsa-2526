@@ -16,7 +16,7 @@
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF2-04`
 - `guia_path`: `docs/planificacao/guias-bk/MF2/BK-MF2-03-movimentos-de-stock-entradas-saidas-transferencias-devolucoes.md`
-- `last_updated`: `2026-04-13`
+- `last_updated`: `2026-04-17`
 
 ## Contexto do BK
 - Entrega alvo: implementar `Movimentos de stock: entradas, saídas, transferências, devoluções.` com rastreabilidade direta ao requisito `RF27`.
@@ -25,7 +25,8 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Executar `Movimentos de stock: entradas, saídas, transferências, devoluções.` com rastreabilidade explicita para `RF27` e demonstracao tecnica no contexto da sprint `S05-S06`.
+Executar `Movimentos de stock: entradas, saídas, transferências, devoluções.` com autonomia técnica, garantindo cobertura do requisito `RF27` e evidência objetiva para avaliação.
+- Intenção pedagógica da macro `MF2`: Garantir integridade de inventario e contabilidade operacional por evento..
 
 ### Pre-requisitos
 - Ler o requisito `RF27` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.
@@ -54,13 +55,13 @@ Executar `Movimentos de stock: entradas, saídas, transferências, devoluções.
 - Artefactos de referencia: `MATRIZ-CANONICA-BK.md`, `BACKLOG-MVP.md`, `PLANO-SPRINTS.md`
 
 ### Passos
-1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do BK-MF2-03 e o requisito `RF27`.
-2. Verificar pre-condicoes tecnicas (BK-MF0-11, BK-MF0-12) e validar ambiente local antes de implementar.
-3. Definir contrato de entrada/saida do fluxo principal para `Movimentos de stock: entradas, saídas, transferências, devoluções.`.
-4. Implementar caminho principal com registo de logs/erros relevantes para auditoria.
+1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do `BK-MF2-03` e o requisito `RF27`.
+2. Validar dependencias técnicas (`BK-MF0-11, BK-MF0-12`) e preparar dados de teste mínimos para `Movimentos de stock: entradas, saídas, transferências, devoluções.`.
+3. Implementar regra operacional de stock/centro analítico/lançamento garantindo consistência transacional.
+4. Validar impacto em saldos e trilho de auditoria após a operação principal.
 5. Executar pelo menos 1 teste de smoke orientado ao caso principal do BK.
-6. Executar cenarios negativos obrigatorios e registar resultado observado (mensagem/codigo/efeito).
-7. Aplicar reforco tecnico (robustez/performance/seguranca) associado ao risco principal do BK.
+6. Executar cenários negativos obrigatórios e registar resultado observado (mensagem/código/efeito).
+7. Aplicar reforço técnico (robustez/performance/segurança) no risco principal identificado para este BK.
 8. Atualizar evidence (`pr`, `proof`, `neg`) com artefactos concretos e verificaveis.
 
 ### Validacao
@@ -116,4 +117,4 @@ Executar em transacao para preservar integridade do inventario e impedir estados
 - `neg`: cenario negativo executado com resultado esperado.
 
 ## Changelog
-- `2026-04-13`: guia migrado para naming com slug e template pedagogico-operacional executavel.
+- `2026-04-17`: guia migrado para naming com slug e template pedagogico-operacional executavel.

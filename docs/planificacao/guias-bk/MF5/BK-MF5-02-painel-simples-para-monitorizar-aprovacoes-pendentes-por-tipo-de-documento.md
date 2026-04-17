@@ -1,11 +1,11 @@
-# BK-MF5-01 - Configurar níveis de aprovação com limites financeiros e escalamentos.
+# BK-MF5-02 - Painel simples para monitorizar aprovações pendentes por tipo de documento.
 
 ## Header
-- `doc_id`: `GUIA-BK-MF5-01`
-- `bk_id`: `BK-MF5-01`
+- `doc_id`: `GUIA-BK-MF5-02`
+- `bk_id`: `BK-MF5-02`
 - `macro`: `MF5`
-- `owner`: `Pedro`
-- `apoio`: `Andre`
+- `owner`: `Sofia`
+- `apoio`: `Pedro`
 - `prioridade`: `P1`
 - `estado`: `TODO`
 - `esforco`: `S`
@@ -14,18 +14,19 @@
 - `fase_documental`: `Fase 2`
 - `sprint`: `S09-S10`
 - `core_or_reforco`: `Core`
-- `proximo_bk`: `BK-MF5-02`
-- `guia_path`: `docs/planificacao/guias-bk/MF5/BK-MF5-01-configurar-niveis-de-aprovacao-com-limites-financeiros-e-escalamentos.md`
-- `last_updated`: `2026-04-13`
+- `proximo_bk`: `BK-MF5-03`
+- `guia_path`: `docs/planificacao/guias-bk/MF5/BK-MF5-02-painel-simples-para-monitorizar-aprovacoes-pendentes-por-tipo-de-documento.md`
+- `last_updated`: `2026-04-17`
 
 ## Contexto do BK
-- Entrega alvo: implementar `Configurar níveis de aprovação com limites financeiros e escalamentos.` com rastreabilidade direta ao requisito `RF61`.
+- Entrega alvo: implementar `Painel simples para monitorizar aprovações pendentes por tipo de documento.` com rastreabilidade direta ao requisito `RF61`.
 - Foco tecnico da macro: experiencia de utilizacao e fluxos transversais de negocio.
 - Regra de governanca: nao alterar IDs nem contratos de dados (`bk_id/mf/sprint/owner/rf_rnf/deps/guia_path/core_or_reforco`).
 
 ## Bloco pedagogico
 ### Objetivo
-Executar `Configurar níveis de aprovação com limites financeiros e escalamentos.` com rastreabilidade explicita para `RF61` e demonstracao tecnica no contexto da sprint `S09-S10`.
+Executar `Painel simples para monitorizar aprovações pendentes por tipo de documento.` com autonomia técnica, garantindo cobertura do requisito `RF61` e evidência objetiva para avaliação.
+- Intenção pedagógica da macro `MF5`: Tornar a UX previsivel, clara e orientada a fluxos reais de trabalho..
 
 ### Pre-requisitos
 - Ler o requisito `RF61` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.
@@ -48,18 +49,18 @@ Executar `Configurar níveis de aprovação com limites financeiros e escalament
 
 ## Bloco operacional
 ### Entrada
-- BK: `BK-MF5-01`
+- BK: `BK-MF5-02`
 - Requisito: `RF61`
 - Dependencias: `BK-MF4-12`
 - Artefactos de referencia: `MATRIZ-CANONICA-BK.md`, `BACKLOG-MVP.md`, `PLANO-SPRINTS.md`
 
 ### Passos
-1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do BK-MF5-01 e o requisito `RF61`.
-2. Verificar pre-condicoes tecnicas (BK-MF4-12) e validar ambiente local antes de implementar.
-3. Definir contrato de entrada/saida do fluxo principal para `Configurar níveis de aprovação com limites financeiros e escalamentos.`.
-4. Implementar caminho principal com registo de logs/erros relevantes para auditoria.
+1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do `BK-MF5-02` e o requisito `RF61`.
+2. Validar dependencias técnicas (`BK-MF4-12`) e preparar dados de teste mínimos para `Painel simples para monitorizar aprovações pendentes por tipo de documento.`.
+3. Implementar comportamento UX transversal (validação, feedback, consistência visual e erro claro).
+4. Executar testes de usabilidade rápida em cenário real de operação (desktop e tablet).
 5. Executar pelo menos 1 teste de smoke orientado ao caso principal do BK.
-6. Executar cenarios negativos obrigatorios e registar resultado observado (mensagem/codigo/efeito).
+6. Executar cenários negativos obrigatórios e registar resultado observado (mensagem/código/efeito).
 
 ### Validacao
 - [ ] Smoke: fluxo principal executa sem erro bloqueante.
@@ -68,25 +69,24 @@ Executar `Configurar níveis de aprovação com limites financeiros e escalament
 - [ ] Evidencia: `pr`, `proof`, `neg` preenchidos com artefactos reais.
 
 ### Handoff
-- Proximo BK recomendado: `BK-MF5-02`
+- Proximo BK recomendado: `BK-MF5-03`
 - Registar no handoff: estado de dependencias, risco aberto e decisao tomada.
 - Se houver bloqueio >48h, escalar no scorecard da sprint.
 
 ## Snippet tecnico aplicavel
-**Validador base de entrada de dominio**
+**Validador de output auditavel**
 
 ```ts
-type Payload = Record<string, unknown>;
+type Resultado = { status: 'ok' | 'erro'; mensagem: string; fonte?: string };
 
-export function validarEntradaBK(payload: Payload) {
-  const camposObrigatorios = ['empresaId', 'utilizadorId'];
-  const emFalta = camposObrigatorios.filter((c) => !payload[c]);
-  if (emFalta.length) throw new Error(`BK BK-MF5-01: faltam campos ${emFalta.join(', ')}`);
-  return { ok: true, bk: 'BK-MF5-01', payload };
+export function validarResultado(res: Resultado) {
+  if (res.status === 'ok' && !res.mensagem) throw new Error('Mensagem obrigatoria');
+  if (res.status === 'ok' && !res.fonte) throw new Error('Fonte obrigatoria para rastreabilidade');
+  return { bk: 'BK-MF5-02', validado: true };
 }
 ```
 
-Ponto de entrada seguro para reduzir erros de dados e facilitar diagnostico nos testes de smoke/negativos.
+Impõe resposta auditável e rastreável em fluxos de IA/governança/operação final.
 
 ## Criterios de aceite
 - BK implementado no scope definido, sem romper dependencias.
@@ -100,4 +100,4 @@ Ponto de entrada seguro para reduzir erros de dados e facilitar diagnostico nos 
 - `neg`: cenario negativo executado com resultado esperado.
 
 ## Changelog
-- `2026-04-13`: guia migrado para naming com slug e template pedagogico-operacional executavel.
+- `2026-04-17`: guia migrado para naming com slug e template pedagogico-operacional executavel.

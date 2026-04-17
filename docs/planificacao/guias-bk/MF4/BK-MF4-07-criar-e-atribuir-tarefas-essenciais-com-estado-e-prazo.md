@@ -1,4 +1,4 @@
-# BK-MF4-07 - Criar e atribuir tarefas com estado e prazo.
+# BK-MF4-07 - Criar e atribuir tarefas essenciais com estado e prazo.
 
 ## Header
 - `doc_id`: `GUIA-BK-MF4-07`
@@ -10,25 +10,26 @@
 - `estado`: `TODO`
 - `esforco`: `S`
 - `dependencias`: `-`
-- `rf_rnf`: `RF55`
+- `rf_rnf`: `RF54`
 - `fase_documental`: `Fase 2`
 - `sprint`: `S08-S09`
 - `core_or_reforco`: `Core`
 - `proximo_bk`: `BK-MF4-08`
-- `guia_path`: `docs/planificacao/guias-bk/MF4/BK-MF4-07-criar-e-atribuir-tarefas-com-estado-e-prazo.md`
-- `last_updated`: `2026-04-13`
+- `guia_path`: `docs/planificacao/guias-bk/MF4/BK-MF4-07-criar-e-atribuir-tarefas-essenciais-com-estado-e-prazo.md`
+- `last_updated`: `2026-04-17`
 
 ## Contexto do BK
-- Entrega alvo: implementar `Criar e atribuir tarefas com estado e prazo.` com rastreabilidade direta ao requisito `RF55`.
+- Entrega alvo: implementar `Criar e atribuir tarefas essenciais com estado e prazo.` com rastreabilidade direta ao requisito `RF54`.
 - Foco tecnico da macro: inteligencia operacional, alertas e governanca de operacoes.
 - Regra de governanca: nao alterar IDs nem contratos de dados (`bk_id/mf/sprint/owner/rf_rnf/deps/guia_path/core_or_reforco`).
 
 ## Bloco pedagogico
 ### Objetivo
-Executar `Criar e atribuir tarefas com estado e prazo.` com rastreabilidade explicita para `RF55` e demonstracao tecnica no contexto da sprint `S08-S09`.
+Executar `Criar e atribuir tarefas essenciais com estado e prazo.` com autonomia técnica, garantindo cobertura do requisito `RF54` e evidência objetiva para avaliação.
+- Intenção pedagógica da macro `MF4`: Operacionalizar IA assistiva com explicabilidade e controlo de risco..
 
 ### Pre-requisitos
-- Ler o requisito `RF55` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.
+- Ler o requisito `RF54` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.
 - Validar dependencias declaradas: `-`.
 - Preparar ambiente para smoke test e validacao negativa.
 
@@ -39,7 +40,7 @@ Executar `Criar e atribuir tarefas com estado e prazo.` com rastreabilidade expl
 
 ### Check de compreensao
 - [ ] Sei justificar porque este BK existe no fluxo da macro `MF4`.
-- [ ] Sei mostrar onde esta o requisito `RF55` no sistema.
+- [ ] Sei mostrar onde esta o requisito `RF54` no sistema.
 - [ ] Sei demonstrar pelo menos 1 negativo relevante do BK.
 
 ### Tempo estimado
@@ -49,17 +50,17 @@ Executar `Criar e atribuir tarefas com estado e prazo.` com rastreabilidade expl
 ## Bloco operacional
 ### Entrada
 - BK: `BK-MF4-07`
-- Requisito: `RF55`
+- Requisito: `RF54`
 - Dependencias: `-`
 - Artefactos de referencia: `MATRIZ-CANONICA-BK.md`, `BACKLOG-MVP.md`, `PLANO-SPRINTS.md`
 
 ### Passos
-1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do BK-MF4-07 e o requisito `RF55`.
-2. Verificar pre-condicoes tecnicas (-) e validar ambiente local antes de implementar.
-3. Definir contrato de entrada/saida do fluxo principal para `Criar e atribuir tarefas com estado e prazo.`.
-4. Implementar caminho principal com registo de logs/erros relevantes para auditoria.
+1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do `BK-MF4-07` e o requisito `RF54`.
+2. Validar dependencias técnicas (`-`) e preparar dados de teste mínimos para `Criar e atribuir tarefas essenciais com estado e prazo.`.
+3. Implementar fluxo de IA/alerta/tarefa com fonte explícita e critério de decisão audível.
+4. Validar que a resposta/alerta é explicável e não executa alterações contabilísticas automáticas.
 5. Executar pelo menos 1 teste de smoke orientado ao caso principal do BK.
-6. Executar cenarios negativos obrigatorios e registar resultado observado (mensagem/codigo/efeito).
+6. Executar cenários negativos obrigatórios e registar resultado observado (mensagem/código/efeito).
 
 ### Validacao
 - [ ] Smoke: fluxo principal executa sem erro bloqueante.
@@ -73,20 +74,19 @@ Executar `Criar e atribuir tarefas com estado e prazo.` com rastreabilidade expl
 - Se houver bloqueio >48h, escalar no scorecard da sprint.
 
 ## Snippet tecnico aplicavel
-**Validador base de entrada de dominio**
+**Validador de output auditavel**
 
 ```ts
-type Payload = Record<string, unknown>;
+type Resultado = { status: 'ok' | 'erro'; mensagem: string; fonte?: string };
 
-export function validarEntradaBK(payload: Payload) {
-  const camposObrigatorios = ['empresaId', 'utilizadorId'];
-  const emFalta = camposObrigatorios.filter((c) => !payload[c]);
-  if (emFalta.length) throw new Error(`BK BK-MF4-07: faltam campos ${emFalta.join(', ')}`);
-  return { ok: true, bk: 'BK-MF4-07', payload };
+export function validarResultado(res: Resultado) {
+  if (res.status === 'ok' && !res.mensagem) throw new Error('Mensagem obrigatoria');
+  if (res.status === 'ok' && !res.fonte) throw new Error('Fonte obrigatoria para rastreabilidade');
+  return { bk: 'BK-MF4-07', validado: true };
 }
 ```
 
-Ponto de entrada seguro para reduzir erros de dados e facilitar diagnostico nos testes de smoke/negativos.
+Impõe resposta auditável e rastreável em fluxos de IA/governança/operação final.
 
 ## Criterios de aceite
 - BK implementado no scope definido, sem romper dependencias.
@@ -100,4 +100,4 @@ Ponto de entrada seguro para reduzir erros de dados e facilitar diagnostico nos 
 - `neg`: cenario negativo executado com resultado esperado.
 
 ## Changelog
-- `2026-04-13`: guia migrado para naming com slug e template pedagogico-operacional executavel.
+- `2026-04-17`: guia migrado para naming com slug e template pedagogico-operacional executavel.

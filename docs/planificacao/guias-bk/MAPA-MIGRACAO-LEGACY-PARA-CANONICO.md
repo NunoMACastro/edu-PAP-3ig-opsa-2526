@@ -4,7 +4,7 @@
 - `doc_id`: `MAPA-MIGRACAO`
 - `path`: `docs/planificacao/guias-bk/MAPA-MIGRACAO-LEGACY-PARA-CANONICO.md`
 - `owner`: `Nuno`
-- `last_updated`: `2026-04-13`
+- `last_updated`: `2026-04-17`
 
 ## Nota de governanca
 - IDs BK mantidos sem alteracao (`BK-MF*-**`).
@@ -57,27 +57,25 @@
 | legacy-RF41 | MF3/BK-MF3-05-upload-de-documentos-com-ocr-ler-nif-data-total-iva.md |
 | legacy-RF42 | MF3/BK-MF3-06-importar-csv-excel-de-clientes-fornecedores-artigos-e-extratos.md |
 | legacy-RF43 | MF3/BK-MF3-07-exportar-saf-t-pt-de-faturacao-e-contabilidade.md |
-| legacy-RF44 | MF3/BK-MF3-08-opcional-integracao-com-e-fatura.md |
-| legacy-RF45 | MF3/BK-MF3-09-mapear-documentos-de-integracao-para-centros-de-custo.md |
-| legacy-RF46 | MF3/BK-MF3-10-relatorios-de-vendas-compras-margens-e-stock.md |
-| legacy-RF47 | MF3/BK-MF3-11-kpis-executivos-receita-custos-ebitda-pmr-pmp.md |
-| legacy-RF48 | MF3/BK-MF3-12-personalizacao-de-relatorios-e-exportacao-pdf-excel.md |
-| legacy-RF49 | MF4/BK-MF4-01-gerar-insights-automaticos-tendencias-riscos-clientes-artigos-parados.md |
-| legacy-RF50 | MF4/BK-MF4-02-sugerir-acoes-ajustar-precos-negociar-fornecedor-repor-stock.md |
-| legacy-RF51 | MF4/BK-MF4-03-permitir-perguntas-em-linguagem-natural-e-responder-com-dados-e-fonte.md |
-| legacy-RF52 | MF4/BK-MF4-04-emitir-alertas-inteligentes-cashflow-desvios-ruturas.md |
-| legacy-RF53 | MF4/BK-MF4-05-mostrar-explicacoes-e-fontes-de-cada-insight.md |
-| legacy-RF54 | MF4/BK-MF4-06-criar-editar-lembretes-prazos-pagamentos-impostos.md |
-| legacy-RF55 | MF4/BK-MF4-07-criar-e-atribuir-tarefas-com-estado-e-prazo.md |
-| legacy-RF56 | MF4/BK-MF4-08-notificacoes-in-app-email-para-lembretes-e-alertas-da-ia.md |
-| legacy-RF57 | MF4/BK-MF4-09-registar-auditoria-quem-quando-o-que-em-operacoes-sensiveis.md |
-| legacy-RF58 | MF4/BK-MF4-10-registar-logs-de-integracao-uploads-saf-t-reconciliacoes.md |
-| legacy-RF59 | MF4/BK-MF4-11-permitir-reabertura-de-periodos-apenas-com-registo-de-motivo.md |
-| legacy-RF60 | MF4/BK-MF4-12-definir-workflows-de-aprovacao-por-documento-compra-venda-pagamento.md |
-| legacy-RF61 | MF5/BK-MF5-01-configurar-niveis-de-aprovacao-com-limites-financeiros-e-escalamentos.md |
-| legacy-RF62 | MF5/BK-MF5-02-painel-para-monitorizar-aprovacoes-pendentes-e-sla-por-tipo-de-documento.md |
-| legacy-RF63 | MF5/BK-MF5-03-agendar-pagamentos-recebimentos-futuros-com-integracao-as-previsoes-de-tesouraria.md |
-| legacy-RF64 | MF5/BK-MF5-04-gerir-linhas-de-credito-limites-utilizacao-alertas-por-banco.md |
+| legacy-RF44 | MF3/BK-MF3-09-mapear-documentos-de-integracao-para-centros-de-custo.md |
+| legacy-RF45 | MF3/BK-MF3-10-relatorios-de-vendas-compras-margens-e-stock.md |
+| legacy-RF46 | MF3/BK-MF3-11-kpis-executivos-receita-custos-ebitda-pmr-pmp.md |
+| legacy-RF47 | MF3/BK-MF3-12-personalizacao-de-relatorios-e-exportacao-pdf-excel.md |
+| legacy-RF48 | MF4/BK-MF4-01-gerar-insights-automaticos-tendencias-riscos-clientes-artigos-parados.md |
+| legacy-RF49 | MF4/BK-MF4-02-sugerir-acoes-ajustar-precos-negociar-fornecedor-repor-stock.md |
+| legacy-RF50 | MF4/BK-MF4-03-permitir-perguntas-em-linguagem-natural-e-responder-com-dados-e-fonte.md |
+| legacy-RF51 | MF4/BK-MF4-04-emitir-alertas-inteligentes-cashflow-desvios-ruturas.md |
+| legacy-RF52 | MF4/BK-MF4-05-mostrar-explicacoes-e-fontes-de-cada-insight.md |
+| legacy-RF53 | MF4/BK-MF4-06-criar-editar-lembretes-essenciais-prazos-pagamentos-e-impostos.md |
+| legacy-RF54 | MF4/BK-MF4-07-criar-e-atribuir-tarefas-essenciais-com-estado-e-prazo.md |
+| legacy-RF55 | MF4/BK-MF4-08-notificacoes-in-app-para-lembretes-e-alertas-criticos-da-ia.md |
+| legacy-RF56 | MF4/BK-MF4-09-registar-auditoria-quem-quando-o-que-em-operacoes-sensiveis.md |
+| legacy-RF57 | MF4/BK-MF4-10-registar-logs-de-integracao-uploads-saf-t-reconciliacoes.md |
+| legacy-RF58 | MF4/BK-MF4-11-permitir-reabertura-de-periodos-apenas-com-registo-de-motivo.md |
+| legacy-RF59 | MF4/BK-MF4-12-definir-workflows-de-aprovacao-por-documento-compra-venda-pagamento.md |
+| legacy-RF60 | MF5/BK-MF5-01-configurar-niveis-de-aprovacao-essenciais-com-limites-financeiros.md |
+| legacy-RF61 | MF5/BK-MF5-02-painel-simples-para-monitorizar-aprovacoes-pendentes-por-tipo-de-documento.md |
+| legacy-RF62 | MF5/BK-MF5-03-agendar-pagamentos-recebimentos-futuros-com-integracao-as-previsoes-de-tesouraria.md |
 | legacy-RNF01 | MF5/BK-MF5-05-interface-intuitiva-clara-e-consistente-entre-modulos-vendas-compras-inventario-contabilidade.md |
 | legacy-RNF02 | MF5/BK-MF5-06-layout-responsivo-desktop-tablet-mobile-com-grelhas-e-tabelas-adaptadas.md |
 | legacy-RNF03 | MF5/BK-MF5-07-a-interface-deve-usar-feedback-imediato-em-todas-as-acoes-guardar-validar-uploads.md |
@@ -89,35 +87,33 @@
 | legacy-RNF09 | MF6/BK-MF6-02-suportar-50-utilizadores-simultaneos-por-empresa-sem-degradacao.md |
 | legacy-RNF10 | MF6/BK-MF6-03-reconciliacao-bancaria-deve-sugerir-correspondencias-em-3-segundos.md |
 | legacy-RNF11 | MF6/BK-MF6-04-calculo-de-custo-fifo-deve-ser-incremental-e-nao-bloquear-operacoes.md |
-| legacy-RNF12 | MF6/BK-MF6-05-arquitetura-preparada-para-escalar-horizontalmente.md |
-| legacy-RNF13 | MF6/BK-MF6-06-toda-a-comunicacao-deve-usar-https-tls-1-2.md |
-| legacy-RNF14 | MF6/BK-MF6-07-passwords-devem-usar-bcrypt-com-salt-seguro.md |
-| legacy-RNF15 | MF6/BK-MF6-08-sessoes-com-cookies-httponly-secure-samesite.md |
-| legacy-RNF16 | MF6/BK-MF6-09-prevenir-ataques-sql-nosql-injection-xss-csrf-brute-force.md |
-| legacy-RNF17 | MF6/BK-MF6-10-chaves-de-api-e-credenciais-apenas-em-variaveis-de-ambiente.md |
-| legacy-RNF18 | MF6/BK-MF6-11-auditoria-obrigatoria-em-operacoes-sensiveis.md |
-| legacy-RNF19 | MF7/BK-MF7-01-backups-automaticos-diarios-com-restauracao-possivel.md |
-| legacy-RNF20 | MF7/BK-MF7-02-cumprir-obrigacoes-legais-de-retencao-10-anos-contabilidade.md |
-| legacy-RNF21 | MF7/BK-MF7-03-compativel-com-chrome-edge-firefox-e-safari.md |
-| legacy-RNF22 | MF7/BK-MF7-04-integracao-com-servicos-de-email-recuperacao-de-password-alertas.md |
-| legacy-RNF23 | MF7/BK-MF7-05-exportacoes-disponiveis-em-csv-excel-e-pdf.md |
-| legacy-RNF24 | MF7/BK-MF7-06-importacoes-csv-excel-com-validacao-e-logs-de-erro.md |
-| legacy-RNF25 | MF7/BK-MF7-07-geracao-de-saf-t-conforme-especificacoes-legais-pt.md |
-| legacy-RNF26 | MF7/BK-MF7-08-api-interna-estavel-para-futuras-integracoes.md |
-| legacy-RNF27 | MF7/BK-MF7-09-backend-modular-por-dominio-vendas-compras-inventario-bancos-contabilidade-ia.md |
-| legacy-RNF28 | MF7/BK-MF7-10-frontend-modular-com-componentes-reutilizaveis.md |
-| legacy-RNF29 | MF7/BK-MF7-11-testes-automatizados-para-modulos-criticos-faturacao-iva-balancetes-reconciliacao.md |
-| legacy-RNF30 | MF8/BK-MF8-01-logs-estruturados-info-warn-error-audit.md |
-| legacy-RNF31 | MF8/BK-MF8-02-endpoint-de-health-check.md |
-| legacy-RNF32 | MF8/BK-MF8-03-deploy-com-rollback.md |
-| legacy-RNF33 | MF8/BK-MF8-04-documentacao-tecnica-minima-arquitetura-modelos-fluxo-contabilistico.md |
-| legacy-RNF34 | MF8/BK-MF8-05-insights-devem-incluir-explicacao-e-origem-dos-dados-usados.md |
-| legacy-RNF35 | MF8/BK-MF8-06-ia-nao-altera-dados-contabilisticos-apenas-analisa-e-recomenda.md |
-| legacy-RNF36 | MF8/BK-MF8-07-alertas-configuraveis-ativar-desativar-tipos.md |
-| legacy-RNF37 | MF8/BK-MF8-08-ia-deve-evitar-enviesamentos-e-sugerir-acoes-baseadas-em-dados-reais.md |
-| legacy-RNF38 | MF8/BK-MF8-09-interface-em-portugues-de-portugal.md |
-| legacy-RNF39 | MF8/BK-MF8-10-preparado-para-futura-traducao-suporte-i18n-basico.md |
-| legacy-RNF40 | MF8/BK-MF8-11-datas-moedas-e-separadores-no-padrao-europeu.md |
+| legacy-RNF12 | MF6/BK-MF6-06-toda-a-comunicacao-deve-usar-https-tls-1-2.md |
+| legacy-RNF13 | MF6/BK-MF6-07-passwords-devem-usar-bcrypt-com-salt-seguro.md |
+| legacy-RNF14 | MF6/BK-MF6-08-sessoes-com-cookies-httponly-secure-samesite.md |
+| legacy-RNF15 | MF6/BK-MF6-09-prevenir-ataques-sql-nosql-injection-xss-csrf-brute-force.md |
+| legacy-RNF16 | MF6/BK-MF6-10-chaves-de-api-e-credenciais-apenas-em-variaveis-de-ambiente.md |
+| legacy-RNF17 | MF6/BK-MF6-11-auditoria-obrigatoria-em-operacoes-sensiveis.md |
+| legacy-RNF18 | MF7/BK-MF7-01-backups-automaticos-diarios-com-restauracao-possivel.md |
+| legacy-RNF19 | MF7/BK-MF7-02-cumprir-obrigacoes-legais-de-retencao-10-anos-contabilidade.md |
+| legacy-RNF20 | MF7/BK-MF7-03-compativel-com-chrome-edge-firefox-e-safari.md |
+| legacy-RNF21 | MF7/BK-MF7-04-integracao-com-servicos-de-email-recuperacao-de-password-alertas.md |
+| legacy-RNF22 | MF7/BK-MF7-05-exportacoes-disponiveis-em-csv-excel-e-pdf.md |
+| legacy-RNF23 | MF7/BK-MF7-06-importacoes-csv-excel-com-validacao-e-logs-de-erro.md |
+| legacy-RNF24 | MF7/BK-MF7-07-geracao-de-saf-t-conforme-especificacoes-legais-pt.md |
+| legacy-RNF25 | MF7/BK-MF7-08-api-interna-estavel-para-futuras-integracoes.md |
+| legacy-RNF26 | MF7/BK-MF7-09-backend-modular-por-dominio-vendas-compras-inventario-bancos-contabilidade-ia.md |
+| legacy-RNF27 | MF7/BK-MF7-10-frontend-modular-com-componentes-reutilizaveis.md |
+| legacy-RNF28 | MF7/BK-MF7-11-testes-automatizados-para-modulos-criticos-faturacao-iva-balancetes-reconciliacao.md |
+| legacy-RNF29 | MF8/BK-MF8-01-logs-estruturados-info-warn-error-audit.md |
+| legacy-RNF30 | MF8/BK-MF8-02-endpoint-de-health-check.md |
+| legacy-RNF31 | MF8/BK-MF8-03-deploy-com-rollback.md |
+| legacy-RNF32 | MF8/BK-MF8-04-documentacao-tecnica-minima-arquitetura-modelos-fluxo-contabilistico.md |
+| legacy-RNF33 | MF8/BK-MF8-05-insights-devem-incluir-explicacao-e-origem-dos-dados-usados.md |
+| legacy-RNF34 | MF8/BK-MF8-06-ia-nao-altera-dados-contabilisticos-apenas-analisa-e-recomenda.md |
+| legacy-RNF35 | MF8/BK-MF8-07-alertas-configuraveis-ativar-desativar-tipos.md |
+| legacy-RNF36 | MF8/BK-MF8-08-ia-deve-evitar-enviesamentos-e-sugerir-acoes-baseadas-em-dados-reais.md |
+| legacy-RNF37 | MF8/BK-MF8-09-interface-em-portugues-de-portugal.md |
+| legacy-RNF38 | MF8/BK-MF8-11-datas-moedas-e-separadores-no-padrao-europeu.md |
 
 ## Changelog
-- `2026-04-13`: destinos canónicos atualizados para padrão com slug semântico.
+- `2026-04-17`: destinos canónicos atualizados para padrão com slug semântico.

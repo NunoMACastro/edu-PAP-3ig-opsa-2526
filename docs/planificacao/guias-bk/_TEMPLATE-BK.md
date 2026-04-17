@@ -16,7 +16,7 @@
 - `core_or_reforco`: `Core|Reforco`
 - `proximo_bk`: `BK-...|-`
 - `guia_path`: `docs/planificacao/guias-bk/MF*/BK-MF*-**-slug-semantico.md`
-- `last_updated`: `2026-04-13`
+- `last_updated`: `2026-04-17`
 
 ## Contexto do BK
 - Entrega alvo e requisito.

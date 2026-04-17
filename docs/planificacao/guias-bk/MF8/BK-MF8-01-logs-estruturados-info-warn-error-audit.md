@@ -10,25 +10,26 @@
 - `estado`: `TODO`
 - `esforco`: `M`
 - `dependencias`: `-`
-- `rf_rnf`: `RNF30`
+- `rf_rnf`: `RNF29`
 - `fase_documental`: `Fase 3`
 - `sprint`: `S12`
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF8-02`
 - `guia_path`: `docs/planificacao/guias-bk/MF8/BK-MF8-01-logs-estruturados-info-warn-error-audit.md`
-- `last_updated`: `2026-04-13`
+- `last_updated`: `2026-04-17`
 
 ## Contexto do BK
-- Entrega alvo: implementar `Logs estruturados (info, warn, error, audit).` com rastreabilidade direta ao requisito `RNF30`.
+- Entrega alvo: implementar `Logs estruturados (info, warn, error, audit).` com rastreabilidade direta ao requisito `RNF29`.
 - Foco tecnico da macro: operacao final, i18n e fecho para defesa PAP.
 - Regra de governanca: nao alterar IDs nem contratos de dados (`bk_id/mf/sprint/owner/rf_rnf/deps/guia_path/core_or_reforco`).
 
 ## Bloco pedagogico
 ### Objetivo
-Executar `Logs estruturados (info, warn, error, audit).` com rastreabilidade explicita para `RNF30` e demonstracao tecnica no contexto da sprint `S12`.
+Executar `Logs estruturados (info, warn, error, audit).` com autonomia técnica, garantindo cobertura do requisito `RNF29` e evidência objetiva para avaliação.
+- Intenção pedagógica da macro `MF8`: Preparar operacao final, observabilidade e fecho para defesa PAP..
 
 ### Pre-requisitos
-- Ler o requisito `RNF30` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.
+- Ler o requisito `RNF29` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.
 - Validar dependencias declaradas: `-`.
 - Preparar ambiente para smoke test e validacao negativa.
 
@@ -39,7 +40,7 @@ Executar `Logs estruturados (info, warn, error, audit).` com rastreabilidade exp
 
 ### Check de compreensao
 - [ ] Sei justificar porque este BK existe no fluxo da macro `MF8`.
-- [ ] Sei mostrar onde esta o requisito `RNF30` no sistema.
+- [ ] Sei mostrar onde esta o requisito `RNF29` no sistema.
 - [ ] Sei demonstrar pelo menos 1 negativo relevante do BK.
 
 ### Tempo estimado
@@ -49,18 +50,18 @@ Executar `Logs estruturados (info, warn, error, audit).` com rastreabilidade exp
 ## Bloco operacional
 ### Entrada
 - BK: `BK-MF8-01`
-- Requisito: `RNF30`
+- Requisito: `RNF29`
 - Dependencias: `-`
 - Artefactos de referencia: `MATRIZ-CANONICA-BK.md`, `BACKLOG-MVP.md`, `PLANO-SPRINTS.md`
 
 ### Passos
-1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do BK-MF8-01 e o requisito `RNF30`.
-2. Verificar pre-condicoes tecnicas (-) e validar ambiente local antes de implementar.
-3. Definir contrato de entrada/saida do fluxo principal para `Logs estruturados (info, warn, error, audit).`.
-4. Implementar caminho principal com registo de logs/erros relevantes para auditoria.
+1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do `BK-MF8-01` e o requisito `RNF29`.
+2. Validar dependencias técnicas (`-`) e preparar dados de teste mínimos para `Logs estruturados (info, warn, error, audit).`.
+3. Implementar requisito de fecho operacional (observabilidade, deploy, i18n ou governança final).
+4. Validar comportamento em cenário de fecho PAP com evidência pronta para defesa.
 5. Executar pelo menos 1 teste de smoke orientado ao caso principal do BK.
-6. Executar cenarios negativos obrigatorios e registar resultado observado (mensagem/codigo/efeito).
-7. Aplicar reforco tecnico (robustez/performance/seguranca) associado ao risco principal do BK.
+6. Executar cenários negativos obrigatórios e registar resultado observado (mensagem/código/efeito).
+7. Aplicar reforço técnico (robustez/performance/segurança) no risco principal identificado para este BK.
 8. Atualizar evidence (`pr`, `proof`, `neg`) com artefactos concretos e verificaveis.
 
 ### Validacao
@@ -75,20 +76,19 @@ Executar `Logs estruturados (info, warn, error, audit).` com rastreabilidade exp
 - Se houver bloqueio >48h, escalar no scorecard da sprint.
 
 ## Snippet tecnico aplicavel
-**Validador base de entrada de dominio**
+**Validador de output auditavel**
 
 ```ts
-type Payload = Record<string, unknown>;
+type Resultado = { status: 'ok' | 'erro'; mensagem: string; fonte?: string };
 
-export function validarEntradaBK(payload: Payload) {
-  const camposObrigatorios = ['empresaId', 'utilizadorId'];
-  const emFalta = camposObrigatorios.filter((c) => !payload[c]);
-  if (emFalta.length) throw new Error(`BK BK-MF8-01: faltam campos ${emFalta.join(', ')}`);
-  return { ok: true, bk: 'BK-MF8-01', payload };
+export function validarResultado(res: Resultado) {
+  if (res.status === 'ok' && !res.mensagem) throw new Error('Mensagem obrigatoria');
+  if (res.status === 'ok' && !res.fonte) throw new Error('Fonte obrigatoria para rastreabilidade');
+  return { bk: 'BK-MF8-01', validado: true };
 }
 ```
 
-Ponto de entrada seguro para reduzir erros de dados e facilitar diagnostico nos testes de smoke/negativos.
+Impõe resposta auditável e rastreável em fluxos de IA/governança/operação final.
 
 ## Criterios de aceite
 - BK implementado no scope definido, sem romper dependencias.
@@ -102,4 +102,4 @@ Ponto de entrada seguro para reduzir erros de dados e facilitar diagnostico nos 
 - `neg`: cenario negativo executado com resultado esperado.
 
 ## Changelog
-- `2026-04-13`: guia migrado para naming com slug e template pedagogico-operacional executavel.
+- `2026-04-17`: guia migrado para naming com slug e template pedagogico-operacional executavel.

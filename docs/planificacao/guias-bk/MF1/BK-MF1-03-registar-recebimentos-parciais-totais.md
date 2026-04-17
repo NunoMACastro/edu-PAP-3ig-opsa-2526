@@ -16,7 +16,7 @@
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF1-04`
 - `guia_path`: `docs/planificacao/guias-bk/MF1/BK-MF1-03-registar-recebimentos-parciais-totais.md`
-- `last_updated`: `2026-04-13`
+- `last_updated`: `2026-04-17`
 
 ## Contexto do BK
 - Entrega alvo: implementar `Registar recebimentos (parciais/totais).` com rastreabilidade direta ao requisito `RF15`.
@@ -25,7 +25,8 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Executar `Registar recebimentos (parciais/totais).` com rastreabilidade explicita para `RF15` e demonstracao tecnica no contexto da sprint `S03-S04`.
+Executar `Registar recebimentos (parciais/totais).` com autonomia técnica, garantindo cobertura do requisito `RF15` e evidência objetiva para avaliação.
+- Intenção pedagógica da macro `MF1`: Fechar o ciclo comercial minimo com impacto contabilistico validado..
 
 ### Pre-requisitos
 - Ler o requisito `RF15` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.
@@ -54,13 +55,13 @@ Executar `Registar recebimentos (parciais/totais).` com rastreabilidade explicit
 - Artefactos de referencia: `MATRIZ-CANONICA-BK.md`, `BACKLOG-MVP.md`, `PLANO-SPRINTS.md`
 
 ### Passos
-1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do BK-MF1-03 e o requisito `RF15`.
-2. Verificar pre-condicoes tecnicas (-) e validar ambiente local antes de implementar.
-3. Definir contrato de entrada/saida do fluxo principal para `Registar recebimentos (parciais/totais).`.
-4. Implementar caminho principal com registo de logs/erros relevantes para auditoria.
+1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do `BK-MF1-03` e o requisito `RF15`.
+2. Validar dependencias técnicas (`-`) e preparar dados de teste mínimos para `Registar recebimentos (parciais/totais).`.
+3. Implementar fluxo comercial fim-a-fim com cálculo fiscal e registo contabilístico associado.
+4. Validar transição de estados/documentos e coerência entre documento comercial e lançamento.
 5. Executar pelo menos 1 teste de smoke orientado ao caso principal do BK.
-6. Executar cenarios negativos obrigatorios e registar resultado observado (mensagem/codigo/efeito).
-7. Aplicar reforco tecnico (robustez/performance/seguranca) associado ao risco principal do BK.
+6. Executar cenários negativos obrigatórios e registar resultado observado (mensagem/código/efeito).
+7. Aplicar reforço técnico (robustez/performance/segurança) no risco principal identificado para este BK.
 8. Atualizar evidence (`pr`, `proof`, `neg`) com artefactos concretos e verificaveis.
 
 ### Validacao
@@ -75,20 +76,19 @@ Executar `Registar recebimentos (parciais/totais).` com rastreabilidade explicit
 - Se houver bloqueio >48h, escalar no scorecard da sprint.
 
 ## Snippet tecnico aplicavel
-**Validador base de entrada de dominio**
+**Contrato de comando com validacao de permissao**
 
 ```ts
-type Payload = Record<string, unknown>;
+type Contexto = { userId: string; roles: string[]; empresaId: string };
 
-export function validarEntradaBK(payload: Payload) {
-  const camposObrigatorios = ['empresaId', 'utilizadorId'];
-  const emFalta = camposObrigatorios.filter((c) => !payload[c]);
-  if (emFalta.length) throw new Error(`BK BK-MF1-03: faltam campos ${emFalta.join(', ')}`);
-  return { ok: true, bk: 'BK-MF1-03', payload };
+export function validarComando(ctx: Contexto, role: string) {
+  if (!ctx.userId || !ctx.empresaId) throw new Error('Contexto incompleto');
+  if (!ctx.roles.includes(role)) throw new Error(`Permissao insuficiente para RF15`);
+  return { bkId: 'BK-MF1-03', ok: true };
 }
 ```
 
-Ponto de entrada seguro para reduzir erros de dados e facilitar diagnostico nos testes de smoke/negativos.
+Garante pré-condições de identidade e autorização antes de executar regras de negócio.
 
 ## Criterios de aceite
 - BK implementado no scope definido, sem romper dependencias.
@@ -102,4 +102,4 @@ Ponto de entrada seguro para reduzir erros de dados e facilitar diagnostico nos 
 - `neg`: cenario negativo executado com resultado esperado.
 
 ## Changelog
-- `2026-04-13`: guia migrado para naming com slug e template pedagogico-operacional executavel.
+- `2026-04-17`: guia migrado para naming com slug e template pedagogico-operacional executavel.

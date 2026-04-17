@@ -6,7 +6,7 @@
 - `area`: `project`
 - `owner`: `Nuno`
 - `status`: `ativo`
-- `last_updated`: `2026-04-13`
+- `last_updated`: `2026-04-17`
 
 ## Conversao S/M/L
 - `S`: 1 unidade de esforco.
@@ -23,11 +23,11 @@
 | **Total equipa** | **17** |
 
 ## Carga global planeada
-- BK totais: `104`
-- Esforco total: `160` unidades
+- BK totais: `100`
+- Esforco total: `156` unidades
 - Janela de execucao: `12` sprints (`2026-04-13` a `2026-07-05`)
 - Capacidade total da janela: `204` unidades
-- Margem operacional global: `44` unidades (~`27.5%`) para bloqueios, revisoes e defesa
+- Margem operacional global: `48` unidades (~`30.8%`) para bloqueios, revisoes e defesa
 
 ## Rebalanceamento de carga por sprint (realista)
 | Sprint | Periodo | Foco macro | Carga planeada (u) | Buffer semanal (u) | KPI alvo |
@@ -89,3 +89,5 @@
 ## Changelog
 - `2026-04-13`: rebalanceamento de carga por sprint aplicado sem alterar a escala global do plano.
 - `2026-04-13`: janelas de macro atualizadas (`MF2 -> S05-S06`, `MF3 -> S07-S08`) para maior executabilidade pedagogica.
+- `2026-04-17`: métricas globais atualizadas para 100 BK e 156 unidades de esforço no novo escopo OPSA.
+- `2026-04-17`: ownership rebalance aplicado no backlog para reduzir risco de gargalo em S01-S02.

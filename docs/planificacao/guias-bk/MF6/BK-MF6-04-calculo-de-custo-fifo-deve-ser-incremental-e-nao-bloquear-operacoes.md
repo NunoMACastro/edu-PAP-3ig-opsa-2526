@@ -14,9 +14,9 @@
 - `fase_documental`: `Fase 3`
 - `sprint`: `S10-S11`
 - `core_or_reforco`: `Core`
-- `proximo_bk`: `BK-MF6-05`
+- `proximo_bk`: `BK-MF6-06`
 - `guia_path`: `docs/planificacao/guias-bk/MF6/BK-MF6-04-calculo-de-custo-fifo-deve-ser-incremental-e-nao-bloquear-operacoes.md`
-- `last_updated`: `2026-04-13`
+- `last_updated`: `2026-04-17`
 
 ## Contexto do BK
 - Entrega alvo: implementar `Cálculo de custo (FIFO) deve ser incremental e não bloquear operações.` com rastreabilidade direta ao requisito `RNF11`.
@@ -25,7 +25,8 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Executar `Cálculo de custo (FIFO) deve ser incremental e não bloquear operações.` com rastreabilidade explicita para `RNF11` e demonstracao tecnica no contexto da sprint `S10-S11`.
+Executar `Cálculo de custo (FIFO) deve ser incremental e não bloquear operações.` com autonomia técnica, garantindo cobertura do requisito `RNF11` e evidência objetiva para avaliação.
+- Intenção pedagógica da macro `MF6`: Assegurar robustez tecnica de performance, seguranca e continuidade..
 
 ### Pre-requisitos
 - Ler o requisito `RNF11` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.
@@ -54,12 +55,12 @@ Executar `Cálculo de custo (FIFO) deve ser incremental e não bloquear operaç�
 - Artefactos de referencia: `MATRIZ-CANONICA-BK.md`, `BACKLOG-MVP.md`, `PLANO-SPRINTS.md`
 
 ### Passos
-1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do BK-MF6-04 e o requisito `RNF11`.
-2. Verificar pre-condicoes tecnicas (-) e validar ambiente local antes de implementar.
-3. Definir contrato de entrada/saida do fluxo principal para `Cálculo de custo (FIFO) deve ser incremental e não bloquear operações.`.
-4. Implementar caminho principal com registo de logs/erros relevantes para auditoria.
+1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do `BK-MF6-04` e o requisito `RNF11`.
+2. Validar dependencias técnicas (`-`) e preparar dados de teste mínimos para `Cálculo de custo (FIFO) deve ser incremental e não bloquear operações.`.
+3. Aplicar hardening/performance no ponto crítico do BK com medição objetiva do limiar definido.
+4. Executar teste negativo de segurança/performance e registar evidência comparativa antes/depois.
 5. Executar pelo menos 1 teste de smoke orientado ao caso principal do BK.
-6. Executar cenarios negativos obrigatorios e registar resultado observado (mensagem/codigo/efeito).
+6. Executar cenários negativos obrigatórios e registar resultado observado (mensagem/código/efeito).
 
 ### Validacao
 - [ ] Smoke: fluxo principal executa sem erro bloqueante.
@@ -68,7 +69,7 @@ Executar `Cálculo de custo (FIFO) deve ser incremental e não bloquear operaç�
 - [ ] Evidencia: `pr`, `proof`, `neg` preenchidos com artefactos reais.
 
 ### Handoff
-- Proximo BK recomendado: `BK-MF6-05`
+- Proximo BK recomendado: `BK-MF6-06`
 - Registar no handoff: estado de dependencias, risco aberto e decisao tomada.
 - Se houver bloqueio >48h, escalar no scorecard da sprint.
 
@@ -114,4 +115,4 @@ Executar em transacao para preservar integridade do inventario e impedir estados
 - `neg`: cenario negativo executado com resultado esperado.
 
 ## Changelog
-- `2026-04-13`: guia migrado para naming com slug e template pedagogico-operacional executavel.
+- `2026-04-17`: guia migrado para naming com slug e template pedagogico-operacional executavel.

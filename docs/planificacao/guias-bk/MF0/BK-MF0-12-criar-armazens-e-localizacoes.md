@@ -4,8 +4,8 @@
 - `doc_id`: `GUIA-BK-MF0-12`
 - `bk_id`: `BK-MF0-12`
 - `macro`: `MF0`
-- `owner`: `Oleksii`
-- `apoio`: `Andre`
+- `owner`: `Sofia`
+- `apoio`: `Oleksii`
 - `prioridade`: `P1`
 - `estado`: `TODO`
 - `esforco`: `S`
@@ -16,7 +16,7 @@
 - `core_or_reforco`: `Core`
 - `proximo_bk`: `BK-MF1-01`
 - `guia_path`: `docs/planificacao/guias-bk/MF0/BK-MF0-12-criar-armazens-e-localizacoes.md`
-- `last_updated`: `2026-04-13`
+- `last_updated`: `2026-04-17`
 
 ## Contexto do BK
 - Entrega alvo: implementar `Criar armazéns e localizações.` com rastreabilidade direta ao requisito `RF12`.
@@ -25,7 +25,8 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Executar `Criar armazéns e localizações.` com rastreabilidade explicita para `RF12` e demonstracao tecnica no contexto da sprint `S01-S02`.
+Executar `Criar armazéns e localizações.` com autonomia técnica, garantindo cobertura do requisito `RF12` e evidência objetiva para avaliação.
+- Intenção pedagógica da macro `MF0`: Instalar base segura de identidade e dados mestre para desbloquear todo o ERP..
 
 ### Pre-requisitos
 - Ler o requisito `RF12` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.
@@ -54,12 +55,12 @@ Executar `Criar armazéns e localizações.` com rastreabilidade explicita para 
 - Artefactos de referencia: `MATRIZ-CANONICA-BK.md`, `BACKLOG-MVP.md`, `PLANO-SPRINTS.md`
 
 ### Passos
-1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do BK-MF0-12 e o requisito `RF12`.
-2. Verificar pre-condicoes tecnicas (-) e validar ambiente local antes de implementar.
-3. Definir contrato de entrada/saida do fluxo principal para `Criar armazéns e localizações.`.
-4. Implementar caminho principal com registo de logs/erros relevantes para auditoria.
+1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do `BK-MF0-12` e o requisito `RF12`.
+2. Validar dependencias técnicas (`-`) e preparar dados de teste mínimos para `Criar armazéns e localizações.`.
+3. Implementar regras de identidade/perfil com validações de acesso e segregação por empresa.
+4. Executar smoke de autenticação/gestão base e comprovar persistência correta dos dados mestre.
 5. Executar pelo menos 1 teste de smoke orientado ao caso principal do BK.
-6. Executar cenarios negativos obrigatorios e registar resultado observado (mensagem/codigo/efeito).
+6. Executar cenários negativos obrigatórios e registar resultado observado (mensagem/código/efeito).
 
 ### Validacao
 - [ ] Smoke: fluxo principal executa sem erro bloqueante.
@@ -114,4 +115,4 @@ Executar em transacao para preservar integridade do inventario e impedir estados
 - `neg`: cenario negativo executado com resultado esperado.
 
 ## Changelog
-- `2026-04-13`: guia migrado para naming com slug e template pedagogico-operacional executavel.
+- `2026-04-17`: guia migrado para naming com slug e template pedagogico-operacional executavel.

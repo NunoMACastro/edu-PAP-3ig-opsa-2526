@@ -4,31 +4,32 @@
 - `doc_id`: `GUIA-BK-MF4-02`
 - `bk_id`: `BK-MF4-02`
 - `macro`: `MF4`
-- `owner`: `Oleksii`
-- `apoio`: `Andre`
+- `owner`: `Sofia`
+- `apoio`: `Oleksii`
 - `prioridade`: `P1`
 - `estado`: `TODO`
 - `esforco`: `S`
 - `dependencias`: `BK-MF4-01`
-- `rf_rnf`: `RF50`
+- `rf_rnf`: `RF49`
 - `fase_documental`: `Fase 2`
 - `sprint`: `S08-S09`
 - `core_or_reforco`: `Core`
 - `proximo_bk`: `BK-MF4-03`
 - `guia_path`: `docs/planificacao/guias-bk/MF4/BK-MF4-02-sugerir-acoes-ajustar-precos-negociar-fornecedor-repor-stock.md`
-- `last_updated`: `2026-04-13`
+- `last_updated`: `2026-04-17`
 
 ## Contexto do BK
-- Entrega alvo: implementar `Sugerir ações (ajustar preços, negociar fornecedor, repor stock).` com rastreabilidade direta ao requisito `RF50`.
+- Entrega alvo: implementar `Sugerir ações (ajustar preços, negociar fornecedor, repor stock).` com rastreabilidade direta ao requisito `RF49`.
 - Foco tecnico da macro: inteligencia operacional, alertas e governanca de operacoes.
 - Regra de governanca: nao alterar IDs nem contratos de dados (`bk_id/mf/sprint/owner/rf_rnf/deps/guia_path/core_or_reforco`).
 
 ## Bloco pedagogico
 ### Objetivo
-Executar `Sugerir ações (ajustar preços, negociar fornecedor, repor stock).` com rastreabilidade explicita para `RF50` e demonstracao tecnica no contexto da sprint `S08-S09`.
+Executar `Sugerir ações (ajustar preços, negociar fornecedor, repor stock).` com autonomia técnica, garantindo cobertura do requisito `RF49` e evidência objetiva para avaliação.
+- Intenção pedagógica da macro `MF4`: Operacionalizar IA assistiva com explicabilidade e controlo de risco..
 
 ### Pre-requisitos
-- Ler o requisito `RF50` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.
+- Ler o requisito `RF49` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.
 - Validar dependencias declaradas: `BK-MF4-01`.
 - Preparar ambiente para smoke test e validacao negativa.
 
@@ -39,7 +40,7 @@ Executar `Sugerir ações (ajustar preços, negociar fornecedor, repor stock).` 
 
 ### Check de compreensao
 - [ ] Sei justificar porque este BK existe no fluxo da macro `MF4`.
-- [ ] Sei mostrar onde esta o requisito `RF50` no sistema.
+- [ ] Sei mostrar onde esta o requisito `RF49` no sistema.
 - [ ] Sei demonstrar pelo menos 1 negativo relevante do BK.
 
 ### Tempo estimado
@@ -49,17 +50,17 @@ Executar `Sugerir ações (ajustar preços, negociar fornecedor, repor stock).` 
 ## Bloco operacional
 ### Entrada
 - BK: `BK-MF4-02`
-- Requisito: `RF50`
+- Requisito: `RF49`
 - Dependencias: `BK-MF4-01`
 - Artefactos de referencia: `MATRIZ-CANONICA-BK.md`, `BACKLOG-MVP.md`, `PLANO-SPRINTS.md`
 
 ### Passos
-1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do BK-MF4-02 e o requisito `RF50`.
-2. Verificar pre-condicoes tecnicas (BK-MF4-01) e validar ambiente local antes de implementar.
-3. Definir contrato de entrada/saida do fluxo principal para `Sugerir ações (ajustar preços, negociar fornecedor, repor stock).`.
-4. Implementar caminho principal com registo de logs/erros relevantes para auditoria.
+1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do `BK-MF4-02` e o requisito `RF49`.
+2. Validar dependencias técnicas (`BK-MF4-01`) e preparar dados de teste mínimos para `Sugerir ações (ajustar preços, negociar fornecedor, repor stock).`.
+3. Implementar fluxo de IA/alerta/tarefa com fonte explícita e critério de decisão audível.
+4. Validar que a resposta/alerta é explicável e não executa alterações contabilísticas automáticas.
 5. Executar pelo menos 1 teste de smoke orientado ao caso principal do BK.
-6. Executar cenarios negativos obrigatorios e registar resultado observado (mensagem/codigo/efeito).
+6. Executar cenários negativos obrigatórios e registar resultado observado (mensagem/código/efeito).
 
 ### Validacao
 - [ ] Smoke: fluxo principal executa sem erro bloqueante.
@@ -114,4 +115,4 @@ Executar em transacao para preservar integridade do inventario e impedir estados
 - `neg`: cenario negativo executado com resultado esperado.
 
 ## Changelog
-- `2026-04-13`: guia migrado para naming com slug e template pedagogico-operacional executavel.
+- `2026-04-17`: guia migrado para naming com slug e template pedagogico-operacional executavel.

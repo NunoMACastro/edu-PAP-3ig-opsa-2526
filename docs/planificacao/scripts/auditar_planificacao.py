@@ -6,10 +6,11 @@ import re
 import json
 from collections import defaultdict
 
-EXPECTED_RF = [f"RF{i:02d}" for i in range(1, 65)]
-EXPECTED_RNF = [f"RNF{i:02d}" for i in range(1, 41)]
-VALID_LAST_UPDATED = {"2026-04-13", "2026-04-14"}
+EXPECTED_RF = [f"RF{i:02d}" for i in range(1, 63)]
+EXPECTED_RNF = [f"RNF{i:02d}" for i in range(1, 39)]
+VALID_LAST_UPDATED = {"2026-04-13", "2026-04-14", "2026-04-17"}
 GUIDE_FILENAME_RE = re.compile(r"^BK-MF[0-8]-\d{2}-[a-z0-9]+(?:-[a-z0-9]+)*\.md$")
+MAX_SNIPPET_DUPLICATION = 40
 
 
 def read(path: Path) -> str:
@@ -108,6 +109,14 @@ def has_non_placeholder_snippet(text: str) -> bool:
 def extract_min_negativos(text: str) -> int:
     m = re.search(r"Negativos: minimo `?(\d+)`?", text)
     return int(m.group(1)) if m else 0
+
+
+def extract_first_snippet_block(text: str) -> str:
+    m = re.search(r"## Snippet tecnico aplicavel.*?```[a-zA-Z0-9]*\n(.+?)```", text, flags=re.DOTALL)
+    if not m:
+        return ""
+    snippet = re.sub(r"\s+", " ", m.group(1)).strip()
+    return snippet
 
 
 def scorecard_issues(score_text: str) -> list[str]:
@@ -227,6 +236,8 @@ def main() -> None:
         "last_updated",
     ]
 
+    snippet_histogram: dict[str, list[str]] = defaultdict(list)
+
     for guide in guide_files:
         text = read(guide)
         bk_id = extract_header_value(text, "bk_id")
@@ -263,13 +274,17 @@ def main() -> None:
             guide_header_issues.append({"bk_id": bk_id, "mismatch": "rf_rnf_not_matching_backlog"})
 
         if "Conseguir explicar e executar o BK" in text:
-            guide_content_issues.append({"bk_id": bk_id, "issue": "generic_objective_phrase"})
+            guide_content_issues.append({"bk_id": bk_id, "issue": "generic_objective_phrase_legacy"})
 
         if not has_required_blocks(text):
             guide_content_issues.append({"bk_id": bk_id, "issue": "missing_pedagogic_or_operational_blocks"})
 
         if not has_non_placeholder_snippet(text):
             guide_content_issues.append({"bk_id": bk_id, "issue": "missing_or_placeholder_snippet"})
+        else:
+            snippet = extract_first_snippet_block(text)
+            if snippet:
+                snippet_histogram[snippet].append(bk_id)
 
         step_count = len(re.findall(r"^\d+\. ", text, flags=re.MULTILINE))
         min_negativos = extract_min_negativos(text)
@@ -280,6 +295,15 @@ def main() -> None:
 
     for lf in legacy_files:
         naming_issues.append({"file": str(lf), "issue": "legacy_filename_without_slug"})
+
+    for snippet_bks in snippet_histogram.values():
+        if len(snippet_bks) > MAX_SNIPPET_DUPLICATION:
+            guide_content_issues.append(
+                {
+                    "bk_id": ",".join(sorted(snippet_bks)[:3]) + ",...",
+                    "issue": f"snippet_duplication_above_threshold(count={len(snippet_bks)},threshold={MAX_SNIPPET_DUPLICATION})",
+                }
+            )
 
     deps_invalid = []
     graph: dict[str, list[str]] = defaultdict(list)
@@ -317,7 +341,6 @@ def main() -> None:
     plan_docs = [
         plan / "README.md",
         plan / "PLANO-IMPLEMENTACAO-TOTAL.md",
-        plan / "CONFORMIDADE-PLANIFICACAO.md",
         plan / "DISTRIBUICAO-RESPONSABILIDADES.md",
         plan / "sprints" / "PLANO-SPRINTS.md",
         plan / "sprints" / "SCORECARD-SPRINTS.md",
@@ -327,6 +350,9 @@ def main() -> None:
         backlogs / "MF-VIEWS.md",
         backlogs / "CONTRATO-CAMPOS-BK.md",
     ]
+    conformidade_doc = plan / "CONFORMIDADE-PLANIFICACAO.md"
+    if conformidade_doc.exists():
+        plan_docs.append(conformidade_doc)
 
     outdated_docs = []
     for p in plan_docs:

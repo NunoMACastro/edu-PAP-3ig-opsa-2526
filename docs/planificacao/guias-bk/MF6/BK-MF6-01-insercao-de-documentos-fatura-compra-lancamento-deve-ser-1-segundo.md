@@ -16,7 +16,7 @@
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF6-02`
 - `guia_path`: `docs/planificacao/guias-bk/MF6/BK-MF6-01-insercao-de-documentos-fatura-compra-lancamento-deve-ser-1-segundo.md`
-- `last_updated`: `2026-04-13`
+- `last_updated`: `2026-04-17`
 
 ## Contexto do BK
 - Entrega alvo: implementar `Inserção de documentos (fatura, compra, lançamento) deve ser ≤ 1 segundo.` com rastreabilidade direta ao requisito `RNF08`.
@@ -25,7 +25,8 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Executar `Inserção de documentos (fatura, compra, lançamento) deve ser ≤ 1 segundo.` com rastreabilidade explicita para `RNF08` e demonstracao tecnica no contexto da sprint `S10-S11`.
+Executar `Inserção de documentos (fatura, compra, lançamento) deve ser ≤ 1 segundo.` com autonomia técnica, garantindo cobertura do requisito `RNF08` e evidência objetiva para avaliação.
+- Intenção pedagógica da macro `MF6`: Assegurar robustez tecnica de performance, seguranca e continuidade..
 
 ### Pre-requisitos
 - Ler o requisito `RNF08` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.
@@ -54,13 +55,13 @@ Executar `Inserção de documentos (fatura, compra, lançamento) deve ser ≤ 1 
 - Artefactos de referencia: `MATRIZ-CANONICA-BK.md`, `BACKLOG-MVP.md`, `PLANO-SPRINTS.md`
 
 ### Passos
-1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do BK-MF6-01 e o requisito `RNF08`.
-2. Verificar pre-condicoes tecnicas (-) e validar ambiente local antes de implementar.
-3. Definir contrato de entrada/saida do fluxo principal para `Inserção de documentos (fatura, compra, lançamento) deve ser ≤ 1 segundo.`.
-4. Implementar caminho principal com registo de logs/erros relevantes para auditoria.
+1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do `BK-MF6-01` e o requisito `RNF08`.
+2. Validar dependencias técnicas (`-`) e preparar dados de teste mínimos para `Inserção de documentos (fatura, compra, lançamento) deve ser ≤ 1 segundo.`.
+3. Aplicar hardening/performance no ponto crítico do BK com medição objetiva do limiar definido.
+4. Executar teste negativo de segurança/performance e registar evidência comparativa antes/depois.
 5. Executar pelo menos 1 teste de smoke orientado ao caso principal do BK.
-6. Executar cenarios negativos obrigatorios e registar resultado observado (mensagem/codigo/efeito).
-7. Aplicar reforco tecnico (robustez/performance/seguranca) associado ao risco principal do BK.
+6. Executar cenários negativos obrigatórios e registar resultado observado (mensagem/código/efeito).
+7. Aplicar reforço técnico (robustez/performance/segurança) no risco principal identificado para este BK.
 8. Atualizar evidence (`pr`, `proof`, `neg`) com artefactos concretos e verificaveis.
 
 ### Validacao
@@ -104,4 +105,4 @@ Aplicar antes de persistir documento para evitar registos contabilisticos incons
 - `neg`: cenario negativo executado com resultado esperado.
 
 ## Changelog
-- `2026-04-13`: guia migrado para naming com slug e template pedagogico-operacional executavel.
+- `2026-04-17`: guia migrado para naming com slug e template pedagogico-operacional executavel.

@@ -10,25 +10,26 @@
 - `estado`: `TODO`
 - `esforco`: `S`
 - `dependencias`: `-`
-- `rf_rnf`: `RNF29`
+- `rf_rnf`: `RNF28`
 - `fase_documental`: `Fase 3`
 - `sprint`: `S11-S12`
 - `core_or_reforco`: `Core`
 - `proximo_bk`: `BK-MF8-01`
 - `guia_path`: `docs/planificacao/guias-bk/MF7/BK-MF7-11-testes-automatizados-para-modulos-criticos-faturacao-iva-balancetes-reconciliacao.md`
-- `last_updated`: `2026-04-13`
+- `last_updated`: `2026-04-17`
 
 ## Contexto do BK
-- Entrega alvo: implementar `Testes automatizados para módulos críticos (faturação, IVA, balancetes, reconciliação).` com rastreabilidade direta ao requisito `RNF29`.
+- Entrega alvo: implementar `Testes automatizados para módulos críticos (faturação, IVA, balancetes, reconciliação).` com rastreabilidade direta ao requisito `RNF28`.
 - Foco tecnico da macro: compliance, interoperabilidade e modularidade.
 - Regra de governanca: nao alterar IDs nem contratos de dados (`bk_id/mf/sprint/owner/rf_rnf/deps/guia_path/core_or_reforco`).
 
 ## Bloco pedagogico
 ### Objetivo
-Executar `Testes automatizados para módulos críticos (faturação, IVA, balancetes, reconciliação).` com rastreabilidade explicita para `RNF29` e demonstracao tecnica no contexto da sprint `S11-S12`.
+Executar `Testes automatizados para módulos críticos (faturação, IVA, balancetes, reconciliação).` com autonomia técnica, garantindo cobertura do requisito `RNF28` e evidência objetiva para avaliação.
+- Intenção pedagógica da macro `MF7`: Fechar compliance legal, interoperabilidade e arquitetura modular..
 
 ### Pre-requisitos
-- Ler o requisito `RNF29` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.
+- Ler o requisito `RNF28` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.
 - Validar dependencias declaradas: `-`.
 - Preparar ambiente para smoke test e validacao negativa.
 
@@ -39,7 +40,7 @@ Executar `Testes automatizados para módulos críticos (faturação, IVA, balanc
 
 ### Check de compreensao
 - [ ] Sei justificar porque este BK existe no fluxo da macro `MF7`.
-- [ ] Sei mostrar onde esta o requisito `RNF29` no sistema.
+- [ ] Sei mostrar onde esta o requisito `RNF28` no sistema.
 - [ ] Sei demonstrar pelo menos 1 negativo relevante do BK.
 
 ### Tempo estimado
@@ -49,17 +50,17 @@ Executar `Testes automatizados para módulos críticos (faturação, IVA, balanc
 ## Bloco operacional
 ### Entrada
 - BK: `BK-MF7-11`
-- Requisito: `RNF29`
+- Requisito: `RNF28`
 - Dependencias: `-`
 - Artefactos de referencia: `MATRIZ-CANONICA-BK.md`, `BACKLOG-MVP.md`, `PLANO-SPRINTS.md`
 
 ### Passos
-1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do BK-MF7-11 e o requisito `RNF29`.
-2. Verificar pre-condicoes tecnicas (-) e validar ambiente local antes de implementar.
-3. Definir contrato de entrada/saida do fluxo principal para `Testes automatizados para módulos críticos (faturação, IVA, balancetes, reconciliação).`.
-4. Implementar caminho principal com registo de logs/erros relevantes para auditoria.
+1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do `BK-MF7-11` e o requisito `RNF28`.
+2. Validar dependencias técnicas (`-`) e preparar dados de teste mínimos para `Testes automatizados para módulos críticos (faturação, IVA, balancetes, reconciliação).`.
+3. Implementar requisito de compliance/interoperabilidade preservando formato e integridade de dados.
+4. Validar compatibilidade legal/técnica com output verificável (ficheiro, log ou endpoint).
 5. Executar pelo menos 1 teste de smoke orientado ao caso principal do BK.
-6. Executar cenarios negativos obrigatorios e registar resultado observado (mensagem/codigo/efeito).
+6. Executar cenários negativos obrigatórios e registar resultado observado (mensagem/código/efeito).
 
 ### Validacao
 - [ ] Smoke: fluxo principal executa sem erro bloqueante.
@@ -102,4 +103,4 @@ Aplicar antes de persistir documento para evitar registos contabilisticos incons
 - `neg`: cenario negativo executado com resultado esperado.
 
 ## Changelog
-- `2026-04-13`: guia migrado para naming com slug e template pedagogico-operacional executavel.
+- `2026-04-17`: guia migrado para naming com slug e template pedagogico-operacional executavel.

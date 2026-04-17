@@ -5,7 +5,7 @@ from pathlib import Path
 import re
 import unicodedata
 
-TODAY = "2026-04-13"
+TODAY = "2026-04-17"
 
 SPRINT_WINDOW_BY_MACRO = {
     "MF0": "S01-S02",
@@ -29,6 +29,18 @@ MACRO_FOCUS = {
     "MF6": "desempenho, seguranca e robustez tecnica",
     "MF7": "compliance, interoperabilidade e modularidade",
     "MF8": "operacao final, i18n e fecho para defesa PAP",
+}
+
+MACRO_OBJECTIVE = {
+    "MF0": "Instalar base segura de identidade e dados mestre para desbloquear todo o ERP.",
+    "MF1": "Fechar o ciclo comercial minimo com impacto contabilistico validado.",
+    "MF2": "Garantir integridade de inventario e contabilidade operacional por evento.",
+    "MF3": "Consolidar tesouraria, integracoes e reporting financeiro auditavel.",
+    "MF4": "Operacionalizar IA assistiva com explicabilidade e controlo de risco.",
+    "MF5": "Tornar a UX previsivel, clara e orientada a fluxos reais de trabalho.",
+    "MF6": "Assegurar robustez tecnica de performance, seguranca e continuidade.",
+    "MF7": "Fechar compliance legal, interoperabilidade e arquitetura modular.",
+    "MF8": "Preparar operacao final, observabilidade e fecho para defesa PAP.",
 }
 
 
@@ -98,6 +110,7 @@ def choose_snippet(row: dict[str, str]) -> tuple[str, str, str, str]:
     titulo = row["titulo"].lower()
     bk_id = row["bk_id"]
     req = normalize_req(row["rf_rnf"])
+    macro = row["macro"]
 
     if any(k in titulo for k in ["login", "password", "cookies", "sess", "permiss", "papel"]):
         return (
@@ -272,20 +285,110 @@ export function formatarDataPT(iso: string) {{
             "Garantir consistencia visual/legal no padrao europeu para todos os campos de data/moeda do BK.",
         )
 
-    return (
-        "Validador base de entrada de dominio",
-        "ts",
-        f"""type Payload = Record<string, unknown>;
+    if macro in {"MF0", "MF1"}:
+        return (
+            "Contrato de comando com validacao de permissao",
+            "ts",
+            f"""type Contexto = {{ userId: string; roles: string[]; empresaId: string }};
 
-export function validarEntradaBK(payload: Payload) {{
-  const camposObrigatorios = ['empresaId', 'utilizadorId'];
-  const emFalta = camposObrigatorios.filter((c) => !payload[c]);
-  if (emFalta.length) throw new Error(`BK {bk_id}: faltam campos ${{emFalta.join(', ')}}`);
-  return {{ ok: true, bk: '{bk_id}', payload }};
+export function validarComando(ctx: Contexto, role: string) {{
+  if (!ctx.userId || !ctx.empresaId) throw new Error('Contexto incompleto');
+  if (!ctx.roles.includes(role)) throw new Error(`Permissao insuficiente para {req}`);
+  return {{ bkId: '{bk_id}', ok: true }};
 }}
 """,
-        "Ponto de entrada seguro para reduzir erros de dados e facilitar diagnostico nos testes de smoke/negativos.",
+            "Garante pré-condições de identidade e autorização antes de executar regras de negócio.",
+        )
+
+    if macro in {"MF2", "MF3"}:
+        return (
+            "Validador transacional de consistencia financeira",
+            "sql",
+            f"""-- BK: {bk_id}
+BEGIN;
+
+SELECT 1
+FROM empresas
+WHERE id = :empresa_id
+FOR UPDATE;
+
+-- Validacoes de consistencia específicas do requisito {req}
+-- devem ocorrer antes de qualquer COMMIT.
+
+COMMIT;
+""",
+            "Usar como envelope transacional para preservar consistência em operações de stock/tesouraria/contabilidade.",
+        )
+
+    return (
+        "Validador de output auditavel",
+        "ts",
+        f"""type Resultado = {{ status: 'ok' | 'erro'; mensagem: string; fonte?: string }};
+
+export function validarResultado(res: Resultado) {{
+  if (res.status === 'ok' && !res.mensagem) throw new Error('Mensagem obrigatoria');
+  if (res.status === 'ok' && !res.fonte) throw new Error('Fonte obrigatoria para rastreabilidade');
+  return {{ bk: '{bk_id}', validado: true }};
+}}
+""",
+        "Impõe resposta auditável e rastreável em fluxos de IA/governança/operação final.",
     )
+
+
+def build_operational_steps(row: dict[str, str], deps_fmt: str, req: str) -> list[str]:
+    bk_id = row["bk_id"]
+    macro = row["macro"]
+    titulo = row["titulo"]
+
+    base = [
+        f"Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do `{bk_id}` e o requisito `{req}`.",
+        f"Validar dependencias técnicas (`{deps_fmt}`) e preparar dados de teste mínimos para `{titulo}`.",
+    ]
+
+    by_macro = {
+        "MF0": [
+            "Implementar regras de identidade/perfil com validações de acesso e segregação por empresa.",
+            "Executar smoke de autenticação/gestão base e comprovar persistência correta dos dados mestre.",
+        ],
+        "MF1": [
+            "Implementar fluxo comercial fim-a-fim com cálculo fiscal e registo contabilístico associado.",
+            "Validar transição de estados/documentos e coerência entre documento comercial e lançamento.",
+        ],
+        "MF2": [
+            "Implementar regra operacional de stock/centro analítico/lançamento garantindo consistência transacional.",
+            "Validar impacto em saldos e trilho de auditoria após a operação principal.",
+        ],
+        "MF3": [
+            "Implementar integração/importação/exportação com validação estrutural e rastreio de erros.",
+            "Validar reconciliação/relatório resultante com dados de referência controlados.",
+        ],
+        "MF4": [
+            "Implementar fluxo de IA/alerta/tarefa com fonte explícita e critério de decisão audível.",
+            "Validar que a resposta/alerta é explicável e não executa alterações contabilísticas automáticas.",
+        ],
+        "MF5": [
+            "Implementar comportamento UX transversal (validação, feedback, consistência visual e erro claro).",
+            "Executar testes de usabilidade rápida em cenário real de operação (desktop e tablet).",
+        ],
+        "MF6": [
+            "Aplicar hardening/performance no ponto crítico do BK com medição objetiva do limiar definido.",
+            "Executar teste negativo de segurança/performance e registar evidência comparativa antes/depois.",
+        ],
+        "MF7": [
+            "Implementar requisito de compliance/interoperabilidade preservando formato e integridade de dados.",
+            "Validar compatibilidade legal/técnica com output verificável (ficheiro, log ou endpoint).",
+        ],
+        "MF8": [
+            "Implementar requisito de fecho operacional (observabilidade, deploy, i18n ou governança final).",
+            "Validar comportamento em cenário de fecho PAP com evidência pronta para defesa.",
+        ],
+    }
+
+    tail = [
+        "Executar pelo menos 1 teste de smoke orientado ao caso principal do BK.",
+        "Executar cenários negativos obrigatórios e registar resultado observado (mensagem/código/efeito).",
+    ]
+    return base + by_macro.get(macro, []) + tail
 
 
 def render_guide(row: dict[str, str], new_filename: str) -> str:
@@ -302,18 +405,11 @@ def render_guide(row: dict[str, str], new_filename: str) -> str:
     proximo = row["proximo_bk"]
     foco_macro = MACRO_FOCUS.get(macro, "execucao funcional com rastreabilidade")
 
-    steps = [
-        f"Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do {bk_id} e o requisito `{req}`.",
-        f"Verificar pre-condicoes tecnicas ({deps_fmt}) e validar ambiente local antes de implementar.",
-        f"Definir contrato de entrada/saida do fluxo principal para `{titulo}`.",
-        "Implementar caminho principal com registo de logs/erros relevantes para auditoria.",
-        "Executar pelo menos 1 teste de smoke orientado ao caso principal do BK.",
-        "Executar cenarios negativos obrigatorios e registar resultado observado (mensagem/codigo/efeito).",
-    ]
+    steps = build_operational_steps(row, deps_fmt, req)
     if prioridade == "P0":
         steps.extend(
             [
-                "Aplicar reforco tecnico (robustez/performance/seguranca) associado ao risco principal do BK.",
+                "Aplicar reforço técnico (robustez/performance/segurança) no risco principal identificado para este BK.",
                 "Atualizar evidence (`pr`, `proof`, `neg`) com artefactos concretos e verificaveis.",
             ]
         )
@@ -354,7 +450,8 @@ def render_guide(row: dict[str, str], new_filename: str) -> str:
 
 ## Bloco pedagogico
 ### Objetivo
-Conseguir explicar e executar o BK `{bk_id}` de forma autonoma, incluindo caminho feliz, negativos e evidencia pronta para defesa.
+Executar `{titulo}` com autonomia técnica, garantindo cobertura do requisito `{req}` e evidência objetiva para avaliação.
+- Intenção pedagógica da macro `{macro}`: {MACRO_OBJECTIVE.get(macro, 'fecho técnico e documental com rastreabilidade')}.
 
 ### Pre-requisitos
 - Ler o requisito `{req}` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.
@@ -501,6 +598,7 @@ def rewrite_guias_readme(plan_root: Path, rows: list[dict[str, str]]) -> None:
         "## Contrato editorial",
         "- Todos os guias devem conter `Bloco pedagogico` e `Bloco operacional`.",
         "- Snippet técnico obrigatório e aplicável ao BK real (não placeholder).",
+        "- Reutilização técnica orientada por `SNIPPETS-POR-MACRO.md`.",
         "- Campos de header obrigatórios: `bk_id`, `macro`, `sprint`, `owner`, `rf_rnf`, `dependencias`, `guia_path`, `core_or_reforco`.",
         "",
         "## Indice completo por macro",
@@ -576,6 +674,39 @@ def rewrite_template(plan_root: Path) -> None:
     (plan_root / "guias-bk" / "_TEMPLATE-BK.md").write_text(content, encoding="utf-8")
 
 
+def write_snippets_library(plan_root: Path) -> None:
+    content = f"""# SNIPPETS-POR-MACRO
+
+## Header
+- `doc_id`: `SNIPPETS-POR-MACRO`
+- `path`: `docs/planificacao/guias-bk/SNIPPETS-POR-MACRO.md`
+- `area`: `project`
+- `owner`: `Nuno`
+- `status`: `ativo`
+- `last_updated`: `{TODAY}`
+
+## Objetivo
+Catálogo curto de snippets de referência por macro para reduzir repetição, manter coerência técnica e facilitar handoff entre alunos.
+
+## Biblioteca por macro
+- `MF0-MF1`: guard de identidade/permissões e contrato de comando.
+- `MF2-MF3`: transações de consistência operacional/financeira.
+- `MF4-MF5`: regras de alerta/UX com output explicável.
+- `MF6`: hardening de segurança e medição de limiares.
+- `MF7`: validação de compliance/interoperabilidade.
+- `MF8`: validação de observabilidade/fecho operacional.
+
+## Regras de uso
+1. Cada guia deve usar snippet alinhado ao risco principal do BK.
+2. Snippet não substitui implementação: serve como esqueleto validável.
+3. Qualquer snippet reutilizado deve ter notas específicas do BK no guia.
+
+## Changelog
+- `{TODAY}`: biblioteca criada para suportar desgenericização dos guias BK.
+"""
+    (plan_root / "guias-bk" / "SNIPPETS-POR-MACRO.md").write_text(content, encoding="utf-8")
+
+
 def rewrite_mapa_migracao(plan_root: Path, rows: list[dict[str, str]]) -> None:
     lines = [
         "# MAPA-MIGRACAO-LEGACY-PARA-CANONICO",
@@ -622,6 +753,7 @@ def main() -> None:
     replaced_files = replace_references(plan_root, mapping)
     rewrite_guias_readme(plan_root, rows)
     rewrite_template(plan_root)
+    write_snippets_library(plan_root)
     rewrite_mapa_migracao(plan_root, rows)
 
     print(f"Guias migrados: {len(rows)}")

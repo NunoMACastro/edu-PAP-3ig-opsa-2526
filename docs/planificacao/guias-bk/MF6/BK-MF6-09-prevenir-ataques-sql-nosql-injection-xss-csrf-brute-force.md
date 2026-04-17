@@ -10,25 +10,26 @@
 - `estado`: `TODO`
 - `esforco`: `M`
 - `dependencias`: `-`
-- `rf_rnf`: `RNF16`
+- `rf_rnf`: `RNF15`
 - `fase_documental`: `Fase 3`
 - `sprint`: `S10-S11`
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF6-10`
 - `guia_path`: `docs/planificacao/guias-bk/MF6/BK-MF6-09-prevenir-ataques-sql-nosql-injection-xss-csrf-brute-force.md`
-- `last_updated`: `2026-04-13`
+- `last_updated`: `2026-04-17`
 
 ## Contexto do BK
-- Entrega alvo: implementar `Prevenir ataques (SQL/NoSQL Injection, XSS, CSRF, brute force).` com rastreabilidade direta ao requisito `RNF16`.
+- Entrega alvo: implementar `Prevenir ataques (SQL/NoSQL Injection, XSS, CSRF, brute force).` com rastreabilidade direta ao requisito `RNF15`.
 - Foco tecnico da macro: desempenho, seguranca e robustez tecnica.
 - Regra de governanca: nao alterar IDs nem contratos de dados (`bk_id/mf/sprint/owner/rf_rnf/deps/guia_path/core_or_reforco`).
 
 ## Bloco pedagogico
 ### Objetivo
-Executar `Prevenir ataques (SQL/NoSQL Injection, XSS, CSRF, brute force).` com rastreabilidade explicita para `RNF16` e demonstracao tecnica no contexto da sprint `S10-S11`.
+Executar `Prevenir ataques (SQL/NoSQL Injection, XSS, CSRF, brute force).` com autonomia técnica, garantindo cobertura do requisito `RNF15` e evidência objetiva para avaliação.
+- Intenção pedagógica da macro `MF6`: Assegurar robustez tecnica de performance, seguranca e continuidade..
 
 ### Pre-requisitos
-- Ler o requisito `RNF16` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.
+- Ler o requisito `RNF15` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.
 - Validar dependencias declaradas: `-`.
 - Preparar ambiente para smoke test e validacao negativa.
 
@@ -39,7 +40,7 @@ Executar `Prevenir ataques (SQL/NoSQL Injection, XSS, CSRF, brute force).` com r
 
 ### Check de compreensao
 - [ ] Sei justificar porque este BK existe no fluxo da macro `MF6`.
-- [ ] Sei mostrar onde esta o requisito `RNF16` no sistema.
+- [ ] Sei mostrar onde esta o requisito `RNF15` no sistema.
 - [ ] Sei demonstrar pelo menos 1 negativo relevante do BK.
 
 ### Tempo estimado
@@ -49,18 +50,18 @@ Executar `Prevenir ataques (SQL/NoSQL Injection, XSS, CSRF, brute force).` com r
 ## Bloco operacional
 ### Entrada
 - BK: `BK-MF6-09`
-- Requisito: `RNF16`
+- Requisito: `RNF15`
 - Dependencias: `-`
 - Artefactos de referencia: `MATRIZ-CANONICA-BK.md`, `BACKLOG-MVP.md`, `PLANO-SPRINTS.md`
 
 ### Passos
-1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do BK-MF6-09 e o requisito `RNF16`.
-2. Verificar pre-condicoes tecnicas (-) e validar ambiente local antes de implementar.
-3. Definir contrato de entrada/saida do fluxo principal para `Prevenir ataques (SQL/NoSQL Injection, XSS, CSRF, brute force).`.
-4. Implementar caminho principal com registo de logs/erros relevantes para auditoria.
+1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do `BK-MF6-09` e o requisito `RNF15`.
+2. Validar dependencias técnicas (`-`) e preparar dados de teste mínimos para `Prevenir ataques (SQL/NoSQL Injection, XSS, CSRF, brute force).`.
+3. Aplicar hardening/performance no ponto crítico do BK com medição objetiva do limiar definido.
+4. Executar teste negativo de segurança/performance e registar evidência comparativa antes/depois.
 5. Executar pelo menos 1 teste de smoke orientado ao caso principal do BK.
-6. Executar cenarios negativos obrigatorios e registar resultado observado (mensagem/codigo/efeito).
-7. Aplicar reforco tecnico (robustez/performance/seguranca) associado ao risco principal do BK.
+6. Executar cenários negativos obrigatórios e registar resultado observado (mensagem/código/efeito).
+7. Aplicar reforço técnico (robustez/performance/segurança) no risco principal identificado para este BK.
 8. Atualizar evidence (`pr`, `proof`, `neg`) com artefactos concretos e verificaveis.
 
 ### Validacao
@@ -105,4 +106,4 @@ Integrar no fluxo do BK para garantir requisitos minimos de seguranca (hash fort
 - `neg`: cenario negativo executado com resultado esperado.
 
 ## Changelog
-- `2026-04-13`: guia migrado para naming com slug e template pedagogico-operacional executavel.
+- `2026-04-17`: guia migrado para naming com slug e template pedagogico-operacional executavel.

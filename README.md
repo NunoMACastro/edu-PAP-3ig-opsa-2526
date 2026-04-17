@@ -1,45 +1,110 @@
-# OPSA - ERP Financeiro Integrado
+# OPSA
 
-## Header
-- `doc_id`: `OPSA-README`
-- `path`: `README.md`
-- `area`: `project`
-- `owner`: `Nuno`
-- `status`: `ativo`
-- `last_updated`: `2026-04-13`
+## Metadados
+- Nome da app: OPSA
+- Ano letivo: 2025/2026
+- Turma: 12º IG
+- Nome dos alunos: Oleksii, Pedro, Sofia, André
+- Orientador: Nuno Castro e Cláudia Marques
 
-## Objetivo deste README
-Ser o indice canónico de navegacao e governanca do projeto OPSA.
-Este documento **nao** replica mapeamentos detalhados de RF/RNF para evitar deriva documental.
+## 1. Visão Geral Extensa da Aplicação
+O OPSA é um ERP financeiro integrado para PME, desenvolvido como PAP no Curso Profissional de Informática de Gestão. A aplicação cobre o ciclo operacional de compra, stock, venda, bancos e contabilidade, com foco em conformidade legal portuguesa e governação auditável. A plataforma foi modelada para equilibrar exigência técnica com exequibilidade pedagógica, permitindo uma implementação progressiva sem perder rigor funcional.
 
-## Contexto do projeto
-OPSA e um ERP financeiro integrado para PME, desenvolvido no contexto da PAP 2025/2026, com foco em:
-- ciclo completo compra -> stock -> venda -> contabilidade;
-- conformidade legal portuguesa (SNC, IVA, SAF-T);
-- operacao auditavel e evolucao por backlog rastreavel;
-- suporte pedagogico explicito para alunos do 12o.
+Um diferencial central do OPSA é a camada de IA preditiva aplicada à análise financeira: o sistema identifica tendências, destaca riscos e sugere ações com explicabilidade e fonte dos dados, mantendo separação estrita entre recomendação e execução contabilística.
 
-## Fonte canónica por tema
-1. Requisitos funcionais: `docs/RF.md`
-2. Requisitos nao funcionais: `docs/RNF.md`
-3. Planificacao executavel e rastreabilidade: `docs/planificacao/README.md`
-4. Matriz canónica BK: `docs/planificacao/backlogs/MATRIZ-CANONICA-BK.md`
-5. Backlog operacional BK: `docs/planificacao/backlogs/BACKLOG-MVP.md`
+## 2. Problema que Resolve e Proposta de Valor
+PME e equipas escolares de simulação empresarial enfrentam sistemas fragmentados, baixa visibilidade financeira e processos difíceis de auditar. O OPSA resolve este problema ao concentrar num único sistema:
 
-## Hierarquia de verdade (obrigatoria)
-`MATRIZ-CANONICA-BK` > `BACKLOG-MVP` > `PLANO-SPRINTS` > restantes artefactos derivados.
+- operação transacional ponta-a-ponta (compras, vendas, tesouraria, stock, contabilidade);
+- conformidade (SNC, IVA e SAF-T) com rastreabilidade;
+- inteligência preditiva para apoio à decisão com transparência de cálculo.
 
-## Metas operacionais atuais
-- Cobertura total RF/RNF preservada (`64 RF`, `40 RNF`).
-- Fecho planeado ate `S12 (2026-07-05)`.
-- Distribuicao diferenciada de BK por perfil de aluno (intencional).
-- Politica pedagogica `Core/Reforco` ativa em toda a planificacao.
+A proposta de valor é entregar um ERP consistente, auditável e pedagogicamente robusto, em vez de um conjunto disperso de ferramentas.
 
-## Navegacao rapida
-- [Requisitos Funcionais](docs/RF.md)
-- [Requisitos Nao Funcionais](docs/RNF.md)
-- [Planificacao (indice)](docs/planificacao/README.md)
-- [Plano de Sprints](docs/planificacao/sprints/PLANO-SPRINTS.md)
+## 3. Público-Alvo e Stakeholders
+- PME e equipas administrativas/financeiras;
+- gestores e contabilistas que precisam de decisão suportada por dados;
+- auditores e responsáveis de conformidade;
+- alunos e docentes em contexto PAP com foco em gestão e tecnologia;
+- equipa técnica responsável por operação, segurança e evolução funcional.
 
-## Changelog
-- `2026-04-13`: README convertido para indice canónico de governanca; removida duplicacao detalhada RF/RNF.
+## 4. Funcionalidades Principais por Domínio Funcional
+### 4.1 Núcleo transacional ERP
+- gestão de utilizadores, papéis e multiempresa;
+- dados mestre (clientes, fornecedores, artigos, plano de contas);
+- ciclo de vendas e compras com lançamentos contabilísticos associados;
+- controlo de stock e movimentos operacionais.
+
+### 4.2 Contabilidade, fiscalidade e reporting legal
+- balancete, razão, demonstrações financeiras e mapas fiscais;
+- gestão de períodos e regras de fecho/reabertura controlada;
+- exportações e artefactos legais necessários ao contexto nacional.
+
+### 4.3 Tesouraria e reconciliação
+- contas bancárias/caixa e saldos;
+- importação de extratos e reconciliação assistida;
+- previsões de tesouraria para apoio ao planeamento.
+
+### 4.4 IA preditiva (núcleo obrigatório)
+- insights automáticos sobre tendências, desvios e riscos;
+- sugestões de ação operativa/financeira;
+- perguntas em linguagem natural com resposta fundamentada;
+- explicabilidade e origem de dados em cada insight.
+
+Regra funcional crítica: a IA recomenda, mas não executa alterações contabilísticas automaticamente.
+
+### 4.5 Auditoria, controlo e governação
+- logs estruturados e trilho de auditoria em operações sensíveis;
+- workflows de aprovação e segregação de funções;
+- monitorização operacional para estabilidade e rastreabilidade.
+
+Fontes funcionais canónicas: [docs/RF.md](docs/RF.md), [docs/planificacao/backlogs/BACKLOG-MVP.md](docs/planificacao/backlogs/BACKLOG-MVP.md), [docs/planificacao/backlogs/MATRIZ-CANONICA-BK.md](docs/planificacao/backlogs/MATRIZ-CANONICA-BK.md).
+
+## 5. Arquitetura/Stack Recomendada (Alto Nível)
+- frontend modular com foco em workflows financeiros e validação de dados;
+- backend por domínios (vendas, compras, inventário, bancos, contabilidade, IA);
+- base de dados transacional com integridade e histórico;
+- serviços de importação/exportação e processamento assíncrono;
+- observabilidade, backups e health-check como padrão operacional.
+
+## 6. Escopo MVP vs Pós-PAP
+### MVP (incluído)
+- núcleo ERP operacional e contabilístico essencial;
+- conformidade legal base (incluindo artefactos obrigatórios);
+- IA preditiva no ciclo essencial: insights, sugestão, explicação e fonte;
+- auditoria e segurança mínimas para operação confiável.
+
+### Pós-PAP (adiado)
+- integrações opcionais/extras de ecossistema;
+- automações financeiras avançadas não essenciais ao núcleo;
+- cenários de tesouraria e crédito de elevada complexidade;
+- personalizações analíticas de nível enterprise.
+
+## 7. Requisitos Não Funcionais Críticos
+- segurança forte de autenticação e sessão;
+- integridade contabilística e rastreabilidade de alterações;
+- conformidade legal e retenção documental;
+- desempenho aceitável em operações críticas de lançamento e consulta;
+- explicabilidade da camada de IA e controlo de risco operacional.
+
+Fonte canónica RNF: [docs/RNF.md](docs/RNF.md).
+
+## 8. Roadmap Resumido por Fases
+1. fundação de identidade, dados mestre e ciclo transacional;
+2. consolidação contabilística/fiscal e reporting;
+3. ativação progressiva da IA preditiva com explicabilidade;
+4. hardening operacional, auditoria e preparação final de entrega.
+
+## 9. Créditos, Licença e Changelog
+### Créditos
+- Projeto: OPSA
+- Tipo: PAP - Curso Profissional de Informática de Gestão
+- Ano letivo: 2025/2026
+- Equipa: Oleksii, Pedro, Sofia, André
+- Orientador: Nuno Castro e Cláudia Marques
+
+### Licença
+Projeto académico para fins educativos.
+
+### Changelog
+- 2026-04-17: README reescrito integralmente com estrutura canónica e reforço do núcleo IA preditiva + separação clara entre recomendação e execução.

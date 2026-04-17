@@ -16,7 +16,7 @@
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF1-05`
 - `guia_path`: `docs/planificacao/guias-bk/MF1/BK-MF1-04-gerar-lancamentos-contabilisticos-automaticos-por-venda.md`
-- `last_updated`: `2026-04-13`
+- `last_updated`: `2026-04-17`
 
 ## Contexto do BK
 - Entrega alvo: implementar `Gerar lançamentos contabilísticos automáticos por venda.` com rastreabilidade direta ao requisito `RF16`.
@@ -25,7 +25,8 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Executar `Gerar lançamentos contabilísticos automáticos por venda.` com rastreabilidade explicita para `RF16` e demonstracao tecnica no contexto da sprint `S03-S04`.
+Executar `Gerar lançamentos contabilísticos automáticos por venda.` com autonomia técnica, garantindo cobertura do requisito `RF16` e evidência objetiva para avaliação.
+- Intenção pedagógica da macro `MF1`: Fechar o ciclo comercial minimo com impacto contabilistico validado..
 
 ### Pre-requisitos
 - Ler o requisito `RF16` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.
@@ -54,13 +55,13 @@ Executar `Gerar lançamentos contabilísticos automáticos por venda.` com rastr
 - Artefactos de referencia: `MATRIZ-CANONICA-BK.md`, `BACKLOG-MVP.md`, `PLANO-SPRINTS.md`
 
 ### Passos
-1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do BK-MF1-04 e o requisito `RF16`.
-2. Verificar pre-condicoes tecnicas (BK-MF1-02) e validar ambiente local antes de implementar.
-3. Definir contrato de entrada/saida do fluxo principal para `Gerar lançamentos contabilísticos automáticos por venda.`.
-4. Implementar caminho principal com registo de logs/erros relevantes para auditoria.
+1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do `BK-MF1-04` e o requisito `RF16`.
+2. Validar dependencias técnicas (`BK-MF1-02`) e preparar dados de teste mínimos para `Gerar lançamentos contabilísticos automáticos por venda.`.
+3. Implementar fluxo comercial fim-a-fim com cálculo fiscal e registo contabilístico associado.
+4. Validar transição de estados/documentos e coerência entre documento comercial e lançamento.
 5. Executar pelo menos 1 teste de smoke orientado ao caso principal do BK.
-6. Executar cenarios negativos obrigatorios e registar resultado observado (mensagem/codigo/efeito).
-7. Aplicar reforco tecnico (robustez/performance/seguranca) associado ao risco principal do BK.
+6. Executar cenários negativos obrigatórios e registar resultado observado (mensagem/código/efeito).
+7. Aplicar reforço técnico (robustez/performance/segurança) no risco principal identificado para este BK.
 8. Atualizar evidence (`pr`, `proof`, `neg`) com artefactos concretos e verificaveis.
 
 ### Validacao
@@ -104,4 +105,4 @@ Aplicar antes de persistir documento para evitar registos contabilisticos incons
 - `neg`: cenario negativo executado com resultado esperado.
 
 ## Changelog
-- `2026-04-13`: guia migrado para naming com slug e template pedagogico-operacional executavel.
+- `2026-04-17`: guia migrado para naming com slug e template pedagogico-operacional executavel.

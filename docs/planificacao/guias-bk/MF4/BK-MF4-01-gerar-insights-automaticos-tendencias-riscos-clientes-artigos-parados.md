@@ -10,25 +10,26 @@
 - `estado`: `TODO`
 - `esforco`: `M`
 - `dependencias`: `BK-MF3-10`
-- `rf_rnf`: `RF49`
+- `rf_rnf`: `RF48`
 - `fase_documental`: `Fase 2`
 - `sprint`: `S08-S09`
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF4-02`
 - `guia_path`: `docs/planificacao/guias-bk/MF4/BK-MF4-01-gerar-insights-automaticos-tendencias-riscos-clientes-artigos-parados.md`
-- `last_updated`: `2026-04-13`
+- `last_updated`: `2026-04-17`
 
 ## Contexto do BK
-- Entrega alvo: implementar `Gerar insights automáticos (tendências, riscos, clientes, artigos parados).` com rastreabilidade direta ao requisito `RF49`.
+- Entrega alvo: implementar `Gerar insights automáticos (tendências, riscos, clientes, artigos parados).` com rastreabilidade direta ao requisito `RF48`.
 - Foco tecnico da macro: inteligencia operacional, alertas e governanca de operacoes.
 - Regra de governanca: nao alterar IDs nem contratos de dados (`bk_id/mf/sprint/owner/rf_rnf/deps/guia_path/core_or_reforco`).
 
 ## Bloco pedagogico
 ### Objetivo
-Executar `Gerar insights automáticos (tendências, riscos, clientes, artigos parados).` com rastreabilidade explicita para `RF49` e demonstracao tecnica no contexto da sprint `S08-S09`.
+Executar `Gerar insights automáticos (tendências, riscos, clientes, artigos parados).` com autonomia técnica, garantindo cobertura do requisito `RF48` e evidência objetiva para avaliação.
+- Intenção pedagógica da macro `MF4`: Operacionalizar IA assistiva com explicabilidade e controlo de risco..
 
 ### Pre-requisitos
-- Ler o requisito `RF49` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.
+- Ler o requisito `RF48` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.
 - Validar dependencias declaradas: `BK-MF3-10`.
 - Preparar ambiente para smoke test e validacao negativa.
 
@@ -39,7 +40,7 @@ Executar `Gerar insights automáticos (tendências, riscos, clientes, artigos pa
 
 ### Check de compreensao
 - [ ] Sei justificar porque este BK existe no fluxo da macro `MF4`.
-- [ ] Sei mostrar onde esta o requisito `RF49` no sistema.
+- [ ] Sei mostrar onde esta o requisito `RF48` no sistema.
 - [ ] Sei demonstrar pelo menos 1 negativo relevante do BK.
 
 ### Tempo estimado
@@ -49,18 +50,18 @@ Executar `Gerar insights automáticos (tendências, riscos, clientes, artigos pa
 ## Bloco operacional
 ### Entrada
 - BK: `BK-MF4-01`
-- Requisito: `RF49`
+- Requisito: `RF48`
 - Dependencias: `BK-MF3-10`
 - Artefactos de referencia: `MATRIZ-CANONICA-BK.md`, `BACKLOG-MVP.md`, `PLANO-SPRINTS.md`
 
 ### Passos
-1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do BK-MF4-01 e o requisito `RF49`.
-2. Verificar pre-condicoes tecnicas (BK-MF3-10) e validar ambiente local antes de implementar.
-3. Definir contrato de entrada/saida do fluxo principal para `Gerar insights automáticos (tendências, riscos, clientes, artigos parados).`.
-4. Implementar caminho principal com registo de logs/erros relevantes para auditoria.
+1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do `BK-MF4-01` e o requisito `RF48`.
+2. Validar dependencias técnicas (`BK-MF3-10`) e preparar dados de teste mínimos para `Gerar insights automáticos (tendências, riscos, clientes, artigos parados).`.
+3. Implementar fluxo de IA/alerta/tarefa com fonte explícita e critério de decisão audível.
+4. Validar que a resposta/alerta é explicável e não executa alterações contabilísticas automáticas.
 5. Executar pelo menos 1 teste de smoke orientado ao caso principal do BK.
-6. Executar cenarios negativos obrigatorios e registar resultado observado (mensagem/codigo/efeito).
-7. Aplicar reforco tecnico (robustez/performance/seguranca) associado ao risco principal do BK.
+6. Executar cenários negativos obrigatórios e registar resultado observado (mensagem/código/efeito).
+7. Aplicar reforço técnico (robustez/performance/segurança) no risco principal identificado para este BK.
 8. Atualizar evidence (`pr`, `proof`, `neg`) com artefactos concretos e verificaveis.
 
 ### Validacao
@@ -105,4 +106,4 @@ Usar para gerar alertas auditaveis com criterio transparente (limiar), evitando 
 - `neg`: cenario negativo executado com resultado esperado.
 
 ## Changelog
-- `2026-04-13`: guia migrado para naming com slug e template pedagogico-operacional executavel.
+- `2026-04-17`: guia migrado para naming com slug e template pedagogico-operacional executavel.

@@ -16,7 +16,7 @@
 - `core_or_reforco`: `Core`
 - `proximo_bk`: `BK-MF2-01`
 - `guia_path`: `docs/planificacao/guias-bk/MF1/BK-MF1-12-aprovacao-de-compras-com-estados-rascunho-aprovado-lancado.md`
-- `last_updated`: `2026-04-13`
+- `last_updated`: `2026-04-17`
 
 ## Contexto do BK
 - Entrega alvo: implementar `Aprovação de compras com estados “Rascunho → Aprovado → Lançado”.` com rastreabilidade direta ao requisito `RF24`.
@@ -25,7 +25,8 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Executar `Aprovação de compras com estados “Rascunho → Aprovado → Lançado”.` com rastreabilidade explicita para `RF24` e demonstracao tecnica no contexto da sprint `S03-S04`.
+Executar `Aprovação de compras com estados “Rascunho → Aprovado → Lançado”.` com autonomia técnica, garantindo cobertura do requisito `RF24` e evidência objetiva para avaliação.
+- Intenção pedagógica da macro `MF1`: Fechar o ciclo comercial minimo com impacto contabilistico validado..
 
 ### Pre-requisitos
 - Ler o requisito `RF24` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.
@@ -54,12 +55,12 @@ Executar `Aprovação de compras com estados “Rascunho → Aprovado → Lança
 - Artefactos de referencia: `MATRIZ-CANONICA-BK.md`, `BACKLOG-MVP.md`, `PLANO-SPRINTS.md`
 
 ### Passos
-1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do BK-MF1-12 e o requisito `RF24`.
-2. Verificar pre-condicoes tecnicas (-) e validar ambiente local antes de implementar.
-3. Definir contrato de entrada/saida do fluxo principal para `Aprovação de compras com estados “Rascunho → Aprovado → Lançado”.`.
-4. Implementar caminho principal com registo de logs/erros relevantes para auditoria.
+1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do `BK-MF1-12` e o requisito `RF24`.
+2. Validar dependencias técnicas (`-`) e preparar dados de teste mínimos para `Aprovação de compras com estados “Rascunho → Aprovado → Lançado”.`.
+3. Implementar fluxo comercial fim-a-fim com cálculo fiscal e registo contabilístico associado.
+4. Validar transição de estados/documentos e coerência entre documento comercial e lançamento.
 5. Executar pelo menos 1 teste de smoke orientado ao caso principal do BK.
-6. Executar cenarios negativos obrigatorios e registar resultado observado (mensagem/codigo/efeito).
+6. Executar cenários negativos obrigatórios e registar resultado observado (mensagem/código/efeito).
 
 ### Validacao
 - [ ] Smoke: fluxo principal executa sem erro bloqueante.
@@ -102,4 +103,4 @@ Aplicar antes de persistir documento para evitar registos contabilisticos incons
 - `neg`: cenario negativo executado com resultado esperado.
 
 ## Changelog
-- `2026-04-13`: guia migrado para naming com slug e template pedagogico-operacional executavel.
+- `2026-04-17`: guia migrado para naming com slug e template pedagogico-operacional executavel.

@@ -16,7 +16,7 @@
 - `core_or_reforco`: `Core`
 - `proximo_bk`: `BK-MF2-06`
 - `guia_path`: `docs/planificacao/guias-bk/MF2/BK-MF2-05-contagem-fisica-e-ajustes.md`
-- `last_updated`: `2026-04-13`
+- `last_updated`: `2026-04-17`
 
 ## Contexto do BK
 - Entrega alvo: implementar `Contagem física e ajustes.` com rastreabilidade direta ao requisito `RF29`.
@@ -25,7 +25,8 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Executar `Contagem física e ajustes.` com rastreabilidade explicita para `RF29` e demonstracao tecnica no contexto da sprint `S05-S06`.
+Executar `Contagem física e ajustes.` com autonomia técnica, garantindo cobertura do requisito `RF29` e evidência objetiva para avaliação.
+- Intenção pedagógica da macro `MF2`: Garantir integridade de inventario e contabilidade operacional por evento..
 
 ### Pre-requisitos
 - Ler o requisito `RF29` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.
@@ -54,12 +55,12 @@ Executar `Contagem física e ajustes.` com rastreabilidade explicita para `RF29`
 - Artefactos de referencia: `MATRIZ-CANONICA-BK.md`, `BACKLOG-MVP.md`, `PLANO-SPRINTS.md`
 
 ### Passos
-1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do BK-MF2-05 e o requisito `RF29`.
-2. Verificar pre-condicoes tecnicas (BK-MF2-03) e validar ambiente local antes de implementar.
-3. Definir contrato de entrada/saida do fluxo principal para `Contagem física e ajustes.`.
-4. Implementar caminho principal com registo de logs/erros relevantes para auditoria.
+1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do `BK-MF2-05` e o requisito `RF29`.
+2. Validar dependencias técnicas (`BK-MF2-03`) e preparar dados de teste mínimos para `Contagem física e ajustes.`.
+3. Implementar regra operacional de stock/centro analítico/lançamento garantindo consistência transacional.
+4. Validar impacto em saldos e trilho de auditoria após a operação principal.
 5. Executar pelo menos 1 teste de smoke orientado ao caso principal do BK.
-6. Executar cenarios negativos obrigatorios e registar resultado observado (mensagem/codigo/efeito).
+6. Executar cenários negativos obrigatórios e registar resultado observado (mensagem/código/efeito).
 
 ### Validacao
 - [ ] Smoke: fluxo principal executa sem erro bloqueante.
@@ -114,4 +115,4 @@ Executar em transacao para preservar integridade do inventario e impedir estados
 - `neg`: cenario negativo executado com resultado esperado.
 
 ## Changelog
-- `2026-04-13`: guia migrado para naming com slug e template pedagogico-operacional executavel.
+- `2026-04-17`: guia migrado para naming com slug e template pedagogico-operacional executavel.

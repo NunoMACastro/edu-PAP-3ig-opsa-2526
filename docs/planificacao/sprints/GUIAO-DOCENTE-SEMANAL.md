@@ -6,7 +6,7 @@
 - `area`: `project`
 - `owner`: `Nuno`
 - `status`: `ativo`
-- `last_updated`: `2026-04-13`
+- `last_updated`: `2026-04-17`
 
 ## Objetivo
 Fornecer guiao pratico de intervencao docente por sprint, com foco em carga realista, risco e qualidade de entrega.
@@ -31,6 +31,7 @@ Fornecer guiao pratico de intervencao docente por sprint, com foco em carga real
 | Aluno em risco | Bloqueios >48h e baixa compreensao | Dividir BK em micro-passos, pairing orientado e objetivo minimo da sprint. |
 
 ## Gate pedagogico entre sprints
+- Em sprints com `carga_real_u` vazia, marcar `risco_semaforo = N/A` no scorecard.
 - Sem `Core` concluido na sprint `N`, o aluno nao inicia `Reforco` na sprint `N+1`.
 - Excecoes apenas com justificacao no scorecard e aprovacao do orientador.
 

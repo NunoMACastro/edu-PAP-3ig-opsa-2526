@@ -16,7 +16,7 @@
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF0-06`
 - `guia_path`: `docs/planificacao/guias-bk/MF0/BK-MF0-05-recuperacao-de-password-via-email.md`
-- `last_updated`: `2026-04-13`
+- `last_updated`: `2026-04-17`
 
 ## Contexto do BK
 - Entrega alvo: implementar `Recuperação de password via email.` com rastreabilidade direta ao requisito `RF05`.
@@ -25,7 +25,8 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Executar `Recuperação de password via email.` com rastreabilidade explicita para `RF05` e demonstracao tecnica no contexto da sprint `S01-S02`.
+Executar `Recuperação de password via email.` com autonomia técnica, garantindo cobertura do requisito `RF05` e evidência objetiva para avaliação.
+- Intenção pedagógica da macro `MF0`: Instalar base segura de identidade e dados mestre para desbloquear todo o ERP..
 
 ### Pre-requisitos
 - Ler o requisito `RF05` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.
@@ -54,13 +55,13 @@ Executar `Recuperação de password via email.` com rastreabilidade explicita pa
 - Artefactos de referencia: `MATRIZ-CANONICA-BK.md`, `BACKLOG-MVP.md`, `PLANO-SPRINTS.md`
 
 ### Passos
-1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do BK-MF0-05 e o requisito `RF05`.
-2. Verificar pre-condicoes tecnicas (-) e validar ambiente local antes de implementar.
-3. Definir contrato de entrada/saida do fluxo principal para `Recuperação de password via email.`.
-4. Implementar caminho principal com registo de logs/erros relevantes para auditoria.
+1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do `BK-MF0-05` e o requisito `RF05`.
+2. Validar dependencias técnicas (`-`) e preparar dados de teste mínimos para `Recuperação de password via email.`.
+3. Implementar regras de identidade/perfil com validações de acesso e segregação por empresa.
+4. Executar smoke de autenticação/gestão base e comprovar persistência correta dos dados mestre.
 5. Executar pelo menos 1 teste de smoke orientado ao caso principal do BK.
-6. Executar cenarios negativos obrigatorios e registar resultado observado (mensagem/codigo/efeito).
-7. Aplicar reforco tecnico (robustez/performance/seguranca) associado ao risco principal do BK.
+6. Executar cenários negativos obrigatórios e registar resultado observado (mensagem/código/efeito).
+7. Aplicar reforço técnico (robustez/performance/segurança) no risco principal identificado para este BK.
 8. Atualizar evidence (`pr`, `proof`, `neg`) com artefactos concretos e verificaveis.
 
 ### Validacao
@@ -104,4 +105,4 @@ Usar este guard no endpoint principal do BK para bloquear acessos sem sessao/per
 - `neg`: cenario negativo executado com resultado esperado.
 
 ## Changelog
-- `2026-04-13`: guia migrado para naming com slug e template pedagogico-operacional executavel.
+- `2026-04-17`: guia migrado para naming com slug e template pedagogico-operacional executavel.

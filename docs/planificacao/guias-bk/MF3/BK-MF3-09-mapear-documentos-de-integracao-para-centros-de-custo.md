@@ -10,25 +10,26 @@
 - `estado`: `TODO`
 - `esforco`: `S`
 - `dependencias`: `BK-MF2-07`
-- `rf_rnf`: `RF45`
+- `rf_rnf`: `RF44`
 - `fase_documental`: `Fase 2`
 - `sprint`: `S07-S08`
 - `core_or_reforco`: `Core`
 - `proximo_bk`: `BK-MF3-10`
 - `guia_path`: `docs/planificacao/guias-bk/MF3/BK-MF3-09-mapear-documentos-de-integracao-para-centros-de-custo.md`
-- `last_updated`: `2026-04-13`
+- `last_updated`: `2026-04-17`
 
 ## Contexto do BK
-- Entrega alvo: implementar `Mapear documentos de integração para centros de custo.` com rastreabilidade direta ao requisito `RF45`.
+- Entrega alvo: implementar `Mapear documentos de integração para centros de custo.` com rastreabilidade direta ao requisito `RF44`.
 - Foco tecnico da macro: tesouraria, integracoes e relatorio funcional.
 - Regra de governanca: nao alterar IDs nem contratos de dados (`bk_id/mf/sprint/owner/rf_rnf/deps/guia_path/core_or_reforco`).
 
 ## Bloco pedagogico
 ### Objetivo
-Executar `Mapear documentos de integração para centros de custo.` com rastreabilidade explicita para `RF45` e demonstracao tecnica no contexto da sprint `S07-S08`.
+Executar `Mapear documentos de integração para centros de custo.` com autonomia técnica, garantindo cobertura do requisito `RF44` e evidência objetiva para avaliação.
+- Intenção pedagógica da macro `MF3`: Consolidar tesouraria, integracoes e reporting financeiro auditavel..
 
 ### Pre-requisitos
-- Ler o requisito `RF45` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.
+- Ler o requisito `RF44` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.
 - Validar dependencias declaradas: `BK-MF2-07`.
 - Preparar ambiente para smoke test e validacao negativa.
 
@@ -39,7 +40,7 @@ Executar `Mapear documentos de integração para centros de custo.` com rastreab
 
 ### Check de compreensao
 - [ ] Sei justificar porque este BK existe no fluxo da macro `MF3`.
-- [ ] Sei mostrar onde esta o requisito `RF45` no sistema.
+- [ ] Sei mostrar onde esta o requisito `RF44` no sistema.
 - [ ] Sei demonstrar pelo menos 1 negativo relevante do BK.
 
 ### Tempo estimado
@@ -49,17 +50,17 @@ Executar `Mapear documentos de integração para centros de custo.` com rastreab
 ## Bloco operacional
 ### Entrada
 - BK: `BK-MF3-09`
-- Requisito: `RF45`
+- Requisito: `RF44`
 - Dependencias: `BK-MF2-07`
 - Artefactos de referencia: `MATRIZ-CANONICA-BK.md`, `BACKLOG-MVP.md`, `PLANO-SPRINTS.md`
 
 ### Passos
-1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do BK-MF3-09 e o requisito `RF45`.
-2. Verificar pre-condicoes tecnicas (BK-MF2-07) e validar ambiente local antes de implementar.
-3. Definir contrato de entrada/saida do fluxo principal para `Mapear documentos de integração para centros de custo.`.
-4. Implementar caminho principal com registo de logs/erros relevantes para auditoria.
+1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do `BK-MF3-09` e o requisito `RF44`.
+2. Validar dependencias técnicas (`BK-MF2-07`) e preparar dados de teste mínimos para `Mapear documentos de integração para centros de custo.`.
+3. Implementar integração/importação/exportação com validação estrutural e rastreio de erros.
+4. Validar reconciliação/relatório resultante com dados de referência controlados.
 5. Executar pelo menos 1 teste de smoke orientado ao caso principal do BK.
-6. Executar cenarios negativos obrigatorios e registar resultado observado (mensagem/codigo/efeito).
+6. Executar cenários negativos obrigatórios e registar resultado observado (mensagem/código/efeito).
 
 ### Validacao
 - [ ] Smoke: fluxo principal executa sem erro bloqueante.
@@ -73,20 +74,24 @@ Executar `Mapear documentos de integração para centros de custo.` com rastreab
 - Se houver bloqueio >48h, escalar no scorecard da sprint.
 
 ## Snippet tecnico aplicavel
-**Validador base de entrada de dominio**
+**Validador transacional de consistencia financeira**
 
-```ts
-type Payload = Record<string, unknown>;
+```sql
+-- BK: BK-MF3-09
+BEGIN;
 
-export function validarEntradaBK(payload: Payload) {
-  const camposObrigatorios = ['empresaId', 'utilizadorId'];
-  const emFalta = camposObrigatorios.filter((c) => !payload[c]);
-  if (emFalta.length) throw new Error(`BK BK-MF3-09: faltam campos ${emFalta.join(', ')}`);
-  return { ok: true, bk: 'BK-MF3-09', payload };
-}
+SELECT 1
+FROM empresas
+WHERE id = :empresa_id
+FOR UPDATE;
+
+-- Validacoes de consistencia específicas do requisito RF44
+-- devem ocorrer antes de qualquer COMMIT.
+
+COMMIT;
 ```
 
-Ponto de entrada seguro para reduzir erros de dados e facilitar diagnostico nos testes de smoke/negativos.
+Usar como envelope transacional para preservar consistência em operações de stock/tesouraria/contabilidade.
 
 ## Criterios de aceite
 - BK implementado no scope definido, sem romper dependencias.
@@ -100,4 +105,4 @@ Ponto de entrada seguro para reduzir erros de dados e facilitar diagnostico nos 
 - `neg`: cenario negativo executado com resultado esperado.
 
 ## Changelog
-- `2026-04-13`: guia migrado para naming com slug e template pedagogico-operacional executavel.
+- `2026-04-17`: guia migrado para naming com slug e template pedagogico-operacional executavel.

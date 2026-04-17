@@ -6,7 +6,7 @@
 - `area`: `project`
 - `owner`: `Nuno`
 - `status`: `ativo`
-- `last_updated`: `2026-04-13`
+- `last_updated`: `2026-04-17`
 
 ## Objetivo
 Rastreabilidade bidirecional `RF -> BKs`, gerada automaticamente a partir do backlog canónico.
@@ -57,27 +57,25 @@ Rastreabilidade bidirecional `RF -> BKs`, gerada automaticamente a partir do bac
 | RF41 | 1 | BK-MF3-05 |
 | RF42 | 1 | BK-MF3-06 |
 | RF43 | 1 | BK-MF3-07 |
-| RF44 | 1 | BK-MF3-08 |
-| RF45 | 1 | BK-MF3-09 |
-| RF46 | 1 | BK-MF3-10 |
-| RF47 | 1 | BK-MF3-11 |
-| RF48 | 1 | BK-MF3-12 |
-| RF49 | 1 | BK-MF4-01 |
-| RF50 | 1 | BK-MF4-02 |
-| RF51 | 1 | BK-MF4-03 |
-| RF52 | 1 | BK-MF4-04 |
-| RF53 | 1 | BK-MF4-05 |
-| RF54 | 1 | BK-MF4-06 |
-| RF55 | 1 | BK-MF4-07 |
-| RF56 | 1 | BK-MF4-08 |
-| RF57 | 1 | BK-MF4-09 |
-| RF58 | 1 | BK-MF4-10 |
-| RF59 | 1 | BK-MF4-11 |
-| RF60 | 1 | BK-MF4-12 |
-| RF61 | 1 | BK-MF5-01 |
-| RF62 | 1 | BK-MF5-02 |
-| RF63 | 1 | BK-MF5-03 |
-| RF64 | 1 | BK-MF5-04 |
+| RF44 | 1 | BK-MF3-09 |
+| RF45 | 1 | BK-MF3-10 |
+| RF46 | 1 | BK-MF3-11 |
+| RF47 | 1 | BK-MF3-12 |
+| RF48 | 1 | BK-MF4-01 |
+| RF49 | 1 | BK-MF4-02 |
+| RF50 | 1 | BK-MF4-03 |
+| RF51 | 1 | BK-MF4-04 |
+| RF52 | 1 | BK-MF4-05 |
+| RF53 | 1 | BK-MF4-06 |
+| RF54 | 1 | BK-MF4-07 |
+| RF55 | 1 | BK-MF4-08 |
+| RF56 | 1 | BK-MF4-09 |
+| RF57 | 1 | BK-MF4-10 |
+| RF58 | 1 | BK-MF4-11 |
+| RF59 | 1 | BK-MF4-12 |
+| RF60 | 1 | BK-MF5-01 |
+| RF61 | 1 | BK-MF5-02 |
+| RF62 | 1 | BK-MF5-03 |
 
 ## Changelog
 - `2026-04-13`: Anexo canónico criado por geracao automatica.

@@ -10,25 +10,26 @@
 - `estado`: `TODO`
 - `esforco`: `S`
 - `dependencias`: `-`
-- `rf_rnf`: `RNF40`
+- `rf_rnf`: `RNF38`
 - `fase_documental`: `Fase 3`
 - `sprint`: `S12`
 - `core_or_reforco`: `Core`
 - `proximo_bk`: `-`
 - `guia_path`: `docs/planificacao/guias-bk/MF8/BK-MF8-11-datas-moedas-e-separadores-no-padrao-europeu.md`
-- `last_updated`: `2026-04-13`
+- `last_updated`: `2026-04-17`
 
 ## Contexto do BK
-- Entrega alvo: implementar `Datas, moedas e separadores no padrão europeu.` com rastreabilidade direta ao requisito `RNF40`.
+- Entrega alvo: implementar `Datas, moedas e separadores no padrão europeu.` com rastreabilidade direta ao requisito `RNF38`.
 - Foco tecnico da macro: operacao final, i18n e fecho para defesa PAP.
 - Regra de governanca: nao alterar IDs nem contratos de dados (`bk_id/mf/sprint/owner/rf_rnf/deps/guia_path/core_or_reforco`).
 
 ## Bloco pedagogico
 ### Objetivo
-Executar `Datas, moedas e separadores no padrão europeu.` com rastreabilidade explicita para `RNF40` e demonstracao tecnica no contexto da sprint `S12`.
+Executar `Datas, moedas e separadores no padrão europeu.` com autonomia técnica, garantindo cobertura do requisito `RNF38` e evidência objetiva para avaliação.
+- Intenção pedagógica da macro `MF8`: Preparar operacao final, observabilidade e fecho para defesa PAP..
 
 ### Pre-requisitos
-- Ler o requisito `RNF40` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.
+- Ler o requisito `RNF38` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.
 - Validar dependencias declaradas: `-`.
 - Preparar ambiente para smoke test e validacao negativa.
 
@@ -39,7 +40,7 @@ Executar `Datas, moedas e separadores no padrão europeu.` com rastreabilidade e
 
 ### Check de compreensao
 - [ ] Sei justificar porque este BK existe no fluxo da macro `MF8`.
-- [ ] Sei mostrar onde esta o requisito `RNF40` no sistema.
+- [ ] Sei mostrar onde esta o requisito `RNF38` no sistema.
 - [ ] Sei demonstrar pelo menos 1 negativo relevante do BK.
 
 ### Tempo estimado
@@ -49,17 +50,17 @@ Executar `Datas, moedas e separadores no padrão europeu.` com rastreabilidade e
 ## Bloco operacional
 ### Entrada
 - BK: `BK-MF8-11`
-- Requisito: `RNF40`
+- Requisito: `RNF38`
 - Dependencias: `-`
 - Artefactos de referencia: `MATRIZ-CANONICA-BK.md`, `BACKLOG-MVP.md`, `PLANO-SPRINTS.md`
 
 ### Passos
-1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do BK-MF8-11 e o requisito `RNF40`.
-2. Verificar pre-condicoes tecnicas (-) e validar ambiente local antes de implementar.
-3. Definir contrato de entrada/saida do fluxo principal para `Datas, moedas e separadores no padrão europeu.`.
-4. Implementar caminho principal com registo de logs/erros relevantes para auditoria.
+1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do `BK-MF8-11` e o requisito `RNF38`.
+2. Validar dependencias técnicas (`-`) e preparar dados de teste mínimos para `Datas, moedas e separadores no padrão europeu.`.
+3. Implementar requisito de fecho operacional (observabilidade, deploy, i18n ou governança final).
+4. Validar comportamento em cenário de fecho PAP com evidência pronta para defesa.
 5. Executar pelo menos 1 teste de smoke orientado ao caso principal do BK.
-6. Executar cenarios negativos obrigatorios e registar resultado observado (mensagem/codigo/efeito).
+6. Executar cenários negativos obrigatórios e registar resultado observado (mensagem/código/efeito).
 
 ### Validacao
 - [ ] Smoke: fluxo principal executa sem erro bloqueante.
@@ -101,4 +102,4 @@ Garantir consistencia visual/legal no padrao europeu para todos os campos de dat
 - `neg`: cenario negativo executado com resultado esperado.
 
 ## Changelog
-- `2026-04-13`: guia migrado para naming com slug e template pedagogico-operacional executavel.
+- `2026-04-17`: guia migrado para naming com slug e template pedagogico-operacional executavel.

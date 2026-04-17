@@ -16,7 +16,7 @@
 - `core_or_reforco`: `Core`
 - `proximo_bk`: `BK-MF5-09`
 - `guia_path`: `docs/planificacao/guias-bk/MF5/BK-MF5-08-cumprir-regras-basicas-de-acessibilidade-contraste-headings-legibilidade.md`
-- `last_updated`: `2026-04-13`
+- `last_updated`: `2026-04-17`
 
 ## Contexto do BK
 - Entrega alvo: implementar `Cumprir regras básicas de acessibilidade (contraste, headings, legibilidade).` com rastreabilidade direta ao requisito `RNF04`.
@@ -25,7 +25,8 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Executar `Cumprir regras básicas de acessibilidade (contraste, headings, legibilidade).` com rastreabilidade explicita para `RNF04` e demonstracao tecnica no contexto da sprint `S09-S10`.
+Executar `Cumprir regras básicas de acessibilidade (contraste, headings, legibilidade).` com autonomia técnica, garantindo cobertura do requisito `RNF04` e evidência objetiva para avaliação.
+- Intenção pedagógica da macro `MF5`: Tornar a UX previsivel, clara e orientada a fluxos reais de trabalho..
 
 ### Pre-requisitos
 - Ler o requisito `RNF04` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.
@@ -54,12 +55,12 @@ Executar `Cumprir regras básicas de acessibilidade (contraste, headings, legibi
 - Artefactos de referencia: `MATRIZ-CANONICA-BK.md`, `BACKLOG-MVP.md`, `PLANO-SPRINTS.md`
 
 ### Passos
-1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do BK-MF5-08 e o requisito `RNF04`.
-2. Verificar pre-condicoes tecnicas (-) e validar ambiente local antes de implementar.
-3. Definir contrato de entrada/saida do fluxo principal para `Cumprir regras básicas de acessibilidade (contraste, headings, legibilidade).`.
-4. Implementar caminho principal com registo de logs/erros relevantes para auditoria.
+1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do `BK-MF5-08` e o requisito `RNF04`.
+2. Validar dependencias técnicas (`-`) e preparar dados de teste mínimos para `Cumprir regras básicas de acessibilidade (contraste, headings, legibilidade).`.
+3. Implementar comportamento UX transversal (validação, feedback, consistência visual e erro claro).
+4. Executar testes de usabilidade rápida em cenário real de operação (desktop e tablet).
 5. Executar pelo menos 1 teste de smoke orientado ao caso principal do BK.
-6. Executar cenarios negativos obrigatorios e registar resultado observado (mensagem/codigo/efeito).
+6. Executar cenários negativos obrigatórios e registar resultado observado (mensagem/código/efeito).
 
 ### Validacao
 - [ ] Smoke: fluxo principal executa sem erro bloqueante.
@@ -73,20 +74,19 @@ Executar `Cumprir regras básicas de acessibilidade (contraste, headings, legibi
 - Se houver bloqueio >48h, escalar no scorecard da sprint.
 
 ## Snippet tecnico aplicavel
-**Validador base de entrada de dominio**
+**Validador de output auditavel**
 
 ```ts
-type Payload = Record<string, unknown>;
+type Resultado = { status: 'ok' | 'erro'; mensagem: string; fonte?: string };
 
-export function validarEntradaBK(payload: Payload) {
-  const camposObrigatorios = ['empresaId', 'utilizadorId'];
-  const emFalta = camposObrigatorios.filter((c) => !payload[c]);
-  if (emFalta.length) throw new Error(`BK BK-MF5-08: faltam campos ${emFalta.join(', ')}`);
-  return { ok: true, bk: 'BK-MF5-08', payload };
+export function validarResultado(res: Resultado) {
+  if (res.status === 'ok' && !res.mensagem) throw new Error('Mensagem obrigatoria');
+  if (res.status === 'ok' && !res.fonte) throw new Error('Fonte obrigatoria para rastreabilidade');
+  return { bk: 'BK-MF5-08', validado: true };
 }
 ```
 
-Ponto de entrada seguro para reduzir erros de dados e facilitar diagnostico nos testes de smoke/negativos.
+Impõe resposta auditável e rastreável em fluxos de IA/governança/operação final.
 
 ## Criterios de aceite
 - BK implementado no scope definido, sem romper dependencias.
@@ -100,4 +100,4 @@ Ponto de entrada seguro para reduzir erros de dados e facilitar diagnostico nos 
 - `neg`: cenario negativo executado com resultado esperado.
 
 ## Changelog
-- `2026-04-13`: guia migrado para naming com slug e template pedagogico-operacional executavel.
+- `2026-04-17`: guia migrado para naming com slug e template pedagogico-operacional executavel.

@@ -16,7 +16,7 @@
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF1-03`
 - `guia_path`: `docs/planificacao/guias-bk/MF1/BK-MF1-02-emitir-fatura-fatura-recibo-nota-de-credito-com-numeracao-sequencial.md`
-- `last_updated`: `2026-04-13`
+- `last_updated`: `2026-04-17`
 
 ## Contexto do BK
 - Entrega alvo: implementar `Emitir Fatura, Fatura-Recibo, Nota de Crédito, com numeração sequencial.` com rastreabilidade direta ao requisito `RF14`.
@@ -25,7 +25,8 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Executar `Emitir Fatura, Fatura-Recibo, Nota de Crédito, com numeração sequencial.` com rastreabilidade explicita para `RF14` e demonstracao tecnica no contexto da sprint `S03-S04`.
+Executar `Emitir Fatura, Fatura-Recibo, Nota de Crédito, com numeração sequencial.` com autonomia técnica, garantindo cobertura do requisito `RF14` e evidência objetiva para avaliação.
+- Intenção pedagógica da macro `MF1`: Fechar o ciclo comercial minimo com impacto contabilistico validado..
 
 ### Pre-requisitos
 - Ler o requisito `RF14` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.
@@ -54,13 +55,13 @@ Executar `Emitir Fatura, Fatura-Recibo, Nota de Crédito, com numeração sequen
 - Artefactos de referencia: `MATRIZ-CANONICA-BK.md`, `BACKLOG-MVP.md`, `PLANO-SPRINTS.md`
 
 ### Passos
-1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do BK-MF1-02 e o requisito `RF14`.
-2. Verificar pre-condicoes tecnicas (BK-MF0-09, BK-MF0-11, BK-MF1-01) e validar ambiente local antes de implementar.
-3. Definir contrato de entrada/saida do fluxo principal para `Emitir Fatura, Fatura-Recibo, Nota de Crédito, com numeração sequencial.`.
-4. Implementar caminho principal com registo de logs/erros relevantes para auditoria.
+1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do `BK-MF1-02` e o requisito `RF14`.
+2. Validar dependencias técnicas (`BK-MF0-09, BK-MF0-11, BK-MF1-01`) e preparar dados de teste mínimos para `Emitir Fatura, Fatura-Recibo, Nota de Crédito, com numeração sequencial.`.
+3. Implementar fluxo comercial fim-a-fim com cálculo fiscal e registo contabilístico associado.
+4. Validar transição de estados/documentos e coerência entre documento comercial e lançamento.
 5. Executar pelo menos 1 teste de smoke orientado ao caso principal do BK.
-6. Executar cenarios negativos obrigatorios e registar resultado observado (mensagem/codigo/efeito).
-7. Aplicar reforco tecnico (robustez/performance/seguranca) associado ao risco principal do BK.
+6. Executar cenários negativos obrigatórios e registar resultado observado (mensagem/código/efeito).
+7. Aplicar reforço técnico (robustez/performance/segurança) no risco principal identificado para este BK.
 8. Atualizar evidence (`pr`, `proof`, `neg`) com artefactos concretos e verificaveis.
 
 ### Validacao
@@ -104,4 +105,4 @@ Aplicar antes de persistir documento para evitar registos contabilisticos incons
 - `neg`: cenario negativo executado com resultado esperado.
 
 ## Changelog
-- `2026-04-13`: guia migrado para naming com slug e template pedagogico-operacional executavel.
+- `2026-04-17`: guia migrado para naming com slug e template pedagogico-operacional executavel.

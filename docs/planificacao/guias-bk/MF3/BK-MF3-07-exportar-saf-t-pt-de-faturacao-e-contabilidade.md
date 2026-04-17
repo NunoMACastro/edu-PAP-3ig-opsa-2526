@@ -14,9 +14,9 @@
 - `fase_documental`: `Fase 2`
 - `sprint`: `S07-S08`
 - `core_or_reforco`: `Reforco`
-- `proximo_bk`: `BK-MF3-08`
+- `proximo_bk`: `BK-MF3-09`
 - `guia_path`: `docs/planificacao/guias-bk/MF3/BK-MF3-07-exportar-saf-t-pt-de-faturacao-e-contabilidade.md`
-- `last_updated`: `2026-04-13`
+- `last_updated`: `2026-04-17`
 
 ## Contexto do BK
 - Entrega alvo: implementar `Exportar SAF-T (PT) de faturação e contabilidade.` com rastreabilidade direta ao requisito `RF43`.
@@ -25,7 +25,8 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Executar `Exportar SAF-T (PT) de faturação e contabilidade.` com rastreabilidade explicita para `RF43` e demonstracao tecnica no contexto da sprint `S07-S08`.
+Executar `Exportar SAF-T (PT) de faturação e contabilidade.` com autonomia técnica, garantindo cobertura do requisito `RF43` e evidência objetiva para avaliação.
+- Intenção pedagógica da macro `MF3`: Consolidar tesouraria, integracoes e reporting financeiro auditavel..
 
 ### Pre-requisitos
 - Ler o requisito `RF43` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.
@@ -54,13 +55,13 @@ Executar `Exportar SAF-T (PT) de faturação e contabilidade.` com rastreabilida
 - Artefactos de referencia: `MATRIZ-CANONICA-BK.md`, `BACKLOG-MVP.md`, `PLANO-SPRINTS.md`
 
 ### Passos
-1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do BK-MF3-07 e o requisito `RF43`.
-2. Verificar pre-condicoes tecnicas (-) e validar ambiente local antes de implementar.
-3. Definir contrato de entrada/saida do fluxo principal para `Exportar SAF-T (PT) de faturação e contabilidade.`.
-4. Implementar caminho principal com registo de logs/erros relevantes para auditoria.
+1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do `BK-MF3-07` e o requisito `RF43`.
+2. Validar dependencias técnicas (`-`) e preparar dados de teste mínimos para `Exportar SAF-T (PT) de faturação e contabilidade.`.
+3. Implementar integração/importação/exportação com validação estrutural e rastreio de erros.
+4. Validar reconciliação/relatório resultante com dados de referência controlados.
 5. Executar pelo menos 1 teste de smoke orientado ao caso principal do BK.
-6. Executar cenarios negativos obrigatorios e registar resultado observado (mensagem/codigo/efeito).
-7. Aplicar reforco tecnico (robustez/performance/seguranca) associado ao risco principal do BK.
+6. Executar cenários negativos obrigatórios e registar resultado observado (mensagem/código/efeito).
+7. Aplicar reforço técnico (robustez/performance/segurança) no risco principal identificado para este BK.
 8. Atualizar evidence (`pr`, `proof`, `neg`) com artefactos concretos e verificaveis.
 
 ### Validacao
@@ -70,7 +71,7 @@ Executar `Exportar SAF-T (PT) de faturação e contabilidade.` com rastreabilida
 - [ ] Evidencia: `pr`, `proof`, `neg` preenchidos com artefactos reais.
 
 ### Handoff
-- Proximo BK recomendado: `BK-MF3-08`
+- Proximo BK recomendado: `BK-MF3-09`
 - Registar no handoff: estado de dependencias, risco aberto e decisao tomada.
 - Se houver bloqueio >48h, escalar no scorecard da sprint.
 
@@ -104,4 +105,4 @@ Aplicar antes de persistir documento para evitar registos contabilisticos incons
 - `neg`: cenario negativo executado com resultado esperado.
 
 ## Changelog
-- `2026-04-13`: guia migrado para naming com slug e template pedagogico-operacional executavel.
+- `2026-04-17`: guia migrado para naming com slug e template pedagogico-operacional executavel.

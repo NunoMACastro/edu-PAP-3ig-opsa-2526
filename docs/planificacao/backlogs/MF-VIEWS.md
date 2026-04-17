@@ -112,7 +112,7 @@ BK-MF2-01, BK-MF2-02, BK-MF2-03, BK-MF2-04, BK-MF2-05, BK-MF2-06, BK-MF2-07, BK-
 
 ## MF3 - Capacidades de produto I
 ### Sequencia por macro
-BK-MF3-01, BK-MF3-02, BK-MF3-03, BK-MF3-04, BK-MF3-05, BK-MF3-06, BK-MF3-07, BK-MF3-08, BK-MF3-09, BK-MF3-10, BK-MF3-11, BK-MF3-12
+BK-MF3-01, BK-MF3-02, BK-MF3-03, BK-MF3-04, BK-MF3-05, BK-MF3-06, BK-MF3-07, BK-MF3-09, BK-MF3-10, BK-MF3-11, BK-MF3-12
 
 ### Guias disponiveis
 - [BK-MF3-01 - Gerar Mapas de IVA (liquidado/dedutível).](../guias-bk/MF3/BK-MF3-01-gerar-mapas-de-iva-liquidado-dedutivel.md)
@@ -122,7 +122,6 @@ BK-MF3-01, BK-MF3-02, BK-MF3-03, BK-MF3-04, BK-MF3-05, BK-MF3-06, BK-MF3-07, BK-
 - [BK-MF3-05 - Upload de documentos com OCR (ler NIF, data, total, IVA).](../guias-bk/MF3/BK-MF3-05-upload-de-documentos-com-ocr-ler-nif-data-total-iva.md)
 - [BK-MF3-06 - Importar CSV/Excel de clientes, fornecedores, artigos e extratos.](../guias-bk/MF3/BK-MF3-06-importar-csv-excel-de-clientes-fornecedores-artigos-e-extratos.md)
 - [BK-MF3-07 - Exportar SAF-T (PT) de faturação e contabilidade.](../guias-bk/MF3/BK-MF3-07-exportar-saf-t-pt-de-faturacao-e-contabilidade.md)
-- [BK-MF3-08 - (Opcional) Integração com e-Fatura.](../guias-bk/MF3/BK-MF3-08-opcional-integracao-com-e-fatura.md)
 - [BK-MF3-09 - Mapear documentos de integração para centros de custo.](../guias-bk/MF3/BK-MF3-09-mapear-documentos-de-integracao-para-centros-de-custo.md)
 - [BK-MF3-10 - Relatórios de vendas, compras, margens e stock.](../guias-bk/MF3/BK-MF3-10-relatorios-de-vendas-compras-margens-e-stock.md)
 - [BK-MF3-11 - KPIs executivos (receita, custos, EBITDA, PMR, PMP).](../guias-bk/MF3/BK-MF3-11-kpis-executivos-receita-custos-ebitda-pmr-pmp.md)
@@ -149,9 +148,9 @@ BK-MF4-01, BK-MF4-02, BK-MF4-03, BK-MF4-04, BK-MF4-05, BK-MF4-06, BK-MF4-07, BK-
 - [BK-MF4-03 - Permitir perguntas em linguagem natural e responder com dados e fonte.](../guias-bk/MF4/BK-MF4-03-permitir-perguntas-em-linguagem-natural-e-responder-com-dados-e-fonte.md)
 - [BK-MF4-04 - Emitir alertas inteligentes (cashflow, desvios, ruturas).](../guias-bk/MF4/BK-MF4-04-emitir-alertas-inteligentes-cashflow-desvios-ruturas.md)
 - [BK-MF4-05 - Mostrar explicações e fontes de cada insight.](../guias-bk/MF4/BK-MF4-05-mostrar-explicacoes-e-fontes-de-cada-insight.md)
-- [BK-MF4-06 - Criar/editar lembretes (prazos, pagamentos, impostos).](../guias-bk/MF4/BK-MF4-06-criar-editar-lembretes-prazos-pagamentos-impostos.md)
-- [BK-MF4-07 - Criar e atribuir tarefas com estado e prazo.](../guias-bk/MF4/BK-MF4-07-criar-e-atribuir-tarefas-com-estado-e-prazo.md)
-- [BK-MF4-08 - Notificações (in-app/email) para lembretes e alertas da IA.](../guias-bk/MF4/BK-MF4-08-notificacoes-in-app-email-para-lembretes-e-alertas-da-ia.md)
+- [BK-MF4-06 - Criar/editar lembretes essenciais (prazos, pagamentos e impostos).](../guias-bk/MF4/BK-MF4-06-criar-editar-lembretes-essenciais-prazos-pagamentos-e-impostos.md)
+- [BK-MF4-07 - Criar e atribuir tarefas essenciais com estado e prazo.](../guias-bk/MF4/BK-MF4-07-criar-e-atribuir-tarefas-essenciais-com-estado-e-prazo.md)
+- [BK-MF4-08 - Notificações in-app para lembretes e alertas críticos da IA.](../guias-bk/MF4/BK-MF4-08-notificacoes-in-app-para-lembretes-e-alertas-criticos-da-ia.md)
 - [BK-MF4-09 - Registar auditoria: quem, quando, o quê, em operações sensíveis.](../guias-bk/MF4/BK-MF4-09-registar-auditoria-quem-quando-o-que-em-operacoes-sensiveis.md)
 - [BK-MF4-10 - Registar logs de integração (uploads, SAF-T, reconciliações).](../guias-bk/MF4/BK-MF4-10-registar-logs-de-integracao-uploads-saf-t-reconciliacoes.md)
 - [BK-MF4-11 - Permitir reabertura de períodos apenas com registo de motivo.](../guias-bk/MF4/BK-MF4-11-permitir-reabertura-de-periodos-apenas-com-registo-de-motivo.md)
@@ -170,13 +169,12 @@ BK-MF4-01, BK-MF4-02, BK-MF4-03, BK-MF4-04, BK-MF4-05, BK-MF4-06, BK-MF4-07, BK-
 
 ## MF5 - Operacao e fluxos transversais
 ### Sequencia por macro
-BK-MF5-01, BK-MF5-02, BK-MF5-03, BK-MF5-04, BK-MF5-05, BK-MF5-06, BK-MF5-07, BK-MF5-08, BK-MF5-09, BK-MF5-10, BK-MF5-11
+BK-MF5-01, BK-MF5-02, BK-MF5-03, BK-MF5-05, BK-MF5-06, BK-MF5-07, BK-MF5-08, BK-MF5-09, BK-MF5-10, BK-MF5-11
 
 ### Guias disponiveis
-- [BK-MF5-01 - Configurar níveis de aprovação com limites financeiros e escalamentos.](../guias-bk/MF5/BK-MF5-01-configurar-niveis-de-aprovacao-com-limites-financeiros-e-escalamentos.md)
-- [BK-MF5-02 - Painel para monitorizar aprovações pendentes e SLA por tipo de documento.](../guias-bk/MF5/BK-MF5-02-painel-para-monitorizar-aprovacoes-pendentes-e-sla-por-tipo-de-documento.md)
+- [BK-MF5-01 - Configurar níveis de aprovação essenciais com limites financeiros.](../guias-bk/MF5/BK-MF5-01-configurar-niveis-de-aprovacao-essenciais-com-limites-financeiros.md)
+- [BK-MF5-02 - Painel simples para monitorizar aprovações pendentes por tipo de documento.](../guias-bk/MF5/BK-MF5-02-painel-simples-para-monitorizar-aprovacoes-pendentes-por-tipo-de-documento.md)
 - [BK-MF5-03 - Agendar pagamentos/recebimentos futuros com integração às previsões de tesouraria.](../guias-bk/MF5/BK-MF5-03-agendar-pagamentos-recebimentos-futuros-com-integracao-as-previsoes-de-tesouraria.md)
-- [BK-MF5-04 - Gerir linhas de crédito (limites, utilização, alertas) por banco.](../guias-bk/MF5/BK-MF5-04-gerir-linhas-de-credito-limites-utilizacao-alertas-por-banco.md)
 - [BK-MF5-05 - Interface intuitiva, clara e consistente entre módulos (Vendas, Compras, Inventário, Contabilidade).](../guias-bk/MF5/BK-MF5-05-interface-intuitiva-clara-e-consistente-entre-modulos-vendas-compras-inventario-contabilidade.md)
 - [BK-MF5-06 - Layout responsivo (desktop > tablet > mobile) com grelhas e tabelas adaptadas.](../guias-bk/MF5/BK-MF5-06-layout-responsivo-desktop-tablet-mobile-com-grelhas-e-tabelas-adaptadas.md)
 - [BK-MF5-07 - A interface deve usar feedback imediato em todas as ações (guardar, validar, uploads).](../guias-bk/MF5/BK-MF5-07-a-interface-deve-usar-feedback-imediato-em-todas-as-acoes-guardar-validar-uploads.md)
@@ -198,14 +196,13 @@ BK-MF5-01, BK-MF5-02, BK-MF5-03, BK-MF5-04, BK-MF5-05, BK-MF5-06, BK-MF5-07, BK-
 
 ## MF6 - Qualidade e robustez
 ### Sequencia por macro
-BK-MF6-01, BK-MF6-02, BK-MF6-03, BK-MF6-04, BK-MF6-05, BK-MF6-06, BK-MF6-07, BK-MF6-08, BK-MF6-09, BK-MF6-10, BK-MF6-11
+BK-MF6-01, BK-MF6-02, BK-MF6-03, BK-MF6-04, BK-MF6-06, BK-MF6-07, BK-MF6-08, BK-MF6-09, BK-MF6-10, BK-MF6-11
 
 ### Guias disponiveis
 - [BK-MF6-01 - Inserção de documentos (fatura, compra, lançamento) deve ser ≤ 1 segundo.](../guias-bk/MF6/BK-MF6-01-insercao-de-documentos-fatura-compra-lancamento-deve-ser-1-segundo.md)
 - [BK-MF6-02 - Suportar ≥ 50 utilizadores simultâneos por empresa sem degradação.](../guias-bk/MF6/BK-MF6-02-suportar-50-utilizadores-simultaneos-por-empresa-sem-degradacao.md)
 - [BK-MF6-03 - Reconciliação bancária deve sugerir correspondências em ≤ 3 segundos.](../guias-bk/MF6/BK-MF6-03-reconciliacao-bancaria-deve-sugerir-correspondencias-em-3-segundos.md)
 - [BK-MF6-04 - Cálculo de custo (FIFO) deve ser incremental e não bloquear operações.](../guias-bk/MF6/BK-MF6-04-calculo-de-custo-fifo-deve-ser-incremental-e-nao-bloquear-operacoes.md)
-- [BK-MF6-05 - Arquitetura preparada para escalar horizontalmente.](../guias-bk/MF6/BK-MF6-05-arquitetura-preparada-para-escalar-horizontalmente.md)
 - [BK-MF6-06 - Toda a comunicação deve usar HTTPS (TLS 1.2+).](../guias-bk/MF6/BK-MF6-06-toda-a-comunicacao-deve-usar-https-tls-1-2.md)
 - [BK-MF6-07 - Passwords devem usar bcrypt com salt seguro.](../guias-bk/MF6/BK-MF6-07-passwords-devem-usar-bcrypt-com-salt-seguro.md)
 - [BK-MF6-08 - Sessões com cookies HttpOnly + Secure + SameSite.](../guias-bk/MF6/BK-MF6-08-sessoes-com-cookies-httponly-secure-samesite.md)
@@ -254,7 +251,7 @@ BK-MF7-01, BK-MF7-02, BK-MF7-03, BK-MF7-04, BK-MF7-05, BK-MF7-06, BK-MF7-07, BK-
 
 ## MF8 - Integracoes, compatibilidade e fecho
 ### Sequencia por macro
-BK-MF8-01, BK-MF8-02, BK-MF8-03, BK-MF8-04, BK-MF8-05, BK-MF8-06, BK-MF8-07, BK-MF8-08, BK-MF8-09, BK-MF8-10, BK-MF8-11
+BK-MF8-01, BK-MF8-02, BK-MF8-03, BK-MF8-04, BK-MF8-05, BK-MF8-06, BK-MF8-07, BK-MF8-08, BK-MF8-09, BK-MF8-11
 
 ### Guias disponiveis
 - [BK-MF8-01 - Logs estruturados (info, warn, error, audit).](../guias-bk/MF8/BK-MF8-01-logs-estruturados-info-warn-error-audit.md)
@@ -266,7 +263,6 @@ BK-MF8-01, BK-MF8-02, BK-MF8-03, BK-MF8-04, BK-MF8-05, BK-MF8-06, BK-MF8-07, BK-
 - [BK-MF8-07 - Alertas configuráveis (ativar/desativar tipos).](../guias-bk/MF8/BK-MF8-07-alertas-configuraveis-ativar-desativar-tipos.md)
 - [BK-MF8-08 - IA deve evitar enviesamentos e sugerir ações baseadas em dados reais.](../guias-bk/MF8/BK-MF8-08-ia-deve-evitar-enviesamentos-e-sugerir-acoes-baseadas-em-dados-reais.md)
 - [BK-MF8-09 - Interface em português de Portugal.](../guias-bk/MF8/BK-MF8-09-interface-em-portugues-de-portugal.md)
-- [BK-MF8-10 - Preparado para futura tradução (suporte i18n básico).](../guias-bk/MF8/BK-MF8-10-preparado-para-futura-traducao-suporte-i18n-basico.md)
 - [BK-MF8-11 - Datas, moedas e separadores no padrão europeu.](../guias-bk/MF8/BK-MF8-11-datas-moedas-e-separadores-no-padrao-europeu.md)
 
 ### Step-by-step macro

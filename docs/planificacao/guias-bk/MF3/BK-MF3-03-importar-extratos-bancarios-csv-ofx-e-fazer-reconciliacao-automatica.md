@@ -16,7 +16,7 @@
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF3-04`
 - `guia_path`: `docs/planificacao/guias-bk/MF3/BK-MF3-03-importar-extratos-bancarios-csv-ofx-e-fazer-reconciliacao-automatica.md`
-- `last_updated`: `2026-04-13`
+- `last_updated`: `2026-04-17`
 
 ## Contexto do BK
 - Entrega alvo: implementar `Importar extratos bancários (CSV/OFX) e fazer reconciliação automática.` com rastreabilidade direta ao requisito `RF39`.
@@ -25,7 +25,8 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Executar `Importar extratos bancários (CSV/OFX) e fazer reconciliação automática.` com rastreabilidade explicita para `RF39` e demonstracao tecnica no contexto da sprint `S07-S08`.
+Executar `Importar extratos bancários (CSV/OFX) e fazer reconciliação automática.` com autonomia técnica, garantindo cobertura do requisito `RF39` e evidência objetiva para avaliação.
+- Intenção pedagógica da macro `MF3`: Consolidar tesouraria, integracoes e reporting financeiro auditavel..
 
 ### Pre-requisitos
 - Ler o requisito `RF39` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.
@@ -54,13 +55,13 @@ Executar `Importar extratos bancários (CSV/OFX) e fazer reconciliação automá
 - Artefactos de referencia: `MATRIZ-CANONICA-BK.md`, `BACKLOG-MVP.md`, `PLANO-SPRINTS.md`
 
 ### Passos
-1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do BK-MF3-03 e o requisito `RF39`.
-2. Verificar pre-condicoes tecnicas (BK-MF3-02, BK-MF1-02, BK-MF1-09) e validar ambiente local antes de implementar.
-3. Definir contrato de entrada/saida do fluxo principal para `Importar extratos bancários (CSV/OFX) e fazer reconciliação automática.`.
-4. Implementar caminho principal com registo de logs/erros relevantes para auditoria.
+1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do `BK-MF3-03` e o requisito `RF39`.
+2. Validar dependencias técnicas (`BK-MF3-02, BK-MF1-02, BK-MF1-09`) e preparar dados de teste mínimos para `Importar extratos bancários (CSV/OFX) e fazer reconciliação automática.`.
+3. Implementar integração/importação/exportação com validação estrutural e rastreio de erros.
+4. Validar reconciliação/relatório resultante com dados de referência controlados.
 5. Executar pelo menos 1 teste de smoke orientado ao caso principal do BK.
-6. Executar cenarios negativos obrigatorios e registar resultado observado (mensagem/codigo/efeito).
-7. Aplicar reforco tecnico (robustez/performance/seguranca) associado ao risco principal do BK.
+6. Executar cenários negativos obrigatórios e registar resultado observado (mensagem/código/efeito).
+7. Aplicar reforço técnico (robustez/performance/segurança) no risco principal identificado para este BK.
 8. Atualizar evidence (`pr`, `proof`, `neg`) com artefactos concretos e verificaveis.
 
 ### Validacao
@@ -102,4 +103,4 @@ Serve como base para reconciliacao automatica, mantendo criterio deterministico 
 - `neg`: cenario negativo executado com resultado esperado.
 
 ## Changelog
-- `2026-04-13`: guia migrado para naming com slug e template pedagogico-operacional executavel.
+- `2026-04-17`: guia migrado para naming com slug e template pedagogico-operacional executavel.

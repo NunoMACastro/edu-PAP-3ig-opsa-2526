@@ -16,7 +16,7 @@
 - `core_or_reforco`: `Core`
 - `proximo_bk`: `BK-MF1-09`
 - `guia_path`: `docs/planificacao/guias-bk/MF1/BK-MF1-08-registar-historico-de-decisoes-de-aprovacao-e-comentarios.md`
-- `last_updated`: `2026-04-13`
+- `last_updated`: `2026-04-17`
 
 ## Contexto do BK
 - Entrega alvo: implementar `Registar histórico de decisões de aprovação e comentários.` com rastreabilidade direta ao requisito `RF20`.
@@ -25,7 +25,8 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Executar `Registar histórico de decisões de aprovação e comentários.` com rastreabilidade explicita para `RF20` e demonstracao tecnica no contexto da sprint `S03-S04`.
+Executar `Registar histórico de decisões de aprovação e comentários.` com autonomia técnica, garantindo cobertura do requisito `RF20` e evidência objetiva para avaliação.
+- Intenção pedagógica da macro `MF1`: Fechar o ciclo comercial minimo com impacto contabilistico validado..
 
 ### Pre-requisitos
 - Ler o requisito `RF20` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.
@@ -54,12 +55,12 @@ Executar `Registar histórico de decisões de aprovação e comentários.` com r
 - Artefactos de referencia: `MATRIZ-CANONICA-BK.md`, `BACKLOG-MVP.md`, `PLANO-SPRINTS.md`
 
 ### Passos
-1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do BK-MF1-08 e o requisito `RF20`.
-2. Verificar pre-condicoes tecnicas (BK-MF1-06) e validar ambiente local antes de implementar.
-3. Definir contrato de entrada/saida do fluxo principal para `Registar histórico de decisões de aprovação e comentários.`.
-4. Implementar caminho principal com registo de logs/erros relevantes para auditoria.
+1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do `BK-MF1-08` e o requisito `RF20`.
+2. Validar dependencias técnicas (`BK-MF1-06`) e preparar dados de teste mínimos para `Registar histórico de decisões de aprovação e comentários.`.
+3. Implementar fluxo comercial fim-a-fim com cálculo fiscal e registo contabilístico associado.
+4. Validar transição de estados/documentos e coerência entre documento comercial e lançamento.
 5. Executar pelo menos 1 teste de smoke orientado ao caso principal do BK.
-6. Executar cenarios negativos obrigatorios e registar resultado observado (mensagem/codigo/efeito).
+6. Executar cenários negativos obrigatórios e registar resultado observado (mensagem/código/efeito).
 
 ### Validacao
 - [ ] Smoke: fluxo principal executa sem erro bloqueante.
@@ -73,20 +74,19 @@ Executar `Registar histórico de decisões de aprovação e comentários.` com r
 - Se houver bloqueio >48h, escalar no scorecard da sprint.
 
 ## Snippet tecnico aplicavel
-**Validador base de entrada de dominio**
+**Contrato de comando com validacao de permissao**
 
 ```ts
-type Payload = Record<string, unknown>;
+type Contexto = { userId: string; roles: string[]; empresaId: string };
 
-export function validarEntradaBK(payload: Payload) {
-  const camposObrigatorios = ['empresaId', 'utilizadorId'];
-  const emFalta = camposObrigatorios.filter((c) => !payload[c]);
-  if (emFalta.length) throw new Error(`BK BK-MF1-08: faltam campos ${emFalta.join(', ')}`);
-  return { ok: true, bk: 'BK-MF1-08', payload };
+export function validarComando(ctx: Contexto, role: string) {
+  if (!ctx.userId || !ctx.empresaId) throw new Error('Contexto incompleto');
+  if (!ctx.roles.includes(role)) throw new Error(`Permissao insuficiente para RF20`);
+  return { bkId: 'BK-MF1-08', ok: true };
 }
 ```
 
-Ponto de entrada seguro para reduzir erros de dados e facilitar diagnostico nos testes de smoke/negativos.
+Garante pré-condições de identidade e autorização antes de executar regras de negócio.
 
 ## Criterios de aceite
 - BK implementado no scope definido, sem romper dependencias.
@@ -100,4 +100,4 @@ Ponto de entrada seguro para reduzir erros de dados e facilitar diagnostico nos 
 - `neg`: cenario negativo executado com resultado esperado.
 
 ## Changelog
-- `2026-04-13`: guia migrado para naming com slug e template pedagogico-operacional executavel.
+- `2026-04-17`: guia migrado para naming com slug e template pedagogico-operacional executavel.

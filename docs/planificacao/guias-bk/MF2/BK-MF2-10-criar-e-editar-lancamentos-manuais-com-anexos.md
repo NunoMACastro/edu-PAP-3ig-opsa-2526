@@ -16,7 +16,7 @@
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF2-11`
 - `guia_path`: `docs/planificacao/guias-bk/MF2/BK-MF2-10-criar-e-editar-lancamentos-manuais-com-anexos.md`
-- `last_updated`: `2026-04-13`
+- `last_updated`: `2026-04-17`
 
 ## Contexto do BK
 - Entrega alvo: implementar `Criar e editar lançamentos manuais (com anexos).` com rastreabilidade direta ao requisito `RF34`.
@@ -25,7 +25,8 @@
 
 ## Bloco pedagogico
 ### Objetivo
-Executar `Criar e editar lançamentos manuais (com anexos).` com rastreabilidade explicita para `RF34` e demonstracao tecnica no contexto da sprint `S05-S06`.
+Executar `Criar e editar lançamentos manuais (com anexos).` com autonomia técnica, garantindo cobertura do requisito `RF34` e evidência objetiva para avaliação.
+- Intenção pedagógica da macro `MF2`: Garantir integridade de inventario e contabilidade operacional por evento..
 
 ### Pre-requisitos
 - Ler o requisito `RF34` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.
@@ -54,13 +55,13 @@ Executar `Criar e editar lançamentos manuais (com anexos).` com rastreabilidade
 - Artefactos de referencia: `MATRIZ-CANONICA-BK.md`, `BACKLOG-MVP.md`, `PLANO-SPRINTS.md`
 
 ### Passos
-1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do BK-MF2-10 e o requisito `RF34`.
-2. Verificar pre-condicoes tecnicas (BK-MF0-07) e validar ambiente local antes de implementar.
-3. Definir contrato de entrada/saida do fluxo principal para `Criar e editar lançamentos manuais (com anexos).`.
-4. Implementar caminho principal com registo de logs/erros relevantes para auditoria.
+1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do `BK-MF2-10` e o requisito `RF34`.
+2. Validar dependencias técnicas (`BK-MF0-07`) e preparar dados de teste mínimos para `Criar e editar lançamentos manuais (com anexos).`.
+3. Implementar regra operacional de stock/centro analítico/lançamento garantindo consistência transacional.
+4. Validar impacto em saldos e trilho de auditoria após a operação principal.
 5. Executar pelo menos 1 teste de smoke orientado ao caso principal do BK.
-6. Executar cenarios negativos obrigatorios e registar resultado observado (mensagem/codigo/efeito).
-7. Aplicar reforco tecnico (robustez/performance/seguranca) associado ao risco principal do BK.
+6. Executar cenários negativos obrigatórios e registar resultado observado (mensagem/código/efeito).
+7. Aplicar reforço técnico (robustez/performance/segurança) no risco principal identificado para este BK.
 8. Atualizar evidence (`pr`, `proof`, `neg`) com artefactos concretos e verificaveis.
 
 ### Validacao
@@ -75,20 +76,24 @@ Executar `Criar e editar lançamentos manuais (com anexos).` com rastreabilidade
 - Se houver bloqueio >48h, escalar no scorecard da sprint.
 
 ## Snippet tecnico aplicavel
-**Validador base de entrada de dominio**
+**Validador transacional de consistencia financeira**
 
-```ts
-type Payload = Record<string, unknown>;
+```sql
+-- BK: BK-MF2-10
+BEGIN;
 
-export function validarEntradaBK(payload: Payload) {
-  const camposObrigatorios = ['empresaId', 'utilizadorId'];
-  const emFalta = camposObrigatorios.filter((c) => !payload[c]);
-  if (emFalta.length) throw new Error(`BK BK-MF2-10: faltam campos ${emFalta.join(', ')}`);
-  return { ok: true, bk: 'BK-MF2-10', payload };
-}
+SELECT 1
+FROM empresas
+WHERE id = :empresa_id
+FOR UPDATE;
+
+-- Validacoes de consistencia específicas do requisito RF34
+-- devem ocorrer antes de qualquer COMMIT.
+
+COMMIT;
 ```
 
-Ponto de entrada seguro para reduzir erros de dados e facilitar diagnostico nos testes de smoke/negativos.
+Usar como envelope transacional para preservar consistência em operações de stock/tesouraria/contabilidade.
 
 ## Criterios de aceite
 - BK implementado no scope definido, sem romper dependencias.
@@ -102,4 +107,4 @@ Ponto de entrada seguro para reduzir erros de dados e facilitar diagnostico nos 
 - `neg`: cenario negativo executado com resultado esperado.
 
 ## Changelog
-- `2026-04-13`: guia migrado para naming com slug e template pedagogico-operacional executavel.
+- `2026-04-17`: guia migrado para naming com slug e template pedagogico-operacional executavel.

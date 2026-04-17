@@ -6,7 +6,7 @@
 - `area`: `project`
 - `owner`: `Nuno`
 - `status`: `ativo`
-- `last_updated`: `2026-04-13`
+- `last_updated`: `2026-04-17`
 
 ## Objetivo
 Rastreabilidade bidirecional `RNF -> BKs`, gerada automaticamente a partir do backlog canónico.
@@ -25,35 +25,33 @@ Rastreabilidade bidirecional `RNF -> BKs`, gerada automaticamente a partir do ba
 | RNF09 | 1 | BK-MF6-02 |
 | RNF10 | 1 | BK-MF6-03 |
 | RNF11 | 1 | BK-MF6-04 |
-| RNF12 | 1 | BK-MF6-05 |
-| RNF13 | 1 | BK-MF6-06 |
-| RNF14 | 1 | BK-MF6-07 |
-| RNF15 | 1 | BK-MF6-08 |
-| RNF16 | 1 | BK-MF6-09 |
-| RNF17 | 1 | BK-MF6-10 |
-| RNF18 | 1 | BK-MF6-11 |
-| RNF19 | 1 | BK-MF7-01 |
-| RNF20 | 1 | BK-MF7-02 |
-| RNF21 | 1 | BK-MF7-03 |
-| RNF22 | 1 | BK-MF7-04 |
-| RNF23 | 1 | BK-MF7-05 |
-| RNF24 | 1 | BK-MF7-06 |
-| RNF25 | 1 | BK-MF7-07 |
-| RNF26 | 1 | BK-MF7-08 |
-| RNF27 | 1 | BK-MF7-09 |
-| RNF28 | 1 | BK-MF7-10 |
-| RNF29 | 1 | BK-MF7-11 |
-| RNF30 | 1 | BK-MF8-01 |
-| RNF31 | 1 | BK-MF8-02 |
-| RNF32 | 1 | BK-MF8-03 |
-| RNF33 | 1 | BK-MF8-04 |
-| RNF34 | 1 | BK-MF8-05 |
-| RNF35 | 1 | BK-MF8-06 |
-| RNF36 | 1 | BK-MF8-07 |
-| RNF37 | 1 | BK-MF8-08 |
-| RNF38 | 1 | BK-MF8-09 |
-| RNF39 | 1 | BK-MF8-10 |
-| RNF40 | 1 | BK-MF8-11 |
+| RNF12 | 1 | BK-MF6-06 |
+| RNF13 | 1 | BK-MF6-07 |
+| RNF14 | 1 | BK-MF6-08 |
+| RNF15 | 1 | BK-MF6-09 |
+| RNF16 | 1 | BK-MF6-10 |
+| RNF17 | 1 | BK-MF6-11 |
+| RNF18 | 1 | BK-MF7-01 |
+| RNF19 | 1 | BK-MF7-02 |
+| RNF20 | 1 | BK-MF7-03 |
+| RNF21 | 1 | BK-MF7-04 |
+| RNF22 | 1 | BK-MF7-05 |
+| RNF23 | 1 | BK-MF7-06 |
+| RNF24 | 1 | BK-MF7-07 |
+| RNF25 | 1 | BK-MF7-08 |
+| RNF26 | 1 | BK-MF7-09 |
+| RNF27 | 1 | BK-MF7-10 |
+| RNF28 | 1 | BK-MF7-11 |
+| RNF29 | 1 | BK-MF8-01 |
+| RNF30 | 1 | BK-MF8-02 |
+| RNF31 | 1 | BK-MF8-03 |
+| RNF32 | 1 | BK-MF8-04 |
+| RNF33 | 1 | BK-MF8-05 |
+| RNF34 | 1 | BK-MF8-06 |
+| RNF35 | 1 | BK-MF8-07 |
+| RNF36 | 1 | BK-MF8-08 |
+| RNF37 | 1 | BK-MF8-09 |
+| RNF38 | 1 | BK-MF8-11 |
 
 ## Changelog
 - `2026-04-13`: Anexo canónico criado por geracao automatica.

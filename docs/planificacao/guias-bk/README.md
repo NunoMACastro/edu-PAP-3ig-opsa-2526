@@ -6,7 +6,7 @@
 - `area`: `project`
 - `owner`: `Nuno`
 - `status`: `ativo`
-- `last_updated`: `2026-04-13`
+- `last_updated`: `2026-04-17`
 
 ## Padrão de naming dos guias BK
 - Formato obrigatório: `BK-MF*-**-slug-semantico.md`.
@@ -16,6 +16,7 @@
 ## Contrato editorial
 - Todos os guias devem conter `Bloco pedagogico` e `Bloco operacional`.
 - Snippet técnico obrigatório e aplicável ao BK real (não placeholder).
+- Reutilização técnica orientada por `SNIPPETS-POR-MACRO.md`.
 - Campos de header obrigatórios: `bk_id`, `macro`, `sprint`, `owner`, `rf_rnf`, `dependencias`, `guia_path`, `core_or_reforco`.
 
 ## Indice completo por macro
@@ -69,7 +70,6 @@
 - [BK-MF3-05 - Upload de documentos com OCR (ler NIF, data, total, IVA).](MF3/BK-MF3-05-upload-de-documentos-com-ocr-ler-nif-data-total-iva.md)
 - [BK-MF3-06 - Importar CSV/Excel de clientes, fornecedores, artigos e extratos.](MF3/BK-MF3-06-importar-csv-excel-de-clientes-fornecedores-artigos-e-extratos.md)
 - [BK-MF3-07 - Exportar SAF-T (PT) de faturação e contabilidade.](MF3/BK-MF3-07-exportar-saf-t-pt-de-faturacao-e-contabilidade.md)
-- [BK-MF3-08 - (Opcional) Integração com e-Fatura.](MF3/BK-MF3-08-opcional-integracao-com-e-fatura.md)
 - [BK-MF3-09 - Mapear documentos de integração para centros de custo.](MF3/BK-MF3-09-mapear-documentos-de-integracao-para-centros-de-custo.md)
 - [BK-MF3-10 - Relatórios de vendas, compras, margens e stock.](MF3/BK-MF3-10-relatorios-de-vendas-compras-margens-e-stock.md)
 - [BK-MF3-11 - KPIs executivos (receita, custos, EBITDA, PMR, PMP).](MF3/BK-MF3-11-kpis-executivos-receita-custos-ebitda-pmr-pmp.md)
@@ -81,19 +81,18 @@
 - [BK-MF4-03 - Permitir perguntas em linguagem natural e responder com dados e fonte.](MF4/BK-MF4-03-permitir-perguntas-em-linguagem-natural-e-responder-com-dados-e-fonte.md)
 - [BK-MF4-04 - Emitir alertas inteligentes (cashflow, desvios, ruturas).](MF4/BK-MF4-04-emitir-alertas-inteligentes-cashflow-desvios-ruturas.md)
 - [BK-MF4-05 - Mostrar explicações e fontes de cada insight.](MF4/BK-MF4-05-mostrar-explicacoes-e-fontes-de-cada-insight.md)
-- [BK-MF4-06 - Criar/editar lembretes (prazos, pagamentos, impostos).](MF4/BK-MF4-06-criar-editar-lembretes-prazos-pagamentos-impostos.md)
-- [BK-MF4-07 - Criar e atribuir tarefas com estado e prazo.](MF4/BK-MF4-07-criar-e-atribuir-tarefas-com-estado-e-prazo.md)
-- [BK-MF4-08 - Notificações (in-app/email) para lembretes e alertas da IA.](MF4/BK-MF4-08-notificacoes-in-app-email-para-lembretes-e-alertas-da-ia.md)
+- [BK-MF4-06 - Criar/editar lembretes essenciais (prazos, pagamentos e impostos).](MF4/BK-MF4-06-criar-editar-lembretes-essenciais-prazos-pagamentos-e-impostos.md)
+- [BK-MF4-07 - Criar e atribuir tarefas essenciais com estado e prazo.](MF4/BK-MF4-07-criar-e-atribuir-tarefas-essenciais-com-estado-e-prazo.md)
+- [BK-MF4-08 - Notificações in-app para lembretes e alertas críticos da IA.](MF4/BK-MF4-08-notificacoes-in-app-para-lembretes-e-alertas-criticos-da-ia.md)
 - [BK-MF4-09 - Registar auditoria: quem, quando, o quê, em operações sensíveis.](MF4/BK-MF4-09-registar-auditoria-quem-quando-o-que-em-operacoes-sensiveis.md)
 - [BK-MF4-10 - Registar logs de integração (uploads, SAF-T, reconciliações).](MF4/BK-MF4-10-registar-logs-de-integracao-uploads-saf-t-reconciliacoes.md)
 - [BK-MF4-11 - Permitir reabertura de períodos apenas com registo de motivo.](MF4/BK-MF4-11-permitir-reabertura-de-periodos-apenas-com-registo-de-motivo.md)
 - [BK-MF4-12 - Definir workflows de aprovação por documento (compra, venda, pagamento).](MF4/BK-MF4-12-definir-workflows-de-aprovacao-por-documento-compra-venda-pagamento.md)
 
 ### MF5
-- [BK-MF5-01 - Configurar níveis de aprovação com limites financeiros e escalamentos.](MF5/BK-MF5-01-configurar-niveis-de-aprovacao-com-limites-financeiros-e-escalamentos.md)
-- [BK-MF5-02 - Painel para monitorizar aprovações pendentes e SLA por tipo de documento.](MF5/BK-MF5-02-painel-para-monitorizar-aprovacoes-pendentes-e-sla-por-tipo-de-documento.md)
+- [BK-MF5-01 - Configurar níveis de aprovação essenciais com limites financeiros.](MF5/BK-MF5-01-configurar-niveis-de-aprovacao-essenciais-com-limites-financeiros.md)
+- [BK-MF5-02 - Painel simples para monitorizar aprovações pendentes por tipo de documento.](MF5/BK-MF5-02-painel-simples-para-monitorizar-aprovacoes-pendentes-por-tipo-de-documento.md)
 - [BK-MF5-03 - Agendar pagamentos/recebimentos futuros com integração às previsões de tesouraria.](MF5/BK-MF5-03-agendar-pagamentos-recebimentos-futuros-com-integracao-as-previsoes-de-tesouraria.md)
-- [BK-MF5-04 - Gerir linhas de crédito (limites, utilização, alertas) por banco.](MF5/BK-MF5-04-gerir-linhas-de-credito-limites-utilizacao-alertas-por-banco.md)
 - [BK-MF5-05 - Interface intuitiva, clara e consistente entre módulos (Vendas, Compras, Inventário, Contabilidade).](MF5/BK-MF5-05-interface-intuitiva-clara-e-consistente-entre-modulos-vendas-compras-inventario-contabilidade.md)
 - [BK-MF5-06 - Layout responsivo (desktop > tablet > mobile) com grelhas e tabelas adaptadas.](MF5/BK-MF5-06-layout-responsivo-desktop-tablet-mobile-com-grelhas-e-tabelas-adaptadas.md)
 - [BK-MF5-07 - A interface deve usar feedback imediato em todas as ações (guardar, validar, uploads).](MF5/BK-MF5-07-a-interface-deve-usar-feedback-imediato-em-todas-as-acoes-guardar-validar-uploads.md)
@@ -107,7 +106,6 @@
 - [BK-MF6-02 - Suportar ≥ 50 utilizadores simultâneos por empresa sem degradação.](MF6/BK-MF6-02-suportar-50-utilizadores-simultaneos-por-empresa-sem-degradacao.md)
 - [BK-MF6-03 - Reconciliação bancária deve sugerir correspondências em ≤ 3 segundos.](MF6/BK-MF6-03-reconciliacao-bancaria-deve-sugerir-correspondencias-em-3-segundos.md)
 - [BK-MF6-04 - Cálculo de custo (FIFO) deve ser incremental e não bloquear operações.](MF6/BK-MF6-04-calculo-de-custo-fifo-deve-ser-incremental-e-nao-bloquear-operacoes.md)
-- [BK-MF6-05 - Arquitetura preparada para escalar horizontalmente.](MF6/BK-MF6-05-arquitetura-preparada-para-escalar-horizontalmente.md)
 - [BK-MF6-06 - Toda a comunicação deve usar HTTPS (TLS 1.2+).](MF6/BK-MF6-06-toda-a-comunicacao-deve-usar-https-tls-1-2.md)
 - [BK-MF6-07 - Passwords devem usar bcrypt com salt seguro.](MF6/BK-MF6-07-passwords-devem-usar-bcrypt-com-salt-seguro.md)
 - [BK-MF6-08 - Sessões com cookies HttpOnly + Secure + SameSite.](MF6/BK-MF6-08-sessoes-com-cookies-httponly-secure-samesite.md)
@@ -138,9 +136,8 @@
 - [BK-MF8-07 - Alertas configuráveis (ativar/desativar tipos).](MF8/BK-MF8-07-alertas-configuraveis-ativar-desativar-tipos.md)
 - [BK-MF8-08 - IA deve evitar enviesamentos e sugerir ações baseadas em dados reais.](MF8/BK-MF8-08-ia-deve-evitar-enviesamentos-e-sugerir-acoes-baseadas-em-dados-reais.md)
 - [BK-MF8-09 - Interface em português de Portugal.](MF8/BK-MF8-09-interface-em-portugues-de-portugal.md)
-- [BK-MF8-10 - Preparado para futura tradução (suporte i18n básico).](MF8/BK-MF8-10-preparado-para-futura-traducao-suporte-i18n-basico.md)
 - [BK-MF8-11 - Datas, moedas e separadores no padrão europeu.](MF8/BK-MF8-11-datas-moedas-e-separadores-no-padrao-europeu.md)
 
 ## Changelog
-- `2026-04-13`: índice e naming migrados para padrão com slug semântico.
-- `2026-04-13`: contrato editorial reforçado com bloco pedagógico/operacional e snippet obrigatório.
+- `2026-04-17`: índice e naming migrados para padrão com slug semântico.
+- `2026-04-17`: contrato editorial reforçado com bloco pedagógico/operacional e snippet obrigatório.
