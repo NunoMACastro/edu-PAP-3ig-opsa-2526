@@ -707,43 +707,6 @@ Catálogo curto de snippets de referência por macro para reduzir repetição, m
     (plan_root / "guias-bk" / "SNIPPETS-POR-MACRO.md").write_text(content, encoding="utf-8")
 
 
-def rewrite_mapa_migracao(plan_root: Path, rows: list[dict[str, str]]) -> None:
-    lines = [
-        "# MAPA-MIGRACAO-LEGACY-PARA-CANONICO",
-        "",
-        "## Header",
-        "- `doc_id`: `MAPA-MIGRACAO`",
-        "- `path`: `docs/planificacao/guias-bk/MAPA-MIGRACAO-LEGACY-PARA-CANONICO.md`",
-        "- `owner`: `Nuno`",
-        f"- `last_updated`: `{TODAY}`",
-        "",
-        "## Nota de governanca",
-        "- IDs BK mantidos sem alteracao (`BK-MF*-**`).",
-        "- Migração aplicada apenas ao naming dos ficheiros com slug semântico.",
-        "- Referencias canónicas atualizadas em backlog, anexos e scripts.",
-        "",
-        "## Mapa",
-        "| origem_legacy | destino_canonico |",
-        "| --- | --- |",
-    ]
-
-    for row in rows:
-        req = normalize_req(row["rf_rnf"])
-        dst = f"{row['macro']}/{row['bk_id']}-{slugify(row['titulo'])}.md"
-        lines.append(f"| legacy-{req} | {dst} |")
-
-    lines.extend(
-        [
-            "",
-            "## Changelog",
-            f"- `{TODAY}`: destinos canónicos atualizados para padrão com slug semântico.",
-            "",
-        ]
-    )
-
-    (plan_root / "guias-bk" / "MAPA-MIGRACAO-LEGACY-PARA-CANONICO.md").write_text("\n".join(lines), encoding="utf-8")
-
-
 def main() -> None:
     plan_root = Path(__file__).resolve().parents[1]
     backlog_path = plan_root / "backlogs" / "BACKLOG-MVP.md"
@@ -754,7 +717,6 @@ def main() -> None:
     rewrite_guias_readme(plan_root, rows)
     rewrite_template(plan_root)
     write_snippets_library(plan_root)
-    rewrite_mapa_migracao(plan_root, rows)
 
     print(f"Guias migrados: {len(rows)}")
     print(f"Referencias atualizadas em ficheiros: {replaced_files}")

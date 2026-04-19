@@ -16,7 +16,7 @@
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF1-02`
 - `guia_path`: `docs/planificacao/guias-bk/MF1/BK-MF1-01-configurar-tabelas-de-iva-taxas-isencoes-codigos.md`
-- `last_updated`: `2026-04-17`
+- `last_updated`: `2026-04-19`
 
 ## Contexto do BK
 - Entrega alvo: implementar `Configurar tabelas de IVA (taxas, isenções, códigos).` com rastreabilidade direta ao requisito `RF13`.
@@ -64,6 +64,11 @@ Executar `Configurar tabelas de IVA (taxas, isenções, códigos).` com autonomi
 7. Aplicar reforço técnico (robustez/performance/segurança) no risco principal identificado para este BK.
 8. Atualizar evidence (`pr`, `proof`, `neg`) com artefactos concretos e verificaveis.
 
+### Cenarios negativos recomendados
+- entrada obrigatoria em falta
+- estado de negocio invalido
+- tentativa sem permissoes/contexto valido
+
 ### Validacao
 - [ ] Smoke: fluxo principal executa sem erro bloqueante.
 - [ ] Negativos: minimo `3` cenarios com resultado controlado.
@@ -77,6 +82,8 @@ Executar `Configurar tabelas de IVA (taxas, isenções, códigos).` com autonomi
 
 ## Snippet tecnico aplicavel
 **Validacao fiscal minima antes de lancar documento**
+
+Contexto de rastreabilidade: `BK-MF1-01` -> `RF13`.
 
 ```ts
 type LinhaDocumento = { conta: string; base: number; taxaIVA: number };

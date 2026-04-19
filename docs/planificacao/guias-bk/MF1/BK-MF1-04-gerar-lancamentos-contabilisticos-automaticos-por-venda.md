@@ -16,7 +16,7 @@
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF1-05`
 - `guia_path`: `docs/planificacao/guias-bk/MF1/BK-MF1-04-gerar-lancamentos-contabilisticos-automaticos-por-venda.md`
-- `last_updated`: `2026-04-17`
+- `last_updated`: `2026-04-19`
 
 ## Contexto do BK
 - Entrega alvo: implementar `Gerar lançamentos contabilísticos automáticos por venda.` com rastreabilidade direta ao requisito `RF16`.
@@ -64,6 +64,11 @@ Executar `Gerar lançamentos contabilísticos automáticos por venda.` com auton
 7. Aplicar reforço técnico (robustez/performance/segurança) no risco principal identificado para este BK.
 8. Atualizar evidence (`pr`, `proof`, `neg`) com artefactos concretos e verificaveis.
 
+### Cenarios negativos recomendados
+- entrada obrigatoria em falta
+- estado de negocio invalido
+- tentativa sem permissoes/contexto valido
+
 ### Validacao
 - [ ] Smoke: fluxo principal executa sem erro bloqueante.
 - [ ] Negativos: minimo `3` cenarios com resultado controlado.
@@ -77,6 +82,8 @@ Executar `Gerar lançamentos contabilísticos automáticos por venda.` com auton
 
 ## Snippet tecnico aplicavel
 **Validacao fiscal minima antes de lancar documento**
+
+Contexto de rastreabilidade: `BK-MF1-04` -> `RF16`.
 
 ```ts
 type LinhaDocumento = { conta: string; base: number; taxaIVA: number };

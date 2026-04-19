@@ -16,7 +16,7 @@
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF7-08`
 - `guia_path`: `docs/planificacao/guias-bk/MF7/BK-MF7-07-geracao-de-saf-t-conforme-especificacoes-legais-pt.md`
-- `last_updated`: `2026-04-17`
+- `last_updated`: `2026-04-19`
 
 ## Contexto do BK
 - Entrega alvo: implementar `Geração de SAF-T conforme especificações legais (PT).` com rastreabilidade direta ao requisito `RNF24`.
@@ -64,6 +64,11 @@ Executar `Geração de SAF-T conforme especificações legais (PT).` com autonom
 7. Aplicar reforço técnico (robustez/performance/segurança) no risco principal identificado para este BK.
 8. Atualizar evidence (`pr`, `proof`, `neg`) com artefactos concretos e verificaveis.
 
+### Cenarios negativos recomendados
+- entrada obrigatoria em falta
+- estado de negocio invalido
+- tentativa sem permissoes/contexto valido
+
 ### Validacao
 - [ ] Smoke: fluxo principal executa sem erro bloqueante.
 - [ ] Negativos: minimo `3` cenarios com resultado controlado.
@@ -77,6 +82,8 @@ Executar `Geração de SAF-T conforme especificações legais (PT).` com autonom
 
 ## Snippet tecnico aplicavel
 **Validacao de cabecalho de importacao**
+
+Contexto de rastreabilidade: `BK-MF7-07` -> `RNF24`.
 
 ```ts
 const CAMPOS_MINIMOS = ['codigo', 'descricao', 'valor'];

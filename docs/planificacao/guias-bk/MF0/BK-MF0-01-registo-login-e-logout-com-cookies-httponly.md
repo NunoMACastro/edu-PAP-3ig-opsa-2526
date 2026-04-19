@@ -16,7 +16,7 @@
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF0-02`
 - `guia_path`: `docs/planificacao/guias-bk/MF0/BK-MF0-01-registo-login-e-logout-com-cookies-httponly.md`
-- `last_updated`: `2026-04-17`
+- `last_updated`: `2026-04-19`
 
 ## Contexto do BK
 - Entrega alvo: implementar `Registo, login e logout com cookies HttpOnly.` com rastreabilidade direta ao requisito `RF01`.
@@ -57,18 +57,24 @@ Executar `Registo, login e logout com cookies HttpOnly.` com autonomia técnica,
 ### Passos
 1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do `BK-MF0-01` e o requisito `RF01`.
 2. Validar dependencias técnicas (`-`) e preparar dados de teste mínimos para `Registo, login e logout com cookies HttpOnly.`.
-3. Implementar regras de identidade/perfil com validações de acesso e segregação por empresa.
-4. Executar smoke de autenticação/gestão base e comprovar persistência correta dos dados mestre.
-5. Executar pelo menos 1 teste de smoke orientado ao caso principal do BK.
-6. Executar cenários negativos obrigatórios e registar resultado observado (mensagem/código/efeito).
-7. Aplicar reforço técnico (robustez/performance/segurança) no risco principal identificado para este BK.
+3. Implementar registo com validacao minima obrigatoria (`email`, `password` forte) e bloqueio de utilizador duplicado.
+4. Implementar login com emissao de cookie de sessao com flags `HttpOnly`, `Secure` e `SameSite`.
+5. Implementar logout com invalidacao de sessao no servidor e expiracao imediata do cookie.
+6. Executar smoke do fluxo completo (registo -> login -> acesso autenticado -> logout -> acesso negado).
+7. Executar testes negativos obrigatorios e registar resposta HTTP/mensagem para cada caso.
 8. Atualizar evidence (`pr`, `proof`, `neg`) com artefactos concretos e verificaveis.
 
+### Cenarios negativos recomendados
+- login com password errada
+- acesso autenticado sem cookie de sessao valido
+- tentativa de registo com email ja existente
+
 ### Validacao
-- [ ] Smoke: fluxo principal executa sem erro bloqueante.
+- [ ] Smoke: registo, login e logout concluidos sem erro bloqueante.
+- [ ] Sessao: cookie emitido com `HttpOnly` e removido no logout.
 - [ ] Negativos: minimo `3` cenarios com resultado controlado.
 - [ ] Tecnico: metadados e contratos de dados estao alinhados entre backlog/matriz/guia.
-- [ ] Evidencia: `pr`, `proof`, `neg` preenchidos com artefactos reais.
+- [ ] Evidencia: `pr`, `proof`, `neg` preenchidos com artefactos reais (requests/responses + headers de cookie).
 
 ### Handoff
 - Proximo BK recomendado: `BK-MF0-02`
@@ -76,33 +82,43 @@ Executar `Registo, login e logout com cookies HttpOnly.` com autonomia técnica,
 - Se houver bloqueio >48h, escalar no scorecard da sprint.
 
 ## Snippet tecnico aplicavel
-**Guard de permissao e sessao**
+**Gestao de cookie de sessao**
 
 ```ts
 const BK_ID = 'BK-MF0-01';
+const REQUISITO = 'RF01';
 
-export function validarSessao(user: { id: string; roles: string[] } | null, roleNecessario: string) {
-  if (!user) throw new Error('Sessao invalida');
-  if (!user.roles.includes(roleNecessario)) throw new Error('Acesso negado');
-  return { ok: true, bk: BK_ID };
+export function criarCookieSessao(sessionId: string) {
+  return {
+    bk: BK_ID,
+    requisito: REQUISITO,
+    header: `sid=${sessionId}; HttpOnly; Secure; SameSite=Strict; Path=/`,
+  };
 }
 
-// Exemplo de uso no endpoint associado ao requisito RF01
-const sessao = validarSessao(ctx.user, 'ADMIN');
+export function invalidarCookieSessao() {
+  return {
+    bk: BK_ID,
+    requisito: REQUISITO,
+    header: 'sid=; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=0',
+  };
+}
 ```
 
-Usar este guard no endpoint principal do BK para bloquear acessos sem sessao/permissao e manter comportamento previsivel.
+Aplicar no login/logout para evidenciar cumprimento de `RF01` com cookies seguros.
 
 ## Criterios de aceite
-- BK implementado no scope definido, sem romper dependencias.
-- Validacao de smoke e negativos concluida.
+- Fluxo `registo -> login -> logout` funcional e testado.
+- Cookie de sessao com `HttpOnly/Secure/SameSite` validado em evidencias.
+- Três cenarios negativos executados com respostas controladas.
 - Contrato de dados canónico mantido (`bk_id/mf/sprint/owner/rf_rnf/deps/guia_path/core_or_reforco`).
 - Evidence pronta para revisao tecnica e defesa PAP.
 
 ## Evidence para PR/defesa
 - `pr`: link do commit/PR com resumo objetivo da alteracao.
-- `proof`: prova funcional (output, screenshot, log, ou teste automatizado).
-- `neg`: cenario negativo executado com resultado esperado.
+- `proof`: requests/responses do fluxo principal com header `Set-Cookie`.
+- `proof`: comprovativo de invalidacao de cookie no logout (`Max-Age=0`).
+- `neg`: tres cenarios negativos com codigo HTTP e mensagem esperada.
 
 ## Changelog
 - `2026-04-17`: guia migrado para naming com slug e template pedagogico-operacional executavel.

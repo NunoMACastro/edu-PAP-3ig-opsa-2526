@@ -16,7 +16,7 @@
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF0-12`
 - `guia_path`: `docs/planificacao/guias-bk/MF0/BK-MF0-11-criar-artigos-servicos-sku-custo-preco-iva.md`
-- `last_updated`: `2026-04-17`
+- `last_updated`: `2026-04-19`
 
 ## Contexto do BK
 - Entrega alvo: implementar `Criar artigos/serviços (SKU, custo, preço, IVA).` com rastreabilidade direta ao requisito `RF11`.
@@ -64,6 +64,11 @@ Executar `Criar artigos/serviços (SKU, custo, preço, IVA).` com autonomia téc
 7. Aplicar reforço técnico (robustez/performance/segurança) no risco principal identificado para este BK.
 8. Atualizar evidence (`pr`, `proof`, `neg`) com artefactos concretos e verificaveis.
 
+### Cenarios negativos recomendados
+- entrada obrigatoria em falta
+- estado de negocio invalido
+- tentativa sem permissoes/contexto valido
+
 ### Validacao
 - [ ] Smoke: fluxo principal executa sem erro bloqueante.
 - [ ] Negativos: minimo `3` cenarios com resultado controlado.
@@ -77,6 +82,8 @@ Executar `Criar artigos/serviços (SKU, custo, preço, IVA).` com autonomia téc
 
 ## Snippet tecnico aplicavel
 **Validacao fiscal minima antes de lancar documento**
+
+Contexto de rastreabilidade: `BK-MF0-11` -> `RF11`.
 
 ```ts
 type LinhaDocumento = { conta: string; base: number; taxaIVA: number };

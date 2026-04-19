@@ -4,33 +4,33 @@
 - `doc_id`: `GUIA-BK-MF3-03`
 - `bk_id`: `BK-MF3-03`
 - `macro`: `MF3`
-- `owner`: `Pedro`
-- `apoio`: `Andre`
+- `owner`: `Oleksii`
+- `apoio`: `Pedro`
 - `prioridade`: `P0`
 - `estado`: `TODO`
 - `esforco`: `M`
-- `dependencias`: `BK-MF3-02, BK-MF1-02, BK-MF1-09`
-- `rf_rnf`: `RF39`
+- `dependencias`: `BK-MF3-02, BK-MF1-02, BK-MF1-07`
+- `rf_rnf`: `RF33`
 - `fase_documental`: `Fase 2`
 - `sprint`: `S07-S08`
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF3-04`
 - `guia_path`: `docs/planificacao/guias-bk/MF3/BK-MF3-03-importar-extratos-bancarios-csv-ofx-e-fazer-reconciliacao-automatica.md`
-- `last_updated`: `2026-04-17`
+- `last_updated`: `2026-04-19`
 
 ## Contexto do BK
-- Entrega alvo: implementar `Importar extratos bancários (CSV/OFX) e fazer reconciliação automática.` com rastreabilidade direta ao requisito `RF39`.
+- Entrega alvo: implementar `Importar extratos bancários (CSV/OFX) e fazer reconciliação automática.` com rastreabilidade direta ao requisito `RF33`.
 - Foco tecnico da macro: tesouraria, integracoes e relatorio funcional.
 - Regra de governanca: nao alterar IDs nem contratos de dados (`bk_id/mf/sprint/owner/rf_rnf/deps/guia_path/core_or_reforco`).
 
 ## Bloco pedagogico
 ### Objetivo
-Executar `Importar extratos bancários (CSV/OFX) e fazer reconciliação automática.` com autonomia técnica, garantindo cobertura do requisito `RF39` e evidência objetiva para avaliação.
+Executar `Importar extratos bancários (CSV/OFX) e fazer reconciliação automática.` com autonomia técnica, garantindo cobertura do requisito `RF33` e evidência objetiva para avaliação.
 - Intenção pedagógica da macro `MF3`: Consolidar tesouraria, integracoes e reporting financeiro auditavel..
 
 ### Pre-requisitos
-- Ler o requisito `RF39` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.
-- Validar dependencias declaradas: `BK-MF3-02, BK-MF1-02, BK-MF1-09`.
+- Ler o requisito `RF33` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.
+- Validar dependencias declaradas: `BK-MF3-02, BK-MF1-02, BK-MF1-07`.
 - Preparar ambiente para smoke test e validacao negativa.
 
 ### Erros comuns
@@ -40,7 +40,7 @@ Executar `Importar extratos bancários (CSV/OFX) e fazer reconciliação automá
 
 ### Check de compreensao
 - [ ] Sei justificar porque este BK existe no fluxo da macro `MF3`.
-- [ ] Sei mostrar onde esta o requisito `RF39` no sistema.
+- [ ] Sei mostrar onde esta o requisito `RF33` no sistema.
 - [ ] Sei demonstrar pelo menos 1 negativo relevante do BK.
 
 ### Tempo estimado
@@ -50,19 +50,24 @@ Executar `Importar extratos bancários (CSV/OFX) e fazer reconciliação automá
 ## Bloco operacional
 ### Entrada
 - BK: `BK-MF3-03`
-- Requisito: `RF39`
-- Dependencias: `BK-MF3-02, BK-MF1-02, BK-MF1-09`
+- Requisito: `RF33`
+- Dependencias: `BK-MF3-02, BK-MF1-02, BK-MF1-07`
 - Artefactos de referencia: `MATRIZ-CANONICA-BK.md`, `BACKLOG-MVP.md`, `PLANO-SPRINTS.md`
 
 ### Passos
-1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do `BK-MF3-03` e o requisito `RF39`.
-2. Validar dependencias técnicas (`BK-MF3-02, BK-MF1-02, BK-MF1-09`) e preparar dados de teste mínimos para `Importar extratos bancários (CSV/OFX) e fazer reconciliação automática.`.
+1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do `BK-MF3-03` e o requisito `RF33`.
+2. Validar dependencias técnicas (`BK-MF3-02, BK-MF1-02, BK-MF1-07`) e preparar dados de teste mínimos para `Importar extratos bancários (CSV/OFX) e fazer reconciliação automática.`.
 3. Implementar integração/importação/exportação com validação estrutural e rastreio de erros.
 4. Validar reconciliação/relatório resultante com dados de referência controlados.
 5. Executar pelo menos 1 teste de smoke orientado ao caso principal do BK.
 6. Executar cenários negativos obrigatórios e registar resultado observado (mensagem/código/efeito).
 7. Aplicar reforço técnico (robustez/performance/segurança) no risco principal identificado para este BK.
 8. Atualizar evidence (`pr`, `proof`, `neg`) com artefactos concretos e verificaveis.
+
+### Cenarios negativos recomendados
+- entrada obrigatoria em falta
+- estado de negocio invalido
+- tentativa sem permissoes/contexto valido
 
 ### Validacao
 - [ ] Smoke: fluxo principal executa sem erro bloqueante.
@@ -77,6 +82,8 @@ Executar `Importar extratos bancários (CSV/OFX) e fazer reconciliação automá
 
 ## Snippet tecnico aplicavel
 **Emparelhamento simples de movimentos bancarios**
+
+Contexto de rastreabilidade: `BK-MF3-03` -> `RF33`.
 
 ```ts
 type Movimento = { id: string; valor: number; data: string; descricao: string };

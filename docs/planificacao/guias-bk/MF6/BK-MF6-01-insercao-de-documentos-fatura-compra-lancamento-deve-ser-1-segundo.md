@@ -16,7 +16,7 @@
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF6-02`
 - `guia_path`: `docs/planificacao/guias-bk/MF6/BK-MF6-01-insercao-de-documentos-fatura-compra-lancamento-deve-ser-1-segundo.md`
-- `last_updated`: `2026-04-17`
+- `last_updated`: `2026-04-19`
 
 ## Contexto do BK
 - Entrega alvo: implementar `Inserção de documentos (fatura, compra, lançamento) deve ser ≤ 1 segundo.` com rastreabilidade direta ao requisito `RNF08`.
@@ -64,6 +64,11 @@ Executar `Inserção de documentos (fatura, compra, lançamento) deve ser ≤ 1 
 7. Aplicar reforço técnico (robustez/performance/segurança) no risco principal identificado para este BK.
 8. Atualizar evidence (`pr`, `proof`, `neg`) com artefactos concretos e verificaveis.
 
+### Cenarios negativos recomendados
+- entrada obrigatoria em falta
+- estado de negocio invalido
+- tentativa sem permissoes/contexto valido
+
 ### Validacao
 - [ ] Smoke: fluxo principal executa sem erro bloqueante.
 - [ ] Negativos: minimo `3` cenarios com resultado controlado.
@@ -77,6 +82,8 @@ Executar `Inserção de documentos (fatura, compra, lançamento) deve ser ≤ 1 
 
 ## Snippet tecnico aplicavel
 **Validacao fiscal minima antes de lancar documento**
+
+Contexto de rastreabilidade: `BK-MF6-01` -> `RNF08`.
 
 ```ts
 type LinhaDocumento = { conta: string; base: number; taxaIVA: number };

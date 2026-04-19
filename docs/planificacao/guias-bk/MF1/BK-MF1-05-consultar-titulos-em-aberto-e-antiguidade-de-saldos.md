@@ -5,7 +5,7 @@
 - `bk_id`: `BK-MF1-05`
 - `macro`: `MF1`
 - `owner`: `Oleksii`
-- `apoio`: `Andre`
+- `apoio`: `Pedro`
 - `prioridade`: `P1`
 - `estado`: `TODO`
 - `esforco`: `S`
@@ -16,7 +16,7 @@
 - `core_or_reforco`: `Core`
 - `proximo_bk`: `BK-MF1-06`
 - `guia_path`: `docs/planificacao/guias-bk/MF1/BK-MF1-05-consultar-titulos-em-aberto-e-antiguidade-de-saldos.md`
-- `last_updated`: `2026-04-17`
+- `last_updated`: `2026-04-19`
 
 ## Contexto do BK
 - Entrega alvo: implementar `Consultar títulos em aberto e antiguidade de saldos.` com rastreabilidade direta ao requisito `RF17`.
@@ -61,6 +61,10 @@ Executar `Consultar títulos em aberto e antiguidade de saldos.` com autonomia t
 4. Validar transição de estados/documentos e coerência entre documento comercial e lançamento.
 5. Executar pelo menos 1 teste de smoke orientado ao caso principal do BK.
 6. Executar cenários negativos obrigatórios e registar resultado observado (mensagem/código/efeito).
+
+### Cenarios negativos recomendados
+- entrada obrigatoria em falta
+- estado de negocio invalido
 
 ### Validacao
 - [ ] Smoke: fluxo principal executa sem erro bloqueante.

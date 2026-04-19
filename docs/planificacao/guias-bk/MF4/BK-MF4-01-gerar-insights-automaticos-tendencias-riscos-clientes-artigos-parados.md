@@ -4,33 +4,33 @@
 - `doc_id`: `GUIA-BK-MF4-01`
 - `bk_id`: `BK-MF4-01`
 - `macro`: `MF4`
-- `owner`: `Pedro`
-- `apoio`: `Andre`
+- `owner`: `Oleksii`
+- `apoio`: `Pedro`
 - `prioridade`: `P0`
 - `estado`: `TODO`
 - `esforco`: `M`
-- `dependencias`: `BK-MF3-10`
-- `rf_rnf`: `RF48`
+- `dependencias`: `BK-MF3-07`
+- `rf_rnf`: `RF39`
 - `fase_documental`: `Fase 2`
 - `sprint`: `S08-S09`
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF4-02`
 - `guia_path`: `docs/planificacao/guias-bk/MF4/BK-MF4-01-gerar-insights-automaticos-tendencias-riscos-clientes-artigos-parados.md`
-- `last_updated`: `2026-04-17`
+- `last_updated`: `2026-04-19`
 
 ## Contexto do BK
-- Entrega alvo: implementar `Gerar insights automáticos (tendências, riscos, clientes, artigos parados).` com rastreabilidade direta ao requisito `RF48`.
+- Entrega alvo: implementar `Gerar insights automáticos (tendências, riscos, clientes, artigos parados).` com rastreabilidade direta ao requisito `RF39`.
 - Foco tecnico da macro: inteligencia operacional, alertas e governanca de operacoes.
 - Regra de governanca: nao alterar IDs nem contratos de dados (`bk_id/mf/sprint/owner/rf_rnf/deps/guia_path/core_or_reforco`).
 
 ## Bloco pedagogico
 ### Objetivo
-Executar `Gerar insights automáticos (tendências, riscos, clientes, artigos parados).` com autonomia técnica, garantindo cobertura do requisito `RF48` e evidência objetiva para avaliação.
+Executar `Gerar insights automáticos (tendências, riscos, clientes, artigos parados).` com autonomia técnica, garantindo cobertura do requisito `RF39` e evidência objetiva para avaliação.
 - Intenção pedagógica da macro `MF4`: Operacionalizar IA assistiva com explicabilidade e controlo de risco..
 
 ### Pre-requisitos
-- Ler o requisito `RF48` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.
-- Validar dependencias declaradas: `BK-MF3-10`.
+- Ler o requisito `RF39` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.
+- Validar dependencias declaradas: `BK-MF3-07`.
 - Preparar ambiente para smoke test e validacao negativa.
 
 ### Erros comuns
@@ -40,7 +40,7 @@ Executar `Gerar insights automáticos (tendências, riscos, clientes, artigos pa
 
 ### Check de compreensao
 - [ ] Sei justificar porque este BK existe no fluxo da macro `MF4`.
-- [ ] Sei mostrar onde esta o requisito `RF48` no sistema.
+- [ ] Sei mostrar onde esta o requisito `RF39` no sistema.
 - [ ] Sei demonstrar pelo menos 1 negativo relevante do BK.
 
 ### Tempo estimado
@@ -50,19 +50,24 @@ Executar `Gerar insights automáticos (tendências, riscos, clientes, artigos pa
 ## Bloco operacional
 ### Entrada
 - BK: `BK-MF4-01`
-- Requisito: `RF48`
-- Dependencias: `BK-MF3-10`
+- Requisito: `RF39`
+- Dependencias: `BK-MF3-07`
 - Artefactos de referencia: `MATRIZ-CANONICA-BK.md`, `BACKLOG-MVP.md`, `PLANO-SPRINTS.md`
 
 ### Passos
-1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do `BK-MF4-01` e o requisito `RF48`.
-2. Validar dependencias técnicas (`BK-MF3-10`) e preparar dados de teste mínimos para `Gerar insights automáticos (tendências, riscos, clientes, artigos parados).`.
+1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do `BK-MF4-01` e o requisito `RF39`.
+2. Validar dependencias técnicas (`BK-MF3-07`) e preparar dados de teste mínimos para `Gerar insights automáticos (tendências, riscos, clientes, artigos parados).`.
 3. Implementar fluxo de IA/alerta/tarefa com fonte explícita e critério de decisão audível.
 4. Validar que a resposta/alerta é explicável e não executa alterações contabilísticas automáticas.
 5. Executar pelo menos 1 teste de smoke orientado ao caso principal do BK.
 6. Executar cenários negativos obrigatórios e registar resultado observado (mensagem/código/efeito).
 7. Aplicar reforço técnico (robustez/performance/segurança) no risco principal identificado para este BK.
 8. Atualizar evidence (`pr`, `proof`, `neg`) com artefactos concretos e verificaveis.
+
+### Cenarios negativos recomendados
+- entrada obrigatoria em falta
+- estado de negocio invalido
+- tentativa sem permissoes/contexto valido
 
 ### Validacao
 - [ ] Smoke: fluxo principal executa sem erro bloqueante.
@@ -77,6 +82,8 @@ Executar `Gerar insights automáticos (tendências, riscos, clientes, artigos pa
 
 ## Snippet tecnico aplicavel
 **Regra de alerta com limiar explicito**
+
+Contexto de rastreabilidade: `BK-MF4-01` -> `RF39`.
 
 ```ts
 type Regra = { nome: string; limite: number };

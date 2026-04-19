@@ -16,7 +16,7 @@
 - `core_or_reforco`: `Core`
 - `proximo_bk`: `BK-MF1-07`
 - `guia_path`: `docs/planificacao/guias-bk/MF1/BK-MF1-06-submeter-documentos-de-venda-para-aprovacao-antes-de-emissao-definitiva.md`
-- `last_updated`: `2026-04-17`
+- `last_updated`: `2026-04-19`
 
 ## Contexto do BK
 - Entrega alvo: implementar `Submeter documentos de venda para aprovação antes de emissão definitiva.` com rastreabilidade direta ao requisito `RF18`.
@@ -62,6 +62,10 @@ Executar `Submeter documentos de venda para aprovação antes de emissão defini
 5. Executar pelo menos 1 teste de smoke orientado ao caso principal do BK.
 6. Executar cenários negativos obrigatórios e registar resultado observado (mensagem/código/efeito).
 
+### Cenarios negativos recomendados
+- entrada obrigatoria em falta
+- estado de negocio invalido
+
 ### Validacao
 - [ ] Smoke: fluxo principal executa sem erro bloqueante.
 - [ ] Negativos: minimo `2` cenarios com resultado controlado.
@@ -75,6 +79,8 @@ Executar `Submeter documentos de venda para aprovação antes de emissão defini
 
 ## Snippet tecnico aplicavel
 **Validacao fiscal minima antes de lancar documento**
+
+Contexto de rastreabilidade: `BK-MF1-06` -> `RF18`.
 
 ```ts
 type LinhaDocumento = { conta: string; base: number; taxaIVA: number };

@@ -16,7 +16,7 @@
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF0-04`
 - `guia_path`: `docs/planificacao/guias-bk/MF0/BK-MF0-03-multi-empresa-um-utilizador-pode-ter-papeis-diferentes-em-varias-empresas.md`
-- `last_updated`: `2026-04-17`
+- `last_updated`: `2026-04-19`
 
 ## Contexto do BK
 - Entrega alvo: implementar `Multi-empresa (um utilizador pode ter papéis diferentes em várias empresas).` com rastreabilidade direta ao requisito `RF03`.
@@ -63,6 +63,11 @@ Executar `Multi-empresa (um utilizador pode ter papéis diferentes em várias em
 6. Executar cenários negativos obrigatórios e registar resultado observado (mensagem/código/efeito).
 7. Aplicar reforço técnico (robustez/performance/segurança) no risco principal identificado para este BK.
 8. Atualizar evidence (`pr`, `proof`, `neg`) com artefactos concretos e verificaveis.
+
+### Cenarios negativos recomendados
+- entrada obrigatoria em falta
+- estado de negocio invalido
+- tentativa sem permissoes/contexto valido
 
 ### Validacao
 - [ ] Smoke: fluxo principal executa sem erro bloqueante.

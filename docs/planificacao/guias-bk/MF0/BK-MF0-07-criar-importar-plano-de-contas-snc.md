@@ -16,7 +16,7 @@
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF0-08`
 - `guia_path`: `docs/planificacao/guias-bk/MF0/BK-MF0-07-criar-importar-plano-de-contas-snc.md`
-- `last_updated`: `2026-04-17`
+- `last_updated`: `2026-04-19`
 
 ## Contexto do BK
 - Entrega alvo: implementar `Criar/importar plano de contas (SNC).` com rastreabilidade direta ao requisito `RF07`.
@@ -64,6 +64,11 @@ Executar `Criar/importar plano de contas (SNC).` com autonomia técnica, garanti
 7. Aplicar reforço técnico (robustez/performance/segurança) no risco principal identificado para este BK.
 8. Atualizar evidence (`pr`, `proof`, `neg`) com artefactos concretos e verificaveis.
 
+### Cenarios negativos recomendados
+- entrada obrigatoria em falta
+- estado de negocio invalido
+- tentativa sem permissoes/contexto valido
+
 ### Validacao
 - [ ] Smoke: fluxo principal executa sem erro bloqueante.
 - [ ] Negativos: minimo `3` cenarios com resultado controlado.
@@ -77,6 +82,8 @@ Executar `Criar/importar plano de contas (SNC).` com autonomia técnica, garanti
 
 ## Snippet tecnico aplicavel
 **Validacao de cabecalho de importacao**
+
+Contexto de rastreabilidade: `BK-MF0-07` -> `RF07`.
 
 ```ts
 const CAMPOS_MINIMOS = ['codigo', 'descricao', 'valor'];

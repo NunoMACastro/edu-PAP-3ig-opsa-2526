@@ -9,28 +9,28 @@
 - `prioridade`: `P0`
 - `estado`: `TODO`
 - `esforco`: `M`
-- `dependencias`: `BK-MF1-04, BK-MF1-11`
-- `rf_rnf`: `RF37`
+- `dependencias`: `BK-MF1-04, BK-MF1-09`
+- `rf_rnf`: `RF31`
 - `fase_documental`: `Fase 2`
 - `sprint`: `S07-S08`
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF3-02`
 - `guia_path`: `docs/planificacao/guias-bk/MF3/BK-MF3-01-gerar-mapas-de-iva-liquidado-dedutivel.md`
-- `last_updated`: `2026-04-17`
+- `last_updated`: `2026-04-19`
 
 ## Contexto do BK
-- Entrega alvo: implementar `Gerar Mapas de IVA (liquidado/dedutível).` com rastreabilidade direta ao requisito `RF37`.
+- Entrega alvo: implementar `Gerar Mapas de IVA (liquidado/dedutível).` com rastreabilidade direta ao requisito `RF31`.
 - Foco tecnico da macro: tesouraria, integracoes e relatorio funcional.
 - Regra de governanca: nao alterar IDs nem contratos de dados (`bk_id/mf/sprint/owner/rf_rnf/deps/guia_path/core_or_reforco`).
 
 ## Bloco pedagogico
 ### Objetivo
-Executar `Gerar Mapas de IVA (liquidado/dedutível).` com autonomia técnica, garantindo cobertura do requisito `RF37` e evidência objetiva para avaliação.
+Executar `Gerar Mapas de IVA (liquidado/dedutível).` com autonomia técnica, garantindo cobertura do requisito `RF31` e evidência objetiva para avaliação.
 - Intenção pedagógica da macro `MF3`: Consolidar tesouraria, integracoes e reporting financeiro auditavel..
 
 ### Pre-requisitos
-- Ler o requisito `RF37` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.
-- Validar dependencias declaradas: `BK-MF1-04, BK-MF1-11`.
+- Ler o requisito `RF31` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.
+- Validar dependencias declaradas: `BK-MF1-04, BK-MF1-09`.
 - Preparar ambiente para smoke test e validacao negativa.
 
 ### Erros comuns
@@ -40,7 +40,7 @@ Executar `Gerar Mapas de IVA (liquidado/dedutível).` com autonomia técnica, ga
 
 ### Check de compreensao
 - [ ] Sei justificar porque este BK existe no fluxo da macro `MF3`.
-- [ ] Sei mostrar onde esta o requisito `RF37` no sistema.
+- [ ] Sei mostrar onde esta o requisito `RF31` no sistema.
 - [ ] Sei demonstrar pelo menos 1 negativo relevante do BK.
 
 ### Tempo estimado
@@ -50,19 +50,24 @@ Executar `Gerar Mapas de IVA (liquidado/dedutível).` com autonomia técnica, ga
 ## Bloco operacional
 ### Entrada
 - BK: `BK-MF3-01`
-- Requisito: `RF37`
-- Dependencias: `BK-MF1-04, BK-MF1-11`
+- Requisito: `RF31`
+- Dependencias: `BK-MF1-04, BK-MF1-09`
 - Artefactos de referencia: `MATRIZ-CANONICA-BK.md`, `BACKLOG-MVP.md`, `PLANO-SPRINTS.md`
 
 ### Passos
-1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do `BK-MF3-01` e o requisito `RF37`.
-2. Validar dependencias técnicas (`BK-MF1-04, BK-MF1-11`) e preparar dados de teste mínimos para `Gerar Mapas de IVA (liquidado/dedutível).`.
+1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do `BK-MF3-01` e o requisito `RF31`.
+2. Validar dependencias técnicas (`BK-MF1-04, BK-MF1-09`) e preparar dados de teste mínimos para `Gerar Mapas de IVA (liquidado/dedutível).`.
 3. Implementar integração/importação/exportação com validação estrutural e rastreio de erros.
 4. Validar reconciliação/relatório resultante com dados de referência controlados.
 5. Executar pelo menos 1 teste de smoke orientado ao caso principal do BK.
 6. Executar cenários negativos obrigatórios e registar resultado observado (mensagem/código/efeito).
 7. Aplicar reforço técnico (robustez/performance/segurança) no risco principal identificado para este BK.
 8. Atualizar evidence (`pr`, `proof`, `neg`) com artefactos concretos e verificaveis.
+
+### Cenarios negativos recomendados
+- entrada obrigatoria em falta
+- estado de negocio invalido
+- tentativa sem permissoes/contexto valido
 
 ### Validacao
 - [ ] Smoke: fluxo principal executa sem erro bloqueante.
@@ -77,6 +82,8 @@ Executar `Gerar Mapas de IVA (liquidado/dedutível).` com autonomia técnica, ga
 
 ## Snippet tecnico aplicavel
 **Validacao fiscal minima antes de lancar documento**
+
+Contexto de rastreabilidade: `BK-MF3-01` -> `RF31`.
 
 ```ts
 type LinhaDocumento = { conta: string; base: number; taxaIVA: number };

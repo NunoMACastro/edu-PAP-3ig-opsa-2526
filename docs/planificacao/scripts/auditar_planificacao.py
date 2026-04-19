@@ -4,11 +4,12 @@ from __future__ import annotations
 from pathlib import Path
 import re
 import json
+from datetime import date, datetime
 from collections import defaultdict
 
-EXPECTED_RF = [f"RF{i:02d}" for i in range(1, 63)]
-EXPECTED_RNF = [f"RNF{i:02d}" for i in range(1, 39)]
-VALID_LAST_UPDATED = {"2026-04-13", "2026-04-14", "2026-04-17"}
+EXPECTED_RF = [f"RF{i:02d}" for i in range(1, 49)]
+EXPECTED_RNF = [f"RNF{i:02d}" for i in range(1, 37)]
+MAX_DOC_AGE_DAYS = 30
 GUIDE_FILENAME_RE = re.compile(r"^BK-MF[0-8]-\d{2}-[a-z0-9]+(?:-[a-z0-9]+)*\.md$")
 MAX_SNIPPET_DUPLICATION = 40
 
@@ -67,6 +68,26 @@ def parse_items(raw: str) -> list[str]:
     return out
 
 
+def parse_bk_dependencies(raw: str) -> list[str]:
+    raw = raw.strip().replace("`", "")
+    if raw in {"", "-", "transversal"}:
+        return []
+
+    deps: list[str] = []
+    for part in [x.strip() for x in raw.split(",") if x.strip()]:
+        range_match = re.fullmatch(r"(BK-MF[0-8])-(\d{2})\.\.(BK-MF[0-8])-(\d{2})", part)
+        if range_match:
+            start_prefix, start_num, end_prefix, end_num = range_match.groups()
+            if start_prefix == end_prefix and int(start_num) <= int(end_num):
+                for n in range(int(start_num), int(end_num) + 1):
+                    deps.append(f"{start_prefix}-{n:02d}")
+                continue
+
+        deps.extend(re.findall(r"\bBK-MF[0-8]-\d{2}\b", part))
+
+    return deps
+
+
 def normalize_guia_path(cell: str) -> str:
     m = re.search(r"\(([^)]+)\)", cell)
     if not m:
@@ -119,6 +140,34 @@ def extract_first_snippet_block(text: str) -> str:
     return snippet
 
 
+def parse_totals_from_plan_readme(text: str) -> dict[str, int]:
+    out: dict[str, int] = {}
+    for key in ("RF", "RNF"):
+        m = re.search(rf"-\s*Total\s+{key}:\s*\*\*(\d+)\*\*", text)
+        if m:
+            out[key] = int(m.group(1))
+    return out
+
+
+def rnf_anchor_issues(rnf_text: str) -> list[str]:
+    issues: list[str] = []
+    index = ""
+    m = re.search(r"## Índice\s*(.+?)\n---", rnf_text, flags=re.DOTALL)
+    if m:
+        index = m.group(1)
+    links = re.findall(r"\[[^\]]+\]\(#([^)]+)\)", index)
+    if not links:
+        return ["missing_rnf_index_links"]
+    anchors = re.findall(r'<a id="([^"]+)"></a>', rnf_text)
+    if len(anchors) != len(set(anchors)):
+        issues.append("duplicate_rnf_anchor_ids")
+    aset = set(anchors)
+    for link in links:
+        if link not in aset:
+            issues.append(f"missing_anchor_for_link:{link}")
+    return issues
+
+
 def scorecard_issues(score_text: str) -> list[str]:
     expected = {
         "Cobertura/rastreabilidade": 25,
@@ -132,6 +181,23 @@ def scorecard_issues(score_text: str) -> list[str]:
         if not re.search(rf"\|\s*{re.escape(name)}\s*\|\s*{weight}\s*\|", score_text):
             issues.append(f"missing_or_invalid_score_criterion:{name}")
     return issues
+
+
+def extract_last_updated_date(md_text: str) -> date | None:
+    m = re.search(r"`last_updated`:\s*`(\d{4}-\d{2}-\d{2})`", md_text)
+    if not m:
+        return None
+    try:
+        return datetime.strptime(m.group(1), "%Y-%m-%d").date()
+    except ValueError:
+        return None
+
+
+def is_recent_last_updated(doc_date: date, today: date | None = None) -> bool:
+    today = today or date.today()
+    if doc_date > today:
+        return False
+    return (today - doc_date).days <= MAX_DOC_AGE_DAYS
 
 
 def main() -> None:
@@ -273,6 +339,19 @@ def main() -> None:
         if sorted(parse_items(extract_header_value(text, "rf_rnf"))) != sorted(parse_items(row["rf_rnf"])):
             guide_header_issues.append({"bk_id": bk_id, "mismatch": "rf_rnf_not_matching_backlog"})
 
+        header_proximo = extract_header_value(text, "proximo_bk")
+        if header_proximo and header_proximo != "-" and header_proximo not in matriz_by_bk:
+            guide_header_issues.append({"bk_id": bk_id, "mismatch": "invalid_header_proximo_bk"})
+        handoff_match = re.search(r"^- Proximo BK recomendado: `([^`]+)`", text, flags=re.MULTILINE)
+        if not handoff_match:
+            guide_content_issues.append({"bk_id": bk_id, "issue": "missing_handoff_proximo_bk_line"})
+        else:
+            handoff_proximo = handoff_match.group(1).strip()
+            if header_proximo and handoff_proximo != header_proximo:
+                guide_content_issues.append({"bk_id": bk_id, "issue": "handoff_proximo_bk_not_matching_header"})
+            if handoff_proximo != "-" and handoff_proximo not in matriz_by_bk:
+                guide_content_issues.append({"bk_id": bk_id, "issue": "invalid_handoff_proximo_bk"})
+
         if "Conseguir explicar e executar o BK" in text:
             guide_content_issues.append({"bk_id": bk_id, "issue": "generic_objective_phrase_legacy"})
 
@@ -309,7 +388,7 @@ def main() -> None:
     graph: dict[str, list[str]] = defaultdict(list)
     for row in matriz_rows:
         bk_id = row["bk_id"]
-        deps = parse_items(row["dependencias"])
+        deps = parse_bk_dependencies(row["dependencias"])
         for dep in deps:
             if dep not in matriz_by_bk:
                 deps_invalid.append({"bk_id": bk_id, "dep": dep})
@@ -337,6 +416,16 @@ def main() -> None:
 
     scorecard_text = read(plan / "sprints" / "SCORECARD-SPRINTS.md")
     scorecard_contract_issues = scorecard_issues(scorecard_text)
+    plan_readme_text = read(plan / "README.md")
+    declared_totals = parse_totals_from_plan_readme(plan_readme_text)
+    declared_totals_issues: list[str] = []
+    if declared_totals.get("RF") != len(rf_codes):
+        declared_totals_issues.append(f"declared_total_rf_mismatch(expected={len(rf_codes)},declared={declared_totals.get('RF')})")
+    if declared_totals.get("RNF") != len(rnf_codes):
+        declared_totals_issues.append(
+            f"declared_total_rnf_mismatch(expected={len(rnf_codes)},declared={declared_totals.get('RNF')})"
+        )
+    rnf_index_anchor_consistency_issues = rnf_anchor_issues(read(repo / "docs" / "RNF.md"))
 
     plan_docs = [
         plan / "README.md",
@@ -345,6 +434,7 @@ def main() -> None:
         plan / "sprints" / "PLANO-SPRINTS.md",
         plan / "sprints" / "SCORECARD-SPRINTS.md",
         plan / "sprints" / "GUIAO-DOCENTE-SEMANAL.md",
+        plan / "sprints" / "OPERACAO-DEPLOY-ROLLBACK.md",
         backlogs / "MATRIZ-CANONICA-BK.md",
         backlogs / "BACKLOG-MVP.md",
         backlogs / "MF-VIEWS.md",
@@ -357,7 +447,8 @@ def main() -> None:
     outdated_docs = []
     for p in plan_docs:
         text = read(p)
-        if not any(f"`last_updated`: `{d}`" in text for d in VALID_LAST_UPDATED):
+        last_updated = extract_last_updated_date(text)
+        if not last_updated or not is_recent_last_updated(last_updated):
             outdated_docs.append(str(p))
 
     result = {
@@ -382,6 +473,8 @@ def main() -> None:
             "cycles": cycles,
             "outdated_docs": outdated_docs,
             "scorecard_contract_issues": scorecard_contract_issues,
+            "declared_totals_issues": declared_totals_issues,
+            "rnf_index_anchor_issues": rnf_index_anchor_consistency_issues,
         },
         "guides_quality": {
             "guide_header_issues": guide_header_issues,
@@ -400,7 +493,9 @@ def main() -> None:
             and not deps_invalid
             and not cycles
             and not outdated_docs
-            and not scorecard_contract_issues,
+            and not scorecard_contract_issues
+            and not declared_totals_issues
+            and not rnf_index_anchor_consistency_issues,
             "guides_pass": not guide_header_issues and not guide_content_issues and not naming_issues and not missing_guides,
             "naming_pass": not naming_issues,
             "overall_pass": not missing_rf_matrix
@@ -414,6 +509,8 @@ def main() -> None:
             and not cycles
             and not outdated_docs
             and not scorecard_contract_issues
+            and not declared_totals_issues
+            and not rnf_index_anchor_consistency_issues
             and not guide_header_issues
             and not guide_content_issues
             and not naming_issues

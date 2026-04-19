@@ -5,7 +5,7 @@
 - `bk_id`: `BK-MF6-03`
 - `macro`: `MF6`
 - `owner`: `Oleksii`
-- `apoio`: `Andre`
+- `apoio`: `Pedro`
 - `prioridade`: `P1`
 - `estado`: `TODO`
 - `esforco`: `S`
@@ -16,7 +16,7 @@
 - `core_or_reforco`: `Core`
 - `proximo_bk`: `BK-MF6-04`
 - `guia_path`: `docs/planificacao/guias-bk/MF6/BK-MF6-03-reconciliacao-bancaria-deve-sugerir-correspondencias-em-3-segundos.md`
-- `last_updated`: `2026-04-17`
+- `last_updated`: `2026-04-19`
 
 ## Contexto do BK
 - Entrega alvo: implementar `Reconciliação bancária deve sugerir correspondências em ≤ 3 segundos.` com rastreabilidade direta ao requisito `RNF10`.
@@ -62,6 +62,10 @@ Executar `Reconciliação bancária deve sugerir correspondências em ≤ 3 segu
 5. Executar pelo menos 1 teste de smoke orientado ao caso principal do BK.
 6. Executar cenários negativos obrigatórios e registar resultado observado (mensagem/código/efeito).
 
+### Cenarios negativos recomendados
+- entrada obrigatoria em falta
+- estado de negocio invalido
+
 ### Validacao
 - [ ] Smoke: fluxo principal executa sem erro bloqueante.
 - [ ] Negativos: minimo `2` cenarios com resultado controlado.
@@ -75,6 +79,8 @@ Executar `Reconciliação bancária deve sugerir correspondências em ≤ 3 segu
 
 ## Snippet tecnico aplicavel
 **Emparelhamento simples de movimentos bancarios**
+
+Contexto de rastreabilidade: `BK-MF6-03` -> `RNF10`.
 
 ```ts
 type Movimento = { id: string; valor: number; data: string; descricao: string };

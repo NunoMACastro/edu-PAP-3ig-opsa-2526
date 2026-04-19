@@ -6,95 +6,52 @@
 - `area`: `project`
 - `owner`: `Nuno`
 - `status`: `ativo`
-- `last_updated`: `2026-04-17`
+- `last_updated`: `2026-04-19`
 
 ## Objetivo
-Definir o plano macro executavel MF0..MF8 para OPSA com rastreabilidade total RF/RNF -> BK -> guia.
+Definir o plano macro executavel da Opsa com rastreabilidade RF/RNF -> BK -> Guia e governanca alinhada ao contrato canónico v2.
 
 ## Assuncoes
-- Fonte de verdade funcional: `docs/RF.md`.
-- Fonte de verdade nao funcional: `docs/RNF.md`.
-- Politica de estados BK: nao alterar estado operacional sem pedido explicito.
-- Em falta de detalhe tecnico: `a definir no BK dependente`.
+- IDs RF/RNF/BK sao imutaveis após esta vaga de normalizacao.
+- Escopo funcional aprovado desta vaga mantem-se sem reintroduzir itens removidos.
+- Fecho documental exige score consolidado `>=97/100`.
 
 ## Tabela MF0..MF8
-| Macro | Nome | Total BK | Owner stream P0 | Gate de saida |
-| --- | --- | --- | --- | --- |
-| MF0 | Fundamentos e governance | 12 | Oleksii | Todos os BK MF0 com checklist `Core` e BK `P0` com `Reforco` + evidence. |
-| MF1 | Nucleo funcional I | 12 | Oleksii | Todos os BK MF1 com checklist `Core` e BK `P0` com `Reforco` + evidence. |
-| MF2 | Nucleo funcional II | 12 | Andre | Todos os BK MF2 com checklist `Core` e BK `P0` com `Reforco` + evidence. |
-| MF3 | Capacidades de produto I | 11 | Oleksii | Todos os BK MF3 com checklist `Core` e BK `P0` com `Reforco` + evidence. |
-| MF4 | Capacidades de produto II | 12 | Oleksii | Todos os BK MF4 com checklist `Core` e BK `P0` com `Reforco` + evidence. |
-| MF5 | Operacao e fluxos transversais | 10 | Oleksii | Todos os BK MF5 com checklist `Core` e BK `P0` com `Reforco` + evidence. |
-| MF6 | Qualidade e robustez | 10 | Oleksii | Todos os BK MF6 com checklist `Core` e BK `P0` com `Reforco` + evidence. |
-| MF7 | Privacidade, seguranca e controlo | 11 | Pedro | Todos os BK MF7 com checklist `Core` e BK `P0` com `Reforco` + evidence. |
-| MF8 | Integracoes, compatibilidade e fecho | 10 | Andre | Todos os BK MF8 com checklist `Core` e BK `P0` com `Reforco` + evidence. |
+| Macro | Janela | Total BK | Owner stream P0 |
+| --- | --- | --- | --- |
+| MF0 | Janela canónica S01-S12 | 12 | Oleksii |
+| MF1 | Janela canónica S01-S12 | 10 | Oleksii |
+| MF2 | Janela canónica S01-S12 | 8 | Andre |
+| MF3 | Janela canónica S01-S12 | 8 | Oleksii |
+| MF4 | Janela canónica S01-S12 | 10 | Pedro |
+| MF5 | Janela canónica S01-S12 | 7 | Oleksii |
+| MF6 | Janela canónica S01-S12 | 10 | Oleksii |
+| MF7 | Janela canónica S01-S12 | 10 | Andre |
+| MF8 | Janela canónica S01-S12 | 9 | Oleksii |
 
-## MF0 - Fundamentos e governance
-1. Confirmar baseline da macro e dependencias anteriores.
-2. Executar BKs por prioridade (P0>P1>P2) com foco em desbloqueio.
-3. Validar smoke + negativos + evidencia por BK.
-4. Consolidar atualizacao de backlog, matriz e guias.
-5. Gate de saida: Todos os BK MF0 com checklist `Core` e BK `P0` com `Reforco` + evidence.
+## Fases
+1. Fase 1 (`S01-S04`): fundacoes + consolidacao do nucleo inicial.
+2. Fase 2 (`S05-S08`): capacidades de produto + coerencia cross-artefactos.
+3. Fase 3 (`S09-S12`): qualidade final, evidencias e defesa.
 
-## MF1 - Nucleo funcional I
-1. Confirmar baseline da macro e dependencias anteriores.
-2. Executar BKs por prioridade (P0>P1>P2) com foco em desbloqueio.
-3. Validar smoke + negativos + evidencia por BK.
-4. Consolidar atualizacao de backlog, matriz e guias.
-5. Gate de saida: Todos os BK MF1 com checklist `Core` e BK `P0` com `Reforco` + evidence.
+## Regras transversais por macro
+1. Owner unico por BK com apoio explicito.
+2. BK fecha apenas com `Smoke`, `Negativos`, `Tecnico` e `Evidence` completos.
+3. BK `P0` em modo `Reforco`; BK `P1/P2` em modo `Core`.
+4. Qualquer drift entre matriz/backlog/guias/sprints bloqueia fecho da sprint.
 
-## MF2 - Nucleo funcional II
-1. Confirmar baseline da macro e dependencias anteriores.
-2. Executar BKs por prioridade (P0>P1>P2) com foco em desbloqueio.
-3. Validar smoke + negativos + evidencia por BK.
-4. Consolidar atualizacao de backlog, matriz e guias.
-5. Gate de saida: Todos os BK MF2 com checklist `Core` e BK `P0` com `Reforco` + evidence.
+## Gates S4/S8/S12
+- Fonte oficial: `docs/planificacao/sprints/GATES-S4-S8-S12.md`.
+- Operacao de release: `docs/planificacao/sprints/OPERACAO-DEPLOY-ROLLBACK.md`.
+- `S4`: cobertura inicial + consistencia estrutural.
+- `S8`: coerencia documental + score parcial `>=97/100`.
+- `S12`: fecho integral com validacao automatica em `PASS`.
 
-## MF3 - Capacidades de produto I
-1. Confirmar baseline da macro e dependencias anteriores.
-2. Executar BKs por prioridade (P0>P1>P2) com foco em desbloqueio.
-3. Validar smoke + negativos + evidencia por BK.
-4. Consolidar atualizacao de backlog, matriz e guias.
-5. Gate de saida: Todos os BK MF3 com checklist `Core` e BK `P0` com `Reforco` + evidence.
-
-## MF4 - Capacidades de produto II
-1. Confirmar baseline da macro e dependencias anteriores.
-2. Executar BKs por prioridade (P0>P1>P2) com foco em desbloqueio.
-3. Validar smoke + negativos + evidencia por BK.
-4. Consolidar atualizacao de backlog, matriz e guias.
-5. Gate de saida: Todos os BK MF4 com checklist `Core` e BK `P0` com `Reforco` + evidence.
-
-## MF5 - Operacao e fluxos transversais
-1. Confirmar baseline da macro e dependencias anteriores.
-2. Executar BKs por prioridade (P0>P1>P2) com foco em desbloqueio.
-3. Validar smoke + negativos + evidencia por BK.
-4. Consolidar atualizacao de backlog, matriz e guias.
-5. Gate de saida: Todos os BK MF5 com checklist `Core` e BK `P0` com `Reforco` + evidence.
-
-## MF6 - Qualidade e robustez
-1. Confirmar baseline da macro e dependencias anteriores.
-2. Executar BKs por prioridade (P0>P1>P2) com foco em desbloqueio.
-3. Validar smoke + negativos + evidencia por BK.
-4. Consolidar atualizacao de backlog, matriz e guias.
-5. Gate de saida: Todos os BK MF6 com checklist `Core` e BK `P0` com `Reforco` + evidence.
-
-## MF7 - Privacidade, seguranca e controlo
-1. Confirmar baseline da macro e dependencias anteriores.
-2. Executar BKs por prioridade (P0>P1>P2) com foco em desbloqueio.
-3. Validar smoke + negativos + evidencia por BK.
-4. Consolidar atualizacao de backlog, matriz e guias.
-5. Gate de saida: Todos os BK MF7 com checklist `Core` e BK `P0` com `Reforco` + evidence.
-
-## MF8 - Integracoes, compatibilidade e fecho
-1. Confirmar baseline da macro e dependencias anteriores.
-2. Executar BKs por prioridade (P0>P1>P2) com foco em desbloqueio.
-3. Validar smoke + negativos + evidencia por BK.
-4. Consolidar atualizacao de backlog, matriz e guias.
-5. Gate de saida: Todos os BK MF8 com checklist `Core` e BK `P0` com `Reforco` + evidence.
+## Criterios de saida
+- `bash scripts/validate-planificacao.sh` com `overall_pass: true`.
+- Score consolidado no scorecard `>=97/100`.
+- Evidencias de gate publicadas (`S4`, `S8`, `S12`).
+- Evidencias operacionais de `deploy` e `rollback` publicadas no gate `S12`.
 
 ## Changelog
-- `2026-04-12`: Plano macro normalizado e alinhado com cobertura RF/RNF total.
-- `2026-04-13`: Gates de saida convertidos para politica Core/Reforco e fecho S12 (2026-07-05).
-- `2026-04-17`: Atualizadas contagens MF para 100 BK apos cortes e simplificacoes do escopo OPSA.
-- `2026-04-17`: owner stream P0 ajustado por macro após rebalanceamento de ownership.
+- `2026-04-19`: plano macro recalculado para baseline reduzido (84 BK).

@@ -5,31 +5,31 @@
 - `bk_id`: `BK-MF4-05`
 - `macro`: `MF4`
 - `owner`: `Oleksii`
-- `apoio`: `Andre`
+- `apoio`: `Sofia`
 - `prioridade`: `P0`
 - `estado`: `TODO`
 - `esforco`: `M`
 - `dependencias`: `BK-MF4-01`
-- `rf_rnf`: `RF52`
+- `rf_rnf`: `RF43`
 - `fase_documental`: `Fase 2`
 - `sprint`: `S08-S09`
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF4-06`
 - `guia_path`: `docs/planificacao/guias-bk/MF4/BK-MF4-05-mostrar-explicacoes-e-fontes-de-cada-insight.md`
-- `last_updated`: `2026-04-17`
+- `last_updated`: `2026-04-19`
 
 ## Contexto do BK
-- Entrega alvo: implementar `Mostrar explicações e fontes de cada insight.` com rastreabilidade direta ao requisito `RF52`.
+- Entrega alvo: implementar `Mostrar explicações e fontes de cada insight.` com rastreabilidade direta ao requisito `RF43`.
 - Foco tecnico da macro: inteligencia operacional, alertas e governanca de operacoes.
 - Regra de governanca: nao alterar IDs nem contratos de dados (`bk_id/mf/sprint/owner/rf_rnf/deps/guia_path/core_or_reforco`).
 
 ## Bloco pedagogico
 ### Objetivo
-Executar `Mostrar explicações e fontes de cada insight.` com autonomia técnica, garantindo cobertura do requisito `RF52` e evidência objetiva para avaliação.
+Executar `Mostrar explicações e fontes de cada insight.` com autonomia técnica, garantindo cobertura do requisito `RF43` e evidência objetiva para avaliação.
 - Intenção pedagógica da macro `MF4`: Operacionalizar IA assistiva com explicabilidade e controlo de risco..
 
 ### Pre-requisitos
-- Ler o requisito `RF52` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.
+- Ler o requisito `RF43` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.
 - Validar dependencias declaradas: `BK-MF4-01`.
 - Preparar ambiente para smoke test e validacao negativa.
 
@@ -40,7 +40,7 @@ Executar `Mostrar explicações e fontes de cada insight.` com autonomia técnic
 
 ### Check de compreensao
 - [ ] Sei justificar porque este BK existe no fluxo da macro `MF4`.
-- [ ] Sei mostrar onde esta o requisito `RF52` no sistema.
+- [ ] Sei mostrar onde esta o requisito `RF43` no sistema.
 - [ ] Sei demonstrar pelo menos 1 negativo relevante do BK.
 
 ### Tempo estimado
@@ -50,12 +50,12 @@ Executar `Mostrar explicações e fontes de cada insight.` com autonomia técnic
 ## Bloco operacional
 ### Entrada
 - BK: `BK-MF4-05`
-- Requisito: `RF52`
+- Requisito: `RF43`
 - Dependencias: `BK-MF4-01`
 - Artefactos de referencia: `MATRIZ-CANONICA-BK.md`, `BACKLOG-MVP.md`, `PLANO-SPRINTS.md`
 
 ### Passos
-1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do `BK-MF4-05` e o requisito `RF52`.
+1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do `BK-MF4-05` e o requisito `RF43`.
 2. Validar dependencias técnicas (`BK-MF4-01`) e preparar dados de teste mínimos para `Mostrar explicações e fontes de cada insight.`.
 3. Implementar fluxo de IA/alerta/tarefa com fonte explícita e critério de decisão audível.
 4. Validar que a resposta/alerta é explicável e não executa alterações contabilísticas automáticas.
@@ -63,6 +63,11 @@ Executar `Mostrar explicações e fontes de cada insight.` com autonomia técnic
 6. Executar cenários negativos obrigatórios e registar resultado observado (mensagem/código/efeito).
 7. Aplicar reforço técnico (robustez/performance/segurança) no risco principal identificado para este BK.
 8. Atualizar evidence (`pr`, `proof`, `neg`) com artefactos concretos e verificaveis.
+
+### Cenarios negativos recomendados
+- entrada obrigatoria em falta
+- estado de negocio invalido
+- tentativa sem permissoes/contexto valido
 
 ### Validacao
 - [ ] Smoke: fluxo principal executa sem erro bloqueante.
@@ -77,6 +82,8 @@ Executar `Mostrar explicações e fontes de cada insight.` com autonomia técnic
 
 ## Snippet tecnico aplicavel
 **Regra de alerta com limiar explicito**
+
+Contexto de rastreabilidade: `BK-MF4-05` -> `RF43`.
 
 ```ts
 type Regra = { nome: string; limite: number };

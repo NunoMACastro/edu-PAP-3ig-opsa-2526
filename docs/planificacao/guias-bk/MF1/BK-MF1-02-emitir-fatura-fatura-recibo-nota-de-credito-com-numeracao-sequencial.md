@@ -4,8 +4,8 @@
 - `doc_id`: `GUIA-BK-MF1-02`
 - `bk_id`: `BK-MF1-02`
 - `macro`: `MF1`
-- `owner`: `Andre`
-- `apoio`: `Oleksii`
+- `owner`: `Oleksii`
+- `apoio`: `Andre`
 - `prioridade`: `P0`
 - `estado`: `TODO`
 - `esforco`: `M`
@@ -16,7 +16,7 @@
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF1-03`
 - `guia_path`: `docs/planificacao/guias-bk/MF1/BK-MF1-02-emitir-fatura-fatura-recibo-nota-de-credito-com-numeracao-sequencial.md`
-- `last_updated`: `2026-04-17`
+- `last_updated`: `2026-04-19`
 
 ## Contexto do BK
 - Entrega alvo: implementar `Emitir Fatura, Fatura-Recibo, Nota de Crédito, com numeração sequencial.` com rastreabilidade direta ao requisito `RF14`.
@@ -64,6 +64,11 @@ Executar `Emitir Fatura, Fatura-Recibo, Nota de Crédito, com numeração sequen
 7. Aplicar reforço técnico (robustez/performance/segurança) no risco principal identificado para este BK.
 8. Atualizar evidence (`pr`, `proof`, `neg`) com artefactos concretos e verificaveis.
 
+### Cenarios negativos recomendados
+- entrada obrigatoria em falta
+- estado de negocio invalido
+- tentativa sem permissoes/contexto valido
+
 ### Validacao
 - [ ] Smoke: fluxo principal executa sem erro bloqueante.
 - [ ] Negativos: minimo `3` cenarios com resultado controlado.
@@ -77,6 +82,8 @@ Executar `Emitir Fatura, Fatura-Recibo, Nota de Crédito, com numeração sequen
 
 ## Snippet tecnico aplicavel
 **Validacao fiscal minima antes de lancar documento**
+
+Contexto de rastreabilidade: `BK-MF1-02` -> `RF14`.
 
 ```ts
 type LinhaDocumento = { conta: string; base: number; taxaIVA: number };

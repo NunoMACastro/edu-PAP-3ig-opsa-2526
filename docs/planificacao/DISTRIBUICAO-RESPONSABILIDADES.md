@@ -6,59 +6,44 @@
 - `area`: `project`
 - `owner`: `Nuno`
 - `status`: `ativo`
-- `last_updated`: `2026-04-17`
+- `last_updated`: `2026-04-19`
+
+## Objetivo
+Formalizar ownership da Opsa no contrato comum das 4 PAPs, com carga, risco e governanca pedagógica alinhados.
 
 ## Equipa e carga alvo
-| Pessoa | Papel principal | Total BK | P0 | P1 | P2 | Carga alvo semanal |
-| --- | --- | --- | --- | --- | --- | --- |
-| Oleksii | Execucao tecnica e handoff | 28 | 22 | 5 | 1 | 6 unid./semana |
-| Andre | Execucao tecnica e handoff | 28 | 16 | 12 | 0 | 4 unid./semana |
-| Pedro | Execucao tecnica e handoff | 27 | 15 | 12 | 0 | 4 unid./semana |
-| Sofia | Execucao tecnica e handoff | 17 | 3 | 14 | 0 | 3 unid./semana |
-
-## Teto semanal recomendado (12o ano)
-| Perfil | Teto recomendado | Regra de excecao |
-| --- | --- | --- |
-| P0 | <= 6 unid./semana | Excecao aprovada por orientador e registada no scorecard da sprint. |
-| P1 | <= 4 unid./semana | Se exceder, converter carga adicional para `Reforco` opcional. |
-| P2 | <= 3 unid./semana | Se exceder, adiar para sprint seguinte mantendo cobertura final. |
+| Pessoa | Papel principal | Total BK | P0 | P1 | P2 |
+| --- | --- | --- | --- | --- | --- |
+| Andre | Execucao tecnica e handoff | 22 | 14 | 8 | 0 |
+| Oleksii | Execucao tecnica e handoff | 36 | 32 | 4 | 0 |
+| Pedro | Execucao tecnica e handoff | 16 | 8 | 8 | 0 |
+| Sofia | Execucao tecnica e handoff | 10 | 2 | 8 | 0 |
 
 ## Regras principais
 1. Owner unico por BK com apoio obrigatorio.
-2. BK so fecha com criterios de aceite e evidence (pr/proof/neg).
-3. BK P0 concentrados nos melhores programadores para reduzir risco tecnico.
-4. Perfis de menor capacidade tecnica focam P1/P2, QA e governance operacional.
-5. Carga pedagogica: BK `P0` em modo `Reforco`; BK `P1/P2` em modo `Core`.
-6. Sempre que houver sobrecarga semanal, aliviar primeiro documental de `P1/P2` sem cortar cobertura funcional.
-7. Qualquer excecao de carga semanal exige risco associado + acao de mitigacao no scorecard da sprint.
+2. BK so fecha com criterios de aceite e evidence (`pr/proof/neg`).
+3. BK `P0` com prioridade de suporte docente em caso de bloqueio >48h.
+4. Em sobrecarga, reduzir primeiro paralelismo de `P1/P2`.
 
 ## Matriz por artefacto
 | Artefacto | Owner |
 | --- | --- |
 | PLANO-IMPLEMENTACAO-TOTAL.md | Nuno |
 | MATRIZ-CANONICA-BK.md | Nuno |
-| BACKLOG-MVP.md | Oleksii |
-| MF-VIEWS.md | Andre |
-| PLANO-SPRINTS.md | Pedro |
+| BACKLOG-MVP.md | Owner operacional da macro ativa |
+| PLANO-SPRINTS.md | Owner operacional da sprint ativa |
 | guias-bk/MF0..MF8/*.md | Owner do BK |
 
 ## Cerimonias
-- Planeamento semanal: alinhamento de BK por prioridade e desbloqueio.
-- Sync tecnico intermadio: dependencias, riscos e handoff.
-- Fecho semanal: validacao de checklist e evidence.
-
-## Remediacao por perfil de aluno
-- Perfil forte: pode absorver `Reforco` adicional e apoiar desbloqueio tecnico P0.
-- Perfil intermadio: manter foco em `Core`, com reforco apenas apos fecho do core da sprint.
-- Perfil em risco: reduzir paralelismo, dividir BK em micro-entregas e aumentar checkpoint docente.
+- Planeamento semanal: alinhamento de BK por prioridade e capacidade real.
+- Checkpoint intermadio: revisao de risco, bloqueios e handoff.
+- Fecho semanal: validacao de evidence e scorecard.
 
 ## Papel do orientador
-- Nuno valida coerencia macro, gates e conformidade final.
-- Nuno aprova excecoes de escopo e conflitos de dependencia.
+- Validar coerencia cross-artefactos.
+- Aprovar excecoes de carga e remediacao.
+- Fechar gates `S4/S8/S12` com parecer GO/NO-GO.
 
 ## Changelog
-- `2026-04-12`: Redistribuicao de ownership alinhada com perfil da equipa.
-- `2026-04-13`: Capacidade semanal formalizada e regras de sobrecarga ajustadas para fecho ate inicio de julho.
-- `2026-04-13`: Tetos semanais por perfil e regime de excecoes/remediacao adicionados.
-- `2026-04-17`: contagens por owner atualizadas para o escopo final de 100 BK.
-- `2026-04-17`: ownership rebalance aplicado para reduzir gargalo inicial de MF0 e distribuir carga P1.
+- `2026-04-19`: distribuição recalculada após redução de escopo (84 BK).
+- `2026-04-19`: redistribuição deliberada com carga técnica reforçada em Oleksii.

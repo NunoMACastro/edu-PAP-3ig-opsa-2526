@@ -16,7 +16,7 @@
 - `core_or_reforco`: `Core`
 - `proximo_bk`: `BK-MF7-06`
 - `guia_path`: `docs/planificacao/guias-bk/MF7/BK-MF7-05-exportacoes-disponiveis-em-csv-excel-e-pdf.md`
-- `last_updated`: `2026-04-17`
+- `last_updated`: `2026-04-19`
 
 ## Contexto do BK
 - Entrega alvo: implementar `Exportações disponíveis em CSV, Excel e PDF.` com rastreabilidade direta ao requisito `RNF22`.
@@ -62,6 +62,10 @@ Executar `Exportações disponíveis em CSV, Excel e PDF.` com autonomia técnic
 5. Executar pelo menos 1 teste de smoke orientado ao caso principal do BK.
 6. Executar cenários negativos obrigatórios e registar resultado observado (mensagem/código/efeito).
 
+### Cenarios negativos recomendados
+- entrada obrigatoria em falta
+- estado de negocio invalido
+
 ### Validacao
 - [ ] Smoke: fluxo principal executa sem erro bloqueante.
 - [ ] Negativos: minimo `2` cenarios com resultado controlado.
@@ -75,6 +79,8 @@ Executar `Exportações disponíveis em CSV, Excel e PDF.` com autonomia técnic
 
 ## Snippet tecnico aplicavel
 **Validacao de cabecalho de importacao**
+
+Contexto de rastreabilidade: `BK-MF7-05` -> `RNF22`.
 
 ```ts
 const CAMPOS_MINIMOS = ['codigo', 'descricao', 'valor'];

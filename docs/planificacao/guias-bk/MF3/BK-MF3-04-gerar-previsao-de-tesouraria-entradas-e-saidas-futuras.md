@@ -5,32 +5,32 @@
 - `bk_id`: `BK-MF3-04`
 - `macro`: `MF3`
 - `owner`: `Oleksii`
-- `apoio`: `Andre`
+- `apoio`: `Pedro`
 - `prioridade`: `P1`
 - `estado`: `TODO`
 - `esforco`: `S`
-- `dependencias`: `BK-MF1-03, BK-MF1-10`
-- `rf_rnf`: `RF40`
+- `dependencias`: `BK-MF1-03, BK-MF1-08`
+- `rf_rnf`: `RF34`
 - `fase_documental`: `Fase 2`
 - `sprint`: `S07-S08`
 - `core_or_reforco`: `Core`
 - `proximo_bk`: `BK-MF3-05`
 - `guia_path`: `docs/planificacao/guias-bk/MF3/BK-MF3-04-gerar-previsao-de-tesouraria-entradas-e-saidas-futuras.md`
-- `last_updated`: `2026-04-17`
+- `last_updated`: `2026-04-19`
 
 ## Contexto do BK
-- Entrega alvo: implementar `Gerar previsão de tesouraria (entradas e saídas futuras).` com rastreabilidade direta ao requisito `RF40`.
+- Entrega alvo: implementar `Gerar previsão de tesouraria (entradas e saídas futuras).` com rastreabilidade direta ao requisito `RF34`.
 - Foco tecnico da macro: tesouraria, integracoes e relatorio funcional.
 - Regra de governanca: nao alterar IDs nem contratos de dados (`bk_id/mf/sprint/owner/rf_rnf/deps/guia_path/core_or_reforco`).
 
 ## Bloco pedagogico
 ### Objetivo
-Executar `Gerar previsão de tesouraria (entradas e saídas futuras).` com autonomia técnica, garantindo cobertura do requisito `RF40` e evidência objetiva para avaliação.
+Executar `Gerar previsão de tesouraria (entradas e saídas futuras).` com autonomia técnica, garantindo cobertura do requisito `RF34` e evidência objetiva para avaliação.
 - Intenção pedagógica da macro `MF3`: Consolidar tesouraria, integracoes e reporting financeiro auditavel..
 
 ### Pre-requisitos
-- Ler o requisito `RF40` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.
-- Validar dependencias declaradas: `BK-MF1-03, BK-MF1-10`.
+- Ler o requisito `RF34` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.
+- Validar dependencias declaradas: `BK-MF1-03, BK-MF1-08`.
 - Preparar ambiente para smoke test e validacao negativa.
 
 ### Erros comuns
@@ -40,7 +40,7 @@ Executar `Gerar previsão de tesouraria (entradas e saídas futuras).` com auton
 
 ### Check de compreensao
 - [ ] Sei justificar porque este BK existe no fluxo da macro `MF3`.
-- [ ] Sei mostrar onde esta o requisito `RF40` no sistema.
+- [ ] Sei mostrar onde esta o requisito `RF34` no sistema.
 - [ ] Sei demonstrar pelo menos 1 negativo relevante do BK.
 
 ### Tempo estimado
@@ -50,17 +50,21 @@ Executar `Gerar previsão de tesouraria (entradas e saídas futuras).` com auton
 ## Bloco operacional
 ### Entrada
 - BK: `BK-MF3-04`
-- Requisito: `RF40`
-- Dependencias: `BK-MF1-03, BK-MF1-10`
+- Requisito: `RF34`
+- Dependencias: `BK-MF1-03, BK-MF1-08`
 - Artefactos de referencia: `MATRIZ-CANONICA-BK.md`, `BACKLOG-MVP.md`, `PLANO-SPRINTS.md`
 
 ### Passos
-1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do `BK-MF3-04` e o requisito `RF40`.
-2. Validar dependencias técnicas (`BK-MF1-03, BK-MF1-10`) e preparar dados de teste mínimos para `Gerar previsão de tesouraria (entradas e saídas futuras).`.
+1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do `BK-MF3-04` e o requisito `RF34`.
+2. Validar dependencias técnicas (`BK-MF1-03, BK-MF1-08`) e preparar dados de teste mínimos para `Gerar previsão de tesouraria (entradas e saídas futuras).`.
 3. Implementar integração/importação/exportação com validação estrutural e rastreio de erros.
 4. Validar reconciliação/relatório resultante com dados de referência controlados.
 5. Executar pelo menos 1 teste de smoke orientado ao caso principal do BK.
 6. Executar cenários negativos obrigatórios e registar resultado observado (mensagem/código/efeito).
+
+### Cenarios negativos recomendados
+- entrada obrigatoria em falta
+- estado de negocio invalido
 
 ### Validacao
 - [ ] Smoke: fluxo principal executa sem erro bloqueante.
@@ -75,6 +79,8 @@ Executar `Gerar previsão de tesouraria (entradas e saídas futuras).` com auton
 
 ## Snippet tecnico aplicavel
 **Emparelhamento simples de movimentos bancarios**
+
+Contexto de rastreabilidade: `BK-MF3-04` -> `RF34`.
 
 ```ts
 type Movimento = { id: string; valor: number; data: string; descricao: string };

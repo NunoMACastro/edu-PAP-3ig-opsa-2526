@@ -5,7 +5,7 @@ from pathlib import Path
 import re
 from collections import defaultdict
 
-TODAY = "2026-04-17"
+TODAY = "2026-04-19"
 
 SPRINT_WINDOW_BY_MACRO = {
     "MF0": "S01-S02",

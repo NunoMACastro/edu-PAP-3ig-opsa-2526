@@ -10,26 +10,26 @@
 - `estado`: `TODO`
 - `esforco`: `M`
 - `dependencias`: `-`
-- `rf_rnf`: `RF57`
+- `rf_rnf`: `RF48`
 - `fase_documental`: `Fase 2`
 - `sprint`: `S08-S09`
 - `core_or_reforco`: `Reforco`
-- `proximo_bk`: `BK-MF4-11`
+- `proximo_bk`: `BK-MF5-01`
 - `guia_path`: `docs/planificacao/guias-bk/MF4/BK-MF4-10-registar-logs-de-integracao-uploads-saf-t-reconciliacoes.md`
-- `last_updated`: `2026-04-17`
+- `last_updated`: `2026-04-19`
 
 ## Contexto do BK
-- Entrega alvo: implementar `Registar logs de integração (uploads, SAF-T, reconciliações).` com rastreabilidade direta ao requisito `RF57`.
+- Entrega alvo: implementar `Registar logs de integração (uploads, SAF-T, reconciliações).` com rastreabilidade direta ao requisito `RF48`.
 - Foco tecnico da macro: inteligencia operacional, alertas e governanca de operacoes.
 - Regra de governanca: nao alterar IDs nem contratos de dados (`bk_id/mf/sprint/owner/rf_rnf/deps/guia_path/core_or_reforco`).
 
 ## Bloco pedagogico
 ### Objetivo
-Executar `Registar logs de integração (uploads, SAF-T, reconciliações).` com autonomia técnica, garantindo cobertura do requisito `RF57` e evidência objetiva para avaliação.
+Executar `Registar logs de integração (uploads, SAF-T, reconciliações).` com autonomia técnica, garantindo cobertura do requisito `RF48` e evidência objetiva para avaliação.
 - Intenção pedagógica da macro `MF4`: Operacionalizar IA assistiva com explicabilidade e controlo de risco..
 
 ### Pre-requisitos
-- Ler o requisito `RF57` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.
+- Ler o requisito `RF48` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.
 - Validar dependencias declaradas: `-`.
 - Preparar ambiente para smoke test e validacao negativa.
 
@@ -40,7 +40,7 @@ Executar `Registar logs de integração (uploads, SAF-T, reconciliações).` com
 
 ### Check de compreensao
 - [ ] Sei justificar porque este BK existe no fluxo da macro `MF4`.
-- [ ] Sei mostrar onde esta o requisito `RF57` no sistema.
+- [ ] Sei mostrar onde esta o requisito `RF48` no sistema.
 - [ ] Sei demonstrar pelo menos 1 negativo relevante do BK.
 
 ### Tempo estimado
@@ -50,12 +50,12 @@ Executar `Registar logs de integração (uploads, SAF-T, reconciliações).` com
 ## Bloco operacional
 ### Entrada
 - BK: `BK-MF4-10`
-- Requisito: `RF57`
+- Requisito: `RF48`
 - Dependencias: `-`
 - Artefactos de referencia: `MATRIZ-CANONICA-BK.md`, `BACKLOG-MVP.md`, `PLANO-SPRINTS.md`
 
 ### Passos
-1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do `BK-MF4-10` e o requisito `RF57`.
+1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do `BK-MF4-10` e o requisito `RF48`.
 2. Validar dependencias técnicas (`-`) e preparar dados de teste mínimos para `Registar logs de integração (uploads, SAF-T, reconciliações).`.
 3. Implementar fluxo de IA/alerta/tarefa com fonte explícita e critério de decisão audível.
 4. Validar que a resposta/alerta é explicável e não executa alterações contabilísticas automáticas.
@@ -64,6 +64,11 @@ Executar `Registar logs de integração (uploads, SAF-T, reconciliações).` com
 7. Aplicar reforço técnico (robustez/performance/segurança) no risco principal identificado para este BK.
 8. Atualizar evidence (`pr`, `proof`, `neg`) com artefactos concretos e verificaveis.
 
+### Cenarios negativos recomendados
+- entrada obrigatoria em falta
+- estado de negocio invalido
+- tentativa sem permissoes/contexto valido
+
 ### Validacao
 - [ ] Smoke: fluxo principal executa sem erro bloqueante.
 - [ ] Negativos: minimo `3` cenarios com resultado controlado.
@@ -71,12 +76,14 @@ Executar `Registar logs de integração (uploads, SAF-T, reconciliações).` com
 - [ ] Evidencia: `pr`, `proof`, `neg` preenchidos com artefactos reais.
 
 ### Handoff
-- Proximo BK recomendado: `BK-MF4-11`
+- Proximo BK recomendado: `BK-MF5-01`
 - Registar no handoff: estado de dependencias, risco aberto e decisao tomada.
 - Se houver bloqueio >48h, escalar no scorecard da sprint.
 
 ## Snippet tecnico aplicavel
 **Emparelhamento simples de movimentos bancarios**
+
+Contexto de rastreabilidade: `BK-MF4-10` -> `RF48`.
 
 ```ts
 type Movimento = { id: string; valor: number; data: string; descricao: string };

@@ -10,26 +10,26 @@
 - `estado`: `TODO`
 - `esforco`: `S`
 - `dependencias`: `-`
-- `rf_rnf`: `RF53`
+- `rf_rnf`: `RF44`
 - `fase_documental`: `Fase 2`
 - `sprint`: `S08-S09`
 - `core_or_reforco`: `Core`
 - `proximo_bk`: `BK-MF4-07`
 - `guia_path`: `docs/planificacao/guias-bk/MF4/BK-MF4-06-criar-editar-lembretes-essenciais-prazos-pagamentos-e-impostos.md`
-- `last_updated`: `2026-04-17`
+- `last_updated`: `2026-04-19`
 
 ## Contexto do BK
-- Entrega alvo: implementar `Criar/editar lembretes essenciais (prazos, pagamentos e impostos).` com rastreabilidade direta ao requisito `RF53`.
+- Entrega alvo: implementar `Criar/editar lembretes essenciais (prazos, pagamentos e impostos).` com rastreabilidade direta ao requisito `RF44`.
 - Foco tecnico da macro: inteligencia operacional, alertas e governanca de operacoes.
 - Regra de governanca: nao alterar IDs nem contratos de dados (`bk_id/mf/sprint/owner/rf_rnf/deps/guia_path/core_or_reforco`).
 
 ## Bloco pedagogico
 ### Objetivo
-Executar `Criar/editar lembretes essenciais (prazos, pagamentos e impostos).` com autonomia técnica, garantindo cobertura do requisito `RF53` e evidência objetiva para avaliação.
+Executar `Criar/editar lembretes essenciais (prazos, pagamentos e impostos).` com autonomia técnica, garantindo cobertura do requisito `RF44` e evidência objetiva para avaliação.
 - Intenção pedagógica da macro `MF4`: Operacionalizar IA assistiva com explicabilidade e controlo de risco..
 
 ### Pre-requisitos
-- Ler o requisito `RF53` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.
+- Ler o requisito `RF44` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.
 - Validar dependencias declaradas: `-`.
 - Preparar ambiente para smoke test e validacao negativa.
 
@@ -40,7 +40,7 @@ Executar `Criar/editar lembretes essenciais (prazos, pagamentos e impostos).` co
 
 ### Check de compreensao
 - [ ] Sei justificar porque este BK existe no fluxo da macro `MF4`.
-- [ ] Sei mostrar onde esta o requisito `RF53` no sistema.
+- [ ] Sei mostrar onde esta o requisito `RF44` no sistema.
 - [ ] Sei demonstrar pelo menos 1 negativo relevante do BK.
 
 ### Tempo estimado
@@ -50,17 +50,22 @@ Executar `Criar/editar lembretes essenciais (prazos, pagamentos e impostos).` co
 ## Bloco operacional
 ### Entrada
 - BK: `BK-MF4-06`
-- Requisito: `RF53`
+- Requisito: `RF44`
 - Dependencias: `-`
 - Artefactos de referencia: `MATRIZ-CANONICA-BK.md`, `BACKLOG-MVP.md`, `PLANO-SPRINTS.md`
 
 ### Passos
-1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do `BK-MF4-06` e o requisito `RF53`.
+1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do `BK-MF4-06` e o requisito `RF44`.
 2. Validar dependencias técnicas (`-`) e preparar dados de teste mínimos para `Criar/editar lembretes essenciais (prazos, pagamentos e impostos).`.
-3. Implementar fluxo de IA/alerta/tarefa com fonte explícita e critério de decisão audível.
-4. Validar que a resposta/alerta é explicável e não executa alterações contabilísticas automáticas.
-5. Executar pelo menos 1 teste de smoke orientado ao caso principal do BK.
-6. Executar cenários negativos obrigatórios e registar resultado observado (mensagem/código/efeito).
+3. Implementar CRUD de lembretes com campos obrigatorios (`titulo`, `tipo`, `data_limite`, `estado`).
+4. Garantir edicao e remarcacao de prazo sem perder historico basico de alteracoes.
+5. Implementar listagem filtrada por estado e por proximidade de prazo.
+6. Executar smoke cobrindo criacao, edicao e consulta de lembrete.
+7. Executar cenarios negativos obrigatorios e registar resultado observado (mensagem/codigo/efeito).
+
+### Cenarios negativos recomendados
+- criar lembrete sem `data_limite`
+- editar lembrete para data invalida (formato ou data passada)
 
 ### Validacao
 - [ ] Smoke: fluxo principal executa sem erro bloqueante.
@@ -74,28 +79,49 @@ Executar `Criar/editar lembretes essenciais (prazos, pagamentos e impostos).` co
 - Se houver bloqueio >48h, escalar no scorecard da sprint.
 
 ## Snippet tecnico aplicavel
-**Validacao fiscal minima antes de lancar documento**
+**Validacao de payload para criacao/edicao de lembrete**
+
+Contexto de rastreabilidade: `BK-MF4-06` -> `RF44`.
 
 ```ts
-type LinhaDocumento = { conta: string; base: number; taxaIVA: number };
+type TipoLembrete = 'pagamento' | 'imposto' | 'prazo';
+type LembreteInput = {
+  titulo: string;
+  tipo: TipoLembrete;
+  dataLimite: string;
+};
 
-export function validarDocumentoFiscal(linhas: LinhaDocumento[], bkId = 'BK-MF4-06') {
-  if (!linhas.length) throw new Error('Documento sem linhas');
-  for (const l of linhas) {
-    if (l.base <= 0) throw new Error(`Base invalida em ${l.conta}`);
-    if (l.taxaIVA < 0 || l.taxaIVA > 1) throw new Error(`Taxa IVA invalida em ${l.conta}`);
+export function validarLembrete(input: LembreteInput) {
+  if (!input.titulo.trim()) throw new Error('RF44: titulo obrigatorio');
+  if (!input.dataLimite) throw new Error('RF44: data limite obrigatoria');
+  const data = new Date(input.dataLimite);
+  if (Number.isNaN(data.getTime())) throw new Error('RF44: data limite invalida');
+  return {
+    bkId: 'BK-MF4-06',
+    requisito: 'RF44',
+    payloadValido: true,
+    lembrete: input,
+  };
+}
+
+export function atualizarEstadoLembrete(
+  estadoAtual: 'pendente' | 'concluido',
+  novoEstado: 'pendente' | 'concluido'
+) {
+  if (estadoAtual === novoEstado) {
+    throw new Error('RF44: estado sem alteracao');
   }
-  return { bkId, totalIVA: linhas.reduce((acc, l) => acc + l.base * l.taxaIVA, 0) };
+  return { bkId: 'BK-MF4-06', requisito: 'RF44', estado: novoEstado };
 }
 ```
 
-Aplicar antes de persistir documento para evitar registos contabilisticos inconsistentes e garantir rastreio do requisito.
+Aplicar nas operacoes de criacao/edicao para assegurar dados validos e rastreaveis no `RF44`.
 
 ## Criterios de aceite
-- BK implementado no scope definido, sem romper dependencias.
-- Validacao de smoke e negativos concluida.
+- CRUD de lembretes funcional para prazos, pagamentos e impostos.
+- Listagem com filtros por estado e prazo implementada.
+- Dois cenarios negativos executados com tratamento controlado.
 - Contrato de dados canónico mantido (`bk_id/mf/sprint/owner/rf_rnf/deps/guia_path/core_or_reforco`).
-- Evidence pronta para revisao tecnica e defesa PAP.
 
 ## Evidence para PR/defesa
 - `pr`: link do commit/PR com resumo objetivo da alteracao.

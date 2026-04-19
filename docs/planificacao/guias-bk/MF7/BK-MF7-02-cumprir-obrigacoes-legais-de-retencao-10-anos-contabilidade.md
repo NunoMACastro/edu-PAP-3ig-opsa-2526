@@ -16,7 +16,7 @@
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF7-03`
 - `guia_path`: `docs/planificacao/guias-bk/MF7/BK-MF7-02-cumprir-obrigacoes-legais-de-retencao-10-anos-contabilidade.md`
-- `last_updated`: `2026-04-17`
+- `last_updated`: `2026-04-19`
 
 ## Contexto do BK
 - Entrega alvo: implementar `Cumprir obrigações legais de retenção (10 anos, contabilidade).` com rastreabilidade direta ao requisito `RNF19`.
@@ -64,6 +64,11 @@ Executar `Cumprir obrigações legais de retenção (10 anos, contabilidade).` c
 7. Aplicar reforço técnico (robustez/performance/segurança) no risco principal identificado para este BK.
 8. Atualizar evidence (`pr`, `proof`, `neg`) com artefactos concretos e verificaveis.
 
+### Cenarios negativos recomendados
+- entrada obrigatoria em falta
+- estado de negocio invalido
+- tentativa sem permissoes/contexto valido
+
 ### Validacao
 - [ ] Smoke: fluxo principal executa sem erro bloqueante.
 - [ ] Negativos: minimo `3` cenarios com resultado controlado.
@@ -77,6 +82,8 @@ Executar `Cumprir obrigações legais de retenção (10 anos, contabilidade).` c
 
 ## Snippet tecnico aplicavel
 **Validador de output auditavel**
+
+Contexto de rastreabilidade: `BK-MF7-02` -> `RNF19`.
 
 ```ts
 type Resultado = { status: 'ok' | 'erro'; mensagem: string; fonte?: string };
