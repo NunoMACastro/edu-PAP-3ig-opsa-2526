@@ -16,95 +16,329 @@
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF0-07`
 - `guia_path`: `docs/planificacao/guias-bk/MF0/BK-MF0-06-registar-dados-da-empresa-nif-morada-moeda-logotipo-periodo-fiscal.md`
-- `last_updated`: `2026-04-19`
+- `last_updated`: `2026-05-24`
 
-## Contexto do BK
-- Entrega alvo: implementar `Registar dados da empresa (NIF, morada, moeda, logótipo, período fiscal).` com rastreabilidade direta ao requisito `RF06`.
-- Foco tecnico da macro: fundacoes de autenticacao, perfis, empresa e dados mestre.
-- Regra de governanca: nao alterar IDs nem contratos de dados (`bk_id/mf/sprint/owner/rf_rnf/deps/guia_path/core_or_reforco`).
+#### BK-MF0-06 - Registar dados da empresa (NIF, morada, moeda, logótipo, período fiscal).
+
+##### O que vamos fazer neste BK
+
+Neste BK vamos transformar o requisito RF06 num guia de execucao para construir a parte da app relacionada com configuracoes. O foco nao e produzir documentacao generica: e deixar claro que modelos, endpoints, validacoes, UI e evidencia devem existir quando a equipa implementar o BK.
+
+A app real ainda esta marcada como `sem_codigo`; por isso, os caminhos tecnicos propostos sao uma **Assuncao tecnica** baseada nos documentos oficiais: backend Node.js + Express em JavaScript ES Modules, frontend React + Vite + TypeScript, Prisma/PostgreSQL para persistencia. Se a equipa ja tiver criado outra estrutura, deve adaptar os caminhos sem alterar responsabilidades nem contratos.
+
+Como a fase alvo e MF0, nao existem BKs de fases anteriores a reutilizar. A continuidade nasce aqui: os outputs deste BK devem ser contratos estaveis para BK-MF0-07 e para os BKs de vendas, compras, inventario, contabilidade e seguranca das fases seguintes.
+
+##### Porque e que isto e importante
+
+- Funcionalmente, cobre RF06 e desbloqueia o fluxo seguinte da MF0.
+- Tecnicamente, cria contratos de CompanyProfile e API que outros BKs podem reutilizar.
+- Pedagogicamente, mostra aos alunos a ligacao entre requisito, modelo, endpoint, UI, teste e evidence.
+- Em seguranca/robustez, obriga a validar dados no backend e a tratar erros previsiveis.
+- Para continuidade, prepara explicitamente o handoff para BK-MF0-07.
+
+##### O que entra (scope)
+
+- Criar/editar nome, NIF, morada, codigo postal, cidade e moeda.
+- Preparar campo de logotipo sem obrigar upload definitivo se a storage nao estiver decidida.
+- Guardar limites do periodo fiscal base.
+- Validar formato minimo de NIF e moeda.
+- Ligar formulario de configuracoes ao backend.
+
+##### O que nao entra (scope-out)
+
+- Fecho/abertura de periodos, porque pertence ao BK-MF0-08.
+- SAF-T real, porque pertence a fases posteriores.
+- Validacao legal exaustiva de NIF por fonte externa, se nao documentada.
+- Gestao avancada de moradas/estabelecimentos.
+
+##### Como saber que isto ficou bem
+
+- O caso principal de Registar dados da empresa (NIF, morada, moeda, logótipo, período fiscal) funciona atraves da UI ou de chamadas API documentadas.
+- Os endpoints definidos respondem com codigos HTTP previsiveis e sem expor dados sensiveis.
+- Os validadores rejeitam entradas invalidas antes de chegar a persistencia.
+- A evidence inclui smoke, negativos, ficheiros alterados e comandos executados.
+- Nao existe ALTERACAO DE CONTRATO face aos documentos canonicos; se surgir, deve ser marcada e justificada.
+
+#### Metadados do BK (CANONICO/DERIVADO):
+
+- Prioridade: `P0` (CANONICO)
+- Estado: `TODO` (CANONICO; nao marcar DONE apenas por o guia estar detalhado)
+- Esforco: `M` (CANONICO)
+- macro: `MF0` (CANONICO)
+- Owner: `Oleksii` (CANONICO)
+- Apoio: `Sofia` (CANONICO)
+- Dependencias (BK IDs): `-` (CANONICO)
+- Pre-condicoes: Sem dependencias anteriores declaradas. App real pode ainda nao existir; nesse caso criar a estrutura tecnica assumida antes dos ficheiros alvo. (DERIVADO)
+- Ref. Plano: `PLANO-IMPLEMENTACAO-TOTAL.md` MF0; `PLANO-SPRINTS.md` S01-S02. (CANONICO)
+- Flow ID: `FLOW-COMPANY-PROFILE` (DERIVADO)
+- Fonte de verdade: `docs/RF.md` -> `RF06` (CANONICO)
+- Fonte de verdade: `docs/planificacao/backlogs/BACKLOG-MVP.md` (CANONICO)
+- Fonte de verdade: `docs/planificacao/backlogs/MATRIZ-CANONICA-BK.md` e `docs/planificacao/backlogs/MF-VIEWS.md` (CANONICO)
+- Descricao: Registar dados da empresa (NIF, morada, moeda, logótipo, período fiscal). (CANONICO)
+- Stack decidida: `DERIVADO` de `docs/RNF.md` e mockup: React + Vite + TypeScript no frontend; Node.js + Express no backend; Prisma/PostgreSQL na persistencia. Redis fica fora deste BK por simplicidade pedagogica ate haver necessidade real.
+- Mockup usado: `mockup/` existe e foi usado como referencia de fluxo, hierarquia e nomes visiveis; nao e contrato pixel-perfect.
+
+#### O que vamos fazer neste BK (DERIVADO):
+
+- Estado esperado antes do BK: Pode existir ou nao multiempresa; se BK-MF0-03 ja existir, usar companyId ativo.
+- Estado esperado depois do BK: Cada empresa tem dados base guardados e validados, prontos para faturas, SAF-T, reporting e periodos fiscais.
+- Ficheiros a criar/editar/rever: schema Prisma, modulo backend `configuracoes`, cliente API frontend e componentes/paginas referenciados em `mockup/src/app/components/modules/Configuracoes.tsx, card Dados da Empresa`.
+- Dependencias de BK anteriores e uso: Sem dependencias anteriores declaradas.
+- Impacto na arquitetura: reforca separacao entre routes, controllers, services, validators e UI.
+- Impacto frontend: liga o fluxo visual do mockup a API real com estados loading/error/empty/success quando aplicavel.
+- Impacto backend/dados: cria ou prepara `CompanyProfile` e endpoints `GET /api/company/profile, PUT /api/company/profile`.
+- Impacto seguranca: valida inputs no backend, aplica sessao/permissao quando aplicavel e evita exposicao de dados sensiveis.
+- Impacto testes: exige smoke e 3 negativos concretos.
+- Handoff: BK-MF0-07 deve reutilizar os contratos aqui criados.
+
+#### Pre-leitura minima (10-15 min) (DERIVADO):
+
+- `README.md` seccoes 1, 4, 5 e 7.
+- `docs/RF.md` linha do requisito `RF06`.
+- `docs/RNF.md` seccoes RNF05, RNF06, RNF12-RNF17, RNF25-RNF30 quando aplicavel.
+- `docs/planificacao/backlogs/BACKLOG-MVP.md` linha deste BK.
+- `docs/planificacao/backlogs/MATRIZ-CANONICA-BK.md` linha deste BK.
+- `docs/planificacao/backlogs/MF-VIEWS.md` -> MF0.
+- `docs/planificacao/sprints/PLANO-SPRINTS.md` -> S01-S02.
+- Mockup: `mockup/src/app/components/modules/Configuracoes.tsx, card Dados da Empresa`.
+- BKs anteriores: nao existem dependencias formais anteriores para este BK.
+
+#### Glossario (rapido) (DERIVADO):
+
+- **NIF:** Numero de Identificacao Fiscal usado em documentos e entidades portuguesas.
+- **Moeda base:** Moeda principal usada nos registos financeiros da empresa.
+- **Periodo fiscal:** Intervalo contabilistico em que documentos e lancamentos sao aceites.
+- **Upload:** Envio de ficheiro do browser para o servidor.
+- **Dados mestre:** Dados de base reutilizados por varios modulos.
+
+#### Conceitos teoricos essenciais (DERIVADO):
+
+- Dados da empresa sao dados mestre: muitos modulos futuros dependem deles, especialmente faturacao, contabilidade e SAF-T.
+- Mesmo que o frontend valide NIF, o backend deve validar outra vez porque pedidos podem ser feitos diretamente por API.
+- Upload de logotipo deve limitar tipo e tamanho de ficheiro. Enquanto storage nao estiver decidida, pode ficar como URL/campo preparado.
+- A moeda deve ter contrato simples no MVP. O dominio portugues sugere EUR, mas qualquer regra multi-moeda avancada fica fora de escopo.
+- **Erros comuns a evitar:** implementar so no frontend, confiar em dados enviados pelo browser, esquecer `companyId` nos dados por empresa, devolver mensagens tecnicas cruas ao utilizador ou criar campos que nao aparecem nos RF/RNF.
+- **Negativos de seguranca/robustez:** todos os casos invalidos devem falhar de forma controlada, sem stack traces, sem dados sensiveis e sem escrita parcial na base de dados.
+
+#### Guia de execucao (passo-a-passo) (DERIVADO):
+
+0. **Objetivo (~10 min): Confirmar contrato e preparar ambiente**
+   - Descricao detalhada do objetivo: Rever o requisito RF06, a linha do BK-MF0-06 no backlog/matriz e confirmar que o repositorio ainda esta em modo sem codigo real fora do mockup.
+   - Justificacao: Evita implementar campos, endpoints ou papeis que nao existem no contrato canonico.
+   - Como fazer (0.1): Abrir docs/RF.md, BACKLOG-MVP.md, MATRIZ-CANONICA-BK.md e este guia.
+   - Como fazer (0.2): Criar ou confirmar a estrutura tecnica assumida: apps/api para backend e apps/web para frontend; se a equipa escolher outra estrutura, documentar no PR.
+   - Ficheiro a rever: docs/RF.md; docs/planificacao/backlogs/BACKLOG-MVP.md; docs/planificacao/backlogs/MATRIZ-CANONICA-BK.md
+   - Ficheiro alvo: README.md; package.json; apps/api/package.json; apps/web/package.json
+   - Snippet de referencia: `BK-MF0-06 -> RF06 -> GET /api/company/profile, PUT /api/company/profile`
+   - O que verificar: Metadados preservados e sem drift entre guia, backlog e matriz.
+
+1. **Objetivo (~25 min): Modelar dados e constraints**
+   - Descricao detalhada do objetivo: Criar ou ajustar o schema para CompanyProfile, sempre com isolamento por empresa quando o dado pertencer a uma empresa.
+   - Justificacao: A integridade da base de dados deve impedir duplicados e estados impossiveis mesmo antes da UI existir.
+   - Como fazer (1.1): Adicionar modelos e campos minimos no schema.
+   - Como fazer (1.2): Adicionar constraints unicas, relacoes e indices necessarios para o caso principal do BK.
+   - Ficheiro a rever: docs/planificacao/backlogs/CONTRATO-CAMPOS-BK.md; mockup/src/app/types.ts
+   - Ficheiro alvo: apps/api/prisma/schema.prisma
+   - Snippet de referencia: `model CompanyProfile { /* BK-MF0-06 */ }`
+   - O que verificar: Migration criada ou schema atualizado sem campos fora do RF.
+
+2. **Objetivo (~25 min): Criar validadores backend**
+   - Descricao detalhada do objetivo: Implementar validacao explicita para payloads de configuracoes.
+   - Justificacao: Validar no frontend melhora UX, mas apenas o backend protege a base de dados e a API contra chamadas diretas.
+   - Como fazer (2.1): Criar funcoes pequenas em validators com mensagens claras em portugues de Portugal.
+   - Como fazer (2.2): Cobrir obrigatorios, formatos, duplicados previsiveis e valores fora de intervalo.
+   - Ficheiro a rever: docs/RNF.md (RNF05, RNF06, RNF15)
+   - Ficheiro alvo: apps/api/src/modules/configuracoes/validators.js
+   - Snippet de referencia: `validateCompanyProfile(req.body)`
+   - O que verificar: Payload invalido devolve 400 com mensagem acionavel.
+
+3. **Objetivo (~25 min): Implementar service de negocio**
+   - Descricao detalhada do objetivo: Criar o service que executa a regra principal do BK-MF0-06.
+   - Justificacao: Controllers devem ser finos; services concentram regras e tornam testes mais simples.
+   - Como fazer (3.1): Criar funcoes async com companyId, actor/user e payload validado.
+   - Como fazer (3.2): Garantir que o service nao consulta nem altera dados fora da empresa ativa.
+   - Ficheiro a rever: docs/RNF.md (RNF25, RNF28)
+   - Ficheiro alvo: apps/api/src/modules/configuracoes/services.js
+   - Snippet de referencia: `await configuracoesService.execute({ companyId, actor, input })`
+   - O que verificar: Service testavel sem HTTP e com erros controlados.
+
+4. **Objetivo (~25 min): Expor rotas e controller**
+   - Descricao detalhada do objetivo: Criar endpoints: GET /api/company/profile, PUT /api/company/profile.
+   - Justificacao: Rotas Express sao o contrato entre frontend e backend; devem ter codigos HTTP previsiveis.
+   - Como fazer (4.1): Criar router e controller para chamar validadores, middleware de sessao/permissao e service.
+   - Como fazer (4.2): Adicionar tratamento de erro para 400, 401, 403, 409 quando aplicavel.
+   - Ficheiro a rever: docs/RNF.md (RNF25, RNF28)
+   - Ficheiro alvo: apps/api/src/modules/configuracoes/routes.js; apps/api/src/modules/configuracoes/controller.js
+   - Snippet de referencia: `router.post('/...', requireAuth, controller.handler)`
+   - O que verificar: Endpoint valido devolve codigo esperado e JSON sem dados sensiveis.
+
+5. **Objetivo (~25 min): Ligar frontend ao mockup**
+   - Descricao detalhada do objetivo: Transformar a referencia visual do mockup em fluxo real sem exigir pixel-perfect. Referencia UI: mockup/src/app/components/modules/Configuracoes.tsx, card Dados da Empresa.
+   - Justificacao: O mockup orienta nomes, hierarquia e fluxo, mas o contrato da app deve ficar extensivel.
+   - Como fazer (5.1): Criar cliente API no frontend e substituir dados mock/local por chamadas HTTP.
+   - Como fazer (5.2): Implementar loading, error, empty e success quando fizer sentido.
+   - Ficheiro a rever: mockup/src/app/components/modules/Configuracoes.tsx, card Dados da Empresa
+   - Ficheiro alvo: apps/web/src/modules/configuracoes/; apps/web/src/lib/apiClient.ts
+   - Snippet de referencia: `apiClient.request('GET /api/company/profile')`
+   - O que verificar: A UI mostra dados reais/mockados por API e nao quebra responsividade basica.
+
+6. **Objetivo (~25 min): Executar smoke e negativos**
+   - Descricao detalhada do objetivo: Validar o caso principal e os cenarios negativos minimos do BK-MF0-06.
+   - Justificacao: Sem evidencia, o BK nao esta pronto para PR nem defesa PAP.
+   - Como fazer (6.1): Executar smoke com curl, browser ou teste automatizado conforme o endpoint.
+   - Como fazer (6.2): Executar os negativos listados no checklist e guardar resposta/captura.
+   - Ficheiro a rever: docs/planificacao/sprints/PLANO-SPRINTS.md
+   - Ficheiro alvo: apps/api/tests/BK-MF0-06.test.js; docs/evidence/BK-MF0-06.md
+   - Snippet de referencia: `curl -i http://localhost:3000/api/company/profile`
+   - O que verificar: Smoke aprovado e pelo menos 3 negativos registados.
+
+7. **Objetivo (~15 min): Preparar handoff e evidence**
+   - Descricao detalhada do objetivo: Registar o que ficou construido, os ficheiros alterados, comandos e riscos para o proximo BK (BK-MF0-07).
+   - Justificacao: O proximo aluno deve conseguir continuar sem descobrir contratos por tentativa e erro.
+   - Como fazer (7.1): Preencher Evidence com PR, proof, neg, files, commands e screenshots.
+   - Como fazer (7.2): Adicionar TODOs reais sem marcar o BK como DONE apenas por existir guia.
+   - Ficheiro a rever: Este guia; BACKLOG-MVP.md
+   - Ficheiro alvo: docs/evidence/BK-MF0-06.md ou descricao do PR
+   - Snippet de referencia: `handoff.next = 'BK-MF0-07'`
+   - O que verificar: Handoff referencia contratos reutilizaveis e riscos abertos.
+
+#### Checklist de validacao (DERIVADO):
+
+- Smoke: executar o fluxo principal de `GET /api/company/profile` e confirmar resultado funcional na UI/API.
+- Tecnico: correr lint/testes disponiveis; se ainda nao existirem scripts, registar `TODO` e executar pelo menos smoke manual com `curl`.
+- Regressao das fases anteriores: MF0 nao tem fases anteriores, mas nao pode quebrar BKs MF0 ja executados na mesma sprint.
+- UI/mockup: comparar nomes e fluxo com `mockup/src/app/components/modules/Configuracoes.tsx, card Dados da Empresa`, sem exigir pixel-perfect.
+- Seguranca: confirmar que dados invalidos nao sao persistidos e que respostas nao expoem stack traces nem segredos.
+- Negativos: minimo `3` cenarios para prioridade `P0`.
+
+| Negativo | Passo | Input/acao | Resultado esperado | Risco que cobre |
+| --- | --- | --- | --- | --- |
+| N1 | 6 | Guardar NIF com 8 ou 10 digitos. | Resposta 400. | Evita dados fiscais invalidos. |
+| N2 | 6 | Guardar empresa sem nome. | Resposta 400. | Evita perfil inutilizavel. |
+| N3 | 6 | Upload de logotipo .exe ou ficheiro excessivo. | Resposta 400 ou upload bloqueado. | Evita ficheiros perigosos. |
+
+#### Criterios de aceite:
+
+- Outputs:
+- Modelo CompanyProfile associado a companyId.
+- Endpoint GET/PUT com validacao.
+- Formulario frontend com estados loading/error/success.
+- Contrato de moeda EUR por defeito, derivado do dominio PT.
+- Handoff para BK-MF0-07 e BK-MF0-08 com empresa configurada.
+- Verificacoes:
+- Caso valido de `GET /api/company/profile` concluido com codigo HTTP adequado.
+- Pelo menos 3 negativos executados e documentados.
+- Build/lint/testes disponiveis executados ou justificada a impossibilidade.
+- Qualidade:
+- Sem duplicacao grosseira entre controller/service/validator.
+- Mensagens de erro em portugues de Portugal e acionaveis.
+- Sem secrets no codigo, logs ou evidence.
+- Continuidade:
+- O BK seguinte `BK-MF0-07` consegue reutilizar os contratos deste BK.
+- Sem drift em owner, prioridade, dependencias ou RF/RNF.
+- Qualquer decisao nao confirmada fica marcada como TODO/BLOCKER.
+- Evidencia:
+- PR ou commit identificado.
+- Comandos executados registados.
+- Screenshots ou outputs do smoke e negativos anexados quando houver UI/API.
+
+#### Evidence (para o PR/defesa):
+
+- `pr`: `A preencher no fecho do BK`
+- `proof`: `A preencher apos validacao`
+- `neg`: `A preencher apos testes negativos`
+- `files`: `A preencher com ficheiros criados/editados`
+- `commands`: `A preencher com npm/prisma/curl/testes executados`
+- `screenshots`: `A preencher se houver UI alterada`
+- `notes`: `A preencher com decisoes tecnicas, assuncoes e desvios aprovados`
+
+#### TODOs
+
+- TODO normal: confirmar nomes finais das pastas da app real quando a equipa iniciar codigo.
+- TODO normal: criar scripts lint, test e dev se ainda nao existirem.
+- TODO (BLOCKER): nao fechar o BK como DONE sem evidence real de smoke e negativos.
+- Assuncao a validar com o orientador: estrutura apps/api + apps/web e uso de Prisma/PostgreSQL.
+- Decisao dependente de mockup: manter fluxo e nomes principais, mas evoluir design sem obrigacao pixel-perfect.
+- Decisao dependente de app/codigo ainda inexistente: adaptar caminhos se a equipa escolher outra estrutura, preservando contratos.
+- TODO: confirmar politica final de armazenamento de logotipos.
+- FOLLOW-UP: SAF-T deve reutilizar estes campos sem os duplicar.
 
 ## Bloco pedagogico
+
 ### Objetivo
-Executar `Registar dados da empresa (NIF, morada, moeda, logótipo, período fiscal).` com autonomia técnica, garantindo cobertura do requisito `RF06` e evidência objetiva para avaliação.
-- Intenção pedagógica da macro `MF0`: Instalar base segura de identidade e dados mestre para desbloquear todo o ERP..
+
+Construir Registar dados da empresa (NIF, morada, moeda, logótipo, período fiscal) de forma executavel, segura e rastreavel ao RF06.
 
 ### Pre-requisitos
-- Ler o requisito `RF06` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.
-- Validar dependencias declaradas: `-`.
-- Preparar ambiente para smoke test e validacao negativa.
+
+- Ler RF06, este guia e os documentos canonicos indicados na pre-leitura.
+- Confirmar dependencias: -.
 
 ### Erros comuns
-- Fechar o BK sem validar cenario negativo.
-- Alterar metadados no guia sem refletir backlog/matriz.
-- Submeter evidence sem provas objetivas (ex.: output real, screenshot, log, teste).
+
+- Implementar apenas a UI sem endpoint real.
+- Ignorar validacao backend porque o formulario ja valida.
+- Alterar metadados canonicos sem atualizar backlog/matriz.
 
 ### Check de compreensao
-- [ ] Sei justificar porque este BK existe no fluxo da macro `MF0`.
-- [ ] Sei mostrar onde esta o requisito `RF06` no sistema.
-- [ ] Sei demonstrar pelo menos 1 negativo relevante do BK.
+
+- [ ] Sei explicar que parte da app fica pronta no BK-MF0-06.
+- [ ] Sei indicar que ficheiros devo criar/editar/rever.
+- [ ] Sei demonstrar 3 cenarios negativos.
 
 ### Tempo estimado
-- `Core`: `60-90 min`.
-- `Reforco`: `+20-40 min`.
+
+- `Core`: `90-120 min`.
+- `Reforco`: `+30-45 min` para hardening, negativos e evidence.
 
 ## Bloco operacional
+
 ### Entrada
+
 - BK: `BK-MF0-06`
 - Requisito: `RF06`
 - Dependencias: `-`
-- Artefactos de referencia: `MATRIZ-CANONICA-BK.md`, `BACKLOG-MVP.md`, `PLANO-SPRINTS.md`
+- Endpoint(s): `GET /api/company/profile, PUT /api/company/profile`
 
 ### Passos
-1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do `BK-MF0-06` e o requisito `RF06`.
-2. Validar dependencias técnicas (`-`) e preparar dados de teste mínimos para `Registar dados da empresa (NIF, morada, moeda, logótipo, período fiscal).`.
-3. Implementar regras de identidade/perfil com validações de acesso e segregação por empresa.
-4. Executar smoke de autenticação/gestão base e comprovar persistência correta dos dados mestre.
-5. Executar pelo menos 1 teste de smoke orientado ao caso principal do BK.
-6. Executar cenários negativos obrigatórios e registar resultado observado (mensagem/código/efeito).
-7. Aplicar reforço técnico (robustez/performance/segurança) no risco principal identificado para este BK.
-8. Atualizar evidence (`pr`, `proof`, `neg`) com artefactos concretos e verificaveis.
 
-### Cenarios negativos recomendados
-- entrada obrigatoria em falta
-- estado de negocio invalido
-- tentativa sem permissoes/contexto valido
+- Seguir o passo-a-passo detalhado na seccao `Guia de execucao` deste ficheiro.
 
 ### Validacao
-- [ ] Smoke: fluxo principal executa sem erro bloqueante.
-- [ ] Negativos: minimo `3` cenarios com resultado controlado.
-- [ ] Tecnico: metadados e contratos de dados estao alinhados entre backlog/matriz/guia.
-- [ ] Evidencia: `pr`, `proof`, `neg` preenchidos com artefactos reais.
+
+- Smoke principal + Negativos: minimo `3` + regressao dos BKs MF0 ja fechados.
 
 ### Handoff
-- Proximo BK recomendado: `BK-MF0-07`
-- Registar no handoff: estado de dependencias, risco aberto e decisao tomada.
-- Se houver bloqueio >48h, escalar no scorecard da sprint.
+
+- Proximo BK recomendado: `BK-MF0-07`.
+- Registar contratos reutilizaveis, riscos e evidence antes de pedir review.
 
 ## Snippet tecnico aplicavel
-**Contrato de comando com validacao de permissao**
 
-```ts
-type Contexto = { userId: string; roles: string[]; empresaId: string };
-
-export function validarComando(ctx: Contexto, role: string) {
-  if (!ctx.userId || !ctx.empresaId) throw new Error('Contexto incompleto');
-  if (!ctx.roles.includes(role)) throw new Error(`Permissao insuficiente para RF06`);
-  return { bkId: 'BK-MF0-06', ok: true };
+Contexto de rastreabilidade: `BK-MF0-06` -> `RF06`.
+```js
+export function validateCompanyProfile(input) {
+  if (!/^\d{9}$/.test(input.nif)) throw new Error("NIF deve ter 9 digitos");
+  if (input.moeda !== "EUR") throw new Error("MVP OPSA usa EUR como moeda base");
+  if (!input.nome?.trim()) throw new Error("Nome da empresa e obrigatorio");
+  return { ...input, nif: input.nif.trim() };
 }
 ```
 
-Garante pré-condições de identidade e autorização antes de executar regras de negócio.
+Este snippet e referencia pequena, nao substitui a implementacao completa. Deve ser adaptado ao modulo real mantendo validacao, tratamento de erros e separacao de responsabilidades.
 
 ## Criterios de aceite
-- BK implementado no scope definido, sem romper dependencias.
-- Validacao de smoke e negativos concluida.
-- Contrato de dados canónico mantido (`bk_id/mf/sprint/owner/rf_rnf/deps/guia_path/core_or_reforco`).
-- Evidence pronta para revisao tecnica e defesa PAP.
+
+- O BK-MF0-06 cumpre os criterios mensuraveis definidos acima.
+- O contrato canonico do RF06 continua alinhado com backlog, matriz e MF-VIEWS.
 
 ## Evidence para PR/defesa
-- `pr`: link do commit/PR com resumo objetivo da alteracao.
-- `proof`: prova funcional (output, screenshot, log, ou teste automatizado).
-- `neg`: cenario negativo executado com resultado esperado.
+
+- `pr`: `A preencher no fecho do BK`
+- `proof`: `A preencher apos validacao`
+- `neg`: `A preencher apos testes negativos`
 
 ## Changelog
-- `2026-04-17`: guia migrado para naming com slug e template pedagogico-operacional executavel.
+
+- `2026-05-24`: guia refinado para estrutura step-by-step executavel, com continuidade MF0, mockup, negativos, criterios e evidence.
+- `2026-04-19`: metadados canonicos preservados da vaga de normalizacao.

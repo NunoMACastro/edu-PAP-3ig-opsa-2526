@@ -28,7 +28,7 @@ Vamos detalhar os BKs de uma fase/macro de um projeto PAP. Estes BKs vao ser usa
 - STACK_DECIDIDA: "{{STACK_DECIDIDA}}"
   - Se estiver vazio, inferir dos documentos do projeto.
   - Se nao houver decisao clara, propor a opcao mais simples e segura para alunos de 12o ano, sem adicionar dependencias desnecessarias.
-- MOCKUP_PATH: "{{MOCKUP_PATH}}"
+- MOCKUP_PATH: "mockup"
   - Opcional. Se existir mockup de UI, usa-o como referencia de fluxo, layout e linguagem visual.
   - O mockup nao e UI final nem contrato pixel-perfect.
 - APP_STATE: "sem_codigo"
