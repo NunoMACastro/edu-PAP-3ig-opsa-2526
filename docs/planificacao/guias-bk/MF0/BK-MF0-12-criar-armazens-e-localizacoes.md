@@ -24,7 +24,7 @@
 
 Neste BK vamos transformar o requisito RF12 num guia de execucao para construir a parte da app relacionada com inventario. O foco nao e produzir documentacao generica: e deixar claro que modelos, endpoints, validacoes, UI e evidencia devem existir quando a equipa implementar o BK.
 
-A app real ainda esta marcada como `sem_codigo`; por isso, os caminhos tecnicos propostos sao uma **Assuncao tecnica** baseada nos documentos oficiais: backend Node.js + Express em JavaScript ES Modules, frontend React + Vite + TypeScript, Prisma/PostgreSQL para persistencia. Se a equipa ja tiver criado outra estrutura, deve adaptar os caminhos sem alterar responsabilidades nem contratos.
+A app real ainda esta marcada como `sem_codigo`; por isso, os caminhos tecnicos propostos seguem o contrato central `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md`. Esse contrato define a stack assumida, a estrutura indicativa e a regra de adaptacao quando existir scaffold real, sem alterar RF, BK, owners, dependencias ou criterios de aceite.
 
 Como a fase alvo e MF0, nao existem BKs de fases anteriores a reutilizar. A continuidade nasce aqui: os outputs deste BK devem ser contratos estaveis para BK-MF1-01 e para os BKs de vendas, compras, inventario, contabilidade e seguranca das fases seguintes.
 
@@ -75,7 +75,7 @@ Como a fase alvo e MF0, nao existem BKs de fases anteriores a reutilizar. A cont
 - Fonte de verdade: `docs/planificacao/backlogs/BACKLOG-MVP.md` (CANONICO)
 - Fonte de verdade: `docs/planificacao/backlogs/MATRIZ-CANONICA-BK.md` e `docs/planificacao/backlogs/MF-VIEWS.md` (CANONICO)
 - Descricao: Criar armazéns e localizações. (CANONICO)
-- Stack decidida: `DERIVADO` de `docs/RNF.md` e mockup: React + Vite + TypeScript no frontend; Node.js + Express no backend; Prisma/PostgreSQL na persistencia. Redis fica fora deste BK por simplicidade pedagogica ate haver necessidade real.
+- Stack decidida: `DERIVADO` e centralizada em `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md`; este BK usa essa stack apenas como assuncao tecnica ate existir scaffold real.
 - Mockup usado: `mockup/` existe e foi usado como referencia de fluxo, hierarquia e nomes visiveis; nao e contrato pixel-perfect.
 
 #### O que vamos fazer neste BK (DERIVADO):
@@ -84,6 +84,7 @@ Como a fase alvo e MF0, nao existem BKs de fases anteriores a reutilizar. A cont
 - Estado esperado depois do BK: A app tem armazens e localizacoes simples, prontos para movimentos de stock em MF2.
 - Ficheiros a criar/editar/rever: schema Prisma, modulo backend `inventario`, cliente API frontend e componentes/paginas referenciados em `mockup/src/app/components/modules/Inventario.tsx, contexto de stock e filtros de inventario`.
 - Dependencias de BK anteriores e uso: Sem dependencias anteriores declaradas.
+- Reutilizacao tecnica opcional (sem alterar dependencias canonicas): se BK-MF0-02/BK-MF0-03 estiverem implementados, reutilizar `requireRole` e `companyId` ativo para armazens/localizacoes.
 - Impacto na arquitetura: reforca separacao entre routes, controllers, services, validators e UI.
 - Impacto frontend: liga o fluxo visual do mockup a API real com estados loading/error/empty/success quando aplicavel.
 - Impacto backend/dados: cria ou prepara `Warehouse, WarehouseLocation` e endpoints `GET /api/warehouses, POST /api/warehouses, POST /api/warehouses/:id/locations`.
@@ -94,6 +95,7 @@ Como a fase alvo e MF0, nao existem BKs de fases anteriores a reutilizar. A cont
 #### Pre-leitura minima (10-15 min) (DERIVADO):
 
 - `README.md` seccoes 1, 4, 5 e 7.
+- `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md` para stack assumida e regras de adaptacao de caminhos.
 - `docs/RF.md` linha do requisito `RF12`.
 - `docs/RNF.md` seccoes RNF05, RNF06, RNF12-RNF17, RNF25-RNF30 quando aplicavel.
 - `docs/planificacao/backlogs/BACKLOG-MVP.md` linha deste BK.
@@ -126,9 +128,9 @@ Como a fase alvo e MF0, nao existem BKs de fases anteriores a reutilizar. A cont
    - Descricao detalhada do objetivo: Rever o requisito RF12, a linha do BK-MF0-12 no backlog/matriz e confirmar que o repositorio ainda esta em modo sem codigo real fora do mockup.
    - Justificacao: Evita implementar campos, endpoints ou papeis que nao existem no contrato canonico.
    - Como fazer (0.1): Abrir docs/RF.md, BACKLOG-MVP.md, MATRIZ-CANONICA-BK.md e este guia.
-   - Como fazer (0.2): Criar ou confirmar a estrutura tecnica assumida: apps/api para backend e apps/web para frontend; se a equipa escolher outra estrutura, documentar no PR.
+   - Como fazer (0.2): Consultar `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md` e confirmar se o scaffold real segue a estrutura indicativa; se nao seguir, mapear caminho do guia -> caminho real na evidence do BK.
    - Ficheiro a rever: docs/RF.md; docs/planificacao/backlogs/BACKLOG-MVP.md; docs/planificacao/backlogs/MATRIZ-CANONICA-BK.md
-   - Ficheiro alvo: README.md; package.json; apps/api/package.json; apps/web/package.json
+   - Ficheiro alvo: `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md`; package.json/scaffold real da app
    - Snippet de referencia: `BK-MF0-12 -> RF12 -> GET /api/warehouses, POST /api/warehouses, POST /api/warehouses/:id/locations`
    - O que verificar: Metadados preservados e sem drift entre guia, backlog e matriz.
 
@@ -256,7 +258,7 @@ Como a fase alvo e MF0, nao existem BKs de fases anteriores a reutilizar. A cont
 - TODO normal: confirmar nomes finais das pastas da app real quando a equipa iniciar codigo.
 - TODO normal: criar scripts lint, test e dev se ainda nao existirem.
 - TODO (BLOCKER): nao fechar o BK como DONE sem evidence real de smoke e negativos.
-- Assuncao a validar com o orientador: estrutura apps/api + apps/web e uso de Prisma/PostgreSQL.
+- Assuncao de stack: consultar `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md`; qualquer adaptacao de paths deve ficar documentada na evidence do BK.
 - Decisao dependente de mockup: manter fluxo e nomes principais, mas evoluir design sem obrigacao pixel-perfect.
 - Decisao dependente de app/codigo ainda inexistente: adaptar caminhos se a equipa escolher outra estrutura, preservando contratos.
 - FOLLOW-UP: BK-MF2-02 deve usar warehouseId e locationId nos movimentos de stock.

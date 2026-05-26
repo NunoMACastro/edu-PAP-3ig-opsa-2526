@@ -6,7 +6,7 @@
 - `area`: `project`
 - `owner`: `Nuno`
 - `status`: `ativo`
-- `last_updated`: `2026-04-19`
+- `last_updated`: `2026-05-25`
 
 ## Objetivo
 Centralizar a planificacao executavel da Opsa com contrato canónico comum entre as 4 PAPs, sem drift estrutural, de governanca ou pedagogico.
@@ -26,14 +26,15 @@ Centralizar a planificacao executavel da Opsa com contrato canónico comum entre
 ## Estrutura obrigatoria
 1. `PLANO-IMPLEMENTACAO-TOTAL.md`
 2. `DISTRIBUICAO-RESPONSABILIDADES.md`
-3. `backlogs/BACKLOG-MVP.md`
-4. `backlogs/MATRIZ-CANONICA-BK.md`
-5. `sprints/PLANO-SPRINTS.md`
-6. `sprints/SCORECARD-SPRINTS.md`
-7. `sprints/GUIAO-DOCENTE-SEMANAL.md`
-8. `sprints/GATES-S4-S8-S12.md`
-9. `sprints/OPERACAO-DEPLOY-ROLLBACK.md`
-10. `guias-bk/README.md`
+3. `CONTRATO-STACK-IMPLEMENTACAO.md`
+4. `backlogs/BACKLOG-MVP.md`
+5. `backlogs/MATRIZ-CANONICA-BK.md`
+6. `sprints/PLANO-SPRINTS.md`
+7. `sprints/SCORECARD-SPRINTS.md`
+8. `sprints/GUIAO-DOCENTE-SEMANAL.md`
+9. `sprints/GATES-S4-S8-S12.md`
+10. `sprints/OPERACAO-DEPLOY-ROLLBACK.md`
+11. `guias-bk/README.md`
 
 ## Regra de atualizacao em cadeia
 1. Atualizar matriz.
@@ -54,4 +55,5 @@ Centralizar a planificacao executavel da Opsa com contrato canónico comum entre
 - Gate de fecho (`S4/S8/S12`): exige `overall_pass: true` + evidencias.
 
 ## Changelog
+- `2026-05-25`: adicionado contrato de stack de implementacao para centralizar assuncoes tecnicas dos guias BK.
 - `2026-04-18`: README de planificacao normalizado para contrato canónico v2 cross-PAP.
