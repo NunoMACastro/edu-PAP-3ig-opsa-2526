@@ -1,6 +1,7 @@
 # BK-MF0-02 - Papéis e permissões (Admin, Gestor, Contabilista, Operacional, Auditor).
 
 ## Header
+
 - `doc_id`: `GUIA-BK-MF0-02`
 - `bk_id`: `BK-MF0-02`
 - `macro`: `MF0`
@@ -132,21 +133,21 @@ Este tutorial organiza o BK em passos lineares. O aluno deve seguir de cima para
 Confirmar a regra de negocio do BK, o RF/RNF associado e o impacto nos BKs seguintes antes de escrever codigo.
 
 2. Ficheiros envolvidos:
-   - CRIAR:
-   - Nenhum ficheiro novo neste passo.
-   - EDITAR:
-   - Nenhum ficheiro existente neste passo.
-   - LOCALIZACAO:
-   - Topo deste guia e documentos canonicos de planeamento.
-   - REVER:
-   - README.md
-   - docs/RF.md
-   - docs/RNF.md
-   - docs/planificacao/backlogs/BACKLOG-MVP.md
-   - docs/planificacao/backlogs/MATRIZ-CANONICA-BK.md
-   - docs/planificacao/backlogs/CONTRATO-CAMPOS-BK.md
-   - docs/planificacao/backlogs/MF-VIEWS.md
-   - docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md
+    - CRIAR:
+    - Nenhum ficheiro novo neste passo.
+    - EDITAR:
+    - Nenhum ficheiro existente neste passo.
+    - LOCALIZACAO:
+    - Topo deste guia e documentos canonicos de planeamento.
+    - REVER:
+    - README.md
+    - docs/RF.md
+    - docs/RNF.md
+    - docs/planificacao/backlogs/BACKLOG-MVP.md
+    - docs/planificacao/backlogs/MATRIZ-CANONICA-BK.md
+    - docs/planificacao/backlogs/CONTRATO-CAMPOS-BK.md
+    - docs/planificacao/backlogs/MF-VIEWS.md
+    - docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md
 
 3. Instrucoes do que fazer.
 
@@ -156,7 +157,7 @@ Confirma que nao vais alterar RF, RNF, ID do BK, owner, prioridade ou dependenci
 
 Sem codigo neste passo. O objetivo e impedir drift antes da implementacao.
 
-5. Explicacao didatica e detalhada do codigo.
+5. Explicacao do codigo.
 
 Este passo existe para evitar que o aluno comece por copiar codigo sem perceber o contrato. Num ERP, uma decisao errada no inicio, por exemplo tratar role como global ou ignorar companyId, propaga erros para faturacao, compras, stock e contabilidade.
 
@@ -175,15 +176,15 @@ Se encontrares uma regra que nao aparece em RF/RNF/backlog, nao a implementes: m
 Criar a estrutura persistente que suporta a regra do BK sem duplicados, estados impossiveis ou fuga entre empresas.
 
 2. Ficheiros envolvidos:
-   - CRIAR:
-   - Nenhum ficheiro novo neste passo.
-   - EDITAR:
-   - apps/api/prisma/schema.prisma
-   - LOCALIZACAO:
-   - Inserir os modelos junto dos modelos do mesmo dominio; quando o BK disser para atualizar um modelo existente, substituir o bloco antigo por uma versao coerente.
-   - REVER:
-   - docs/planificacao/backlogs/CONTRATO-CAMPOS-BK.md
-   - BKs anteriores da MF0 que criam modelos reutilizados.
+    - CRIAR:
+    - Nenhum ficheiro novo neste passo.
+    - EDITAR:
+    - apps/api/prisma/schema.prisma
+    - LOCALIZACAO:
+    - Inserir os modelos junto dos modelos do mesmo dominio; quando o BK disser para atualizar um modelo existente, substituir o bloco antigo por uma versao coerente.
+    - REVER:
+    - docs/planificacao/backlogs/CONTRATO-CAMPOS-BK.md
+    - BKs anteriores da MF0 que criam modelos reutilizados.
 
 3. Instrucoes do que fazer.
 
@@ -203,7 +204,7 @@ enum Role {
 }
 ```
 
-5. Explicacao didatica e detalhada do codigo.
+5. Explicacao do codigo.
 
 O schema e a camada mais baixa de integridade. Mesmo que o frontend tenha boas validacoes, a base de dados deve impedir duplicados e relacoes impossiveis. Em OPSA isto e critico porque clientes, fornecedores, artigos, contas SNC, periodos fiscais e armazens alimentam documentos fiscais e contabilisticos futuros.
 
@@ -222,14 +223,14 @@ Tentar criar dois registos que violam uma constraint unica deve falhar com confl
 Validar entradas antes da regra de negocio e isolar detalhes tecnicos como cookies, hash, email ou permissao.
 
 2. Ficheiros envolvidos:
-   - CRIAR:
-   - apps/api/src/modules/permissions/permissions.js
-   - EDITAR:
-   - Nenhum ficheiro existente neste passo.
-   - LOCALIZACAO:
-   - Criar dentro do modulo do dominio em `apps/api/src/modules/...`; helpers partilhados ficam em `apps/api/src/lib` quando usados por varios BKs.
-   - REVER:
-   - docs/RNF.md: RNF05, RNF06, RNF12-RNF17, RNF21 quando existir email.
+    - CRIAR:
+    - apps/api/src/modules/permissions/permissions.js
+    - EDITAR:
+    - Nenhum ficheiro existente neste passo.
+    - LOCALIZACAO:
+    - Criar dentro do modulo do dominio em `apps/api/src/modules/...`; helpers partilhados ficam em `apps/api/src/lib` quando usados por varios BKs.
+    - REVER:
+    - docs/RNF.md: RNF05, RNF06, RNF12-RNF17, RNF21 quando existir email.
 
 3. Instrucoes do que fazer.
 
@@ -241,65 +242,65 @@ Localizacao: criar `apps/api/src/modules/permissions/permissions.js`.
 
 ```js
 export const Permission = Object.freeze({
-  USERS_MANAGE: "users.manage",
-  COMPANY_READ: "company.read",
-  COMPANY_WRITE: "company.write",
-  ACCOUNTING_READ: "accounting.read",
-  ACCOUNTING_WRITE: "accounting.write",
-  FISCAL_PERIODS_READ: "fiscal-periods.read",
-  FISCAL_PERIODS_MANAGE: "fiscal-periods.manage",
-  CUSTOMERS_WRITE: "customers.write",
-  SUPPLIERS_WRITE: "suppliers.write",
-  ITEMS_WRITE: "items.write",
-  WAREHOUSES_WRITE: "warehouses.write",
+    USERS_MANAGE: "users.manage",
+    COMPANY_READ: "company.read",
+    COMPANY_WRITE: "company.write",
+    ACCOUNTING_READ: "accounting.read",
+    ACCOUNTING_WRITE: "accounting.write",
+    FISCAL_PERIODS_READ: "fiscal-periods.read",
+    FISCAL_PERIODS_MANAGE: "fiscal-periods.manage",
+    CUSTOMERS_WRITE: "customers.write",
+    SUPPLIERS_WRITE: "suppliers.write",
+    ITEMS_WRITE: "items.write",
+    WAREHOUSES_WRITE: "warehouses.write",
 });
 
 const rolePermissions = {
-  ADMIN: Object.values(Permission),
-  GESTOR: [
-    Permission.USERS_MANAGE,
-    Permission.COMPANY_READ,
-    Permission.COMPANY_WRITE,
-    Permission.FISCAL_PERIODS_READ,
-    Permission.FISCAL_PERIODS_MANAGE,
-    Permission.CUSTOMERS_WRITE,
-    Permission.SUPPLIERS_WRITE,
-    Permission.ITEMS_WRITE,
-    Permission.WAREHOUSES_WRITE,
-  ],
-  CONTABILISTA: [
-    Permission.COMPANY_READ,
-    Permission.COMPANY_WRITE,
-    Permission.ACCOUNTING_READ,
-    Permission.ACCOUNTING_WRITE,
-    Permission.FISCAL_PERIODS_READ,
-    Permission.FISCAL_PERIODS_MANAGE,
-    Permission.SUPPLIERS_WRITE,
-  ],
-  OPERACIONAL: [
-    Permission.COMPANY_READ,
-    Permission.CUSTOMERS_WRITE,
-    Permission.SUPPLIERS_WRITE,
-    Permission.ITEMS_WRITE,
-    Permission.WAREHOUSES_WRITE,
-  ],
-  AUDITOR: [
-    Permission.COMPANY_READ,
-    Permission.ACCOUNTING_READ,
-    Permission.FISCAL_PERIODS_READ,
-  ],
+    ADMIN: Object.values(Permission),
+    GESTOR: [
+        Permission.USERS_MANAGE,
+        Permission.COMPANY_READ,
+        Permission.COMPANY_WRITE,
+        Permission.FISCAL_PERIODS_READ,
+        Permission.FISCAL_PERIODS_MANAGE,
+        Permission.CUSTOMERS_WRITE,
+        Permission.SUPPLIERS_WRITE,
+        Permission.ITEMS_WRITE,
+        Permission.WAREHOUSES_WRITE,
+    ],
+    CONTABILISTA: [
+        Permission.COMPANY_READ,
+        Permission.COMPANY_WRITE,
+        Permission.ACCOUNTING_READ,
+        Permission.ACCOUNTING_WRITE,
+        Permission.FISCAL_PERIODS_READ,
+        Permission.FISCAL_PERIODS_MANAGE,
+        Permission.SUPPLIERS_WRITE,
+    ],
+    OPERACIONAL: [
+        Permission.COMPANY_READ,
+        Permission.CUSTOMERS_WRITE,
+        Permission.SUPPLIERS_WRITE,
+        Permission.ITEMS_WRITE,
+        Permission.WAREHOUSES_WRITE,
+    ],
+    AUDITOR: [
+        Permission.COMPANY_READ,
+        Permission.ACCOUNTING_READ,
+        Permission.FISCAL_PERIODS_READ,
+    ],
 };
 
 export function getPermissionsForRole(role) {
-  return rolePermissions[role] ?? [];
+    return rolePermissions[role] ?? [];
 }
 
 export function hasPermission(role, permission) {
-  return getPermissionsForRole(role).includes(permission);
+    return getPermissionsForRole(role).includes(permission);
 }
 ```
 
-5. Explicacao didatica e detalhada do codigo.
+5. Explicacao do codigo.
 
 Validadores e helpers tornam o codigo mais facil de testar e explicar. Um aluno consegue perceber que validar NIF, email, datas ou dinheiro nao e detalhe visual: e defesa da integridade da empresa e da contabilidade.
 
@@ -318,14 +319,14 @@ Um payload mal formado nao pode chegar ao Prisma; deve parar no validator com `4
 Concentrar a regra do ERP em funcoes testaveis, separadas de HTTP e frontend.
 
 2. Ficheiros envolvidos:
-   - CRIAR:
-   - apps/api/src/modules/permissions/permissionMiddleware.js
-   - EDITAR:
-   - Nenhum ficheiro existente neste passo.
-   - LOCALIZACAO:
-   - Criar no modulo backend do dominio; middlewares reutilizaveis ficam junto do dominio que fornece o contexto.
-   - REVER:
-   - BKs anteriores que fornecem `requireAuth`, `requireCompanyContext`, permissoes, User, Company ou dados mestre.
+    - CRIAR:
+    - apps/api/src/modules/permissions/permissionMiddleware.js
+    - EDITAR:
+    - Nenhum ficheiro existente neste passo.
+    - LOCALIZACAO:
+    - Criar no modulo backend do dominio; middlewares reutilizaveis ficam junto do dominio que fornece o contexto.
+    - REVER:
+    - BKs anteriores que fornecem `requireAuth`, `requireCompanyContext`, permissoes, User, Company ou dados mestre.
 
 3. Instrucoes do que fazer.
 
@@ -340,45 +341,55 @@ import { httpError, toHttpError } from "../../lib/httpErrors.js";
 import { hasPermission } from "./permissions.js";
 
 export function requireRole(...allowedRoles) {
-  return function roleMiddleware(req, res, next) {
-    try {
-      if (!req.user) throw httpError(401, "SESSION_REQUIRED", "Sessao obrigatoria");
-      if (!allowedRoles.includes(req.role)) {
-        throw httpError(403, "ROLE_FORBIDDEN", "Papel sem acesso a esta operacao");
-      }
+    return function roleMiddleware(req, res, next) {
+        try {
+            if (!req.user)
+                throw httpError(401, "SESSION_REQUIRED", "Sessao obrigatoria");
+            if (!allowedRoles.includes(req.role)) {
+                throw httpError(
+                    403,
+                    "ROLE_FORBIDDEN",
+                    "Papel sem acesso a esta operacao",
+                );
+            }
 
-      return next();
-    } catch (error) {
-      const httpErrorResponse = toHttpError(error);
-      return res.status(httpErrorResponse.status).json({
-        error: httpErrorResponse.code,
-        message: httpErrorResponse.message,
-      });
-    }
-  };
+            return next();
+        } catch (error) {
+            const httpErrorResponse = toHttpError(error);
+            return res.status(httpErrorResponse.status).json({
+                error: httpErrorResponse.code,
+                message: httpErrorResponse.message,
+            });
+        }
+    };
 }
 
 export function requirePermission(permission) {
-  return function permissionMiddleware(req, res, next) {
-    try {
-      if (!req.user) throw httpError(401, "SESSION_REQUIRED", "Sessao obrigatoria");
-      if (!req.role || !hasPermission(req.role, permission)) {
-        throw httpError(403, "PERMISSION_FORBIDDEN", "Permissao insuficiente");
-      }
+    return function permissionMiddleware(req, res, next) {
+        try {
+            if (!req.user)
+                throw httpError(401, "SESSION_REQUIRED", "Sessao obrigatoria");
+            if (!req.role || !hasPermission(req.role, permission)) {
+                throw httpError(
+                    403,
+                    "PERMISSION_FORBIDDEN",
+                    "Permissao insuficiente",
+                );
+            }
 
-      return next();
-    } catch (error) {
-      const httpErrorResponse = toHttpError(error);
-      return res.status(httpErrorResponse.status).json({
-        error: httpErrorResponse.code,
-        message: httpErrorResponse.message,
-      });
-    }
-  };
+            return next();
+        } catch (error) {
+            const httpErrorResponse = toHttpError(error);
+            return res.status(httpErrorResponse.status).json({
+                error: httpErrorResponse.code,
+                message: httpErrorResponse.message,
+            });
+        }
+    };
 }
 ```
 
-5. Explicacao didatica e detalhada do codigo.
+5. Explicacao do codigo.
 
 O service e onde vive a regra de negocio. Isto evita controllers gigantes e impede que a UI seja a unica barreira de seguranca. Em OPSA, esta separacao ajuda a garantir que IA, frontend ou scripts futuros nao alteram dados contabilisticos sem passar pelas mesmas regras.
 
@@ -397,16 +408,16 @@ Tentar aceder a dados de outra empresa, ou executar uma acao sem permissao, deve
 Transformar a regra de negocio em API HTTP previsivel para o frontend e para testes.
 
 2. Ficheiros envolvidos:
-   - CRIAR:
-   - apps/api/src/modules/permissions/permissionsController.js
-   - apps/api/src/modules/permissions/permissionsRoutes.js
-   - EDITAR:
-   - apps/api/src/server.js
-   - LOCALIZACAO:
-   - Controllers e routes ficam no modulo do dominio; o `server.js` apenas monta o router no prefixo `/api/...`.
-   - REVER:
-   - docs/RNF.md: RNF25 e RNF28
-   - Contratos de endpoints indicados no header do BK.
+    - CRIAR:
+    - apps/api/src/modules/permissions/permissionsController.js
+    - apps/api/src/modules/permissions/permissionsRoutes.js
+    - EDITAR:
+    - apps/api/src/server.js
+    - LOCALIZACAO:
+    - Controllers e routes ficam no modulo do dominio; o `server.js` apenas monta o router no prefixo `/api/...`.
+    - REVER:
+    - docs/RNF.md: RNF25 e RNF28
+    - Contratos de endpoints indicados no header do BK.
 
 3. Instrucoes do que fazer.
 
@@ -420,16 +431,16 @@ Localizacao: criar `apps/api/src/modules/permissions/permissionsController.js`.
 import { getPermissionsForRole } from "./permissions.js";
 
 export function buildPermissionsController() {
-  return {
-    me(req, res) {
-      return res.status(200).json({
-        userId: req.user.id,
-        companyId: req.companyId ?? null,
-        role: req.role ?? null,
-        permissions: getPermissionsForRole(req.role),
-      });
-    },
-  };
+    return {
+        me(req, res) {
+            return res.status(200).json({
+                userId: req.user.id,
+                companyId: req.companyId ?? null,
+                role: req.role ?? null,
+                permissions: getPermissionsForRole(req.role),
+            });
+        },
+    };
 }
 ```
 
@@ -442,13 +453,18 @@ import { requireCompanyContext } from "../companies/companyContext.js";
 import { buildPermissionsController } from "./permissionsController.js";
 
 export function buildPermissionsRoutes({ prisma }) {
-  const router = Router();
-  const controller = buildPermissionsController();
+    const router = Router();
+    const controller = buildPermissionsController();
 
-  // O BK-MF0-03 exporta uma factory; aqui instanciamos o middleware com prisma.
-  router.get("/me", requireAuth(prisma), requireCompanyContext(prisma), controller.me);
+    // O BK-MF0-03 exporta uma factory; aqui instanciamos o middleware com prisma.
+    router.get(
+        "/me",
+        requireAuth(prisma),
+        requireCompanyContext(prisma),
+        controller.me,
+    );
 
-  return router;
+    return router;
 }
 ```
 
@@ -460,7 +476,7 @@ import { buildPermissionsRoutes } from "./modules/permissions/permissionsRoutes.
 app.use("/api/permissions", buildPermissionsRoutes({ prisma }));
 ```
 
-5. Explicacao didatica e detalhada do codigo.
+5. Explicacao do codigo.
 
 A API e o contrato entre backend e frontend. Ao manter controller pequeno, o aluno percebe onde colocar cada responsabilidade: validacao no validator, regra no service, transporte HTTP no controller/route.
 
@@ -479,15 +495,15 @@ Sem sessao, sem empresa ativa ou sem permissao, o endpoint deve devolver `401` o
 Demonstrar que o BK funciona para o caso principal e falha bem nos casos perigosos.
 
 2. Ficheiros envolvidos:
-   - CRIAR:
-   - docs/evidence/<BK_ID>.md quando a equipa fechar o BK.
-   - EDITAR:
-   - Nenhum ficheiro existente neste passo.
-   - LOCALIZACAO:
-   - Evidence do PR/defesa e testes automatizados quando existirem.
-   - REVER:
-   - Payloads e negativos abaixo.
-   - docs/planificacao/sprints/PLANO-SPRINTS.md quando existir planeamento de sprint.
+    - CRIAR:
+    - docs/evidence/<BK_ID>.md quando a equipa fechar o BK.
+    - EDITAR:
+    - Nenhum ficheiro existente neste passo.
+    - LOCALIZACAO:
+    - Evidence do PR/defesa e testes automatizados quando existirem.
+    - REVER:
+    - Payloads e negativos abaixo.
+    - docs/planificacao/sprints/PLANO-SPRINTS.md quando existir planeamento de sprint.
 
 3. Instrucoes do que fazer.
 
@@ -501,15 +517,15 @@ Resposta `200`:
 
 ```json
 {
-  "userId": "uuid-utilizador",
-  "companyId": "uuid-empresa",
-  "role": "GESTOR",
-  "permissions": [
-    "users.manage",
-    "company.read",
-    "company.write",
-    "fiscal-periods.manage"
-  ]
+    "userId": "uuid-utilizador",
+    "companyId": "uuid-empresa",
+    "role": "GESTOR",
+    "permissions": [
+        "users.manage",
+        "company.read",
+        "company.write",
+        "fiscal-periods.manage"
+    ]
 }
 ```
 
@@ -530,7 +546,7 @@ Erros esperados:
 
 #
 
-5. Explicacao didatica e detalhada do codigo.
+5. Explicacao do codigo.
 
 Testar negativos ensina que seguranca nao e so o caminho feliz. Um ERP deve recusar dados fiscais invalidos, acessos sem role, conflitos de unicidade e alteracoes em periodos fechados de forma previsivel.
 
@@ -549,14 +565,14 @@ Se um erro devolve stack trace, segredo, dados de outra empresa ou status generi
 Fechar o BK como tutorial tecnico que o proximo aluno consegue continuar sem adivinhar contratos.
 
 2. Ficheiros envolvidos:
-   - CRIAR:
-   - docs/evidence/<BK_ID>.md ou descricao equivalente no PR.
-   - EDITAR:
-   - Secao Evidence deste guia apenas quando houver PR/defesa real.
-   - LOCALIZACAO:
-   - Fim do guia: criterios, validacao final, evidence, handoff e changelog.
-   - REVER:
-   - BK seguinte indicado em `proximo_bk` e BKs dependentes futuros.
+    - CRIAR:
+    - docs/evidence/<BK_ID>.md ou descricao equivalente no PR.
+    - EDITAR:
+    - Secao Evidence deste guia apenas quando houver PR/defesa real.
+    - LOCALIZACAO:
+    - Fim do guia: criterios, validacao final, evidence, handoff e changelog.
+    - REVER:
+    - BK seguinte indicado em `proximo_bk` e BKs dependentes futuros.
 
 3. Instrucoes do que fazer.
 
@@ -568,7 +584,7 @@ Decisoes em falta a manter visiveis durante a implementacao:
 
 - O mapeamento acima e o minimo derivado de RF02 e dos BKs MF0. Se a matriz oficial de permissoes for criada noutro documento, este ficheiro deve ser revisto para ficar canonico.
 
-5. Explicacao didatica e detalhada do codigo.
+5. Explicacao do codigo.
 
 O handoff protege continuidade. Num projeto PAP com varios alunos, a qualidade nao esta so no codigo: esta tambem em deixar claro o que ficou decidido, o que ainda falta decidir e que contratos o proximo BK pode reutilizar.
 
@@ -579,7 +595,6 @@ Confirma que o final do BK contem apenas criterios de aceite, validacao final, e
 7. Cenario negativo/erro esperado.
 
 Se o handoff diz para usar algo que nao foi criado neste BK ou num BK anterior, ha contrato partido e deve ser corrigido antes de avancar.
-
 
 ## Criterios de aceite
 

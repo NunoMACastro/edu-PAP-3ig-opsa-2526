@@ -1,6 +1,7 @@
 # BK-MF0-04 - Gestão de utilizadores: convite, remoção e definição de papéis.
 
 ## Header
+
 - `doc_id`: `GUIA-BK-MF0-04`
 - `bk_id`: `BK-MF0-04`
 - `macro`: `MF0`
@@ -132,21 +133,21 @@ Este tutorial organiza o BK em passos lineares. O aluno deve seguir de cima para
 Confirmar a regra de negocio do BK, o RF/RNF associado e o impacto nos BKs seguintes antes de escrever codigo.
 
 2. Ficheiros envolvidos:
-   - CRIAR:
-   - Nenhum ficheiro novo neste passo.
-   - EDITAR:
-   - Nenhum ficheiro existente neste passo.
-   - LOCALIZACAO:
-   - Topo deste guia e documentos canonicos de planeamento.
-   - REVER:
-   - README.md
-   - docs/RF.md
-   - docs/RNF.md
-   - docs/planificacao/backlogs/BACKLOG-MVP.md
-   - docs/planificacao/backlogs/MATRIZ-CANONICA-BK.md
-   - docs/planificacao/backlogs/CONTRATO-CAMPOS-BK.md
-   - docs/planificacao/backlogs/MF-VIEWS.md
-   - docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md
+    - CRIAR:
+    - Nenhum ficheiro novo neste passo.
+    - EDITAR:
+    - Nenhum ficheiro existente neste passo.
+    - LOCALIZACAO:
+    - Topo deste guia e documentos canonicos de planeamento.
+    - REVER:
+    - README.md
+    - docs/RF.md
+    - docs/RNF.md
+    - docs/planificacao/backlogs/BACKLOG-MVP.md
+    - docs/planificacao/backlogs/MATRIZ-CANONICA-BK.md
+    - docs/planificacao/backlogs/CONTRATO-CAMPOS-BK.md
+    - docs/planificacao/backlogs/MF-VIEWS.md
+    - docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md
 
 3. Instrucoes do que fazer.
 
@@ -156,7 +157,7 @@ Confirma que nao vais alterar RF, RNF, ID do BK, owner, prioridade ou dependenci
 
 Sem codigo neste passo. O objetivo e impedir drift antes da implementacao.
 
-5. Explicacao didatica e detalhada do codigo.
+5. Explicacao do codigo.
 
 Este passo existe para evitar que o aluno comece por copiar codigo sem perceber o contrato. Num ERP, uma decisao errada no inicio, por exemplo tratar role como global ou ignorar companyId, propaga erros para faturacao, compras, stock e contabilidade.
 
@@ -175,15 +176,15 @@ Se encontrares uma regra que nao aparece em RF/RNF/backlog, nao a implementes: m
 Criar a estrutura persistente que suporta a regra do BK sem duplicados, estados impossiveis ou fuga entre empresas.
 
 2. Ficheiros envolvidos:
-   - CRIAR:
-   - Nenhum ficheiro novo neste passo.
-   - EDITAR:
-   - apps/api/prisma/schema.prisma
-   - LOCALIZACAO:
-   - Inserir os modelos junto dos modelos do mesmo dominio; quando o BK disser para atualizar um modelo existente, substituir o bloco antigo por uma versao coerente.
-   - REVER:
-   - docs/planificacao/backlogs/CONTRATO-CAMPOS-BK.md
-   - BKs anteriores da MF0 que criam modelos reutilizados.
+    - CRIAR:
+    - Nenhum ficheiro novo neste passo.
+    - EDITAR:
+    - apps/api/prisma/schema.prisma
+    - LOCALIZACAO:
+    - Inserir os modelos junto dos modelos do mesmo dominio; quando o BK disser para atualizar um modelo existente, substituir o bloco antigo por uma versao coerente.
+    - REVER:
+    - docs/planificacao/backlogs/CONTRATO-CAMPOS-BK.md
+    - BKs anteriores da MF0 que criam modelos reutilizados.
 
 3. Instrucoes do que fazer.
 
@@ -220,7 +221,6 @@ model CompanyInvitation {
 }
 ```
 
-
 Localizacao: no mesmo ficheiro, substituir o modelo `Company` existente pela versao acumulada ate este BK.
 
 ```prisma
@@ -234,7 +234,8 @@ model Company {
   updatedAt   DateTime            @updatedAt
 }
 ```
-5. Explicacao didatica e detalhada do codigo.
+
+5. Explicacao do codigo.
 
 O schema e a camada mais baixa de integridade. Mesmo que o frontend tenha boas validacoes, a base de dados deve impedir duplicados e relacoes impossiveis. Em OPSA isto e critico porque clientes, fornecedores, artigos, contas SNC, periodos fiscais e armazens alimentam documentos fiscais e contabilisticos futuros.
 
@@ -253,15 +254,15 @@ Tentar criar dois registos que violam uma constraint unica deve falhar com confl
 Validar entradas antes da regra de negocio e isolar detalhes tecnicos como cookies, hash, email ou permissao.
 
 2. Ficheiros envolvidos:
-   - CRIAR:
-   - apps/api/src/modules/company-users/companyUserValidators.js
-   - apps/api/src/modules/company-users/invitationEmailAdapter.js
-   - EDITAR:
-   - Nenhum ficheiro existente neste passo.
-   - LOCALIZACAO:
-   - Criar dentro do modulo do dominio em `apps/api/src/modules/...`; helpers partilhados ficam em `apps/api/src/lib` quando usados por varios BKs.
-   - REVER:
-   - docs/RNF.md: RNF05, RNF06, RNF12-RNF17, RNF21 quando existir email.
+    - CRIAR:
+    - apps/api/src/modules/company-users/companyUserValidators.js
+    - apps/api/src/modules/company-users/invitationEmailAdapter.js
+    - EDITAR:
+    - Nenhum ficheiro existente neste passo.
+    - LOCALIZACAO:
+    - Criar dentro do modulo do dominio em `apps/api/src/modules/...`; helpers partilhados ficam em `apps/api/src/lib` quando usados por varios BKs.
+    - REVER:
+    - docs/RNF.md: RNF05, RNF06, RNF12-RNF17, RNF21 quando existir email.
 
 3. Instrucoes do que fazer.
 
@@ -274,40 +275,48 @@ Localizacao: criar `apps/api/src/modules/company-users/companyUserValidators.js`
 ```js
 import { httpError } from "../../lib/httpErrors.js";
 
-const VALID_ROLES = new Set(["ADMIN", "GESTOR", "CONTABILISTA", "OPERACIONAL", "AUDITOR"]);
+const VALID_ROLES = new Set([
+    "ADMIN",
+    "GESTOR",
+    "CONTABILISTA",
+    "OPERACIONAL",
+    "AUDITOR",
+]);
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function normalizeEmail(email) {
-  if (typeof email !== "string") throw httpError(400, "INVALID_EMAIL", "Email obrigatorio");
-  const normalized = email.trim().toLowerCase();
-  if (!EMAIL_PATTERN.test(normalized)) throw httpError(400, "INVALID_EMAIL", "Email invalido");
-  return normalized;
+    if (typeof email !== "string")
+        throw httpError(400, "INVALID_EMAIL", "Email obrigatorio");
+    const normalized = email.trim().toLowerCase();
+    if (!EMAIL_PATTERN.test(normalized))
+        throw httpError(400, "INVALID_EMAIL", "Email invalido");
+    return normalized;
 }
 
 function normalizeRole(role) {
-  if (typeof role !== "string" || !VALID_ROLES.has(role)) {
-    throw httpError(400, "INVALID_ROLE", "Papel invalido");
-  }
-  return role;
+    if (typeof role !== "string" || !VALID_ROLES.has(role)) {
+        throw httpError(400, "INVALID_ROLE", "Papel invalido");
+    }
+    return role;
 }
 
 export function validateInvitationPayload(body) {
-  if (!body || typeof body !== "object" || Array.isArray(body)) {
-    throw httpError(400, "INVALID_BODY", "O corpo do pedido deve ser JSON");
-  }
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+        throw httpError(400, "INVALID_BODY", "O corpo do pedido deve ser JSON");
+    }
 
-  return {
-    email: normalizeEmail(body.email),
-    role: normalizeRole(body.role),
-  };
+    return {
+        email: normalizeEmail(body.email),
+        role: normalizeRole(body.role),
+    };
 }
 
 export function validateRolePayload(body) {
-  if (!body || typeof body !== "object" || Array.isArray(body)) {
-    throw httpError(400, "INVALID_BODY", "O corpo do pedido deve ser JSON");
-  }
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+        throw httpError(400, "INVALID_BODY", "O corpo do pedido deve ser JSON");
+    }
 
-  return { role: normalizeRole(body.role) };
+    return { role: normalizeRole(body.role) };
 }
 ```
 
@@ -315,23 +324,23 @@ Localizacao: criar `apps/api/src/modules/company-users/invitationEmailAdapter.js
 
 ```js
 export function buildInvitationEmailAdapter({ appBaseUrl, logger = console }) {
-  return {
-    async sendInvitation({ email, companyName, token }) {
-      const inviteUrl = `${appBaseUrl}/convites/${token}`;
+    return {
+        async sendInvitation({ email, companyName, token }) {
+            const inviteUrl = `${appBaseUrl}/convites/${token}`;
 
-      // Adaptador pedagogico: em desenvolvimento regista o link sem expor secrets noutros logs.
-      logger.info({
-        event: "company_invitation_created",
-        email,
-        companyName,
-        inviteUrl,
-      });
-    },
-  };
+            // Adaptador pedagogico: em desenvolvimento regista o link sem expor secrets noutros logs.
+            logger.info({
+                event: "company_invitation_created",
+                email,
+                companyName,
+                inviteUrl,
+            });
+        },
+    };
 }
 ```
 
-5. Explicacao didatica e detalhada do codigo.
+5. Explicacao do codigo.
 
 Validadores e helpers tornam o codigo mais facil de testar e explicar. Um aluno consegue perceber que validar NIF, email, datas ou dinheiro nao e detalhe visual: e defesa da integridade da empresa e da contabilidade.
 
@@ -350,14 +359,14 @@ Um payload mal formado nao pode chegar ao Prisma; deve parar no validator com `4
 Concentrar a regra do ERP em funcoes testaveis, separadas de HTTP e frontend.
 
 2. Ficheiros envolvidos:
-   - CRIAR:
-   - apps/api/src/modules/company-users/companyUserService.js
-   - EDITAR:
-   - Nenhum ficheiro existente neste passo.
-   - LOCALIZACAO:
-   - Criar no modulo backend do dominio; middlewares reutilizaveis ficam junto do dominio que fornece o contexto.
-   - REVER:
-   - BKs anteriores que fornecem `requireAuth`, `requireCompanyContext`, permissoes, User, Company ou dados mestre.
+    - CRIAR:
+    - apps/api/src/modules/company-users/companyUserService.js
+    - EDITAR:
+    - Nenhum ficheiro existente neste passo.
+    - LOCALIZACAO:
+    - Criar no modulo backend do dominio; middlewares reutilizaveis ficam junto do dominio que fornece o contexto.
+    - REVER:
+    - BKs anteriores que fornecem `requireAuth`, `requireCompanyContext`, permissoes, User, Company ou dados mestre.
 
 3. Instrucoes do que fazer.
 
@@ -374,112 +383,149 @@ import { httpError } from "../../lib/httpErrors.js";
 const INVITATION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 function createToken() {
-  return crypto.randomBytes(32).toString("hex");
+    return crypto.randomBytes(32).toString("hex");
 }
 
 function hashToken(token) {
-  return crypto.createHash("sha256").update(token).digest("hex");
+    return crypto.createHash("sha256").update(token).digest("hex");
 }
 
 async function assertNotLastAdmin(prisma, { companyId, targetUserId }) {
-  const activeAdmins = await prisma.companyMembership.count({
-    where: { companyId, role: "ADMIN", isActive: true },
-  });
-  const target = await prisma.companyMembership.findFirst({
-    where: { companyId, userId: targetUserId, isActive: true },
-  });
+    const activeAdmins = await prisma.companyMembership.count({
+        where: { companyId, role: "ADMIN", isActive: true },
+    });
+    const target = await prisma.companyMembership.findFirst({
+        where: { companyId, userId: targetUserId, isActive: true },
+    });
 
-  if (target?.role === "ADMIN" && activeAdmins <= 1) {
-    throw httpError(409, "LAST_ADMIN", "Nao e possivel remover ou alterar o ultimo ADMIN ativo");
-  }
+    if (target?.role === "ADMIN" && activeAdmins <= 1) {
+        throw httpError(
+            409,
+            "LAST_ADMIN",
+            "Nao e possivel remover ou alterar o ultimo ADMIN ativo",
+        );
+    }
 }
 
 export async function listCompanyUsers(prisma, companyId) {
-  const memberships = await prisma.companyMembership.findMany({
-    where: { companyId, isActive: true },
-    include: { user: true },
-    orderBy: { createdAt: "asc" },
-  });
-
-  return memberships.map((membership) => ({
-    userId: membership.userId,
-    email: membership.user.email,
-    name: membership.user.name,
-    role: membership.role,
-  }));
-}
-
-export async function inviteUser(prisma, emailAdapter, { companyId, actorUserId, email, role, now = new Date() }) {
-  const existingUser = await prisma.user.findUnique({ where: { email } });
-  if (existingUser) {
-    const existingMembership = await prisma.companyMembership.findFirst({
-      where: { companyId, userId: existingUser.id, isActive: true },
+    const memberships = await prisma.companyMembership.findMany({
+        where: { companyId, isActive: true },
+        include: { user: true },
+        orderBy: { createdAt: "asc" },
     });
-    if (existingMembership) {
-      throw httpError(409, "USER_ALREADY_IN_COMPANY", "Utilizador ja pertence a empresa");
+
+    return memberships.map((membership) => ({
+        userId: membership.userId,
+        email: membership.user.email,
+        name: membership.user.name,
+        role: membership.role,
+    }));
+}
+
+export async function inviteUser(
+    prisma,
+    emailAdapter,
+    { companyId, actorUserId, email, role, now = new Date() },
+) {
+    const existingUser = await prisma.user.findUnique({ where: { email } });
+    if (existingUser) {
+        const existingMembership = await prisma.companyMembership.findFirst({
+            where: { companyId, userId: existingUser.id, isActive: true },
+        });
+        if (existingMembership) {
+            throw httpError(
+                409,
+                "USER_ALREADY_IN_COMPANY",
+                "Utilizador ja pertence a empresa",
+            );
+        }
     }
-  }
 
-  const company = await prisma.company.findUnique({ where: { id: companyId } });
-  if (!company) throw httpError(404, "COMPANY_NOT_FOUND", "Empresa nao encontrada");
+    const company = await prisma.company.findUnique({
+        where: { id: companyId },
+    });
+    if (!company)
+        throw httpError(404, "COMPANY_NOT_FOUND", "Empresa nao encontrada");
 
-  const token = createToken();
-  const invitation = await prisma.companyInvitation.create({
-    data: {
-      companyId,
-      email,
-      role,
-      tokenHash: hashToken(token),
-      createdBy: actorUserId,
-      expiresAt: new Date(now.getTime() + INVITATION_TTL_MS),
-    },
-  });
+    const token = createToken();
+    const invitation = await prisma.companyInvitation.create({
+        data: {
+            companyId,
+            email,
+            role,
+            tokenHash: hashToken(token),
+            createdBy: actorUserId,
+            expiresAt: new Date(now.getTime() + INVITATION_TTL_MS),
+        },
+    });
 
-  await emailAdapter.sendInvitation({ email, companyName: company.name, token });
+    await emailAdapter.sendInvitation({
+        email,
+        companyName: company.name,
+        token,
+    });
 
-  return {
-    id: invitation.id,
-    email: invitation.email,
-    role: invitation.role,
-    status: invitation.status,
-    expiresAt: invitation.expiresAt,
-  };
+    return {
+        id: invitation.id,
+        email: invitation.email,
+        role: invitation.role,
+        status: invitation.status,
+        expiresAt: invitation.expiresAt,
+    };
 }
 
-export async function updateCompanyUserRole(prisma, { companyId, targetUserId, role }) {
-  await assertNotLastAdmin(prisma, { companyId, targetUserId });
+export async function updateCompanyUserRole(
+    prisma,
+    { companyId, targetUserId, role },
+) {
+    await assertNotLastAdmin(prisma, { companyId, targetUserId });
 
-  const updated = await prisma.companyMembership.updateMany({
-    where: { companyId, userId: targetUserId, isActive: true },
-    data: { role },
-  });
+    const updated = await prisma.companyMembership.updateMany({
+        where: { companyId, userId: targetUserId, isActive: true },
+        data: { role },
+    });
 
-  if (updated.count === 0) {
-    throw httpError(404, "USER_NOT_IN_COMPANY", "Utilizador nao pertence a empresa");
-  }
+    if (updated.count === 0) {
+        throw httpError(
+            404,
+            "USER_NOT_IN_COMPANY",
+            "Utilizador nao pertence a empresa",
+        );
+    }
 
-  return { userId: targetUserId, role };
+    return { userId: targetUserId, role };
 }
 
-export async function removeCompanyUser(prisma, { companyId, targetUserId, actorUserId }) {
-  if (targetUserId === actorUserId) {
-    throw httpError(409, "CANNOT_REMOVE_SELF", "Nao pode remover a sua propria membership");
-  }
+export async function removeCompanyUser(
+    prisma,
+    { companyId, targetUserId, actorUserId },
+) {
+    if (targetUserId === actorUserId) {
+        throw httpError(
+            409,
+            "CANNOT_REMOVE_SELF",
+            "Nao pode remover a sua propria membership",
+        );
+    }
 
-  await assertNotLastAdmin(prisma, { companyId, targetUserId });
+    await assertNotLastAdmin(prisma, { companyId, targetUserId });
 
-  const removed = await prisma.companyMembership.updateMany({
-    where: { companyId, userId: targetUserId, isActive: true },
-    data: { isActive: false },
-  });
+    const removed = await prisma.companyMembership.updateMany({
+        where: { companyId, userId: targetUserId, isActive: true },
+        data: { isActive: false },
+    });
 
-  if (removed.count === 0) {
-    throw httpError(404, "USER_NOT_IN_COMPANY", "Utilizador nao pertence a empresa");
-  }
+    if (removed.count === 0) {
+        throw httpError(
+            404,
+            "USER_NOT_IN_COMPANY",
+            "Utilizador nao pertence a empresa",
+        );
+    }
 }
 ```
 
-5. Explicacao didatica e detalhada do codigo.
+5. Explicacao do codigo.
 
 O service e onde vive a regra de negocio. Isto evita controllers gigantes e impede que a UI seja a unica barreira de seguranca. Em OPSA, esta separacao ajuda a garantir que IA, frontend ou scripts futuros nao alteram dados contabilisticos sem passar pelas mesmas regras.
 
@@ -498,16 +544,16 @@ Tentar aceder a dados de outra empresa, ou executar uma acao sem permissao, deve
 Transformar a regra de negocio em API HTTP previsivel para o frontend e para testes.
 
 2. Ficheiros envolvidos:
-   - CRIAR:
-   - apps/api/src/modules/company-users/companyUserController.js
-   - apps/api/src/modules/company-users/companyUserRoutes.js
-   - EDITAR:
-   - apps/api/src/server.js
-   - LOCALIZACAO:
-   - Controllers e routes ficam no modulo do dominio; o `server.js` apenas monta o router no prefixo `/api/...`.
-   - REVER:
-   - docs/RNF.md: RNF25 e RNF28
-   - Contratos de endpoints indicados no header do BK.
+    - CRIAR:
+    - apps/api/src/modules/company-users/companyUserController.js
+    - apps/api/src/modules/company-users/companyUserRoutes.js
+    - EDITAR:
+    - apps/api/src/server.js
+    - LOCALIZACAO:
+    - Controllers e routes ficam no modulo do dominio; o `server.js` apenas monta o router no prefixo `/api/...`.
+    - REVER:
+    - docs/RNF.md: RNF25 e RNF28
+    - Contratos de endpoints indicados no header do BK.
 
 3. Instrucoes do que fazer.
 
@@ -519,66 +565,76 @@ Localizacao: criar `apps/api/src/modules/company-users/companyUserController.js`
 
 ```js
 import { toHttpError } from "../../lib/httpErrors.js";
-import { validateInvitationPayload, validateRolePayload } from "./companyUserValidators.js";
-import { inviteUser, listCompanyUsers, removeCompanyUser, updateCompanyUserRole } from "./companyUserService.js";
+import {
+    validateInvitationPayload,
+    validateRolePayload,
+} from "./companyUserValidators.js";
+import {
+    inviteUser,
+    listCompanyUsers,
+    removeCompanyUser,
+    updateCompanyUserRole,
+} from "./companyUserService.js";
 
 function sendError(res, error) {
-  const httpError = toHttpError(error);
-  return res.status(httpError.status).json({ error: httpError.code, message: httpError.message });
+    const httpError = toHttpError(error);
+    return res
+        .status(httpError.status)
+        .json({ error: httpError.code, message: httpError.message });
 }
 
 export function buildCompanyUserController({ prisma, emailAdapter }) {
-  return {
-    async list(req, res) {
-      try {
-        const users = await listCompanyUsers(prisma, req.companyId);
-        return res.status(200).json({ users });
-      } catch (error) {
-        return sendError(res, error);
-      }
-    },
+    return {
+        async list(req, res) {
+            try {
+                const users = await listCompanyUsers(prisma, req.companyId);
+                return res.status(200).json({ users });
+            } catch (error) {
+                return sendError(res, error);
+            }
+        },
 
-    async invite(req, res) {
-      try {
-        const input = validateInvitationPayload(req.body);
-        const invitation = await inviteUser(prisma, emailAdapter, {
-          companyId: req.companyId,
-          actorUserId: req.user.id,
-          ...input,
-        });
-        return res.status(201).json({ invitation });
-      } catch (error) {
-        return sendError(res, error);
-      }
-    },
+        async invite(req, res) {
+            try {
+                const input = validateInvitationPayload(req.body);
+                const invitation = await inviteUser(prisma, emailAdapter, {
+                    companyId: req.companyId,
+                    actorUserId: req.user.id,
+                    ...input,
+                });
+                return res.status(201).json({ invitation });
+            } catch (error) {
+                return sendError(res, error);
+            }
+        },
 
-    async updateRole(req, res) {
-      try {
-        const input = validateRolePayload(req.body);
-        const result = await updateCompanyUserRole(prisma, {
-          companyId: req.companyId,
-          targetUserId: req.params.id,
-          role: input.role,
-        });
-        return res.status(200).json({ user: result });
-      } catch (error) {
-        return sendError(res, error);
-      }
-    },
+        async updateRole(req, res) {
+            try {
+                const input = validateRolePayload(req.body);
+                const result = await updateCompanyUserRole(prisma, {
+                    companyId: req.companyId,
+                    targetUserId: req.params.id,
+                    role: input.role,
+                });
+                return res.status(200).json({ user: result });
+            } catch (error) {
+                return sendError(res, error);
+            }
+        },
 
-    async remove(req, res) {
-      try {
-        await removeCompanyUser(prisma, {
-          companyId: req.companyId,
-          targetUserId: req.params.id,
-          actorUserId: req.user.id,
-        });
-        return res.status(204).send();
-      } catch (error) {
-        return sendError(res, error);
-      }
-    },
-  };
+        async remove(req, res) {
+            try {
+                await removeCompanyUser(prisma, {
+                    companyId: req.companyId,
+                    targetUserId: req.params.id,
+                    actorUserId: req.user.id,
+                });
+                return res.status(204).send();
+            } catch (error) {
+                return sendError(res, error);
+            }
+        },
+    };
 }
 ```
 
@@ -594,24 +650,24 @@ import { buildInvitationEmailAdapter } from "./invitationEmailAdapter.js";
 import { buildCompanyUserController } from "./companyUserController.js";
 
 export function buildCompanyUserRoutes({ prisma, appBaseUrl }) {
-  const router = Router();
-  const controller = buildCompanyUserController({
-    prisma,
-    emailAdapter: buildInvitationEmailAdapter({ appBaseUrl }),
-  });
+    const router = Router();
+    const controller = buildCompanyUserController({
+        prisma,
+        emailAdapter: buildInvitationEmailAdapter({ appBaseUrl }),
+    });
 
-  const guards = [
-    requireAuth(prisma),
-    requireCompanyContext(prisma),
-    requirePermission(Permission.USERS_MANAGE),
-  ];
+    const guards = [
+        requireAuth(prisma),
+        requireCompanyContext(prisma),
+        requirePermission(Permission.USERS_MANAGE),
+    ];
 
-  router.get("/users", guards, controller.list);
-  router.post("/invitations", guards, controller.invite);
-  router.patch("/users/:id/role", guards, controller.updateRole);
-  router.delete("/users/:id", guards, controller.remove);
+    router.get("/users", guards, controller.list);
+    router.post("/invitations", guards, controller.invite);
+    router.patch("/users/:id/role", guards, controller.updateRole);
+    router.delete("/users/:id", guards, controller.remove);
 
-  return router;
+    return router;
 }
 ```
 
@@ -620,13 +676,16 @@ Localizacao: editar `apps/api/src/server.js`, junto das restantes rotas.
 ```js
 import { buildCompanyUserRoutes } from "./modules/company-users/companyUserRoutes.js";
 
-app.use("/api/company", buildCompanyUserRoutes({
-  prisma,
-  appBaseUrl: process.env.APP_BASE_URL,
-}));
+app.use(
+    "/api/company",
+    buildCompanyUserRoutes({
+        prisma,
+        appBaseUrl: process.env.APP_BASE_URL,
+    }),
+);
 ```
 
-5. Explicacao didatica e detalhada do codigo.
+5. Explicacao do codigo.
 
 A API e o contrato entre backend e frontend. Ao manter controller pequeno, o aluno percebe onde colocar cada responsabilidade: validacao no validator, regra no service, transporte HTTP no controller/route.
 
@@ -645,15 +704,15 @@ Sem sessao, sem empresa ativa ou sem permissao, o endpoint deve devolver `401` o
 Demonstrar que o BK funciona para o caso principal e falha bem nos casos perigosos.
 
 2. Ficheiros envolvidos:
-   - CRIAR:
-   - docs/evidence/<BK_ID>.md quando a equipa fechar o BK.
-   - EDITAR:
-   - Nenhum ficheiro existente neste passo.
-   - LOCALIZACAO:
-   - Evidence do PR/defesa e testes automatizados quando existirem.
-   - REVER:
-   - Payloads e negativos abaixo.
-   - docs/planificacao/sprints/PLANO-SPRINTS.md quando existir planeamento de sprint.
+    - CRIAR:
+    - docs/evidence/<BK_ID>.md quando a equipa fechar o BK.
+    - EDITAR:
+    - Nenhum ficheiro existente neste passo.
+    - LOCALIZACAO:
+    - Evidence do PR/defesa e testes automatizados quando existirem.
+    - REVER:
+    - Payloads e negativos abaixo.
+    - docs/planificacao/sprints/PLANO-SPRINTS.md quando existir planeamento de sprint.
 
 3. Instrucoes do que fazer.
 
@@ -665,8 +724,8 @@ Pedido `POST /api/company/invitations`:
 
 ```json
 {
-  "email": "joao.contabilista@example.pt",
-  "role": "CONTABILISTA"
+    "email": "joao.contabilista@example.pt",
+    "role": "CONTABILISTA"
 }
 ```
 
@@ -674,13 +733,13 @@ Resposta `201`:
 
 ```json
 {
-  "invitation": {
-    "id": "uuid-convite",
-    "email": "joao.contabilista@example.pt",
-    "role": "CONTABILISTA",
-    "status": "PENDING",
-    "expiresAt": "2026-06-05T10:00:00.000Z"
-  }
+    "invitation": {
+        "id": "uuid-convite",
+        "email": "joao.contabilista@example.pt",
+        "role": "CONTABILISTA",
+        "status": "PENDING",
+        "expiresAt": "2026-06-05T10:00:00.000Z"
+    }
 }
 ```
 
@@ -702,7 +761,7 @@ Erros esperados:
 
 #
 
-5. Explicacao didatica e detalhada do codigo.
+5. Explicacao do codigo.
 
 Testar negativos ensina que seguranca nao e so o caminho feliz. Um ERP deve recusar dados fiscais invalidos, acessos sem role, conflitos de unicidade e alteracoes em periodos fechados de forma previsivel.
 
@@ -721,14 +780,14 @@ Se um erro devolve stack trace, segredo, dados de outra empresa ou status generi
 Fechar o BK como tutorial tecnico que o proximo aluno consegue continuar sem adivinhar contratos.
 
 2. Ficheiros envolvidos:
-   - CRIAR:
-   - docs/evidence/<BK_ID>.md ou descricao equivalente no PR.
-   - EDITAR:
-   - Secao Evidence deste guia apenas quando houver PR/defesa real.
-   - LOCALIZACAO:
-   - Fim do guia: criterios, validacao final, evidence, handoff e changelog.
-   - REVER:
-   - BK seguinte indicado em `proximo_bk` e BKs dependentes futuros.
+    - CRIAR:
+    - docs/evidence/<BK_ID>.md ou descricao equivalente no PR.
+    - EDITAR:
+    - Secao Evidence deste guia apenas quando houver PR/defesa real.
+    - LOCALIZACAO:
+    - Fim do guia: criterios, validacao final, evidence, handoff e changelog.
+    - REVER:
+    - BK seguinte indicado em `proximo_bk` e BKs dependentes futuros.
 
 3. Instrucoes do que fazer.
 
@@ -741,7 +800,7 @@ Decisoes em falta a manter visiveis durante a implementacao:
 - Falta escolher o fornecedor real de email e templates transacionais. Enquanto RNF21 nao tiver implementacao, o adaptador acima serve apenas desenvolvimento/evidence e deve ser trocado sem mudar o service.
 - Falta fechar o fluxo de aceitacao de convite. Este BK cria e envia convite; aceitar convite pode ficar no mesmo BK se o scope for confirmado, ou num BK complementar.
 
-5. Explicacao didatica e detalhada do codigo.
+5. Explicacao do codigo.
 
 O handoff protege continuidade. Num projeto PAP com varios alunos, a qualidade nao esta so no codigo: esta tambem em deixar claro o que ficou decidido, o que ainda falta decidir e que contratos o proximo BK pode reutilizar.
 
@@ -752,7 +811,6 @@ Confirma que o final do BK contem apenas criterios de aceite, validacao final, e
 7. Cenario negativo/erro esperado.
 
 Se o handoff diz para usar algo que nao foi criado neste BK ou num BK anterior, ha contrato partido e deve ser corrigido antes de avancar.
-
 
 ## Criterios de aceite
 

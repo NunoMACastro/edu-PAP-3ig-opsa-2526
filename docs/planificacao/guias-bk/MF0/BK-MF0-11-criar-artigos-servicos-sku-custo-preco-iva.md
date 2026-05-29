@@ -1,6 +1,7 @@
 # BK-MF0-11 - Criar artigos/serviços (SKU, custo, preço, IVA).
 
 ## Header
+
 - `doc_id`: `GUIA-BK-MF0-11`
 - `bk_id`: `BK-MF0-11`
 - `macro`: `MF0`
@@ -133,21 +134,21 @@ Este tutorial organiza o BK em passos lineares. O aluno deve seguir de cima para
 Confirmar a regra de negocio do BK, o RF/RNF associado e o impacto nos BKs seguintes antes de escrever codigo.
 
 2. Ficheiros envolvidos:
-   - CRIAR:
-   - Nenhum ficheiro novo neste passo.
-   - EDITAR:
-   - Nenhum ficheiro existente neste passo.
-   - LOCALIZACAO:
-   - Topo deste guia e documentos canonicos de planeamento.
-   - REVER:
-   - README.md
-   - docs/RF.md
-   - docs/RNF.md
-   - docs/planificacao/backlogs/BACKLOG-MVP.md
-   - docs/planificacao/backlogs/MATRIZ-CANONICA-BK.md
-   - docs/planificacao/backlogs/CONTRATO-CAMPOS-BK.md
-   - docs/planificacao/backlogs/MF-VIEWS.md
-   - docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md
+    - CRIAR:
+    - Nenhum ficheiro novo neste passo.
+    - EDITAR:
+    - Nenhum ficheiro existente neste passo.
+    - LOCALIZACAO:
+    - Topo deste guia e documentos canonicos de planeamento.
+    - REVER:
+    - README.md
+    - docs/RF.md
+    - docs/RNF.md
+    - docs/planificacao/backlogs/BACKLOG-MVP.md
+    - docs/planificacao/backlogs/MATRIZ-CANONICA-BK.md
+    - docs/planificacao/backlogs/CONTRATO-CAMPOS-BK.md
+    - docs/planificacao/backlogs/MF-VIEWS.md
+    - docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md
 
 3. Instrucoes do que fazer.
 
@@ -157,7 +158,7 @@ Confirma que nao vais alterar RF, RNF, ID do BK, owner, prioridade ou dependenci
 
 Sem codigo neste passo. O objetivo e impedir drift antes da implementacao.
 
-5. Explicacao didatica e detalhada do codigo.
+5. Explicacao do codigo.
 
 Este passo existe para evitar que o aluno comece por copiar codigo sem perceber o contrato. Num ERP, uma decisao errada no inicio, por exemplo tratar role como global ou ignorar companyId, propaga erros para faturacao, compras, stock e contabilidade.
 
@@ -176,15 +177,15 @@ Se encontrares uma regra que nao aparece em RF/RNF/backlog, nao a implementes: m
 Criar a estrutura persistente que suporta a regra do BK sem duplicados, estados impossiveis ou fuga entre empresas.
 
 2. Ficheiros envolvidos:
-   - CRIAR:
-   - Nenhum ficheiro novo neste passo.
-   - EDITAR:
-   - apps/api/prisma/schema.prisma
-   - LOCALIZACAO:
-   - Inserir os modelos junto dos modelos do mesmo dominio; quando o BK disser para atualizar um modelo existente, substituir o bloco antigo por uma versao coerente.
-   - REVER:
-   - docs/planificacao/backlogs/CONTRATO-CAMPOS-BK.md
-   - BKs anteriores da MF0 que criam modelos reutilizados.
+    - CRIAR:
+    - Nenhum ficheiro novo neste passo.
+    - EDITAR:
+    - apps/api/prisma/schema.prisma
+    - LOCALIZACAO:
+    - Inserir os modelos junto dos modelos do mesmo dominio; quando o BK disser para atualizar um modelo existente, substituir o bloco antigo por uma versao coerente.
+    - REVER:
+    - docs/planificacao/backlogs/CONTRATO-CAMPOS-BK.md
+    - BKs anteriores da MF0 que criam modelos reutilizados.
 
 3. Instrucoes do que fazer.
 
@@ -220,7 +221,6 @@ model Item {
 }
 ```
 
-
 Localizacao: no mesmo ficheiro, substituir o modelo `Company` existente pela versao acumulada ate este BK.
 
 ```prisma
@@ -240,7 +240,8 @@ model Company {
   updatedAt   DateTime            @updatedAt
 }
 ```
-5. Explicacao didatica e detalhada do codigo.
+
+5. Explicacao do codigo.
 
 O schema e a camada mais baixa de integridade. Mesmo que o frontend tenha boas validacoes, a base de dados deve impedir duplicados e relacoes impossiveis. Em OPSA isto e critico porque clientes, fornecedores, artigos, contas SNC, periodos fiscais e armazens alimentam documentos fiscais e contabilisticos futuros.
 
@@ -259,14 +260,14 @@ Tentar criar dois registos que violam uma constraint unica deve falhar com confl
 Validar entradas antes da regra de negocio e isolar detalhes tecnicos como cookies, hash, email ou permissao.
 
 2. Ficheiros envolvidos:
-   - CRIAR:
-   - apps/api/src/modules/items/itemValidators.js
-   - EDITAR:
-   - Nenhum ficheiro existente neste passo.
-   - LOCALIZACAO:
-   - Criar dentro do modulo do dominio em `apps/api/src/modules/...`; helpers partilhados ficam em `apps/api/src/lib` quando usados por varios BKs.
-   - REVER:
-   - docs/RNF.md: RNF05, RNF06, RNF12-RNF17, RNF21 quando existir email.
+    - CRIAR:
+    - apps/api/src/modules/items/itemValidators.js
+    - EDITAR:
+    - Nenhum ficheiro existente neste passo.
+    - LOCALIZACAO:
+    - Criar dentro do modulo do dominio em `apps/api/src/modules/...`; helpers partilhados ficam em `apps/api/src/lib` quando usados por varios BKs.
+    - REVER:
+    - docs/RNF.md: RNF05, RNF06, RNF12-RNF17, RNF21 quando existir email.
 
 3. Instrucoes do que fazer.
 
@@ -282,49 +283,64 @@ import { httpError } from "../../lib/httpErrors.js";
 const VALID_TYPES = new Set(["PRODUCT", "SERVICE"]);
 
 function requiredString(value, field) {
-  if (typeof value !== "string" || value.trim().length === 0) {
-    throw httpError(400, "INVALID_FIELD", `${field} e obrigatorio`);
-  }
-  return value.trim();
+    if (typeof value !== "string" || value.trim().length === 0) {
+        throw httpError(400, "INVALID_FIELD", `${field} e obrigatorio`);
+    }
+    return value.trim();
 }
 
 function moneyCents(value, field, { allowZero }) {
-  if (!Number.isInteger(value)) {
-    throw httpError(400, "INVALID_MONEY", `${field} deve ser inteiro em centimos`);
-  }
-  if (value < 0 || (!allowZero && value === 0)) {
-    throw httpError(400, "INVALID_MONEY", `${field} tem valor invalido`);
-  }
-  return value;
+    if (!Number.isInteger(value)) {
+        throw httpError(
+            400,
+            "INVALID_MONEY",
+            `${field} deve ser inteiro em centimos`,
+        );
+    }
+    if (value < 0 || (!allowZero && value === 0)) {
+        throw httpError(400, "INVALID_MONEY", `${field} tem valor invalido`);
+    }
+    return value;
 }
 
 function vatRateBps(value) {
-  if (!Number.isInteger(value) || value < 0 || value > 10000) {
-    throw httpError(400, "INVALID_VAT_RATE", "IVA deve estar entre 0 e 10000 basis points");
-  }
-  return value;
+    if (!Number.isInteger(value) || value < 0 || value > 10000) {
+        throw httpError(
+            400,
+            "INVALID_VAT_RATE",
+            "IVA deve estar entre 0 e 10000 basis points",
+        );
+    }
+    return value;
 }
 
 export function validateItemPayload(body) {
-  if (!body || typeof body !== "object" || Array.isArray(body)) {
-    throw httpError(400, "INVALID_BODY", "O corpo do pedido deve ser JSON");
-  }
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+        throw httpError(400, "INVALID_BODY", "O corpo do pedido deve ser JSON");
+    }
 
-  const type = requiredString(body.type, "type").toUpperCase();
-  if (!VALID_TYPES.has(type)) throw httpError(400, "INVALID_ITEM_TYPE", "Tipo de artigo/servico invalido");
+    const type = requiredString(body.type, "type").toUpperCase();
+    if (!VALID_TYPES.has(type))
+        throw httpError(
+            400,
+            "INVALID_ITEM_TYPE",
+            "Tipo de artigo/servico invalido",
+        );
 
-  return {
-    sku: requiredString(body.sku, "sku").toUpperCase(),
-    name: requiredString(body.name, "name"),
-    type,
-    costCents: moneyCents(body.costCents, "costCents", { allowZero: true }),
-    priceCents: moneyCents(body.priceCents, "priceCents", { allowZero: false }),
-    vatRateBps: vatRateBps(body.vatRateBps),
-  };
+    return {
+        sku: requiredString(body.sku, "sku").toUpperCase(),
+        name: requiredString(body.name, "name"),
+        type,
+        costCents: moneyCents(body.costCents, "costCents", { allowZero: true }),
+        priceCents: moneyCents(body.priceCents, "priceCents", {
+            allowZero: false,
+        }),
+        vatRateBps: vatRateBps(body.vatRateBps),
+    };
 }
 ```
 
-5. Explicacao didatica e detalhada do codigo.
+5. Explicacao do codigo.
 
 Validadores e helpers tornam o codigo mais facil de testar e explicar. Um aluno consegue perceber que validar NIF, email, datas ou dinheiro nao e detalhe visual: e defesa da integridade da empresa e da contabilidade.
 
@@ -343,14 +359,14 @@ Um payload mal formado nao pode chegar ao Prisma; deve parar no validator com `4
 Concentrar a regra do ERP em funcoes testaveis, separadas de HTTP e frontend.
 
 2. Ficheiros envolvidos:
-   - CRIAR:
-   - apps/api/src/modules/items/itemService.js
-   - EDITAR:
-   - Nenhum ficheiro existente neste passo.
-   - LOCALIZACAO:
-   - Criar no modulo backend do dominio; middlewares reutilizaveis ficam junto do dominio que fornece o contexto.
-   - REVER:
-   - BKs anteriores que fornecem `requireAuth`, `requireCompanyContext`, permissoes, User, Company ou dados mestre.
+    - CRIAR:
+    - apps/api/src/modules/items/itemService.js
+    - EDITAR:
+    - Nenhum ficheiro existente neste passo.
+    - LOCALIZACAO:
+    - Criar no modulo backend do dominio; middlewares reutilizaveis ficam junto do dominio que fornece o contexto.
+    - REVER:
+    - BKs anteriores que fornecem `requireAuth`, `requireCompanyContext`, permissoes, User, Company ou dados mestre.
 
 3. Instrucoes do que fazer.
 
@@ -364,61 +380,70 @@ Localizacao: criar `apps/api/src/modules/items/itemService.js`.
 import { httpError } from "../../lib/httpErrors.js";
 
 function serialize(item) {
-  return {
-    id: item.id,
-    sku: item.sku,
-    name: item.name,
-    type: item.type,
-    costCents: item.costCents,
-    priceCents: item.priceCents,
-    vatRateBps: item.vatRateBps,
-    isActive: item.isActive,
-  };
+    return {
+        id: item.id,
+        sku: item.sku,
+        name: item.name,
+        type: item.type,
+        costCents: item.costCents,
+        priceCents: item.priceCents,
+        vatRateBps: item.vatRateBps,
+        isActive: item.isActive,
+    };
 }
 
 async function assertUniqueSku(prisma, companyId, sku, ignoreId = undefined) {
-  const existing = await prisma.item.findFirst({
-    where: { companyId, sku, id: ignoreId ? { not: ignoreId } : undefined },
-  });
-  if (existing) throw httpError(409, "ITEM_SKU_EXISTS", "Ja existe artigo/servico com este SKU nesta empresa");
+    const existing = await prisma.item.findFirst({
+        where: { companyId, sku, id: ignoreId ? { not: ignoreId } : undefined },
+    });
+    if (existing)
+        throw httpError(
+            409,
+            "ITEM_SKU_EXISTS",
+            "Ja existe artigo/servico com este SKU nesta empresa",
+        );
 }
 
 export async function listItems(prisma, companyId) {
-  const items = await prisma.item.findMany({
-    where: { companyId, isActive: true },
-    orderBy: { sku: "asc" },
-  });
-  return items.map(serialize);
+    const items = await prisma.item.findMany({
+        where: { companyId, isActive: true },
+        orderBy: { sku: "asc" },
+    });
+    return items.map(serialize);
 }
 
 export async function createItem(prisma, companyId, input) {
-  await assertUniqueSku(prisma, companyId, input.sku);
-  const item = await prisma.item.create({ data: { companyId, ...input } });
-  return serialize(item);
+    await assertUniqueSku(prisma, companyId, input.sku);
+    const item = await prisma.item.create({ data: { companyId, ...input } });
+    return serialize(item);
 }
 
 export async function updateItem(prisma, companyId, itemId, input) {
-  await assertUniqueSku(prisma, companyId, input.sku, itemId);
-  const updated = await prisma.item.updateMany({
-    where: { id: itemId, companyId },
-    data: input,
-  });
-  if (updated.count === 0) throw httpError(404, "ITEM_NOT_FOUND", "Artigo/servico nao encontrado");
+    await assertUniqueSku(prisma, companyId, input.sku, itemId);
+    const updated = await prisma.item.updateMany({
+        where: { id: itemId, companyId },
+        data: input,
+    });
+    if (updated.count === 0)
+        throw httpError(404, "ITEM_NOT_FOUND", "Artigo/servico nao encontrado");
 
-  const item = await prisma.item.findFirst({ where: { id: itemId, companyId } });
-  return serialize(item);
+    const item = await prisma.item.findFirst({
+        where: { id: itemId, companyId },
+    });
+    return serialize(item);
 }
 
 export async function deactivateItem(prisma, companyId, itemId) {
-  const updated = await prisma.item.updateMany({
-    where: { id: itemId, companyId },
-    data: { isActive: false },
-  });
-  if (updated.count === 0) throw httpError(404, "ITEM_NOT_FOUND", "Artigo/servico nao encontrado");
+    const updated = await prisma.item.updateMany({
+        where: { id: itemId, companyId },
+        data: { isActive: false },
+    });
+    if (updated.count === 0)
+        throw httpError(404, "ITEM_NOT_FOUND", "Artigo/servico nao encontrado");
 }
 ```
 
-5. Explicacao didatica e detalhada do codigo.
+5. Explicacao do codigo.
 
 O service e onde vive a regra de negocio. Isto evita controllers gigantes e impede que a UI seja a unica barreira de seguranca. Em OPSA, esta separacao ajuda a garantir que IA, frontend ou scripts futuros nao alteram dados contabilisticos sem passar pelas mesmas regras.
 
@@ -437,16 +462,16 @@ Tentar aceder a dados de outra empresa, ou executar uma acao sem permissao, deve
 Transformar a regra de negocio em API HTTP previsivel para o frontend e para testes.
 
 2. Ficheiros envolvidos:
-   - CRIAR:
-   - apps/api/src/modules/items/itemController.js
-   - apps/api/src/modules/items/itemRoutes.js
-   - EDITAR:
-   - apps/api/src/server.js
-   - LOCALIZACAO:
-   - Controllers e routes ficam no modulo do dominio; o `server.js` apenas monta o router no prefixo `/api/...`.
-   - REVER:
-   - docs/RNF.md: RNF25 e RNF28
-   - Contratos de endpoints indicados no header do BK.
+    - CRIAR:
+    - apps/api/src/modules/items/itemController.js
+    - apps/api/src/modules/items/itemRoutes.js
+    - EDITAR:
+    - apps/api/src/server.js
+    - LOCALIZACAO:
+    - Controllers e routes ficam no modulo do dominio; o `server.js` apenas monta o router no prefixo `/api/...`.
+    - REVER:
+    - docs/RNF.md: RNF25 e RNF28
+    - Contratos de endpoints indicados no header do BK.
 
 3. Instrucoes do que fazer.
 
@@ -459,52 +484,66 @@ Localizacao: criar `apps/api/src/modules/items/itemController.js`.
 ```js
 import { toHttpError } from "../../lib/httpErrors.js";
 import { validateItemPayload } from "./itemValidators.js";
-import { createItem, deactivateItem, listItems, updateItem } from "./itemService.js";
+import {
+    createItem,
+    deactivateItem,
+    listItems,
+    updateItem,
+} from "./itemService.js";
 
 function sendError(res, error) {
-  const httpError = toHttpError(error);
-  return res.status(httpError.status).json({ error: httpError.code, message: httpError.message });
+    const httpError = toHttpError(error);
+    return res
+        .status(httpError.status)
+        .json({ error: httpError.code, message: httpError.message });
 }
 
 export function buildItemController({ prisma }) {
-  return {
-    async list(req, res) {
-      try {
-        return res.status(200).json({ items: await listItems(prisma, req.companyId) });
-      } catch (error) {
-        return sendError(res, error);
-      }
-    },
+    return {
+        async list(req, res) {
+            try {
+                return res
+                    .status(200)
+                    .json({ items: await listItems(prisma, req.companyId) });
+            } catch (error) {
+                return sendError(res, error);
+            }
+        },
 
-    async create(req, res) {
-      try {
-        const input = validateItemPayload(req.body);
-        const item = await createItem(prisma, req.companyId, input);
-        return res.status(201).json({ item });
-      } catch (error) {
-        return sendError(res, error);
-      }
-    },
+        async create(req, res) {
+            try {
+                const input = validateItemPayload(req.body);
+                const item = await createItem(prisma, req.companyId, input);
+                return res.status(201).json({ item });
+            } catch (error) {
+                return sendError(res, error);
+            }
+        },
 
-    async update(req, res) {
-      try {
-        const input = validateItemPayload(req.body);
-        const item = await updateItem(prisma, req.companyId, req.params.id, input);
-        return res.status(200).json({ item });
-      } catch (error) {
-        return sendError(res, error);
-      }
-    },
+        async update(req, res) {
+            try {
+                const input = validateItemPayload(req.body);
+                const item = await updateItem(
+                    prisma,
+                    req.companyId,
+                    req.params.id,
+                    input,
+                );
+                return res.status(200).json({ item });
+            } catch (error) {
+                return sendError(res, error);
+            }
+        },
 
-    async remove(req, res) {
-      try {
-        await deactivateItem(prisma, req.companyId, req.params.id);
-        return res.status(204).send();
-      } catch (error) {
-        return sendError(res, error);
-      }
-    },
-  };
+        async remove(req, res) {
+            try {
+                await deactivateItem(prisma, req.companyId, req.params.id);
+                return res.status(204).send();
+            } catch (error) {
+                return sendError(res, error);
+            }
+        },
+    };
 }
 ```
 
@@ -519,20 +558,20 @@ import { requirePermission } from "../permissions/permissionMiddleware.js";
 import { buildItemController } from "./itemController.js";
 
 export function buildItemRoutes({ prisma }) {
-  const router = Router();
-  const controller = buildItemController({ prisma });
-  const guards = [
-    requireAuth(prisma),
-    requireCompanyContext(prisma),
-    requirePermission(Permission.ITEMS_WRITE),
-  ];
+    const router = Router();
+    const controller = buildItemController({ prisma });
+    const guards = [
+        requireAuth(prisma),
+        requireCompanyContext(prisma),
+        requirePermission(Permission.ITEMS_WRITE),
+    ];
 
-  router.get("/", guards, controller.list);
-  router.post("/", guards, controller.create);
-  router.patch("/:id", guards, controller.update);
-  router.delete("/:id", guards, controller.remove);
+    router.get("/", guards, controller.list);
+    router.post("/", guards, controller.create);
+    router.patch("/:id", guards, controller.update);
+    router.delete("/:id", guards, controller.remove);
 
-  return router;
+    return router;
 }
 ```
 
@@ -544,7 +583,7 @@ import { buildItemRoutes } from "./modules/items/itemRoutes.js";
 app.use("/api/items", buildItemRoutes({ prisma }));
 ```
 
-5. Explicacao didatica e detalhada do codigo.
+5. Explicacao do codigo.
 
 A API e o contrato entre backend e frontend. Ao manter controller pequeno, o aluno percebe onde colocar cada responsabilidade: validacao no validator, regra no service, transporte HTTP no controller/route.
 
@@ -563,15 +602,15 @@ Sem sessao, sem empresa ativa ou sem permissao, o endpoint deve devolver `401` o
 Demonstrar que o BK funciona para o caso principal e falha bem nos casos perigosos.
 
 2. Ficheiros envolvidos:
-   - CRIAR:
-   - docs/evidence/<BK_ID>.md quando a equipa fechar o BK.
-   - EDITAR:
-   - Nenhum ficheiro existente neste passo.
-   - LOCALIZACAO:
-   - Evidence do PR/defesa e testes automatizados quando existirem.
-   - REVER:
-   - Payloads e negativos abaixo.
-   - docs/planificacao/sprints/PLANO-SPRINTS.md quando existir planeamento de sprint.
+    - CRIAR:
+    - docs/evidence/<BK_ID>.md quando a equipa fechar o BK.
+    - EDITAR:
+    - Nenhum ficheiro existente neste passo.
+    - LOCALIZACAO:
+    - Evidence do PR/defesa e testes automatizados quando existirem.
+    - REVER:
+    - Payloads e negativos abaixo.
+    - docs/planificacao/sprints/PLANO-SPRINTS.md quando existir planeamento de sprint.
 
 3. Instrucoes do que fazer.
 
@@ -583,12 +622,12 @@ Pedido `POST /api/items`:
 
 ```json
 {
-  "sku": "CONS-001",
-  "name": "Consultoria contabilistica",
-  "type": "SERVICE",
-  "costCents": 0,
-  "priceCents": 7500,
-  "vatRateBps": 2300
+    "sku": "CONS-001",
+    "name": "Consultoria contabilistica",
+    "type": "SERVICE",
+    "costCents": 0,
+    "priceCents": 7500,
+    "vatRateBps": 2300
 }
 ```
 
@@ -614,7 +653,7 @@ Erros esperados:
 
 #
 
-5. Explicacao didatica e detalhada do codigo.
+5. Explicacao do codigo.
 
 Testar negativos ensina que seguranca nao e so o caminho feliz. Um ERP deve recusar dados fiscais invalidos, acessos sem role, conflitos de unicidade e alteracoes em periodos fechados de forma previsivel.
 
@@ -633,14 +672,14 @@ Se um erro devolve stack trace, segredo, dados de outra empresa ou status generi
 Fechar o BK como tutorial tecnico que o proximo aluno consegue continuar sem adivinhar contratos.
 
 2. Ficheiros envolvidos:
-   - CRIAR:
-   - docs/evidence/<BK_ID>.md ou descricao equivalente no PR.
-   - EDITAR:
-   - Secao Evidence deste guia apenas quando houver PR/defesa real.
-   - LOCALIZACAO:
-   - Fim do guia: criterios, validacao final, evidence, handoff e changelog.
-   - REVER:
-   - BK seguinte indicado em `proximo_bk` e BKs dependentes futuros.
+    - CRIAR:
+    - docs/evidence/<BK_ID>.md ou descricao equivalente no PR.
+    - EDITAR:
+    - Secao Evidence deste guia apenas quando houver PR/defesa real.
+    - LOCALIZACAO:
+    - Fim do guia: criterios, validacao final, evidence, handoff e changelog.
+    - REVER:
+    - BK seguinte indicado em `proximo_bk` e BKs dependentes futuros.
 
 3. Instrucoes do que fazer.
 
@@ -653,7 +692,7 @@ Decisoes em falta a manter visiveis durante a implementacao:
 - RF13 define tabelas de IVA so em MF1. Ate la, `vatRateBps` e valor manual validado por intervalo, nao uma tabela legal oficial. Quando `BK-MF1-01` existir, migrar para referencia a tabela de IVA.
 - Confirmar politica de arredondamentos e casas decimais para documentos fiscais antes de faturacao.
 
-5. Explicacao didatica e detalhada do codigo.
+5. Explicacao do codigo.
 
 O handoff protege continuidade. Num projeto PAP com varios alunos, a qualidade nao esta so no codigo: esta tambem em deixar claro o que ficou decidido, o que ainda falta decidir e que contratos o proximo BK pode reutilizar.
 
@@ -664,7 +703,6 @@ Confirma que o final do BK contem apenas criterios de aceite, validacao final, e
 7. Cenario negativo/erro esperado.
 
 Se o handoff diz para usar algo que nao foi criado neste BK ou num BK anterior, ha contrato partido e deve ser corrigido antes de avancar.
-
 
 ## Criterios de aceite
 

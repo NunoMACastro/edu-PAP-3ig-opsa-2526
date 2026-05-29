@@ -1,6 +1,7 @@
 # BK-MF0-05 - Recuperação de password via email.
 
 ## Header
+
 - `doc_id`: `GUIA-BK-MF0-05`
 - `bk_id`: `BK-MF0-05`
 - `macro`: `MF0`
@@ -133,21 +134,21 @@ Este tutorial organiza o BK em passos lineares. O aluno deve seguir de cima para
 Confirmar a regra de negocio do BK, o RF/RNF associado e o impacto nos BKs seguintes antes de escrever codigo.
 
 2. Ficheiros envolvidos:
-   - CRIAR:
-   - Nenhum ficheiro novo neste passo.
-   - EDITAR:
-   - Nenhum ficheiro existente neste passo.
-   - LOCALIZACAO:
-   - Topo deste guia e documentos canonicos de planeamento.
-   - REVER:
-   - README.md
-   - docs/RF.md
-   - docs/RNF.md
-   - docs/planificacao/backlogs/BACKLOG-MVP.md
-   - docs/planificacao/backlogs/MATRIZ-CANONICA-BK.md
-   - docs/planificacao/backlogs/CONTRATO-CAMPOS-BK.md
-   - docs/planificacao/backlogs/MF-VIEWS.md
-   - docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md
+    - CRIAR:
+    - Nenhum ficheiro novo neste passo.
+    - EDITAR:
+    - Nenhum ficheiro existente neste passo.
+    - LOCALIZACAO:
+    - Topo deste guia e documentos canonicos de planeamento.
+    - REVER:
+    - README.md
+    - docs/RF.md
+    - docs/RNF.md
+    - docs/planificacao/backlogs/BACKLOG-MVP.md
+    - docs/planificacao/backlogs/MATRIZ-CANONICA-BK.md
+    - docs/planificacao/backlogs/CONTRATO-CAMPOS-BK.md
+    - docs/planificacao/backlogs/MF-VIEWS.md
+    - docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md
 
 3. Instrucoes do que fazer.
 
@@ -157,7 +158,7 @@ Confirma que nao vais alterar RF, RNF, ID do BK, owner, prioridade ou dependenci
 
 Sem codigo neste passo. O objetivo e impedir drift antes da implementacao.
 
-5. Explicacao didatica e detalhada do codigo.
+5. Explicacao do codigo.
 
 Este passo existe para evitar que o aluno comece por copiar codigo sem perceber o contrato. Num ERP, uma decisao errada no inicio, por exemplo tratar role como global ou ignorar companyId, propaga erros para faturacao, compras, stock e contabilidade.
 
@@ -176,15 +177,15 @@ Se encontrares uma regra que nao aparece em RF/RNF/backlog, nao a implementes: m
 Criar a estrutura persistente que suporta a regra do BK sem duplicados, estados impossiveis ou fuga entre empresas.
 
 2. Ficheiros envolvidos:
-   - CRIAR:
-   - Nenhum ficheiro novo neste passo.
-   - EDITAR:
-   - apps/api/prisma/schema.prisma
-   - LOCALIZACAO:
-   - Inserir os modelos junto dos modelos do mesmo dominio; quando o BK disser para atualizar um modelo existente, substituir o bloco antigo por uma versao coerente.
-   - REVER:
-   - docs/planificacao/backlogs/CONTRATO-CAMPOS-BK.md
-   - BKs anteriores da MF0 que criam modelos reutilizados.
+    - CRIAR:
+    - Nenhum ficheiro novo neste passo.
+    - EDITAR:
+    - apps/api/prisma/schema.prisma
+    - LOCALIZACAO:
+    - Inserir os modelos junto dos modelos do mesmo dominio; quando o BK disser para atualizar um modelo existente, substituir o bloco antigo por uma versao coerente.
+    - REVER:
+    - docs/planificacao/backlogs/CONTRATO-CAMPOS-BK.md
+    - BKs anteriores da MF0 que criam modelos reutilizados.
 
 3. Instrucoes do que fazer.
 
@@ -227,7 +228,7 @@ model User {
 }
 ```
 
-5. Explicacao didatica e detalhada do codigo.
+5. Explicacao do codigo.
 
 O schema e a camada mais baixa de integridade. Mesmo que o frontend tenha boas validacoes, a base de dados deve impedir duplicados e relacoes impossiveis. Em OPSA isto e critico porque clientes, fornecedores, artigos, contas SNC, periodos fiscais e armazens alimentam documentos fiscais e contabilisticos futuros.
 
@@ -246,16 +247,16 @@ Tentar criar dois registos que violam uma constraint unica deve falhar com confl
 Validar entradas antes da regra de negocio e isolar detalhes tecnicos como cookies, hash, email ou permissao.
 
 2. Ficheiros envolvidos:
-   - CRIAR:
-   - apps/api/src/modules/auth/passwordResetValidators.js
-   - apps/api/src/modules/auth/passwordResetRateLimit.js
-   - apps/api/src/modules/auth/passwordResetEmailAdapter.js
-   - EDITAR:
-   - Nenhum ficheiro existente neste passo.
-   - LOCALIZACAO:
-   - Criar dentro do modulo do dominio em `apps/api/src/modules/...`; helpers partilhados ficam em `apps/api/src/lib` quando usados por varios BKs.
-   - REVER:
-   - docs/RNF.md: RNF05, RNF06, RNF12-RNF17, RNF21 quando existir email.
+    - CRIAR:
+    - apps/api/src/modules/auth/passwordResetValidators.js
+    - apps/api/src/modules/auth/passwordResetRateLimit.js
+    - apps/api/src/modules/auth/passwordResetEmailAdapter.js
+    - EDITAR:
+    - Nenhum ficheiro existente neste passo.
+    - LOCALIZACAO:
+    - Criar dentro do modulo do dominio em `apps/api/src/modules/...`; helpers partilhados ficam em `apps/api/src/lib` quando usados por varios BKs.
+    - REVER:
+    - docs/RNF.md: RNF05, RNF06, RNF12-RNF17, RNF21 quando existir email.
 
 3. Instrucoes do que fazer.
 
@@ -271,43 +272,49 @@ import { httpError } from "../../lib/httpErrors.js";
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function normalizeEmail(email) {
-  if (typeof email !== "string") throw httpError(400, "INVALID_EMAIL", "Email obrigatorio");
-  const normalized = email.trim().toLowerCase();
-  if (!EMAIL_PATTERN.test(normalized)) throw httpError(400, "INVALID_EMAIL", "Email invalido");
-  return normalized;
+    if (typeof email !== "string")
+        throw httpError(400, "INVALID_EMAIL", "Email obrigatorio");
+    const normalized = email.trim().toLowerCase();
+    if (!EMAIL_PATTERN.test(normalized))
+        throw httpError(400, "INVALID_EMAIL", "Email invalido");
+    return normalized;
 }
 
 function normalizeToken(token) {
-  if (typeof token !== "string" || token.trim().length < 32) {
-    throw httpError(400, "INVALID_TOKEN", "Token invalido");
-  }
-  return token.trim();
+    if (typeof token !== "string" || token.trim().length < 32) {
+        throw httpError(400, "INVALID_TOKEN", "Token invalido");
+    }
+    return token.trim();
 }
 
 function validateNewPassword(password) {
-  if (typeof password !== "string" || password.length < 10) {
-    throw httpError(400, "WEAK_PASSWORD", "A password deve ter pelo menos 10 caracteres");
-  }
-  return password;
+    if (typeof password !== "string" || password.length < 10) {
+        throw httpError(
+            400,
+            "WEAK_PASSWORD",
+            "A password deve ter pelo menos 10 caracteres",
+        );
+    }
+    return password;
 }
 
 export function validateForgotPasswordPayload(body) {
-  if (!body || typeof body !== "object" || Array.isArray(body)) {
-    throw httpError(400, "INVALID_BODY", "O corpo do pedido deve ser JSON");
-  }
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+        throw httpError(400, "INVALID_BODY", "O corpo do pedido deve ser JSON");
+    }
 
-  return { email: normalizeEmail(body.email) };
+    return { email: normalizeEmail(body.email) };
 }
 
 export function validateResetPasswordPayload(body) {
-  if (!body || typeof body !== "object" || Array.isArray(body)) {
-    throw httpError(400, "INVALID_BODY", "O corpo do pedido deve ser JSON");
-  }
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+        throw httpError(400, "INVALID_BODY", "O corpo do pedido deve ser JSON");
+    }
 
-  return {
-    token: normalizeToken(body.token),
-    password: validateNewPassword(body.password),
-  };
+    return {
+        token: normalizeToken(body.token),
+        password: validateNewPassword(body.password),
+    };
 }
 ```
 
@@ -321,41 +328,48 @@ const MAX_ATTEMPTS = 5;
 const attempts = new Map();
 
 export function assertPasswordResetRateLimit(key, now = Date.now()) {
-  const entry = attempts.get(key);
+    const entry = attempts.get(key);
 
-  if (!entry || entry.resetAt <= now) {
-    attempts.set(key, { count: 1, resetAt: now + WINDOW_MS });
-    return;
-  }
+    if (!entry || entry.resetAt <= now) {
+        attempts.set(key, { count: 1, resetAt: now + WINDOW_MS });
+        return;
+    }
 
-  if (entry.count >= MAX_ATTEMPTS) {
-    throw httpError(429, "RATE_LIMITED", "Demasiados pedidos de recuperacao");
-  }
+    if (entry.count >= MAX_ATTEMPTS) {
+        throw httpError(
+            429,
+            "RATE_LIMITED",
+            "Demasiados pedidos de recuperacao",
+        );
+    }
 
-  entry.count += 1;
+    entry.count += 1;
 }
 ```
 
 Localizacao: criar `apps/api/src/modules/auth/passwordResetEmailAdapter.js`.
 
 ```js
-export function buildPasswordResetEmailAdapter({ appBaseUrl, logger = console }) {
-  return {
-    async sendPasswordReset({ email, token }) {
-      const resetUrl = `${appBaseUrl}/recuperar-password/${token}`;
+export function buildPasswordResetEmailAdapter({
+    appBaseUrl,
+    logger = console,
+}) {
+    return {
+        async sendPasswordReset({ email, token }) {
+            const resetUrl = `${appBaseUrl}/recuperar-password/${token}`;
 
-      // Em desenvolvimento, isto da evidence sem acoplar o service a um provider de email.
-      logger.info({
-        event: "password_reset_requested",
-        email,
-        resetUrl,
-      });
-    },
-  };
+            // Em desenvolvimento, isto da evidence sem acoplar o service a um provider de email.
+            logger.info({
+                event: "password_reset_requested",
+                email,
+                resetUrl,
+            });
+        },
+    };
 }
 ```
 
-5. Explicacao didatica e detalhada do codigo.
+5. Explicacao do codigo.
 
 Validadores e helpers tornam o codigo mais facil de testar e explicar. Um aluno consegue perceber que validar NIF, email, datas ou dinheiro nao e detalhe visual: e defesa da integridade da empresa e da contabilidade.
 
@@ -374,14 +388,14 @@ Um payload mal formado nao pode chegar ao Prisma; deve parar no validator com `4
 Concentrar a regra do ERP em funcoes testaveis, separadas de HTTP e frontend.
 
 2. Ficheiros envolvidos:
-   - CRIAR:
-   - apps/api/src/modules/auth/passwordResetService.js
-   - EDITAR:
-   - Nenhum ficheiro existente neste passo.
-   - LOCALIZACAO:
-   - Criar no modulo backend do dominio; middlewares reutilizaveis ficam junto do dominio que fornece o contexto.
-   - REVER:
-   - BKs anteriores que fornecem `requireAuth`, `requireCompanyContext`, permissoes, User, Company ou dados mestre.
+    - CRIAR:
+    - apps/api/src/modules/auth/passwordResetService.js
+    - EDITAR:
+    - Nenhum ficheiro existente neste passo.
+    - LOCALIZACAO:
+    - Criar no modulo backend do dominio; middlewares reutilizaveis ficam junto do dominio que fornece o contexto.
+    - REVER:
+    - BKs anteriores que fornecem `requireAuth`, `requireCompanyContext`, permissoes, User, Company ou dados mestre.
 
 3. Instrucoes do que fazer.
 
@@ -400,62 +414,75 @@ const RESET_TTL_MS = 30 * 60 * 1000;
 const GENERIC_RESPONSE = { ok: true };
 
 function createToken() {
-  return crypto.randomBytes(32).toString("hex");
+    return crypto.randomBytes(32).toString("hex");
 }
 
 function hashToken(token) {
-  return crypto.createHash("sha256").update(token).digest("hex");
+    return crypto.createHash("sha256").update(token).digest("hex");
 }
 
-export async function requestPasswordReset(prisma, emailAdapter, { email, now = new Date() }) {
-  const user = await prisma.user.findUnique({ where: { email } });
+export async function requestPasswordReset(
+    prisma,
+    emailAdapter,
+    { email, now = new Date() },
+) {
+    const user = await prisma.user.findUnique({ where: { email } });
 
-  // Resposta generica: nao revelar se o email existe.
-  if (!user || !user.isActive) return GENERIC_RESPONSE;
+    // Resposta generica: nao revelar se o email existe.
+    if (!user || !user.isActive) return GENERIC_RESPONSE;
 
-  const token = createToken();
-  await prisma.passwordResetToken.create({
-    data: {
-      userId: user.id,
-      tokenHash: hashToken(token),
-      expiresAt: new Date(now.getTime() + RESET_TTL_MS),
-    },
-  });
+    const token = createToken();
+    await prisma.passwordResetToken.create({
+        data: {
+            userId: user.id,
+            tokenHash: hashToken(token),
+            expiresAt: new Date(now.getTime() + RESET_TTL_MS),
+        },
+    });
 
-  await emailAdapter.sendPasswordReset({ email: user.email, token });
-  return GENERIC_RESPONSE;
+    await emailAdapter.sendPasswordReset({ email: user.email, token });
+    return GENERIC_RESPONSE;
 }
 
-export async function resetPassword(prisma, { token, password, now = new Date() }) {
-  const tokenHash = hashToken(token);
-  const resetToken = await prisma.passwordResetToken.findUnique({ where: { tokenHash } });
+export async function resetPassword(
+    prisma,
+    { token, password, now = new Date() },
+) {
+    const tokenHash = hashToken(token);
+    const resetToken = await prisma.passwordResetToken.findUnique({
+        where: { tokenHash },
+    });
 
-  if (!resetToken || resetToken.usedAt || resetToken.expiresAt <= now) {
-    throw httpError(400, "INVALID_RESET_TOKEN", "Token invalido ou expirado");
-  }
+    if (!resetToken || resetToken.usedAt || resetToken.expiresAt <= now) {
+        throw httpError(
+            400,
+            "INVALID_RESET_TOKEN",
+            "Token invalido ou expirado",
+        );
+    }
 
-  const passwordHash = await hashPassword(password);
+    const passwordHash = await hashPassword(password);
 
-  await prisma.$transaction([
-    prisma.user.update({
-      where: { id: resetToken.userId },
-      data: { passwordHash },
-    }),
-    prisma.passwordResetToken.update({
-      where: { id: resetToken.id },
-      data: { usedAt: now },
-    }),
-    prisma.session.updateMany({
-      where: { userId: resetToken.userId, revokedAt: null },
-      data: { revokedAt: now },
-    }),
-  ]);
+    await prisma.$transaction([
+        prisma.user.update({
+            where: { id: resetToken.userId },
+            data: { passwordHash },
+        }),
+        prisma.passwordResetToken.update({
+            where: { id: resetToken.id },
+            data: { usedAt: now },
+        }),
+        prisma.session.updateMany({
+            where: { userId: resetToken.userId, revokedAt: null },
+            data: { revokedAt: now },
+        }),
+    ]);
 
-  return GENERIC_RESPONSE;
+    return GENERIC_RESPONSE;
 }
 ```
 
-5. Explicacao didatica e detalhada do codigo.
+5. Explicacao do codigo.
 
 O service e onde vive a regra de negocio. Isto evita controllers gigantes e impede que a UI seja a unica barreira de seguranca. Em OPSA, esta separacao ajuda a garantir que IA, frontend ou scripts futuros nao alteram dados contabilisticos sem passar pelas mesmas regras.
 
@@ -474,16 +501,16 @@ Tentar aceder a dados de outra empresa, ou executar uma acao sem permissao, deve
 Transformar a regra de negocio em API HTTP previsivel para o frontend e para testes.
 
 2. Ficheiros envolvidos:
-   - CRIAR:
-   - apps/api/src/modules/auth/passwordResetController.js
-   - apps/api/src/modules/auth/authRoutes.js
-   - EDITAR:
-   - apps/api/src/server.js
-   - LOCALIZACAO:
-   - Controllers e routes ficam no modulo do dominio; o `server.js` apenas monta o router no prefixo `/api/...`.
-   - REVER:
-   - docs/RNF.md: RNF25 e RNF28
-   - Contratos de endpoints indicados no header do BK.
+    - CRIAR:
+    - apps/api/src/modules/auth/passwordResetController.js
+    - apps/api/src/modules/auth/authRoutes.js
+    - EDITAR:
+    - apps/api/src/server.js
+    - LOCALIZACAO:
+    - Controllers e routes ficam no modulo do dominio; o `server.js` apenas monta o router no prefixo `/api/...`.
+    - REVER:
+    - docs/RNF.md: RNF25 e RNF28
+    - Contratos de endpoints indicados no header do BK.
 
 3. Instrucoes do que fazer.
 
@@ -496,37 +523,46 @@ Localizacao: criar `apps/api/src/modules/auth/passwordResetController.js`.
 ```js
 import { toHttpError } from "../../lib/httpErrors.js";
 import { assertPasswordResetRateLimit } from "./passwordResetRateLimit.js";
-import { validateForgotPasswordPayload, validateResetPasswordPayload } from "./passwordResetValidators.js";
+import {
+    validateForgotPasswordPayload,
+    validateResetPasswordPayload,
+} from "./passwordResetValidators.js";
 import { requestPasswordReset, resetPassword } from "./passwordResetService.js";
 
 function sendError(res, error) {
-  const httpError = toHttpError(error);
-  return res.status(httpError.status).json({ error: httpError.code, message: httpError.message });
+    const httpError = toHttpError(error);
+    return res
+        .status(httpError.status)
+        .json({ error: httpError.code, message: httpError.message });
 }
 
 export function buildPasswordResetController({ prisma, emailAdapter }) {
-  return {
-    async forgot(req, res) {
-      try {
-        const input = validateForgotPasswordPayload(req.body);
-        assertPasswordResetRateLimit(`${req.ip}:${input.email}`);
-        const result = await requestPasswordReset(prisma, emailAdapter, input);
-        return res.status(200).json(result);
-      } catch (error) {
-        return sendError(res, error);
-      }
-    },
+    return {
+        async forgot(req, res) {
+            try {
+                const input = validateForgotPasswordPayload(req.body);
+                assertPasswordResetRateLimit(`${req.ip}:${input.email}`);
+                const result = await requestPasswordReset(
+                    prisma,
+                    emailAdapter,
+                    input,
+                );
+                return res.status(200).json(result);
+            } catch (error) {
+                return sendError(res, error);
+            }
+        },
 
-    async reset(req, res) {
-      try {
-        const input = validateResetPasswordPayload(req.body);
-        const result = await resetPassword(prisma, input);
-        return res.status(200).json(result);
-      } catch (error) {
-        return sendError(res, error);
-      }
-    },
-  };
+        async reset(req, res) {
+            try {
+                const input = validateResetPasswordPayload(req.body);
+                const result = await resetPassword(prisma, input);
+                return res.status(200).json(result);
+            } catch (error) {
+                return sendError(res, error);
+            }
+        },
+    };
 }
 ```
 
@@ -537,15 +573,17 @@ import { buildPasswordResetEmailAdapter } from "./passwordResetEmailAdapter.js";
 import { buildPasswordResetController } from "./passwordResetController.js";
 
 const passwordResetController = buildPasswordResetController({
-  prisma,
-  emailAdapter: buildPasswordResetEmailAdapter({ appBaseUrl: process.env.APP_BASE_URL }),
+    prisma,
+    emailAdapter: buildPasswordResetEmailAdapter({
+        appBaseUrl: process.env.APP_BASE_URL,
+    }),
 });
 
 router.post("/password/forgot", passwordResetController.forgot);
 router.post("/password/reset", passwordResetController.reset);
 ```
 
-5. Explicacao didatica e detalhada do codigo.
+5. Explicacao do codigo.
 
 A API e o contrato entre backend e frontend. Ao manter controller pequeno, o aluno percebe onde colocar cada responsabilidade: validacao no validator, regra no service, transporte HTTP no controller/route.
 
@@ -564,15 +602,15 @@ Sem sessao, sem empresa ativa ou sem permissao, o endpoint deve devolver `401` o
 Demonstrar que o BK funciona para o caso principal e falha bem nos casos perigosos.
 
 2. Ficheiros envolvidos:
-   - CRIAR:
-   - docs/evidence/<BK_ID>.md quando a equipa fechar o BK.
-   - EDITAR:
-   - Nenhum ficheiro existente neste passo.
-   - LOCALIZACAO:
-   - Evidence do PR/defesa e testes automatizados quando existirem.
-   - REVER:
-   - Payloads e negativos abaixo.
-   - docs/planificacao/sprints/PLANO-SPRINTS.md quando existir planeamento de sprint.
+    - CRIAR:
+    - docs/evidence/<BK_ID>.md quando a equipa fechar o BK.
+    - EDITAR:
+    - Nenhum ficheiro existente neste passo.
+    - LOCALIZACAO:
+    - Evidence do PR/defesa e testes automatizados quando existirem.
+    - REVER:
+    - Payloads e negativos abaixo.
+    - docs/planificacao/sprints/PLANO-SPRINTS.md quando existir planeamento de sprint.
 
 3. Instrucoes do que fazer.
 
@@ -584,7 +622,7 @@ Pedido `POST /api/auth/password/forgot`:
 
 ```json
 {
-  "email": "ana.silva@example.pt"
+    "email": "ana.silva@example.pt"
 }
 ```
 
@@ -592,7 +630,7 @@ Resposta `200`, existindo ou nao utilizador:
 
 ```json
 {
-  "ok": true
+    "ok": true
 }
 ```
 
@@ -600,8 +638,8 @@ Pedido `POST /api/auth/password/reset`:
 
 ```json
 {
-  "token": "token-recebido-por-email",
-  "password": "NovaPasswordForte2026"
+    "token": "token-recebido-por-email",
+    "password": "NovaPasswordForte2026"
 }
 ```
 
@@ -622,7 +660,7 @@ Erros esperados:
 
 #
 
-5. Explicacao didatica e detalhada do codigo.
+5. Explicacao do codigo.
 
 Testar negativos ensina que seguranca nao e so o caminho feliz. Um ERP deve recusar dados fiscais invalidos, acessos sem role, conflitos de unicidade e alteracoes em periodos fechados de forma previsivel.
 
@@ -641,14 +679,14 @@ Se um erro devolve stack trace, segredo, dados de outra empresa ou status generi
 Fechar o BK como tutorial tecnico que o proximo aluno consegue continuar sem adivinhar contratos.
 
 2. Ficheiros envolvidos:
-   - CRIAR:
-   - docs/evidence/<BK_ID>.md ou descricao equivalente no PR.
-   - EDITAR:
-   - Secao Evidence deste guia apenas quando houver PR/defesa real.
-   - LOCALIZACAO:
-   - Fim do guia: criterios, validacao final, evidence, handoff e changelog.
-   - REVER:
-   - BK seguinte indicado em `proximo_bk` e BKs dependentes futuros.
+    - CRIAR:
+    - docs/evidence/<BK_ID>.md ou descricao equivalente no PR.
+    - EDITAR:
+    - Secao Evidence deste guia apenas quando houver PR/defesa real.
+    - LOCALIZACAO:
+    - Fim do guia: criterios, validacao final, evidence, handoff e changelog.
+    - REVER:
+    - BK seguinte indicado em `proximo_bk` e BKs dependentes futuros.
 
 3. Instrucoes do que fazer.
 
@@ -661,7 +699,7 @@ Decisoes em falta a manter visiveis durante a implementacao:
 - Falta escolher provider real de email e template final, conforme RNF21.
 - O rate limit em memoria e aceitavel apenas para desenvolvimento. Em producao deve ser substituido por armazenamento partilhado quando a arquitetura de deploy estiver definida.
 
-5. Explicacao didatica e detalhada do codigo.
+5. Explicacao do codigo.
 
 O handoff protege continuidade. Num projeto PAP com varios alunos, a qualidade nao esta so no codigo: esta tambem em deixar claro o que ficou decidido, o que ainda falta decidir e que contratos o proximo BK pode reutilizar.
 
@@ -672,7 +710,6 @@ Confirma que o final do BK contem apenas criterios de aceite, validacao final, e
 7. Cenario negativo/erro esperado.
 
 Se o handoff diz para usar algo que nao foi criado neste BK ou num BK anterior, ha contrato partido e deve ser corrigido antes de avancar.
-
 
 ## Criterios de aceite
 

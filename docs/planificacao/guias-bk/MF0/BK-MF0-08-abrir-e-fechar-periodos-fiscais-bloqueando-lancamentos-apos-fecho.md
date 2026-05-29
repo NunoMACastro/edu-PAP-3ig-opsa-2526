@@ -1,6 +1,7 @@
 # BK-MF0-08 - Abrir e fechar períodos fiscais, bloqueando lançamentos após fecho.
 
 ## Header
+
 - `doc_id`: `GUIA-BK-MF0-08`
 - `bk_id`: `BK-MF0-08`
 - `macro`: `MF0`
@@ -132,21 +133,21 @@ Este tutorial organiza o BK em passos lineares. O aluno deve seguir de cima para
 Confirmar a regra de negocio do BK, o RF/RNF associado e o impacto nos BKs seguintes antes de escrever codigo.
 
 2. Ficheiros envolvidos:
-   - CRIAR:
-   - Nenhum ficheiro novo neste passo.
-   - EDITAR:
-   - Nenhum ficheiro existente neste passo.
-   - LOCALIZACAO:
-   - Topo deste guia e documentos canonicos de planeamento.
-   - REVER:
-   - README.md
-   - docs/RF.md
-   - docs/RNF.md
-   - docs/planificacao/backlogs/BACKLOG-MVP.md
-   - docs/planificacao/backlogs/MATRIZ-CANONICA-BK.md
-   - docs/planificacao/backlogs/CONTRATO-CAMPOS-BK.md
-   - docs/planificacao/backlogs/MF-VIEWS.md
-   - docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md
+    - CRIAR:
+    - Nenhum ficheiro novo neste passo.
+    - EDITAR:
+    - Nenhum ficheiro existente neste passo.
+    - LOCALIZACAO:
+    - Topo deste guia e documentos canonicos de planeamento.
+    - REVER:
+    - README.md
+    - docs/RF.md
+    - docs/RNF.md
+    - docs/planificacao/backlogs/BACKLOG-MVP.md
+    - docs/planificacao/backlogs/MATRIZ-CANONICA-BK.md
+    - docs/planificacao/backlogs/CONTRATO-CAMPOS-BK.md
+    - docs/planificacao/backlogs/MF-VIEWS.md
+    - docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md
 
 3. Instrucoes do que fazer.
 
@@ -156,7 +157,7 @@ Confirma que nao vais alterar RF, RNF, ID do BK, owner, prioridade ou dependenci
 
 Sem codigo neste passo. O objetivo e impedir drift antes da implementacao.
 
-5. Explicacao didatica e detalhada do codigo.
+5. Explicacao do codigo.
 
 Este passo existe para evitar que o aluno comece por copiar codigo sem perceber o contrato. Num ERP, uma decisao errada no inicio, por exemplo tratar role como global ou ignorar companyId, propaga erros para faturacao, compras, stock e contabilidade.
 
@@ -175,15 +176,15 @@ Se encontrares uma regra que nao aparece em RF/RNF/backlog, nao a implementes: m
 Criar a estrutura persistente que suporta a regra do BK sem duplicados, estados impossiveis ou fuga entre empresas.
 
 2. Ficheiros envolvidos:
-   - CRIAR:
-   - Nenhum ficheiro novo neste passo.
-   - EDITAR:
-   - apps/api/prisma/schema.prisma
-   - LOCALIZACAO:
-   - Inserir os modelos junto dos modelos do mesmo dominio; quando o BK disser para atualizar um modelo existente, substituir o bloco antigo por uma versao coerente.
-   - REVER:
-   - docs/planificacao/backlogs/CONTRATO-CAMPOS-BK.md
-   - BKs anteriores da MF0 que criam modelos reutilizados.
+    - CRIAR:
+    - Nenhum ficheiro novo neste passo.
+    - EDITAR:
+    - apps/api/prisma/schema.prisma
+    - LOCALIZACAO:
+    - Inserir os modelos junto dos modelos do mesmo dominio; quando o BK disser para atualizar um modelo existente, substituir o bloco antigo por uma versao coerente.
+    - REVER:
+    - docs/planificacao/backlogs/CONTRATO-CAMPOS-BK.md
+    - BKs anteriores da MF0 que criam modelos reutilizados.
 
 3. Instrucoes do que fazer.
 
@@ -218,7 +219,6 @@ model FiscalPeriod {
 }
 ```
 
-
 Localizacao: no mesmo ficheiro, substituir o modelo `Company` existente pela versao acumulada ate este BK.
 
 ```prisma
@@ -235,7 +235,8 @@ model Company {
   updatedAt   DateTime            @updatedAt
 }
 ```
-5. Explicacao didatica e detalhada do codigo.
+
+5. Explicacao do codigo.
 
 O schema e a camada mais baixa de integridade. Mesmo que o frontend tenha boas validacoes, a base de dados deve impedir duplicados e relacoes impossiveis. Em OPSA isto e critico porque clientes, fornecedores, artigos, contas SNC, periodos fiscais e armazens alimentam documentos fiscais e contabilisticos futuros.
 
@@ -254,14 +255,14 @@ Tentar criar dois registos que violam uma constraint unica deve falhar com confl
 Validar entradas antes da regra de negocio e isolar detalhes tecnicos como cookies, hash, email ou permissao.
 
 2. Ficheiros envolvidos:
-   - CRIAR:
-   - apps/api/src/modules/fiscal-periods/fiscalPeriodValidators.js
-   - EDITAR:
-   - Nenhum ficheiro existente neste passo.
-   - LOCALIZACAO:
-   - Criar dentro do modulo do dominio em `apps/api/src/modules/...`; helpers partilhados ficam em `apps/api/src/lib` quando usados por varios BKs.
-   - REVER:
-   - docs/RNF.md: RNF05, RNF06, RNF12-RNF17, RNF21 quando existir email.
+    - CRIAR:
+    - apps/api/src/modules/fiscal-periods/fiscalPeriodValidators.js
+    - EDITAR:
+    - Nenhum ficheiro existente neste passo.
+    - LOCALIZACAO:
+    - Criar dentro do modulo do dominio em `apps/api/src/modules/...`; helpers partilhados ficam em `apps/api/src/lib` quando usados por varios BKs.
+    - REVER:
+    - docs/RNF.md: RNF05, RNF06, RNF12-RNF17, RNF21 quando existir email.
 
 3. Instrucoes do que fazer.
 
@@ -275,43 +276,51 @@ Localizacao: criar `apps/api/src/modules/fiscal-periods/fiscalPeriodValidators.j
 import { httpError } from "../../lib/httpErrors.js";
 
 function parseDateOnly(value, field) {
-  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    throw httpError(400, "INVALID_DATE", `${field} deve usar formato YYYY-MM-DD`);
-  }
+    if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+        throw httpError(
+            400,
+            "INVALID_DATE",
+            `${field} deve usar formato YYYY-MM-DD`,
+        );
+    }
 
-  const date = new Date(`${value}T00:00:00.000Z`);
-  if (Number.isNaN(date.getTime())) {
-    throw httpError(400, "INVALID_DATE", `${field} invalida`);
-  }
+    const date = new Date(`${value}T00:00:00.000Z`);
+    if (Number.isNaN(date.getTime())) {
+        throw httpError(400, "INVALID_DATE", `${field} invalida`);
+    }
 
-  return date;
+    return date;
 }
 
 export function validateFiscalPeriodPayload(body) {
-  if (!body || typeof body !== "object" || Array.isArray(body)) {
-    throw httpError(400, "INVALID_BODY", "O corpo do pedido deve ser JSON");
-  }
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+        throw httpError(400, "INVALID_BODY", "O corpo do pedido deve ser JSON");
+    }
 
-  if (typeof body.name !== "string" || body.name.trim().length < 4) {
-    throw httpError(400, "INVALID_PERIOD_NAME", "Nome do periodo invalido");
-  }
+    if (typeof body.name !== "string" || body.name.trim().length < 4) {
+        throw httpError(400, "INVALID_PERIOD_NAME", "Nome do periodo invalido");
+    }
 
-  const startDate = parseDateOnly(body.startDate, "startDate");
-  const endDate = parseDateOnly(body.endDate, "endDate");
+    const startDate = parseDateOnly(body.startDate, "startDate");
+    const endDate = parseDateOnly(body.endDate, "endDate");
 
-  if (endDate <= startDate) {
-    throw httpError(400, "INVALID_PERIOD_RANGE", "Data final deve ser posterior a data inicial");
-  }
+    if (endDate <= startDate) {
+        throw httpError(
+            400,
+            "INVALID_PERIOD_RANGE",
+            "Data final deve ser posterior a data inicial",
+        );
+    }
 
-  return {
-    name: body.name.trim(),
-    startDate,
-    endDate,
-  };
+    return {
+        name: body.name.trim(),
+        startDate,
+        endDate,
+    };
 }
 ```
 
-5. Explicacao didatica e detalhada do codigo.
+5. Explicacao do codigo.
 
 Validadores e helpers tornam o codigo mais facil de testar e explicar. Um aluno consegue perceber que validar NIF, email, datas ou dinheiro nao e detalhe visual: e defesa da integridade da empresa e da contabilidade.
 
@@ -330,14 +339,14 @@ Um payload mal formado nao pode chegar ao Prisma; deve parar no validator com `4
 Concentrar a regra do ERP em funcoes testaveis, separadas de HTTP e frontend.
 
 2. Ficheiros envolvidos:
-   - CRIAR:
-   - apps/api/src/modules/fiscal-periods/fiscalPeriodService.js
-   - EDITAR:
-   - Nenhum ficheiro existente neste passo.
-   - LOCALIZACAO:
-   - Criar no modulo backend do dominio; middlewares reutilizaveis ficam junto do dominio que fornece o contexto.
-   - REVER:
-   - BKs anteriores que fornecem `requireAuth`, `requireCompanyContext`, permissoes, User, Company ou dados mestre.
+    - CRIAR:
+    - apps/api/src/modules/fiscal-periods/fiscalPeriodService.js
+    - EDITAR:
+    - Nenhum ficheiro existente neste passo.
+    - LOCALIZACAO:
+    - Criar no modulo backend do dominio; middlewares reutilizaveis ficam junto do dominio que fornece o contexto.
+    - REVER:
+    - BKs anteriores que fornecem `requireAuth`, `requireCompanyContext`, permissoes, User, Company ou dados mestre.
 
 3. Instrucoes do que fazer.
 
@@ -351,90 +360,121 @@ Localizacao: criar `apps/api/src/modules/fiscal-periods/fiscalPeriodService.js`.
 import { httpError } from "../../lib/httpErrors.js";
 
 function serialize(period) {
-  return {
-    id: period.id,
-    name: period.name,
-    startDate: period.startDate.toISOString().slice(0, 10),
-    endDate: period.endDate.toISOString().slice(0, 10),
-    status: period.status,
-    closedAt: period.closedAt,
-    closedById: period.closedById,
-  };
+    return {
+        id: period.id,
+        name: period.name,
+        startDate: period.startDate.toISOString().slice(0, 10),
+        endDate: period.endDate.toISOString().slice(0, 10),
+        status: period.status,
+        closedAt: period.closedAt,
+        closedById: period.closedById,
+    };
 }
 
 async function assertNoOverlap(prisma, companyId, startDate, endDate) {
-  const overlapping = await prisma.fiscalPeriod.findFirst({
-    where: {
-      companyId,
-      startDate: { lte: endDate },
-      endDate: { gte: startDate },
-    },
-  });
+    const overlapping = await prisma.fiscalPeriod.findFirst({
+        where: {
+            companyId,
+            startDate: { lte: endDate },
+            endDate: { gte: startDate },
+        },
+    });
 
-  if (overlapping) {
-    throw httpError(409, "FISCAL_PERIOD_OVERLAP", "Ja existe periodo fiscal sobreposto");
-  }
+    if (overlapping) {
+        throw httpError(
+            409,
+            "FISCAL_PERIOD_OVERLAP",
+            "Ja existe periodo fiscal sobreposto",
+        );
+    }
 }
 
 export async function listFiscalPeriods(prisma, companyId) {
-  const periods = await prisma.fiscalPeriod.findMany({
-    where: { companyId },
-    orderBy: { startDate: "asc" },
-  });
+    const periods = await prisma.fiscalPeriod.findMany({
+        where: { companyId },
+        orderBy: { startDate: "asc" },
+    });
 
-  return periods.map(serialize);
+    return periods.map(serialize);
 }
 
 export async function createFiscalPeriod(prisma, companyId, input) {
-  await assertNoOverlap(prisma, companyId, input.startDate, input.endDate);
+    await assertNoOverlap(prisma, companyId, input.startDate, input.endDate);
 
-  const period = await prisma.fiscalPeriod.create({
-    data: { companyId, ...input },
-  });
+    const period = await prisma.fiscalPeriod.create({
+        data: { companyId, ...input },
+    });
 
-  return serialize(period);
+    return serialize(period);
 }
 
-export async function closeFiscalPeriod(prisma, { companyId, periodId, actorUserId, now = new Date() }) {
-  const period = await prisma.fiscalPeriod.findFirst({ where: { id: periodId, companyId } });
-  if (!period) throw httpError(404, "FISCAL_PERIOD_NOT_FOUND", "Periodo fiscal nao encontrado");
-  if (period.status === "CLOSED") {
-    throw httpError(409, "FISCAL_PERIOD_ALREADY_CLOSED", "Periodo fiscal ja esta fechado");
-  }
+export async function closeFiscalPeriod(
+    prisma,
+    { companyId, periodId, actorUserId, now = new Date() },
+) {
+    const period = await prisma.fiscalPeriod.findFirst({
+        where: { id: periodId, companyId },
+    });
+    if (!period)
+        throw httpError(
+            404,
+            "FISCAL_PERIOD_NOT_FOUND",
+            "Periodo fiscal nao encontrado",
+        );
+    if (period.status === "CLOSED") {
+        throw httpError(
+            409,
+            "FISCAL_PERIOD_ALREADY_CLOSED",
+            "Periodo fiscal ja esta fechado",
+        );
+    }
 
-  const closed = await prisma.fiscalPeriod.update({
-    where: { id: period.id },
-    data: {
-      status: "CLOSED",
-      closedAt: now,
-      closedById: actorUserId,
-    },
-  });
+    const closed = await prisma.fiscalPeriod.update({
+        where: { id: period.id },
+        data: {
+            status: "CLOSED",
+            closedAt: now,
+            closedById: actorUserId,
+        },
+    });
 
-  return serialize(closed);
+    return serialize(closed);
 }
 
-export async function assertOpenFiscalPeriod(prisma, { companyId, documentDate }) {
-  const date = documentDate instanceof Date ? documentDate : new Date(documentDate);
+export async function assertOpenFiscalPeriod(
+    prisma,
+    { companyId, documentDate },
+) {
+    const date =
+        documentDate instanceof Date ? documentDate : new Date(documentDate);
 
-  const period = await prisma.fiscalPeriod.findFirst({
-    where: {
-      companyId,
-      startDate: { lte: date },
-      endDate: { gte: date },
-    },
-  });
+    const period = await prisma.fiscalPeriod.findFirst({
+        where: {
+            companyId,
+            startDate: { lte: date },
+            endDate: { gte: date },
+        },
+    });
 
-  if (!period) throw httpError(400, "FISCAL_PERIOD_MISSING", "Nao existe periodo fiscal para a data");
-  if (period.status === "CLOSED") {
-    throw httpError(409, "FISCAL_PERIOD_CLOSED", "Periodo fiscal fechado para esta data");
-  }
+    if (!period)
+        throw httpError(
+            400,
+            "FISCAL_PERIOD_MISSING",
+            "Nao existe periodo fiscal para a data",
+        );
+    if (period.status === "CLOSED") {
+        throw httpError(
+            409,
+            "FISCAL_PERIOD_CLOSED",
+            "Periodo fiscal fechado para esta data",
+        );
+    }
 
-  return period;
+    return period;
 }
 ```
 
-5. Explicacao didatica e detalhada do codigo.
+5. Explicacao do codigo.
 
 O service e onde vive a regra de negocio. Isto evita controllers gigantes e impede que a UI seja a unica barreira de seguranca. Em OPSA, esta separacao ajuda a garantir que IA, frontend ou scripts futuros nao alteram dados contabilisticos sem passar pelas mesmas regras.
 
@@ -453,16 +493,16 @@ Tentar aceder a dados de outra empresa, ou executar uma acao sem permissao, deve
 Transformar a regra de negocio em API HTTP previsivel para o frontend e para testes.
 
 2. Ficheiros envolvidos:
-   - CRIAR:
-   - apps/api/src/modules/fiscal-periods/fiscalPeriodController.js
-   - apps/api/src/modules/fiscal-periods/fiscalPeriodRoutes.js
-   - EDITAR:
-   - apps/api/src/server.js
-   - LOCALIZACAO:
-   - Controllers e routes ficam no modulo do dominio; o `server.js` apenas monta o router no prefixo `/api/...`.
-   - REVER:
-   - docs/RNF.md: RNF25 e RNF28
-   - Contratos de endpoints indicados no header do BK.
+    - CRIAR:
+    - apps/api/src/modules/fiscal-periods/fiscalPeriodController.js
+    - apps/api/src/modules/fiscal-periods/fiscalPeriodRoutes.js
+    - EDITAR:
+    - apps/api/src/server.js
+    - LOCALIZACAO:
+    - Controllers e routes ficam no modulo do dominio; o `server.js` apenas monta o router no prefixo `/api/...`.
+    - REVER:
+    - docs/RNF.md: RNF25 e RNF28
+    - Contratos de endpoints indicados no header do BK.
 
 3. Instrucoes do que fazer.
 
@@ -475,47 +515,57 @@ Localizacao: criar `apps/api/src/modules/fiscal-periods/fiscalPeriodController.j
 ```js
 import { toHttpError } from "../../lib/httpErrors.js";
 import { validateFiscalPeriodPayload } from "./fiscalPeriodValidators.js";
-import { closeFiscalPeriod, createFiscalPeriod, listFiscalPeriods } from "./fiscalPeriodService.js";
+import {
+    closeFiscalPeriod,
+    createFiscalPeriod,
+    listFiscalPeriods,
+} from "./fiscalPeriodService.js";
 
 function sendError(res, error) {
-  const httpError = toHttpError(error);
-  return res.status(httpError.status).json({ error: httpError.code, message: httpError.message });
+    const httpError = toHttpError(error);
+    return res
+        .status(httpError.status)
+        .json({ error: httpError.code, message: httpError.message });
 }
 
 export function buildFiscalPeriodController({ prisma }) {
-  return {
-    async list(req, res) {
-      try {
-        const periods = await listFiscalPeriods(prisma, req.companyId);
-        return res.status(200).json({ periods });
-      } catch (error) {
-        return sendError(res, error);
-      }
-    },
+    return {
+        async list(req, res) {
+            try {
+                const periods = await listFiscalPeriods(prisma, req.companyId);
+                return res.status(200).json({ periods });
+            } catch (error) {
+                return sendError(res, error);
+            }
+        },
 
-    async create(req, res) {
-      try {
-        const input = validateFiscalPeriodPayload(req.body);
-        const period = await createFiscalPeriod(prisma, req.companyId, input);
-        return res.status(201).json({ period });
-      } catch (error) {
-        return sendError(res, error);
-      }
-    },
+        async create(req, res) {
+            try {
+                const input = validateFiscalPeriodPayload(req.body);
+                const period = await createFiscalPeriod(
+                    prisma,
+                    req.companyId,
+                    input,
+                );
+                return res.status(201).json({ period });
+            } catch (error) {
+                return sendError(res, error);
+            }
+        },
 
-    async close(req, res) {
-      try {
-        const period = await closeFiscalPeriod(prisma, {
-          companyId: req.companyId,
-          periodId: req.params.id,
-          actorUserId: req.user.id,
-        });
-        return res.status(200).json({ period });
-      } catch (error) {
-        return sendError(res, error);
-      }
-    },
-  };
+        async close(req, res) {
+            try {
+                const period = await closeFiscalPeriod(prisma, {
+                    companyId: req.companyId,
+                    periodId: req.params.id,
+                    actorUserId: req.user.id,
+                });
+                return res.status(200).json({ period });
+            } catch (error) {
+                return sendError(res, error);
+            }
+        },
+    };
 }
 ```
 
@@ -530,34 +580,34 @@ import { requirePermission } from "../permissions/permissionMiddleware.js";
 import { buildFiscalPeriodController } from "./fiscalPeriodController.js";
 
 export function buildFiscalPeriodRoutes({ prisma }) {
-  const router = Router();
-  const controller = buildFiscalPeriodController({ prisma });
+    const router = Router();
+    const controller = buildFiscalPeriodController({ prisma });
 
-  router.get(
-    "/",
-    requireAuth(prisma),
-    requireCompanyContext(prisma),
-    requirePermission(Permission.FISCAL_PERIODS_READ),
-    controller.list,
-  );
+    router.get(
+        "/",
+        requireAuth(prisma),
+        requireCompanyContext(prisma),
+        requirePermission(Permission.FISCAL_PERIODS_READ),
+        controller.list,
+    );
 
-  router.post(
-    "/",
-    requireAuth(prisma),
-    requireCompanyContext(prisma),
-    requirePermission(Permission.FISCAL_PERIODS_MANAGE),
-    controller.create,
-  );
+    router.post(
+        "/",
+        requireAuth(prisma),
+        requireCompanyContext(prisma),
+        requirePermission(Permission.FISCAL_PERIODS_MANAGE),
+        controller.create,
+    );
 
-  router.post(
-    "/:id/close",
-    requireAuth(prisma),
-    requireCompanyContext(prisma),
-    requirePermission(Permission.FISCAL_PERIODS_MANAGE),
-    controller.close,
-  );
+    router.post(
+        "/:id/close",
+        requireAuth(prisma),
+        requireCompanyContext(prisma),
+        requirePermission(Permission.FISCAL_PERIODS_MANAGE),
+        controller.close,
+    );
 
-  return router;
+    return router;
 }
 ```
 
@@ -569,7 +619,7 @@ import { buildFiscalPeriodRoutes } from "./modules/fiscal-periods/fiscalPeriodRo
 app.use("/api/fiscal-periods", buildFiscalPeriodRoutes({ prisma }));
 ```
 
-5. Explicacao didatica e detalhada do codigo.
+5. Explicacao do codigo.
 
 A API e o contrato entre backend e frontend. Ao manter controller pequeno, o aluno percebe onde colocar cada responsabilidade: validacao no validator, regra no service, transporte HTTP no controller/route.
 
@@ -588,15 +638,15 @@ Sem sessao, sem empresa ativa ou sem permissao, o endpoint deve devolver `401` o
 Demonstrar que o BK funciona para o caso principal e falha bem nos casos perigosos.
 
 2. Ficheiros envolvidos:
-   - CRIAR:
-   - docs/evidence/<BK_ID>.md quando a equipa fechar o BK.
-   - EDITAR:
-   - Nenhum ficheiro existente neste passo.
-   - LOCALIZACAO:
-   - Evidence do PR/defesa e testes automatizados quando existirem.
-   - REVER:
-   - Payloads e negativos abaixo.
-   - docs/planificacao/sprints/PLANO-SPRINTS.md quando existir planeamento de sprint.
+    - CRIAR:
+    - docs/evidence/<BK_ID>.md quando a equipa fechar o BK.
+    - EDITAR:
+    - Nenhum ficheiro existente neste passo.
+    - LOCALIZACAO:
+    - Evidence do PR/defesa e testes automatizados quando existirem.
+    - REVER:
+    - Payloads e negativos abaixo.
+    - docs/planificacao/sprints/PLANO-SPRINTS.md quando existir planeamento de sprint.
 
 3. Instrucoes do que fazer.
 
@@ -608,9 +658,9 @@ Pedido `POST /api/fiscal-periods`:
 
 ```json
 {
-  "name": "2026",
-  "startDate": "2026-01-01",
-  "endDate": "2026-12-31"
+    "name": "2026",
+    "startDate": "2026-01-01",
+    "endDate": "2026-12-31"
 }
 ```
 
@@ -618,15 +668,15 @@ Resposta `201`:
 
 ```json
 {
-  "period": {
-    "id": "uuid-periodo",
-    "name": "2026",
-    "startDate": "2026-01-01",
-    "endDate": "2026-12-31",
-    "status": "OPEN",
-    "closedAt": null,
-    "closedById": null
-  }
+    "period": {
+        "id": "uuid-periodo",
+        "name": "2026",
+        "startDate": "2026-01-01",
+        "endDate": "2026-12-31",
+        "status": "OPEN",
+        "closedAt": null,
+        "closedById": null
+    }
 }
 ```
 
@@ -650,7 +700,7 @@ Erros esperados:
 
 #
 
-5. Explicacao didatica e detalhada do codigo.
+5. Explicacao do codigo.
 
 Testar negativos ensina que seguranca nao e so o caminho feliz. Um ERP deve recusar dados fiscais invalidos, acessos sem role, conflitos de unicidade e alteracoes em periodos fechados de forma previsivel.
 
@@ -669,14 +719,14 @@ Se um erro devolve stack trace, segredo, dados de outra empresa ou status generi
 Fechar o BK como tutorial tecnico que o proximo aluno consegue continuar sem adivinhar contratos.
 
 2. Ficheiros envolvidos:
-   - CRIAR:
-   - docs/evidence/<BK_ID>.md ou descricao equivalente no PR.
-   - EDITAR:
-   - Secao Evidence deste guia apenas quando houver PR/defesa real.
-   - LOCALIZACAO:
-   - Fim do guia: criterios, validacao final, evidence, handoff e changelog.
-   - REVER:
-   - BK seguinte indicado em `proximo_bk` e BKs dependentes futuros.
+    - CRIAR:
+    - docs/evidence/<BK_ID>.md ou descricao equivalente no PR.
+    - EDITAR:
+    - Secao Evidence deste guia apenas quando houver PR/defesa real.
+    - LOCALIZACAO:
+    - Fim do guia: criterios, validacao final, evidence, handoff e changelog.
+    - REVER:
+    - BK seguinte indicado em `proximo_bk` e BKs dependentes futuros.
 
 3. Instrucoes do que fazer.
 
@@ -689,7 +739,7 @@ Decisoes em falta a manter visiveis durante a implementacao:
 - O guia original lista `POST /api/fiscal-periods/:id/reopen`, mas RF08 so documenta abrir/fechar e bloquear lancamentos apos fecho. Reabertura pode ter impacto legal/auditoria; parar esse ponto ate existir regra documental.
 - Falta BK de auditoria operacional. Enquanto nao existir, o fecho deve registar `closedById` e `closedAt`; quando auditoria estiver disponivel, adicionar evento de auditoria sem mudar a regra principal.
 
-5. Explicacao didatica e detalhada do codigo.
+5. Explicacao do codigo.
 
 O handoff protege continuidade. Num projeto PAP com varios alunos, a qualidade nao esta so no codigo: esta tambem em deixar claro o que ficou decidido, o que ainda falta decidir e que contratos o proximo BK pode reutilizar.
 
@@ -700,7 +750,6 @@ Confirma que o final do BK contem apenas criterios de aceite, validacao final, e
 7. Cenario negativo/erro esperado.
 
 Se o handoff diz para usar algo que nao foi criado neste BK ou num BK anterior, ha contrato partido e deve ser corrigido antes de avancar.
-
 
 ## Criterios de aceite
 
