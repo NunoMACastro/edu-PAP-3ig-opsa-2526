@@ -1,0 +1,3 @@
+"scripts": {
+  "dev": "nodemon src/server.js"
+}
