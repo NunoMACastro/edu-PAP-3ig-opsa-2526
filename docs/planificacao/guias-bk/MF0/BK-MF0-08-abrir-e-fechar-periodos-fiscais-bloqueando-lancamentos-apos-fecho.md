@@ -121,222 +121,609 @@ Como a fase alvo e MF0, nao existem BKs de fases anteriores a reutilizar. A cont
 - **Erros comuns a evitar:** implementar so no frontend, confiar em dados enviados pelo browser, esquecer `companyId` nos dados por empresa, devolver mensagens tecnicas cruas ao utilizador ou criar campos que nao aparecem nos RF/RNF.
 - **Negativos de seguranca/robustez:** todos os casos invalidos devem falhar de forma controlada, sem stack traces, sem dados sensiveis e sem escrita parcial na base de dados.
 
-#### Guia de execucao (passo-a-passo) (DERIVADO):
+#### Tutorial tecnico linear (DERIVADO):
 
-0. **Objetivo (~10 min): Confirmar contrato e preparar ambiente**
-   - Descricao detalhada do objetivo: Rever o requisito RF08, a linha do BK-MF0-08 no backlog/matriz e confirmar que o repositorio ainda esta em modo sem codigo real fora do mockup.
-   - Justificacao: Evita implementar campos, endpoints ou papeis que nao existem no contrato canonico.
-   - Como fazer (0.1): Abrir docs/RF.md, BACKLOG-MVP.md, MATRIZ-CANONICA-BK.md e este guia.
-   - Como fazer (0.2): Consultar `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md` e confirmar se o scaffold real segue a estrutura indicativa; se nao seguir, mapear caminho do guia -> caminho real na evidence do BK.
-   - Ficheiro a rever: docs/RF.md; docs/planificacao/backlogs/BACKLOG-MVP.md; docs/planificacao/backlogs/MATRIZ-CANONICA-BK.md
-   - Ficheiro alvo: `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md`; package.json/scaffold real da app
-   - Snippet de referencia: `BK-MF0-08 -> RF08 -> GET /api/fiscal-periods, POST /api/fiscal-periods, POST /api/fiscal-periods/:id/close, POST /api/fiscal-periods/:id/reopen`
-   - O que verificar: Metadados preservados e sem drift entre guia, backlog e matriz.
+Este tutorial organiza o BK em passos lineares. O aluno deve seguir de cima para baixo: confirmar contratos, modelar dados, validar entradas, implementar regras de negocio, expor HTTP, testar e deixar handoff. Sempre que o scaffold real ainda nao existir, usar a estrutura prevista em `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md` e registar a adaptacao na evidence.
 
-1. **Objetivo (~25 min): Modelar dados e constraints**
-   - Descricao detalhada do objetivo: Criar ou ajustar o schema para FiscalPeriod, sempre com isolamento por empresa quando o dado pertencer a uma empresa.
-   - Justificacao: A integridade da base de dados deve impedir duplicados e estados impossiveis mesmo antes da UI existir.
-   - Como fazer (1.1): Adicionar modelos e campos minimos no schema.
-   - Como fazer (1.2): Adicionar constraints unicas, relacoes e indices necessarios para o caso principal do BK.
-   - Ficheiro a rever: docs/planificacao/backlogs/CONTRATO-CAMPOS-BK.md; mockup/src/app/types.ts
-   - Ficheiro alvo: apps/api/prisma/schema.prisma
-   - Snippet de referencia: `model FiscalPeriod { /* BK-MF0-08 */ }`
-   - O que verificar: Migration criada ou schema atualizado sem campos fora do RF.
+### Passo 1 - Confirmar contrato, scope e ligacao aos BKs vizinhos
 
-2. **Objetivo (~25 min): Criar validadores backend**
-   - Descricao detalhada do objetivo: Implementar validacao explicita para payloads de contabilidade.
-   - Justificacao: Validar no frontend melhora UX, mas apenas o backend protege a base de dados e a API contra chamadas diretas.
-   - Como fazer (2.1): Criar funcoes pequenas em validators com mensagens claras em portugues de Portugal.
-   - Como fazer (2.2): Cobrir obrigatorios, formatos, duplicados previsiveis e valores fora de intervalo.
-   - Ficheiro a rever: docs/RNF.md (RNF05, RNF06, RNF15)
-   - Ficheiro alvo: apps/api/src/modules/contabilidade/validators.js
-   - Snippet de referencia: `validateFiscalPeriod(req.body)`
-   - O que verificar: Payload invalido devolve 400 com mensagem acionavel.
+1. Objetivo funcional do passo no ERP.
 
-3. **Objetivo (~25 min): Implementar service de negocio**
-   - Descricao detalhada do objetivo: Criar o service que executa a regra principal do BK-MF0-08.
-   - Justificacao: Controllers devem ser finos; services concentram regras e tornam testes mais simples.
-   - Como fazer (3.1): Criar funcoes async com companyId, actor/user e payload validado.
-   - Como fazer (3.2): Garantir que o service nao consulta nem altera dados fora da empresa ativa.
-   - Ficheiro a rever: docs/RNF.md (RNF25, RNF28)
-   - Ficheiro alvo: apps/api/src/modules/contabilidade/services.js
-   - Snippet de referencia: `await contabilidadeService.execute({ companyId, actor, input })`
-   - O que verificar: Service testavel sem HTTP e com erros controlados.
+Confirmar a regra de negocio do BK, o RF/RNF associado e o impacto nos BKs seguintes antes de escrever codigo.
 
-4. **Objetivo (~25 min): Expor rotas e controller**
-   - Descricao detalhada do objetivo: Criar endpoints: GET /api/fiscal-periods, POST /api/fiscal-periods, POST /api/fiscal-periods/:id/close, POST /api/fiscal-periods/:id/reopen.
-   - Justificacao: Rotas Express sao o contrato entre frontend e backend; devem ter codigos HTTP previsiveis.
-   - Como fazer (4.1): Criar router e controller para chamar validadores, middleware de sessao/permissao e service.
-   - Como fazer (4.2): Adicionar tratamento de erro para 400, 401, 403, 409 quando aplicavel.
-   - Ficheiro a rever: docs/RNF.md (RNF25, RNF28)
-   - Ficheiro alvo: apps/api/src/modules/contabilidade/routes.js; apps/api/src/modules/contabilidade/controller.js
-   - Snippet de referencia: `router.post('/...', requireAuth, controller.handler)`
-   - O que verificar: Endpoint valido devolve codigo esperado e JSON sem dados sensiveis.
+2. Ficheiros envolvidos:
+   - CRIAR:
+   - Nenhum ficheiro novo neste passo.
+   - EDITAR:
+   - Nenhum ficheiro existente neste passo.
+   - LOCALIZACAO:
+   - Topo deste guia e documentos canonicos de planeamento.
+   - REVER:
+   - README.md
+   - docs/RF.md
+   - docs/RNF.md
+   - docs/planificacao/backlogs/BACKLOG-MVP.md
+   - docs/planificacao/backlogs/MATRIZ-CANONICA-BK.md
+   - docs/planificacao/backlogs/CONTRATO-CAMPOS-BK.md
+   - docs/planificacao/backlogs/MF-VIEWS.md
+   - docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md
 
-5. **Objetivo (~25 min): Ligar frontend ao mockup**
-   - Descricao detalhada do objetivo: Transformar a referencia visual do mockup em fluxo real sem exigir pixel-perfect. Referencia UI: mockup/src/app/components/modules/Configuracoes.tsx, card Periodos Fiscais.
-   - Justificacao: O mockup orienta nomes, hierarquia e fluxo, mas o contrato da app deve ficar extensivel.
-   - Como fazer (5.1): Criar cliente API no frontend e substituir dados mock/local por chamadas HTTP.
-   - Como fazer (5.2): Implementar loading, error, empty e success quando fizer sentido.
-   - Ficheiro a rever: mockup/src/app/components/modules/Configuracoes.tsx, card Periodos Fiscais
-   - Ficheiro alvo: apps/web/src/modules/contabilidade/; apps/web/src/lib/apiClient.ts
-   - Snippet de referencia: `apiClient.request('GET /api/fiscal-periods')`
-   - O que verificar: A UI mostra dados reais/mockados por API e nao quebra responsividade basica.
+3. Instrucoes do que fazer.
 
-6. **Objetivo (~25 min): Executar smoke e negativos**
-   - Descricao detalhada do objetivo: Validar o caso principal e os cenarios negativos minimos do BK-MF0-08.
-   - Justificacao: Sem evidencia, o BK nao esta pronto para PR nem defesa PAP.
-   - Como fazer (6.1): Executar smoke com curl, browser ou teste automatizado conforme o endpoint.
-   - Como fazer (6.2): Executar os negativos listados no checklist e guardar resposta/captura.
-   - Ficheiro a rever: docs/planificacao/sprints/PLANO-SPRINTS.md
-   - Ficheiro alvo: apps/api/tests/BK-MF0-08.test.js; docs/evidence/BK-MF0-08.md
-   - Snippet de referencia: `curl -i http://localhost:3000/api/fiscal-periods`
-   - O que verificar: Smoke aprovado e pelo menos 3 negativos registados.
+Confirma que nao vais alterar RF, RNF, ID do BK, owner, prioridade ou dependencias. Se o scaffold real divergir de `apps/api` e `apps/web`, adapta caminhos sem alterar contratos de negocio e regista essa decisao na evidence.
 
-7. **Objetivo (~15 min): Preparar handoff e evidence**
-   - Descricao detalhada do objetivo: Registar o que ficou construido, os ficheiros alterados, comandos e riscos para o proximo BK (BK-MF0-09).
-   - Justificacao: O proximo aluno deve conseguir continuar sem descobrir contratos por tentativa e erro.
-   - Como fazer (7.1): Preencher Evidence com PR, proof, neg, files, commands e screenshots.
-   - Como fazer (7.2): Adicionar TODOs reais sem marcar o BK como DONE apenas por existir guia.
-   - Ficheiro a rever: Este guia; BACKLOG-MVP.md
-   - Ficheiro alvo: docs/evidence/BK-MF0-08.md ou descricao do PR
-   - Snippet de referencia: `handoff.next = 'BK-MF0-09'`
-   - O que verificar: Handoff referencia contratos reutilizaveis e riscos abertos.
+4. Codigo completo, correto e integrado com a app final.
 
-#### Checklist de validacao (DERIVADO):
+Sem codigo neste passo. O objetivo e impedir drift antes da implementacao.
 
-- Smoke: executar o fluxo principal de `GET /api/fiscal-periods` e confirmar resultado funcional na UI/API.
-- Tecnico: correr lint/testes disponiveis; se ainda nao existirem scripts, registar `TODO` e executar pelo menos smoke manual com `curl`.
-- Regressao das fases anteriores: MF0 nao tem fases anteriores, mas nao pode quebrar BKs MF0 ja executados na mesma sprint.
-- UI/mockup: comparar nomes e fluxo com `mockup/src/app/components/modules/Configuracoes.tsx, card Periodos Fiscais`, sem exigir pixel-perfect.
-- Seguranca: confirmar que dados invalidos nao sao persistidos e que respostas nao expoem stack traces nem segredos.
-- Negativos: minimo `3` cenarios para prioridade `P0`.
+5. Explicacao didatica e detalhada do codigo.
 
-| Negativo | Passo | Input/acao | Resultado esperado | Risco que cobre |
-| --- | --- | --- | --- | --- |
-| N1 | 6 | Criar periodo com datas sobrepostas. | Resposta 409. | Evita ambiguidade temporal. |
-| N2 | 6 | Registar lancamento em data de periodo fechado. | Resposta 403 ou 409. | Evita alteracao contabilistica indevida. |
-| N3 | 6 | Operacional tenta fechar periodo. | Resposta 403. | Evita operacao sensivel sem permissao. |
+Este passo existe para evitar que o aluno comece por copiar codigo sem perceber o contrato. Num ERP, uma decisao errada no inicio, por exemplo tratar role como global ou ignorar companyId, propaga erros para faturacao, compras, stock e contabilidade.
 
-#### Criterios de aceite:
+6. Validacao do passo.
 
-- Outputs:
-- Tabela FiscalPeriod por empresa.
-- Service de abertura/fecho com validacao de datas.
-- Guard reutilizavel para compras, vendas e contabilidade.
-- Frontend mostra periodo atual e anteriores conforme mockup.
-- Handoff para dados mestre e fases de lancamentos.
-- Verificacoes:
-- Caso valido de `GET /api/fiscal-periods` concluido com codigo HTTP adequado.
-- Pelo menos 3 negativos executados e documentados.
-- Build/lint/testes disponiveis executados ou justificada a impossibilidade.
-- Qualidade:
-- Sem duplicacao grosseira entre controller/service/validator.
-- Mensagens de erro em portugues de Portugal e acionaveis.
-- Sem secrets no codigo, logs ou evidence.
-- Continuidade:
-- O BK seguinte `BK-MF0-09` consegue reutilizar os contratos deste BK.
-- Sem drift em owner, prioridade, dependencias ou RF/RNF.
-- Qualquer decisao nao confirmada fica marcada como TODO/BLOCKER.
-- Evidencia:
-- PR ou commit identificado.
-- Comandos executados registados.
-- Screenshots ou outputs do smoke e negativos anexados quando houver UI/API.
+Antes de avancar, escreve na evidence qual RF/RNF cobre este BK e que BK seguinte depende dele.
 
-#### Evidence (para o PR/defesa):
+7. Cenario negativo/erro esperado.
 
-- `pr`: `A preencher no fecho do BK`
-- `proof`: `A preencher apos validacao`
-- `neg`: `A preencher apos testes negativos`
-- `files`: `A preencher com ficheiros criados/editados`
-- `commands`: `A preencher com npm/prisma/curl/testes executados`
-- `screenshots`: `A preencher se houver UI alterada`
-- `notes`: `A preencher com decisoes tecnicas, assuncoes e desvios aprovados`
+Se encontrares uma regra que nao aparece em RF/RNF/backlog, nao a implementes: marca como decisao em falta no Passo 7.
 
-#### TODOs
+### Passo 2 - Modelar dados e constraints na base de dados
 
-- TODO normal: confirmar nomes finais das pastas da app real quando a equipa iniciar codigo.
-- TODO normal: criar scripts lint, test e dev se ainda nao existirem.
-- TODO (BLOCKER): nao fechar o BK como DONE sem evidence real de smoke e negativos.
-- Assuncao de stack: consultar `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md`; qualquer adaptacao de paths deve ficar documentada na evidence do BK.
-- Decisao dependente de mockup: manter fluxo e nomes principais, mas evoluir design sem obrigacao pixel-perfect.
-- Decisao dependente de app/codigo ainda inexistente: adaptar caminhos se a equipa escolher outra estrutura, preservando contratos.
-- FOLLOW-UP: todos os services de documentos/lancamentos futuros devem chamar assertOpenFiscalPeriod.
+1. Objetivo funcional do passo no ERP.
 
-## Bloco pedagogico
+Criar a estrutura persistente que suporta a regra do BK sem duplicados, estados impossiveis ou fuga entre empresas.
 
-### Objetivo
+2. Ficheiros envolvidos:
+   - CRIAR:
+   - Nenhum ficheiro novo neste passo.
+   - EDITAR:
+   - apps/api/prisma/schema.prisma
+   - LOCALIZACAO:
+   - Inserir os modelos junto dos modelos do mesmo dominio; quando o BK disser para atualizar um modelo existente, substituir o bloco antigo por uma versao coerente.
+   - REVER:
+   - docs/planificacao/backlogs/CONTRATO-CAMPOS-BK.md
+   - BKs anteriores da MF0 que criam modelos reutilizados.
 
-Construir Abrir e fechar períodos fiscais, bloqueando lançamentos após fecho de forma executavel, segura e rastreavel ao RF08.
+3. Instrucoes do que fazer.
 
-### Pre-requisitos
+Aplica primeiro o schema. Se o modelo pertencer a uma empresa, usa `companyId` e indices/constraints por empresa. Se o modelo atualizar `User`, `Company` ou `Session`, faz a substituicao completa indicada para evitar campos duplicados ou relacoes partidas.
 
-- Ler RF08, este guia e os documentos canonicos indicados na pre-leitura.
-- Confirmar dependencias: BK-MF0-07.
+4. Codigo completo, correto e integrado com a app final.
 
-### Erros comuns
+Localizacao: acrescentar a `apps/api/prisma/schema.prisma`.
 
-- Implementar apenas a UI sem endpoint real.
-- Ignorar validacao backend porque o formulario ja valida.
-- Alterar metadados canonicos sem atualizar backlog/matriz.
+```prisma
+enum FiscalPeriodStatus {
+  OPEN
+  CLOSED
+}
 
-### Check de compreensao
+model FiscalPeriod {
+  id          String             @id @default(uuid())
+  companyId   String
+  name        String
+  startDate   DateTime
+  endDate     DateTime
+  status      FiscalPeriodStatus @default(OPEN)
+  closedAt    DateTime?
+  closedById  String?
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
 
-- [ ] Sei explicar que parte da app fica pronta no BK-MF0-08.
-- [ ] Sei indicar que ficheiros devo criar/editar/rever.
-- [ ] Sei demonstrar 3 cenarios negativos.
+  company Company @relation(fields: [companyId], references: [id])
 
-### Tempo estimado
+  @@unique([companyId, name])
+  @@index([companyId, startDate, endDate])
+}
+```
 
-- `Core`: `90-120 min`.
-- `Reforco`: `+30-45 min` para hardening, negativos e evidence.
 
-## Bloco operacional
+Localizacao: no mesmo ficheiro, substituir o modelo `Company` existente pela versao acumulada ate este BK.
 
-### Entrada
+```prisma
+model Company {
+  id          String              @id @default(uuid())
+  name        String
+  nif         String?             @unique
+  memberships CompanyMembership[]
+  invitations CompanyInvitation[]
+  profile CompanyProfile?
+  accounts Account[]
+  fiscalPeriods FiscalPeriod[]
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+}
+```
+5. Explicacao didatica e detalhada do codigo.
 
-- BK: `BK-MF0-08`
-- Requisito: `RF08`
-- Dependencias: `BK-MF0-07`
-- Endpoint(s): `GET /api/fiscal-periods, POST /api/fiscal-periods, POST /api/fiscal-periods/:id/close, POST /api/fiscal-periods/:id/reopen`
+O schema e a camada mais baixa de integridade. Mesmo que o frontend tenha boas validacoes, a base de dados deve impedir duplicados e relacoes impossiveis. Em OPSA isto e critico porque clientes, fornecedores, artigos, contas SNC, periodos fiscais e armazens alimentam documentos fiscais e contabilisticos futuros.
 
-### Passos
+6. Validacao do passo.
 
-- Seguir o passo-a-passo detalhado na seccao `Guia de execucao` deste ficheiro.
+Executa a geracao/migracao Prisma quando o scaffold existir e confirma que nao ha nomes de modelos ou relacoes duplicados.
 
-### Validacao
+7. Cenario negativo/erro esperado.
 
-- Smoke principal + Negativos: minimo `3` + regressao dos BKs MF0 ja fechados.
+Tentar criar dois registos que violam uma constraint unica deve falhar com conflito controlado, normalmente `409` no service/controller.
 
-### Handoff
+### Passo 3 - Criar validadores, helpers e adaptadores de infraestrutura
 
-- Proximo BK recomendado: `BK-MF0-09`.
-- Registar contratos reutilizaveis, riscos e evidence antes de pedir review.
+1. Objetivo funcional do passo no ERP.
 
-## Snippet tecnico aplicavel
+Validar entradas antes da regra de negocio e isolar detalhes tecnicos como cookies, hash, email ou permissao.
 
-Contexto de rastreabilidade: `BK-MF0-08` -> `RF08`.
+2. Ficheiros envolvidos:
+   - CRIAR:
+   - apps/api/src/modules/fiscal-periods/fiscalPeriodValidators.js
+   - EDITAR:
+   - Nenhum ficheiro existente neste passo.
+   - LOCALIZACAO:
+   - Criar dentro do modulo do dominio em `apps/api/src/modules/...`; helpers partilhados ficam em `apps/api/src/lib` quando usados por varios BKs.
+   - REVER:
+   - docs/RNF.md: RNF05, RNF06, RNF12-RNF17, RNF21 quando existir email.
+
+3. Instrucoes do que fazer.
+
+Cria estes ficheiros antes dos services. Os services devem receber dados ja normalizados e nao devem repetir regex ou parse manual espalhado pelo codigo.
+
+4. Codigo completo, correto e integrado com a app final.
+
+Localizacao: criar `apps/api/src/modules/fiscal-periods/fiscalPeriodValidators.js`.
+
 ```js
-export async function assertOpenFiscalPeriod(companyId, date) {
-  const period = await fiscalPeriods.findByDate(companyId, date);
-  if (!period) throw new Error("Periodo fiscal inexistente");
-  if (period.status === "CLOSED") throw new Error("Periodo fiscal fechado");
+import { httpError } from "../../lib/httpErrors.js";
+
+function parseDateOnly(value, field) {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    throw httpError(400, "INVALID_DATE", `${field} deve usar formato YYYY-MM-DD`);
+  }
+
+  const date = new Date(`${value}T00:00:00.000Z`);
+  if (Number.isNaN(date.getTime())) {
+    throw httpError(400, "INVALID_DATE", `${field} invalida`);
+  }
+
+  return date;
+}
+
+export function validateFiscalPeriodPayload(body) {
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    throw httpError(400, "INVALID_BODY", "O corpo do pedido deve ser JSON");
+  }
+
+  if (typeof body.name !== "string" || body.name.trim().length < 4) {
+    throw httpError(400, "INVALID_PERIOD_NAME", "Nome do periodo invalido");
+  }
+
+  const startDate = parseDateOnly(body.startDate, "startDate");
+  const endDate = parseDateOnly(body.endDate, "endDate");
+
+  if (endDate <= startDate) {
+    throw httpError(400, "INVALID_PERIOD_RANGE", "Data final deve ser posterior a data inicial");
+  }
+
+  return {
+    name: body.name.trim(),
+    startDate,
+    endDate,
+  };
+}
+```
+
+5. Explicacao didatica e detalhada do codigo.
+
+Validadores e helpers tornam o codigo mais facil de testar e explicar. Um aluno consegue perceber que validar NIF, email, datas ou dinheiro nao e detalhe visual: e defesa da integridade da empresa e da contabilidade.
+
+6. Validacao do passo.
+
+Testa payloads invalidos diretamente contra as funcoes ou endpoint e confirma resposta `400` com mensagem clara.
+
+7. Cenario negativo/erro esperado.
+
+Um payload mal formado nao pode chegar ao Prisma; deve parar no validator com `400`.
+
+### Passo 4 - Implementar services e middleware de regra de negocio
+
+1. Objetivo funcional do passo no ERP.
+
+Concentrar a regra do ERP em funcoes testaveis, separadas de HTTP e frontend.
+
+2. Ficheiros envolvidos:
+   - CRIAR:
+   - apps/api/src/modules/fiscal-periods/fiscalPeriodService.js
+   - EDITAR:
+   - Nenhum ficheiro existente neste passo.
+   - LOCALIZACAO:
+   - Criar no modulo backend do dominio; middlewares reutilizaveis ficam junto do dominio que fornece o contexto.
+   - REVER:
+   - BKs anteriores que fornecem `requireAuth`, `requireCompanyContext`, permissoes, User, Company ou dados mestre.
+
+3. Instrucoes do que fazer.
+
+Implementa services depois dos validadores. Quando houver dados empresariais, recebe sempre `companyId` vindo da sessao/contexto, nunca do body. Quando houver role/permissao, garante que a rota chama o guard antes do service.
+
+4. Codigo completo, correto e integrado com a app final.
+
+Localizacao: criar `apps/api/src/modules/fiscal-periods/fiscalPeriodService.js`.
+
+```js
+import { httpError } from "../../lib/httpErrors.js";
+
+function serialize(period) {
+  return {
+    id: period.id,
+    name: period.name,
+    startDate: period.startDate.toISOString().slice(0, 10),
+    endDate: period.endDate.toISOString().slice(0, 10),
+    status: period.status,
+    closedAt: period.closedAt,
+    closedById: period.closedById,
+  };
+}
+
+async function assertNoOverlap(prisma, companyId, startDate, endDate) {
+  const overlapping = await prisma.fiscalPeriod.findFirst({
+    where: {
+      companyId,
+      startDate: { lte: endDate },
+      endDate: { gte: startDate },
+    },
+  });
+
+  if (overlapping) {
+    throw httpError(409, "FISCAL_PERIOD_OVERLAP", "Ja existe periodo fiscal sobreposto");
+  }
+}
+
+export async function listFiscalPeriods(prisma, companyId) {
+  const periods = await prisma.fiscalPeriod.findMany({
+    where: { companyId },
+    orderBy: { startDate: "asc" },
+  });
+
+  return periods.map(serialize);
+}
+
+export async function createFiscalPeriod(prisma, companyId, input) {
+  await assertNoOverlap(prisma, companyId, input.startDate, input.endDate);
+
+  const period = await prisma.fiscalPeriod.create({
+    data: { companyId, ...input },
+  });
+
+  return serialize(period);
+}
+
+export async function closeFiscalPeriod(prisma, { companyId, periodId, actorUserId, now = new Date() }) {
+  const period = await prisma.fiscalPeriod.findFirst({ where: { id: periodId, companyId } });
+  if (!period) throw httpError(404, "FISCAL_PERIOD_NOT_FOUND", "Periodo fiscal nao encontrado");
+  if (period.status === "CLOSED") {
+    throw httpError(409, "FISCAL_PERIOD_ALREADY_CLOSED", "Periodo fiscal ja esta fechado");
+  }
+
+  const closed = await prisma.fiscalPeriod.update({
+    where: { id: period.id },
+    data: {
+      status: "CLOSED",
+      closedAt: now,
+      closedById: actorUserId,
+    },
+  });
+
+  return serialize(closed);
+}
+
+export async function assertOpenFiscalPeriod(prisma, { companyId, documentDate }) {
+  const date = documentDate instanceof Date ? documentDate : new Date(documentDate);
+
+  const period = await prisma.fiscalPeriod.findFirst({
+    where: {
+      companyId,
+      startDate: { lte: date },
+      endDate: { gte: date },
+    },
+  });
+
+  if (!period) throw httpError(400, "FISCAL_PERIOD_MISSING", "Nao existe periodo fiscal para a data");
+  if (period.status === "CLOSED") {
+    throw httpError(409, "FISCAL_PERIOD_CLOSED", "Periodo fiscal fechado para esta data");
+  }
+
   return period;
 }
 ```
 
-Este snippet e referencia pequena, nao substitui a implementacao completa. Deve ser adaptado ao modulo real mantendo validacao, tratamento de erros e separacao de responsabilidades.
+5. Explicacao didatica e detalhada do codigo.
+
+O service e onde vive a regra de negocio. Isto evita controllers gigantes e impede que a UI seja a unica barreira de seguranca. Em OPSA, esta separacao ajuda a garantir que IA, frontend ou scripts futuros nao alteram dados contabilisticos sem passar pelas mesmas regras.
+
+6. Validacao do passo.
+
+Testa o service com dados validos e invalidos. Confirma que queries usam `companyId` quando aplicavel e que estados sensiveis devolvem `409` ou `403` conforme o caso.
+
+7. Cenario negativo/erro esperado.
+
+Tentar aceder a dados de outra empresa, ou executar uma acao sem permissao, deve falhar sem expor dados existentes.
+
+### Passo 5 - Expor controllers, rotas e registo no servidor
+
+1. Objetivo funcional do passo no ERP.
+
+Transformar a regra de negocio em API HTTP previsivel para o frontend e para testes.
+
+2. Ficheiros envolvidos:
+   - CRIAR:
+   - apps/api/src/modules/fiscal-periods/fiscalPeriodController.js
+   - apps/api/src/modules/fiscal-periods/fiscalPeriodRoutes.js
+   - EDITAR:
+   - apps/api/src/server.js
+   - LOCALIZACAO:
+   - Controllers e routes ficam no modulo do dominio; o `server.js` apenas monta o router no prefixo `/api/...`.
+   - REVER:
+   - docs/RNF.md: RNF25 e RNF28
+   - Contratos de endpoints indicados no header do BK.
+
+3. Instrucoes do que fazer.
+
+Cria controllers finos: ler request, chamar validator/service e traduzir erros para HTTP. Regista o router no servidor sem misturar regra de negocio no `server.js`.
+
+4. Codigo completo, correto e integrado com a app final.
+
+Localizacao: criar `apps/api/src/modules/fiscal-periods/fiscalPeriodController.js`.
+
+```js
+import { toHttpError } from "../../lib/httpErrors.js";
+import { validateFiscalPeriodPayload } from "./fiscalPeriodValidators.js";
+import { closeFiscalPeriod, createFiscalPeriod, listFiscalPeriods } from "./fiscalPeriodService.js";
+
+function sendError(res, error) {
+  const httpError = toHttpError(error);
+  return res.status(httpError.status).json({ error: httpError.code, message: httpError.message });
+}
+
+export function buildFiscalPeriodController({ prisma }) {
+  return {
+    async list(req, res) {
+      try {
+        const periods = await listFiscalPeriods(prisma, req.companyId);
+        return res.status(200).json({ periods });
+      } catch (error) {
+        return sendError(res, error);
+      }
+    },
+
+    async create(req, res) {
+      try {
+        const input = validateFiscalPeriodPayload(req.body);
+        const period = await createFiscalPeriod(prisma, req.companyId, input);
+        return res.status(201).json({ period });
+      } catch (error) {
+        return sendError(res, error);
+      }
+    },
+
+    async close(req, res) {
+      try {
+        const period = await closeFiscalPeriod(prisma, {
+          companyId: req.companyId,
+          periodId: req.params.id,
+          actorUserId: req.user.id,
+        });
+        return res.status(200).json({ period });
+      } catch (error) {
+        return sendError(res, error);
+      }
+    },
+  };
+}
+```
+
+Localizacao: criar `apps/api/src/modules/fiscal-periods/fiscalPeriodRoutes.js`.
+
+```js
+import { Router } from "express";
+import { requireAuth } from "../auth/authMiddleware.js";
+import { requireCompanyContext } from "../companies/companyContext.js";
+import { Permission } from "../permissions/permissions.js";
+import { requirePermission } from "../permissions/permissionMiddleware.js";
+import { buildFiscalPeriodController } from "./fiscalPeriodController.js";
+
+export function buildFiscalPeriodRoutes({ prisma }) {
+  const router = Router();
+  const controller = buildFiscalPeriodController({ prisma });
+
+  router.get(
+    "/",
+    requireAuth(prisma),
+    requireCompanyContext(prisma),
+    requirePermission(Permission.FISCAL_PERIODS_READ),
+    controller.list,
+  );
+
+  router.post(
+    "/",
+    requireAuth(prisma),
+    requireCompanyContext(prisma),
+    requirePermission(Permission.FISCAL_PERIODS_MANAGE),
+    controller.create,
+  );
+
+  router.post(
+    "/:id/close",
+    requireAuth(prisma),
+    requireCompanyContext(prisma),
+    requirePermission(Permission.FISCAL_PERIODS_MANAGE),
+    controller.close,
+  );
+
+  return router;
+}
+```
+
+Localizacao: editar `apps/api/src/server.js`, junto das restantes rotas.
+
+```js
+import { buildFiscalPeriodRoutes } from "./modules/fiscal-periods/fiscalPeriodRoutes.js";
+
+app.use("/api/fiscal-periods", buildFiscalPeriodRoutes({ prisma }));
+```
+
+5. Explicacao didatica e detalhada do codigo.
+
+A API e o contrato entre backend e frontend. Ao manter controller pequeno, o aluno percebe onde colocar cada responsabilidade: validacao no validator, regra no service, transporte HTTP no controller/route.
+
+6. Validacao do passo.
+
+Chama o endpoint principal com payload valido e confirma status `200` ou `201` conforme a operacao.
+
+7. Cenario negativo/erro esperado.
+
+Sem sessao, sem empresa ativa ou sem permissao, o endpoint deve devolver `401` ou `403` antes de chamar o service.
+
+### Passo 6 - Validar payloads, respostas e cenarios negativos
+
+1. Objetivo funcional do passo no ERP.
+
+Demonstrar que o BK funciona para o caso principal e falha bem nos casos perigosos.
+
+2. Ficheiros envolvidos:
+   - CRIAR:
+   - docs/evidence/<BK_ID>.md quando a equipa fechar o BK.
+   - EDITAR:
+   - Nenhum ficheiro existente neste passo.
+   - LOCALIZACAO:
+   - Evidence do PR/defesa e testes automatizados quando existirem.
+   - REVER:
+   - Payloads e negativos abaixo.
+   - docs/planificacao/sprints/PLANO-SPRINTS.md quando existir planeamento de sprint.
+
+3. Instrucoes do que fazer.
+
+Executa primeiro o smoke principal e depois os negativos. Guarda status HTTP, payload enviado e resposta recebida. Nao marques DONE sem evidence.
+
+4. Codigo completo, correto e integrado com a app final.
+
+Pedido `POST /api/fiscal-periods`:
+
+```json
+{
+  "name": "2026",
+  "startDate": "2026-01-01",
+  "endDate": "2026-12-31"
+}
+```
+
+Resposta `201`:
+
+```json
+{
+  "period": {
+    "id": "uuid-periodo",
+    "name": "2026",
+    "startDate": "2026-01-01",
+    "endDate": "2026-12-31",
+    "status": "OPEN",
+    "closedAt": null,
+    "closedById": null
+  }
+}
+```
+
+Erros esperados:
+
+- `400 INVALID_DATE` ou `400 INVALID_PERIOD_RANGE`.
+- `401 SESSION_REQUIRED`.
+- `403 PERMISSION_FORBIDDEN`.
+- `404 FISCAL_PERIOD_NOT_FOUND`.
+- `409 FISCAL_PERIOD_OVERLAP`.
+- `409 FISCAL_PERIOD_ALREADY_CLOSED`.
+- `409 FISCAL_PERIOD_CLOSED` quando BKs futuros tentam registar documento em periodo fechado.
+
+- Criar periodo sobreposto devolve `409`.
+- Fechar periodo ja fechado devolve `409`.
+- Tentar criar documento futuro com data em periodo fechado deve falhar via `assertOpenFiscalPeriod`.
+
+- Criar periodo fiscal aberto, listar e fechar.
+- Tentar fechar novamente e confirmar `409`.
+- Chamar `assertOpenFiscalPeriod` num teste unitario com periodo fechado e confirmar `409 FISCAL_PERIOD_CLOSED`.
+
+#
+
+5. Explicacao didatica e detalhada do codigo.
+
+Testar negativos ensina que seguranca nao e so o caminho feliz. Um ERP deve recusar dados fiscais invalidos, acessos sem role, conflitos de unicidade e alteracoes em periodos fechados de forma previsivel.
+
+6. Validacao do passo.
+
+A evidence deve mostrar pelo menos o smoke principal, os negativos exigidos pela prioridade e qualquer comando executado.
+
+7. Cenario negativo/erro esperado.
+
+Se um erro devolve stack trace, segredo, dados de outra empresa ou status generico errado, o BK ainda nao esta pronto.
+
+### Passo 7 - Registar decisoes em falta, evidence e handoff
+
+1. Objetivo funcional do passo no ERP.
+
+Fechar o BK como tutorial tecnico que o proximo aluno consegue continuar sem adivinhar contratos.
+
+2. Ficheiros envolvidos:
+   - CRIAR:
+   - docs/evidence/<BK_ID>.md ou descricao equivalente no PR.
+   - EDITAR:
+   - Secao Evidence deste guia apenas quando houver PR/defesa real.
+   - LOCALIZACAO:
+   - Fim do guia: criterios, validacao final, evidence, handoff e changelog.
+   - REVER:
+   - BK seguinte indicado em `proximo_bk` e BKs dependentes futuros.
+
+3. Instrucoes do que fazer.
+
+Se falta fonte documental ou decisao de arquitetura, nao inventes. Regista exatamente o que falta confirmar e qual o impacto. Depois escreve o handoff para o BK seguinte.
+
+4. Codigo completo, correto e integrado com a app final.
+
+Decisoes em falta a manter visiveis durante a implementacao:
+
+- O guia original lista `POST /api/fiscal-periods/:id/reopen`, mas RF08 so documenta abrir/fechar e bloquear lancamentos apos fecho. Reabertura pode ter impacto legal/auditoria; parar esse ponto ate existir regra documental.
+- Falta BK de auditoria operacional. Enquanto nao existir, o fecho deve registar `closedById` e `closedAt`; quando auditoria estiver disponivel, adicionar evento de auditoria sem mudar a regra principal.
+
+5. Explicacao didatica e detalhada do codigo.
+
+O handoff protege continuidade. Num projeto PAP com varios alunos, a qualidade nao esta so no codigo: esta tambem em deixar claro o que ficou decidido, o que ainda falta decidir e que contratos o proximo BK pode reutilizar.
+
+6. Validacao do passo.
+
+Confirma que o final do BK contem apenas criterios de aceite, validacao final, evidence, handoff e changelog.
+
+7. Cenario negativo/erro esperado.
+
+Se o handoff diz para usar algo que nao foi criado neste BK ou num BK anterior, ha contrato partido e deve ser corrigido antes de avancar.
+
 
 ## Criterios de aceite
 
 - O BK-MF0-08 cumpre os criterios mensuraveis definidos acima.
 - O contrato canonico do RF08 continua alinhado com backlog, matriz e MF-VIEWS.
 
+## Validacao final
+
+- Executar o smoke principal descrito no Passo 6.
+- Executar todos os cenarios negativos do Passo 6.
+- Confirmar que os ficheiros do Passo 2 ao Passo 5 existem nos caminhos reais da app ou que a adaptacao ficou documentada na evidence.
+- Confirmar que nao houve drift em RF/RNF, owner, prioridade, dependencias ou escopo.
+- Confirmar que o handoff abaixo esta compreensivel para o proximo BK.
+
 ## Evidence para PR/defesa
 
 - `pr`: `A preencher no fecho do BK`
 - `proof`: `A preencher apos validacao`
 - `neg`: `A preencher apos testes negativos`
+
+## Handoff
+
+Clientes nao dependem diretamente de periodo fiscal, mas faturacao futura depende. A partir deste BK, qualquer documento fiscal/contabilistico deve chamar `assertOpenFiscalPeriod` antes de persistir alteracoes com data fiscal.
 
 ## Changelog
 

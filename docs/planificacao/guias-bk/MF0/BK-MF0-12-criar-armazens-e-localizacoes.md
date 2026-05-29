@@ -122,220 +122,586 @@ Como a fase alvo e MF0, nao existem BKs de fases anteriores a reutilizar. A cont
 - **Erros comuns a evitar:** implementar so no frontend, confiar em dados enviados pelo browser, esquecer `companyId` nos dados por empresa, devolver mensagens tecnicas cruas ao utilizador ou criar campos que nao aparecem nos RF/RNF.
 - **Negativos de seguranca/robustez:** todos os casos invalidos devem falhar de forma controlada, sem stack traces, sem dados sensiveis e sem escrita parcial na base de dados.
 
-#### Guia de execucao (passo-a-passo) (DERIVADO):
+#### Tutorial tecnico linear (DERIVADO):
 
-0. **Objetivo (~10 min): Confirmar contrato e preparar ambiente**
-   - Descricao detalhada do objetivo: Rever o requisito RF12, a linha do BK-MF0-12 no backlog/matriz e confirmar que o repositorio ainda esta em modo sem codigo real fora do mockup.
-   - Justificacao: Evita implementar campos, endpoints ou papeis que nao existem no contrato canonico.
-   - Como fazer (0.1): Abrir docs/RF.md, BACKLOG-MVP.md, MATRIZ-CANONICA-BK.md e este guia.
-   - Como fazer (0.2): Consultar `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md` e confirmar se o scaffold real segue a estrutura indicativa; se nao seguir, mapear caminho do guia -> caminho real na evidence do BK.
-   - Ficheiro a rever: docs/RF.md; docs/planificacao/backlogs/BACKLOG-MVP.md; docs/planificacao/backlogs/MATRIZ-CANONICA-BK.md
-   - Ficheiro alvo: `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md`; package.json/scaffold real da app
-   - Snippet de referencia: `BK-MF0-12 -> RF12 -> GET /api/warehouses, POST /api/warehouses, POST /api/warehouses/:id/locations`
-   - O que verificar: Metadados preservados e sem drift entre guia, backlog e matriz.
+Este tutorial organiza o BK em passos lineares. O aluno deve seguir de cima para baixo: confirmar contratos, modelar dados, validar entradas, implementar regras de negocio, expor HTTP, testar e deixar handoff. Sempre que o scaffold real ainda nao existir, usar a estrutura prevista em `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md` e registar a adaptacao na evidence.
 
-1. **Objetivo (~25 min): Modelar dados e constraints**
-   - Descricao detalhada do objetivo: Criar ou ajustar o schema para Warehouse, WarehouseLocation, sempre com isolamento por empresa quando o dado pertencer a uma empresa.
-   - Justificacao: A integridade da base de dados deve impedir duplicados e estados impossiveis mesmo antes da UI existir.
-   - Como fazer (1.1): Adicionar modelos e campos minimos no schema.
-   - Como fazer (1.2): Adicionar constraints unicas, relacoes e indices necessarios para o caso principal do BK.
-   - Ficheiro a rever: docs/planificacao/backlogs/CONTRATO-CAMPOS-BK.md; mockup/src/app/types.ts
-   - Ficheiro alvo: apps/api/prisma/schema.prisma
-   - Snippet de referencia: `model Warehouse { /* BK-MF0-12 */ }`
-   - O que verificar: Migration criada ou schema atualizado sem campos fora do RF.
+### Passo 1 - Confirmar contrato, scope e ligacao aos BKs vizinhos
 
-2. **Objetivo (~25 min): Criar validadores backend**
-   - Descricao detalhada do objetivo: Implementar validacao explicita para payloads de inventario.
-   - Justificacao: Validar no frontend melhora UX, mas apenas o backend protege a base de dados e a API contra chamadas diretas.
-   - Como fazer (2.1): Criar funcoes pequenas em validators com mensagens claras em portugues de Portugal.
-   - Como fazer (2.2): Cobrir obrigatorios, formatos, duplicados previsiveis e valores fora de intervalo.
-   - Ficheiro a rever: docs/RNF.md (RNF05, RNF06, RNF15)
-   - Ficheiro alvo: apps/api/src/modules/inventario/validators.js
-   - Snippet de referencia: `validateWarehouse(req.body)`
-   - O que verificar: Payload invalido devolve 400 com mensagem acionavel.
+1. Objetivo funcional do passo no ERP.
 
-3. **Objetivo (~25 min): Implementar service de negocio**
-   - Descricao detalhada do objetivo: Criar o service que executa a regra principal do BK-MF0-12.
-   - Justificacao: Controllers devem ser finos; services concentram regras e tornam testes mais simples.
-   - Como fazer (3.1): Criar funcoes async com companyId, actor/user e payload validado.
-   - Como fazer (3.2): Garantir que o service nao consulta nem altera dados fora da empresa ativa.
-   - Ficheiro a rever: docs/RNF.md (RNF25, RNF28)
-   - Ficheiro alvo: apps/api/src/modules/inventario/services.js
-   - Snippet de referencia: `await inventarioService.execute({ companyId, actor, input })`
-   - O que verificar: Service testavel sem HTTP e com erros controlados.
+Confirmar a regra de negocio do BK, o RF/RNF associado e o impacto nos BKs seguintes antes de escrever codigo.
 
-4. **Objetivo (~25 min): Expor rotas e controller**
-   - Descricao detalhada do objetivo: Criar endpoints: GET /api/warehouses, POST /api/warehouses, POST /api/warehouses/:id/locations.
-   - Justificacao: Rotas Express sao o contrato entre frontend e backend; devem ter codigos HTTP previsiveis.
-   - Como fazer (4.1): Criar router e controller para chamar validadores, middleware de sessao/permissao e service.
-   - Como fazer (4.2): Adicionar tratamento de erro para 400, 401, 403, 409 quando aplicavel.
-   - Ficheiro a rever: docs/RNF.md (RNF25, RNF28)
-   - Ficheiro alvo: apps/api/src/modules/inventario/routes.js; apps/api/src/modules/inventario/controller.js
-   - Snippet de referencia: `router.post('/...', requireAuth, controller.handler)`
-   - O que verificar: Endpoint valido devolve codigo esperado e JSON sem dados sensiveis.
+2. Ficheiros envolvidos:
+   - CRIAR:
+   - Nenhum ficheiro novo neste passo.
+   - EDITAR:
+   - Nenhum ficheiro existente neste passo.
+   - LOCALIZACAO:
+   - Topo deste guia e documentos canonicos de planeamento.
+   - REVER:
+   - README.md
+   - docs/RF.md
+   - docs/RNF.md
+   - docs/planificacao/backlogs/BACKLOG-MVP.md
+   - docs/planificacao/backlogs/MATRIZ-CANONICA-BK.md
+   - docs/planificacao/backlogs/CONTRATO-CAMPOS-BK.md
+   - docs/planificacao/backlogs/MF-VIEWS.md
+   - docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md
 
-5. **Objetivo (~15 min): Ligar frontend ao mockup**
-   - Descricao detalhada do objetivo: Transformar a referencia visual do mockup em fluxo real sem exigir pixel-perfect. Referencia UI: mockup/src/app/components/modules/Inventario.tsx, contexto de stock e filtros de inventario.
-   - Justificacao: O mockup orienta nomes, hierarquia e fluxo, mas o contrato da app deve ficar extensivel.
-   - Como fazer (5.1): Criar cliente API no frontend e substituir dados mock/local por chamadas HTTP.
-   - Como fazer (5.2): Implementar loading, error, empty e success quando fizer sentido.
-   - Ficheiro a rever: mockup/src/app/components/modules/Inventario.tsx, contexto de stock e filtros de inventario
-   - Ficheiro alvo: apps/web/src/modules/inventario/; apps/web/src/lib/apiClient.ts
-   - Snippet de referencia: `apiClient.request('GET /api/warehouses')`
-   - O que verificar: A UI mostra dados reais/mockados por API e nao quebra responsividade basica.
+3. Instrucoes do que fazer.
 
-6. **Objetivo (~25 min): Executar smoke e negativos**
-   - Descricao detalhada do objetivo: Validar a criacao/listagem de armazens e os cenarios negativos minimos do BK-MF0-12.
-   - Justificacao: Mesmo sendo P1, o BK so fica pronto quando houver prova de funcionamento e falha controlada.
-   - Como fazer (6.1): Executar smoke com `curl`, browser ou teste automatizado sobre `GET /api/warehouses` e `POST /api/warehouses`.
-   - Como fazer (6.2): Executar os negativos listados no checklist e guardar resposta/captura.
-   - Ficheiro a rever: docs/planificacao/sprints/PLANO-SPRINTS.md
-   - Ficheiro alvo: apps/api/tests/BK-MF0-12.test.js; docs/evidence/BK-MF0-12.md
-   - Snippet de referencia: `curl -i http://localhost:3000/api/warehouses`
-   - O que verificar: Smoke aprovado e pelo menos 2 negativos registados.
+Confirma que nao vais alterar RF, RNF, ID do BK, owner, prioridade ou dependencias. Se o scaffold real divergir de `apps/api` e `apps/web`, adapta caminhos sem alterar contratos de negocio e regista essa decisao na evidence.
 
-7. **Objetivo (~15 min): Preparar handoff e evidence**
-   - Descricao detalhada do objetivo: Registar o que ficou construido, os ficheiros alterados, comandos e riscos para o proximo BK (BK-MF1-01).
-   - Justificacao: A fase seguinte precisa reutilizar `warehouseId` e `locationId` sem redesenhar este contrato.
-   - Como fazer (7.1): Preencher Evidence com PR, proof, neg, files, commands e screenshots se houver UI.
-   - Como fazer (7.2): Indicar no handoff que movimentos de stock e FIFO ficam fora deste BK.
-   - Ficheiro a rever: Este guia; BACKLOG-MVP.md
-   - Ficheiro alvo: docs/evidence/BK-MF0-12.md ou descricao do PR
-   - Snippet de referencia: `handoff.next = 'BK-MF1-01'`
-   - O que verificar: Handoff referencia contratos reutilizaveis e riscos abertos.
+4. Codigo completo, correto e integrado com a app final.
 
-#### Checklist de validacao (DERIVADO):
+Sem codigo neste passo. O objetivo e impedir drift antes da implementacao.
 
-- Smoke: executar o fluxo principal de `GET /api/warehouses` e confirmar resultado funcional na UI/API.
-- Tecnico: correr lint/testes disponiveis; se ainda nao existirem scripts, registar `TODO` e executar pelo menos smoke manual com `curl`.
-- Regressao das fases anteriores: MF0 nao tem fases anteriores, mas nao pode quebrar BKs MF0 ja executados na mesma sprint.
-- UI/mockup: comparar nomes e fluxo com `mockup/src/app/components/modules/Inventario.tsx, contexto de stock e filtros de inventario`, sem exigir pixel-perfect.
-- Seguranca: confirmar que dados invalidos nao sao persistidos e que respostas nao expoem stack traces nem segredos.
-- Negativos: minimo `2` cenarios para prioridade `P1`.
+5. Explicacao didatica e detalhada do codigo.
 
-| Negativo | Passo | Input/acao | Resultado esperado | Risco que cobre |
-| --- | --- | --- | --- | --- |
-| N1 | 6 | Criar armazem sem codigo. | Resposta 400. | Evita referencias impossiveis em movimentos futuros. |
-| N2 | 6 | Criar localizacao duplicada no mesmo armazem. | Resposta 409. | Evita ambiguidade operacional. |
+Este passo existe para evitar que o aluno comece por copiar codigo sem perceber o contrato. Num ERP, uma decisao errada no inicio, por exemplo tratar role como global ou ignorar companyId, propaga erros para faturacao, compras, stock e contabilidade.
 
-#### Criterios de aceite:
+6. Validacao do passo.
 
-- Outputs:
-- Tabela Warehouse com companyId.
-- Tabela WarehouseLocation com warehouseId.
-- Endpoints simples de criacao/listagem.
-- UI ou placeholder controlado no modulo Inventario.
-- Handoff para BK-MF1-01 e MF2 com warehouseId/locationId estaveis.
-- Verificacoes:
-- Caso valido de `GET /api/warehouses` concluido com codigo HTTP adequado.
-- Pelo menos 2 negativos executados e documentados.
-- Build/lint/testes disponiveis executados ou justificada a impossibilidade.
-- Qualidade:
-- Sem duplicacao grosseira entre controller/service/validator.
-- Mensagens de erro em portugues de Portugal e acionaveis.
-- Sem secrets no codigo, logs ou evidence.
-- Continuidade:
-- O BK seguinte `BK-MF1-01` consegue reutilizar os contratos deste BK.
-- Sem drift em owner, prioridade, dependencias ou RF/RNF.
-- Qualquer decisao nao confirmada fica marcada como TODO/BLOCKER.
-- Evidencia:
-- PR ou commit identificado.
-- Comandos executados registados.
-- Screenshots ou outputs do smoke e negativos anexados quando houver UI/API.
+Antes de avancar, escreve na evidence qual RF/RNF cobre este BK e que BK seguinte depende dele.
 
-#### Evidence (para o PR/defesa):
+7. Cenario negativo/erro esperado.
 
-- `pr`: `A preencher no fecho do BK`
-- `proof`: `A preencher apos validacao`
-- `neg`: `A preencher apos testes negativos`
-- `files`: `A preencher com ficheiros criados/editados`
-- `commands`: `A preencher com npm/prisma/curl/testes executados`
-- `screenshots`: `A preencher se houver UI alterada`
-- `notes`: `A preencher com decisoes tecnicas, assuncoes e desvios aprovados`
+Se encontrares uma regra que nao aparece em RF/RNF/backlog, nao a implementes: marca como decisao em falta no Passo 7.
 
-#### TODOs
+### Passo 2 - Modelar dados e constraints na base de dados
 
-- TODO normal: confirmar nomes finais das pastas da app real quando a equipa iniciar codigo.
-- TODO normal: criar scripts lint, test e dev se ainda nao existirem.
-- TODO (BLOCKER): nao fechar o BK como DONE sem evidence real de smoke e negativos.
-- Assuncao de stack: consultar `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md`; qualquer adaptacao de paths deve ficar documentada na evidence do BK.
-- Decisao dependente de mockup: manter fluxo e nomes principais, mas evoluir design sem obrigacao pixel-perfect.
-- Decisao dependente de app/codigo ainda inexistente: adaptar caminhos se a equipa escolher outra estrutura, preservando contratos.
-- FOLLOW-UP: BK-MF2-02 deve usar warehouseId e locationId nos movimentos de stock.
+1. Objetivo funcional do passo no ERP.
 
-## Bloco pedagogico
+Criar a estrutura persistente que suporta a regra do BK sem duplicados, estados impossiveis ou fuga entre empresas.
 
-### Objetivo
+2. Ficheiros envolvidos:
+   - CRIAR:
+   - Nenhum ficheiro novo neste passo.
+   - EDITAR:
+   - apps/api/prisma/schema.prisma
+   - LOCALIZACAO:
+   - Inserir os modelos junto dos modelos do mesmo dominio; quando o BK disser para atualizar um modelo existente, substituir o bloco antigo por uma versao coerente.
+   - REVER:
+   - docs/planificacao/backlogs/CONTRATO-CAMPOS-BK.md
+   - BKs anteriores da MF0 que criam modelos reutilizados.
 
-Construir Criar armazéns e localizações de forma executavel, segura e rastreavel ao RF12.
+3. Instrucoes do que fazer.
 
-### Pre-requisitos
+Aplica primeiro o schema. Se o modelo pertencer a uma empresa, usa `companyId` e indices/constraints por empresa. Se o modelo atualizar `User`, `Company` ou `Session`, faz a substituicao completa indicada para evitar campos duplicados ou relacoes partidas.
 
-- Ler RF12, este guia e os documentos canonicos indicados na pre-leitura.
-- Confirmar dependencias: -.
+4. Codigo completo, correto e integrado com a app final.
 
-### Erros comuns
+Localizacao: acrescentar a `apps/api/prisma/schema.prisma`.
 
-- Implementar apenas a UI sem endpoint real.
-- Ignorar validacao backend porque o formulario ja valida.
-- Alterar metadados canonicos sem atualizar backlog/matriz.
+```prisma
+model Warehouse {
+  id        String              @id @default(uuid())
+  companyId String
+  code      String
+  name      String
+  isActive  Boolean             @default(true)
+  locations WarehouseLocation[]
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
 
-### Check de compreensao
+  company Company @relation(fields: [companyId], references: [id])
 
-- [ ] Sei explicar que parte da app fica pronta no BK-MF0-12.
-- [ ] Sei indicar que ficheiros devo criar/editar/rever.
-- [ ] Sei demonstrar 2 cenarios negativos.
+  @@unique([companyId, code])
+  @@index([companyId])
+}
 
-### Tempo estimado
+model WarehouseLocation {
+  id          String   @id @default(uuid())
+  warehouseId String
+  code        String
+  name        String
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-- `Core`: `60-90 min`.
-- `Reforco`: `n/a` para este BK P1.
+  warehouse Warehouse @relation(fields: [warehouseId], references: [id])
 
-## Bloco operacional
-
-### Entrada
-
-- BK: `BK-MF0-12`
-- Requisito: `RF12`
-- Dependencias: `-`
-- Endpoint(s): `GET /api/warehouses, POST /api/warehouses, POST /api/warehouses/:id/locations`
-
-### Passos
-
-- Seguir o passo-a-passo detalhado na seccao `Guia de execucao` deste ficheiro.
-
-### Validacao
-
-- Smoke principal + Negativos: minimo `2` + regressao dos BKs MF0 ja fechados.
-
-### Handoff
-
-- Proximo BK recomendado: `BK-MF1-01`.
-- Registar contratos reutilizaveis, riscos e evidence antes de pedir review.
-
-## Snippet tecnico aplicavel
-
-Contexto de rastreabilidade: `BK-MF0-12` -> `RF12`.
-```js
-export function validateWarehouse(input) {
-  if (!input.codigo?.trim()) throw new Error("Codigo do armazem e obrigatorio");
-  if (!input.nome?.trim()) throw new Error("Nome do armazem e obrigatorio");
-  return { codigo: input.codigo.trim().toUpperCase(), nome: input.nome.trim() };
+  @@unique([warehouseId, code])
+  @@index([warehouseId])
 }
 ```
 
-Este snippet e referencia pequena, nao substitui a implementacao completa. Deve ser adaptado ao modulo real mantendo validacao, tratamento de erros e separacao de responsabilidades.
+
+Localizacao: no mesmo ficheiro, substituir o modelo `Company` existente pela versao acumulada ate este BK.
+
+```prisma
+model Company {
+  id          String              @id @default(uuid())
+  name        String
+  nif         String?             @unique
+  memberships CompanyMembership[]
+  invitations CompanyInvitation[]
+  profile CompanyProfile?
+  accounts Account[]
+  fiscalPeriods FiscalPeriod[]
+  customers Customer[]
+  suppliers Supplier[]
+  items Item[]
+  warehouses Warehouse[]
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+}
+```
+5. Explicacao didatica e detalhada do codigo.
+
+O schema e a camada mais baixa de integridade. Mesmo que o frontend tenha boas validacoes, a base de dados deve impedir duplicados e relacoes impossiveis. Em OPSA isto e critico porque clientes, fornecedores, artigos, contas SNC, periodos fiscais e armazens alimentam documentos fiscais e contabilisticos futuros.
+
+6. Validacao do passo.
+
+Executa a geracao/migracao Prisma quando o scaffold existir e confirma que nao ha nomes de modelos ou relacoes duplicados.
+
+7. Cenario negativo/erro esperado.
+
+Tentar criar dois registos que violam uma constraint unica deve falhar com conflito controlado, normalmente `409` no service/controller.
+
+### Passo 3 - Criar validadores, helpers e adaptadores de infraestrutura
+
+1. Objetivo funcional do passo no ERP.
+
+Validar entradas antes da regra de negocio e isolar detalhes tecnicos como cookies, hash, email ou permissao.
+
+2. Ficheiros envolvidos:
+   - CRIAR:
+   - apps/api/src/modules/warehouses/warehouseValidators.js
+   - EDITAR:
+   - Nenhum ficheiro existente neste passo.
+   - LOCALIZACAO:
+   - Criar dentro do modulo do dominio em `apps/api/src/modules/...`; helpers partilhados ficam em `apps/api/src/lib` quando usados por varios BKs.
+   - REVER:
+   - docs/RNF.md: RNF05, RNF06, RNF12-RNF17, RNF21 quando existir email.
+
+3. Instrucoes do que fazer.
+
+Cria estes ficheiros antes dos services. Os services devem receber dados ja normalizados e nao devem repetir regex ou parse manual espalhado pelo codigo.
+
+4. Codigo completo, correto e integrado com a app final.
+
+Localizacao: criar `apps/api/src/modules/warehouses/warehouseValidators.js`.
+
+```js
+import { httpError } from "../../lib/httpErrors.js";
+
+function normalizeCode(value, field) {
+  if (typeof value !== "string" || value.trim().length === 0) {
+    throw httpError(400, "INVALID_CODE", `${field} e obrigatorio`);
+  }
+  return value.trim().toUpperCase();
+}
+
+function normalizeName(value, field) {
+  if (typeof value !== "string" || value.trim().length < 2) {
+    throw httpError(400, "INVALID_NAME", `${field} deve ter pelo menos 2 caracteres`);
+  }
+  return value.trim();
+}
+
+export function validateWarehousePayload(body) {
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    throw httpError(400, "INVALID_BODY", "O corpo do pedido deve ser JSON");
+  }
+
+  return {
+    code: normalizeCode(body.code, "code"),
+    name: normalizeName(body.name, "name"),
+  };
+}
+
+export function validateWarehouseLocationPayload(body) {
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    throw httpError(400, "INVALID_BODY", "O corpo do pedido deve ser JSON");
+  }
+
+  return {
+    code: normalizeCode(body.code, "code"),
+    name: normalizeName(body.name, "name"),
+  };
+}
+```
+
+5. Explicacao didatica e detalhada do codigo.
+
+Validadores e helpers tornam o codigo mais facil de testar e explicar. Um aluno consegue perceber que validar NIF, email, datas ou dinheiro nao e detalhe visual: e defesa da integridade da empresa e da contabilidade.
+
+6. Validacao do passo.
+
+Testa payloads invalidos diretamente contra as funcoes ou endpoint e confirma resposta `400` com mensagem clara.
+
+7. Cenario negativo/erro esperado.
+
+Um payload mal formado nao pode chegar ao Prisma; deve parar no validator com `400`.
+
+### Passo 4 - Implementar services e middleware de regra de negocio
+
+1. Objetivo funcional do passo no ERP.
+
+Concentrar a regra do ERP em funcoes testaveis, separadas de HTTP e frontend.
+
+2. Ficheiros envolvidos:
+   - CRIAR:
+   - apps/api/src/modules/warehouses/warehouseService.js
+   - EDITAR:
+   - Nenhum ficheiro existente neste passo.
+   - LOCALIZACAO:
+   - Criar no modulo backend do dominio; middlewares reutilizaveis ficam junto do dominio que fornece o contexto.
+   - REVER:
+   - BKs anteriores que fornecem `requireAuth`, `requireCompanyContext`, permissoes, User, Company ou dados mestre.
+
+3. Instrucoes do que fazer.
+
+Implementa services depois dos validadores. Quando houver dados empresariais, recebe sempre `companyId` vindo da sessao/contexto, nunca do body. Quando houver role/permissao, garante que a rota chama o guard antes do service.
+
+4. Codigo completo, correto e integrado com a app final.
+
+Localizacao: criar `apps/api/src/modules/warehouses/warehouseService.js`.
+
+```js
+import { httpError } from "../../lib/httpErrors.js";
+
+function serializeWarehouse(warehouse) {
+  return {
+    id: warehouse.id,
+    code: warehouse.code,
+    name: warehouse.name,
+    isActive: warehouse.isActive,
+  };
+}
+
+function serializeLocation(location) {
+  return {
+    id: location.id,
+    code: location.code,
+    name: location.name,
+    isActive: location.isActive,
+  };
+}
+
+export async function listWarehouses(prisma, companyId) {
+  const warehouses = await prisma.warehouse.findMany({
+    where: { companyId, isActive: true },
+    orderBy: { code: "asc" },
+  });
+  return warehouses.map(serializeWarehouse);
+}
+
+export async function createWarehouse(prisma, companyId, input) {
+  const existing = await prisma.warehouse.findUnique({
+    where: { companyId_code: { companyId, code: input.code } },
+  });
+  if (existing) throw httpError(409, "WAREHOUSE_CODE_EXISTS", "Codigo de armazem ja existe");
+
+  const warehouse = await prisma.warehouse.create({ data: { companyId, ...input } });
+  return serializeWarehouse(warehouse);
+}
+
+export async function createWarehouseLocation(prisma, companyId, warehouseId, input) {
+  const warehouse = await prisma.warehouse.findFirst({ where: { id: warehouseId, companyId } });
+  if (!warehouse) throw httpError(404, "WAREHOUSE_NOT_FOUND", "Armazem nao encontrado");
+
+  const existing = await prisma.warehouseLocation.findUnique({
+    where: { warehouseId_code: { warehouseId, code: input.code } },
+  });
+  if (existing) throw httpError(409, "LOCATION_CODE_EXISTS", "Codigo de localizacao ja existe neste armazem");
+
+  const location = await prisma.warehouseLocation.create({
+    data: { warehouseId, ...input },
+  });
+
+  return serializeLocation(location);
+}
+
+export async function listWarehouseLocations(prisma, companyId, warehouseId) {
+  const warehouse = await prisma.warehouse.findFirst({ where: { id: warehouseId, companyId } });
+  if (!warehouse) throw httpError(404, "WAREHOUSE_NOT_FOUND", "Armazem nao encontrado");
+
+  const locations = await prisma.warehouseLocation.findMany({
+    where: { warehouseId, isActive: true },
+    orderBy: { code: "asc" },
+  });
+
+  return locations.map(serializeLocation);
+}
+```
+
+5. Explicacao didatica e detalhada do codigo.
+
+O service e onde vive a regra de negocio. Isto evita controllers gigantes e impede que a UI seja a unica barreira de seguranca. Em OPSA, esta separacao ajuda a garantir que IA, frontend ou scripts futuros nao alteram dados contabilisticos sem passar pelas mesmas regras.
+
+6. Validacao do passo.
+
+Testa o service com dados validos e invalidos. Confirma que queries usam `companyId` quando aplicavel e que estados sensiveis devolvem `409` ou `403` conforme o caso.
+
+7. Cenario negativo/erro esperado.
+
+Tentar aceder a dados de outra empresa, ou executar uma acao sem permissao, deve falhar sem expor dados existentes.
+
+### Passo 5 - Expor controllers, rotas e registo no servidor
+
+1. Objetivo funcional do passo no ERP.
+
+Transformar a regra de negocio em API HTTP previsivel para o frontend e para testes.
+
+2. Ficheiros envolvidos:
+   - CRIAR:
+   - apps/api/src/modules/warehouses/warehouseController.js
+   - apps/api/src/modules/warehouses/warehouseRoutes.js
+   - EDITAR:
+   - apps/api/src/server.js
+   - LOCALIZACAO:
+   - Controllers e routes ficam no modulo do dominio; o `server.js` apenas monta o router no prefixo `/api/...`.
+   - REVER:
+   - docs/RNF.md: RNF25 e RNF28
+   - Contratos de endpoints indicados no header do BK.
+
+3. Instrucoes do que fazer.
+
+Cria controllers finos: ler request, chamar validator/service e traduzir erros para HTTP. Regista o router no servidor sem misturar regra de negocio no `server.js`.
+
+4. Codigo completo, correto e integrado com a app final.
+
+Localizacao: criar `apps/api/src/modules/warehouses/warehouseController.js`.
+
+```js
+import { toHttpError } from "../../lib/httpErrors.js";
+import { validateWarehouseLocationPayload, validateWarehousePayload } from "./warehouseValidators.js";
+import { createWarehouse, createWarehouseLocation, listWarehouseLocations, listWarehouses } from "./warehouseService.js";
+
+function sendError(res, error) {
+  const httpError = toHttpError(error);
+  return res.status(httpError.status).json({ error: httpError.code, message: httpError.message });
+}
+
+export function buildWarehouseController({ prisma }) {
+  return {
+    async list(req, res) {
+      try {
+        return res.status(200).json({ warehouses: await listWarehouses(prisma, req.companyId) });
+      } catch (error) {
+        return sendError(res, error);
+      }
+    },
+
+    async create(req, res) {
+      try {
+        const input = validateWarehousePayload(req.body);
+        const warehouse = await createWarehouse(prisma, req.companyId, input);
+        return res.status(201).json({ warehouse });
+      } catch (error) {
+        return sendError(res, error);
+      }
+    },
+
+    async listLocations(req, res) {
+      try {
+        const locations = await listWarehouseLocations(prisma, req.companyId, req.params.id);
+        return res.status(200).json({ locations });
+      } catch (error) {
+        return sendError(res, error);
+      }
+    },
+
+    async createLocation(req, res) {
+      try {
+        const input = validateWarehouseLocationPayload(req.body);
+        const location = await createWarehouseLocation(prisma, req.companyId, req.params.id, input);
+        return res.status(201).json({ location });
+      } catch (error) {
+        return sendError(res, error);
+      }
+    },
+  };
+}
+```
+
+Localizacao: criar `apps/api/src/modules/warehouses/warehouseRoutes.js`.
+
+```js
+import { Router } from "express";
+import { requireAuth } from "../auth/authMiddleware.js";
+import { requireCompanyContext } from "../companies/companyContext.js";
+import { Permission } from "../permissions/permissions.js";
+import { requirePermission } from "../permissions/permissionMiddleware.js";
+import { buildWarehouseController } from "./warehouseController.js";
+
+export function buildWarehouseRoutes({ prisma }) {
+  const router = Router();
+  const controller = buildWarehouseController({ prisma });
+  const guards = [
+    requireAuth(prisma),
+    requireCompanyContext(prisma),
+    requirePermission(Permission.WAREHOUSES_WRITE),
+  ];
+
+  router.get("/", guards, controller.list);
+  router.post("/", guards, controller.create);
+  router.get("/:id/locations", guards, controller.listLocations);
+  router.post("/:id/locations", guards, controller.createLocation);
+
+  return router;
+}
+```
+
+Localizacao: editar `apps/api/src/server.js`, junto das restantes rotas.
+
+```js
+import { buildWarehouseRoutes } from "./modules/warehouses/warehouseRoutes.js";
+
+app.use("/api/warehouses", buildWarehouseRoutes({ prisma }));
+```
+
+5. Explicacao didatica e detalhada do codigo.
+
+A API e o contrato entre backend e frontend. Ao manter controller pequeno, o aluno percebe onde colocar cada responsabilidade: validacao no validator, regra no service, transporte HTTP no controller/route.
+
+6. Validacao do passo.
+
+Chama o endpoint principal com payload valido e confirma status `200` ou `201` conforme a operacao.
+
+7. Cenario negativo/erro esperado.
+
+Sem sessao, sem empresa ativa ou sem permissao, o endpoint deve devolver `401` ou `403` antes de chamar o service.
+
+### Passo 6 - Validar payloads, respostas e cenarios negativos
+
+1. Objetivo funcional do passo no ERP.
+
+Demonstrar que o BK funciona para o caso principal e falha bem nos casos perigosos.
+
+2. Ficheiros envolvidos:
+   - CRIAR:
+   - docs/evidence/<BK_ID>.md quando a equipa fechar o BK.
+   - EDITAR:
+   - Nenhum ficheiro existente neste passo.
+   - LOCALIZACAO:
+   - Evidence do PR/defesa e testes automatizados quando existirem.
+   - REVER:
+   - Payloads e negativos abaixo.
+   - docs/planificacao/sprints/PLANO-SPRINTS.md quando existir planeamento de sprint.
+
+3. Instrucoes do que fazer.
+
+Executa primeiro o smoke principal e depois os negativos. Guarda status HTTP, payload enviado e resposta recebida. Nao marques DONE sem evidence.
+
+4. Codigo completo, correto e integrado com a app final.
+
+Pedido `POST /api/warehouses`:
+
+```json
+{
+  "code": "ARM-01",
+  "name": "Armazem Principal"
+}
+```
+
+Pedido `POST /api/warehouses/:id/locations`:
+
+```json
+{
+  "code": "A1",
+  "name": "Corredor A - Prateleira 1"
+}
+```
+
+Respostas `201` devolvem `{ "warehouse": ... }` ou `{ "location": ... }`.
+
+Erros esperados:
+
+- `400 INVALID_CODE`.
+- `400 INVALID_NAME`.
+- `401 SESSION_REQUIRED`.
+- `403 PERMISSION_FORBIDDEN`.
+- `404 WAREHOUSE_NOT_FOUND`.
+- `409 WAREHOUSE_CODE_EXISTS`.
+- `409 LOCATION_CODE_EXISTS`.
+
+- Criar dois armazens com o mesmo `code` na mesma empresa devolve `409`.
+- Criar localizacao num armazem de outra empresa devolve `404`.
+- Role sem permissao de armazens devolve `403`.
+
+- Criar armazem, listar, criar localizacao e listar localizacoes.
+- Trocar de empresa e confirmar que o armazem nao aparece.
+- Validar duplicados de codigo no armazem e na localizacao.
+
+#
+
+5. Explicacao didatica e detalhada do codigo.
+
+Testar negativos ensina que seguranca nao e so o caminho feliz. Um ERP deve recusar dados fiscais invalidos, acessos sem role, conflitos de unicidade e alteracoes em periodos fechados de forma previsivel.
+
+6. Validacao do passo.
+
+A evidence deve mostrar pelo menos o smoke principal, os negativos exigidos pela prioridade e qualquer comando executado.
+
+7. Cenario negativo/erro esperado.
+
+Se um erro devolve stack trace, segredo, dados de outra empresa ou status generico errado, o BK ainda nao esta pronto.
+
+### Passo 7 - Registar decisoes em falta, evidence e handoff
+
+1. Objetivo funcional do passo no ERP.
+
+Fechar o BK como tutorial tecnico que o proximo aluno consegue continuar sem adivinhar contratos.
+
+2. Ficheiros envolvidos:
+   - CRIAR:
+   - docs/evidence/<BK_ID>.md ou descricao equivalente no PR.
+   - EDITAR:
+   - Secao Evidence deste guia apenas quando houver PR/defesa real.
+   - LOCALIZACAO:
+   - Fim do guia: criterios, validacao final, evidence, handoff e changelog.
+   - REVER:
+   - BK seguinte indicado em `proximo_bk` e BKs dependentes futuros.
+
+3. Instrucoes do que fazer.
+
+Se falta fonte documental ou decisao de arquitetura, nao inventes. Regista exatamente o que falta confirmar e qual o impacto. Depois escreve o handoff para o BK seguinte.
+
+4. Codigo completo, correto e integrado com a app final.
+
+Decisoes em falta a manter visiveis durante a implementacao:
+
+- RF12 exclui segmentacao analitica avancada. Nao adicionar zonas, lotes, numeros de serie ou movimentos de stock neste BK sem RF especifico.
+
+5. Explicacao didatica e detalhada do codigo.
+
+O handoff protege continuidade. Num projeto PAP com varios alunos, a qualidade nao esta so no codigo: esta tambem em deixar claro o que ficou decidido, o que ainda falta decidir e que contratos o proximo BK pode reutilizar.
+
+6. Validacao do passo.
+
+Confirma que o final do BK contem apenas criterios de aceite, validacao final, evidence, handoff e changelog.
+
+7. Cenario negativo/erro esperado.
+
+Se o handoff diz para usar algo que nao foi criado neste BK ou num BK anterior, ha contrato partido e deve ser corrigido antes de avancar.
+
 
 ## Criterios de aceite
 
 - O BK-MF0-12 cumpre os criterios mensuraveis definidos acima.
 - O contrato canonico do RF12 continua alinhado com backlog, matriz e MF-VIEWS.
 
+## Validacao final
+
+- Executar o smoke principal descrito no Passo 6.
+- Executar todos os cenarios negativos do Passo 6.
+- Confirmar que os ficheiros do Passo 2 ao Passo 5 existem nos caminhos reais da app ou que a adaptacao ficou documentada na evidence.
+- Confirmar que nao houve drift em RF/RNF, owner, prioridade, dependencias ou escopo.
+- Confirmar que o handoff abaixo esta compreensivel para o proximo BK.
+
 ## Evidence para PR/defesa
 
 - `pr`: `A preencher no fecho do BK`
 - `proof`: `A preencher apos validacao`
 - `neg`: `A preencher apos testes negativos`
+
+## Handoff
+
+MF1 deve reaproveitar `Item`, `Warehouse` e `WarehouseLocation` para tabelas de IVA e documentos futuros, mantendo `companyId` e permissoes no backend.
 
 ## Changelog
 
