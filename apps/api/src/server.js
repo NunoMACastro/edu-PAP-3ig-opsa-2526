@@ -1,6 +1,7 @@
 import express from "express";
 import { PrismaClient } from "@prisma/client";
 import { buildAuthRoutes } from "./modules/auth/authRoutes.js";
+import { buildPermissionsRoutes } from "./modules/permissions/permissionsRoutes.js";
 
 const app = express();
 const prisma = new PrismaClient();
@@ -19,6 +20,8 @@ app.use(
         isProduction: process.env.NODE_ENV === "production",
     }),
 );
+
+app.use("/api/permissions", buildPermissionsRoutes({ prisma }));
 
 app.listen(PORT, () => {
     console.log(`API a correr em http://localhost:${PORT}`);
