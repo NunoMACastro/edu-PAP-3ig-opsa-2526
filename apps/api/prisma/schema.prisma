@@ -15,6 +15,31 @@ enum Role {
   AUDITOR
 }
 
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  REVOKED
+  EXPIRED
+}
+
+model CompanyInvitation {
+  id        String           @id @default(uuid())
+  companyId String
+  email     String
+  role      Role
+  tokenHash String           @unique
+  status    InvitationStatus @default(PENDING)
+  expiresAt DateTime
+  createdBy String
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id])
+
+  @@index([companyId])
+  @@index([email])
+}
+
 model User {
   id           String              @id @default(uuid())
   email        String              @unique
@@ -46,8 +71,9 @@ model Company {
   name        String
   nif         String?             @unique
   memberships CompanyMembership[]
-  createdAt   DateTime           @default(now())
-  updatedAt   DateTime           @updatedAt
+  invitations CompanyInvitation[]
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
 }
 
 model CompanyMembership {

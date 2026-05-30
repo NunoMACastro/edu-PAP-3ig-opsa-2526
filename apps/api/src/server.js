@@ -3,6 +3,7 @@ import { PrismaClient } from "@prisma/client";
 import { buildAuthRoutes } from "./modules/auth/authRoutes.js";
 import { buildPermissionsRoutes } from "./modules/permissions/permissionsRoutes.js";
 import { buildCompanyRoutes } from "./modules/companies/companyRoutes.js";
+import { buildCompanyUserRoutes } from "./modules/company-users/companyUserRoutes.js";
 
 const app = express();
 const prisma = new PrismaClient();
@@ -13,6 +14,14 @@ app.use(express.json());
 app.get("/api/health", (req, res) => {
     return res.status(200).json({ status: "ok" });
 });
+
+app.use(
+    "/api/company",
+    buildCompanyUserRoutes({
+        prisma,
+        appBaseUrl: process.env.APP_BASE_URL,
+    }),
+);
 
 app.use(
     "/api/auth",
