@@ -22,6 +22,16 @@ enum InvitationStatus {
   EXPIRED
 }
 
+enum FiscalPeriodStatus {
+  OPEN
+  CLOSED
+}
+
+enum ItemType {
+  PRODUCT
+  SERVICE
+}
+
 model CompanyInvitation {
   id        String           @id @default(uuid())
   companyId String
@@ -73,8 +83,11 @@ model Company {
   nif         String?             @unique
   memberships CompanyMembership[]
   invitations CompanyInvitation[]
-  accounts Account[]
   profile CompanyProfile?
+  accounts Account[]
+  fiscalPeriods FiscalPeriod[]
+  customers Customer[]
+  items Item[]
   createdAt   DateTime            @default(now())
   updatedAt   DateTime            @updatedAt
 }
@@ -110,6 +123,8 @@ model Account {
 
   @@unique([companyId, code])
   @@index([companyId])
+}
+
 model CompanyProfile {
   id                   String   @id @default(uuid())
   companyId            String   @unique
@@ -127,7 +142,9 @@ model CompanyProfile {
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
 
-  company Company @relation(fields: [companyId], references: [id])
+  company Company @relation(fields: [companyId], references: [id]) 
+}
+
 model PasswordResetToken {
   id        String    @id @default(uuid())
   userId    String
@@ -140,4 +157,61 @@ model PasswordResetToken {
 
   @@index([userId])
   @@index([expiresAt])
+}
+
+model FiscalPeriod {
+  id          String             @id @default(uuid())
+  companyId   String
+  name        String
+  startDate   DateTime
+  endDate     DateTime
+  status      FiscalPeriodStatus @default(OPEN)
+  closedAt    DateTime?
+  closedById  String?
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id])
+
+  @@unique([companyId, name])
+  @@index([companyId, startDate, endDate])
+}
+
+model Customer {
+  id          String   @id @default(uuid())
+  companyId   String
+  name        String
+  nif         String?
+  email       String?
+  phone       String?
+  addressLine String?
+  postalCode  String?
+  city        String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id])
+
+  @@unique([companyId, nif])
+  @@index([companyId])
+}
+
+model Item {
+  id          String   @id @default(uuid())
+  companyId   String
+  sku         String
+  name        String
+  type        ItemType
+  costCents   Int
+  priceCents  Int
+  vatRateBps  Int
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id])
+
+  @@unique([companyId, sku])
+  @@index([companyId])
 }
