@@ -1,0 +1,13 @@
+{
+  "name": "edu-pap-3ig-opsa-2526",
+  "version": "1.0.0",
+  "description": "- Nome da app: OPSA - Ano letivo: 2025/2026 - Turma: 12º IG - Nome dos alunos: Oleksii, Pedro, Sofia, André - Orientador: Nuno Castro e Cláudia Marques",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "type": "commonjs",
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}
