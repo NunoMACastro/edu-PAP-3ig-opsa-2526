@@ -63,11 +63,14 @@ Cada pagamento a fornecedor fica registado, atualiza saldo pago e fecha a compra
 
 ## Conceitos teóricos essenciais
 
-- O backend é a autoridade para regras contabilísticas, valores monetários, datas e estados.
-- Valores monetários devem ser guardados em cêntimos para evitar erros de arredondamento.
-- Operações por empresa exigem filtro por `companyId` em todas as queries.
-- Estados devem bloquear transições inválidas e devolver erros previsíveis.
-- Escritas compostas devem usar transação para evitar dados parciais.
+- **Pagamento:** e o valor pago a fornecedor para liquidar uma compra; vem do RF20 e e diferente de recebimento de cliente.
+- **Saldo a pagar:** e `totalCents - amountPaidCents`; evita pagar acima do valor em aberto.
+- **Pagamento parcial:** reduz a divida sem fechar totalmente o documento.
+- **Pagamento total:** fecha a compra quando o valor pago iguala o total.
+- **Nota de credito:** nao deve receber pagamento neste fluxo porque reduz divida em vez de criar uma saida normal.
+- **Periodo fiscal:** bloqueia pagamentos em datas fechadas para manter rastreabilidade contabilistica.
+- **Formulario React:** pede compra, valor, data, metodo e referencia; mostra erro recuperavel.
+- **Handoff:** a previsao de tesouraria usa pagamentos como saidas futuras/realizadas.
 
 ## Arquitetura do BK
 
@@ -249,7 +252,12 @@ export function buildPaymentRoutes({ prisma }) {
     const router = Router();
     const guards = [requireAuth(prisma), requireCompanyContext(prisma), requireRole("ADMIN", "GESTOR", "CONTABILISTA", "OPERACIONAL")];
     router.post("/:id/payments", guards, async (req, res) => {
-        try { return res.status(201).json({ data: await registerPayment(prisma, req.companyId, req.user.id, req.params.id, req.body) }); } catch (error) { return sendError(res, error); }
+        try {
+            const data = await registerPayment(prisma, req.companyId, req.user.id, req.params.id, req.body);
+            return res.status(201).json({ data });
+        } catch (error) {
+            return sendError(res, error);
+        }
     });
     return router;
 }
@@ -305,6 +313,71 @@ export async function registerPayment(purchaseDocumentId: string, input: Payment
 }
 ```
 
+Localização: `apps/web/src/pages/PaymentsPage.tsx`.
+
+```tsx
+// apps/web/src/pages/PaymentsPage.tsx
+import { FormEvent, useState } from "react";
+import { registerPayment, type PaymentInput } from "../lib/paymentApi";
+
+const emptyForm: PaymentInput & { purchaseDocumentId: string } = {
+    purchaseDocumentId: "",
+    amountCents: 0,
+    paidAt: new Date().toISOString().slice(0, 10),
+    method: "BANK_TRANSFER",
+    reference: "",
+    notes: "",
+};
+
+export function PaymentsPage() {
+    const [form, setForm] = useState(emptyForm);
+    const [saving, setSaving] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [success, setSuccess] = useState<string | null>(null);
+
+    async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+        event.preventDefault();
+        setError(null);
+        setSuccess(null);
+        if (!form.purchaseDocumentId || form.amountCents <= 0 || !form.paidAt) {
+            setError("Preenche compra, valor e data do pagamento.");
+            return;
+        }
+        setSaving(true);
+        try {
+            await registerPayment(form.purchaseDocumentId, form);
+            setForm(emptyForm);
+            setSuccess("Pagamento registado com sucesso.");
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Nao foi possivel registar o pagamento.");
+        } finally {
+            setSaving(false);
+        }
+    }
+
+    return (
+        <main>
+            <h1>Pagamentos</h1>
+            <form onSubmit={handleSubmit} aria-label="Registar pagamento">
+                <input value={form.purchaseDocumentId} onChange={(event) => setForm({ ...form, purchaseDocumentId: event.target.value })} placeholder="ID do documento de compra" />
+                <input type="number" value={form.amountCents} onChange={(event) => setForm({ ...form, amountCents: Number(event.target.value) })} />
+                <input type="date" value={form.paidAt} onChange={(event) => setForm({ ...form, paidAt: event.target.value })} />
+                <select value={form.method} onChange={(event) => setForm({ ...form, method: event.target.value as PaymentInput["method"] })}>
+                    <option value="CASH">Numerario</option>
+                    <option value="BANK_TRANSFER">Transferencia bancaria</option>
+                    <option value="CARD">Cartao</option>
+                    <option value="OTHER">Outro</option>
+                </select>
+                <input value={form.reference ?? ""} onChange={(event) => setForm({ ...form, reference: event.target.value })} placeholder="Referencia" />
+                <button type="submit" disabled={saving}>{saving ? "A guardar..." : "Registar pagamento"}</button>
+            </form>
+            {error && <p role="alert">{error}</p>}
+            {success && <p role="status">{success}</p>}
+        </main>
+    );
+}
+```
+
 Localização: teste unitário ou de contrato do service.
 
 ```js
@@ -315,6 +388,8 @@ it("bloqueia pagamento superior ao valor em aberto", async () => {
 ```
 
 5. Explicação do código.
+
+A pagina `PaymentsPage.tsx` fecha a parte visual deste BK: tem estado local, validacao minima, mensagens de erro/sucesso e chama endpoints reais atraves do cliente API. A UI ajuda o utilizador, mas as regras de seguranca, multiempresa e fiscalidade continuam no backend.
 
 O cliente API mantém o contrato entre UI e backend num ponto único. Os testes focam o comportamento que protege a contabilidade: validação, transação, estado e isolamento por empresa.
 

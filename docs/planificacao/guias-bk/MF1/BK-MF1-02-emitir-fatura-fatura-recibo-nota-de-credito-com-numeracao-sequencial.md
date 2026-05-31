@@ -65,11 +65,14 @@ A aplicação emite documentos de venda por empresa, com sequência atómica, li
 
 ## Conceitos teóricos essenciais
 
-- O backend é a autoridade para regras contabilísticas, valores monetários, datas e estados.
-- Valores monetários devem ser guardados em cêntimos para evitar erros de arredondamento.
-- Operações por empresa exigem filtro por `companyId` em todas as queries.
-- Estados devem bloquear transições inválidas e devolver erros previsíveis.
-- Escritas compostas devem usar transação para evitar dados parciais.
+- **Documento de venda:** representa fatura, fatura-recibo ou nota de credito; vem do RF14 e usa clientes, artigos e IVA criados em BKs anteriores.
+- **Numeracao sequencial:** atribui numeros por empresa, ano e tipo de documento numa transacao; evita duplicados e buracos por concorrencia.
+- **Linha de documento:** liga artigo, quantidade, preco e taxa de IVA; o backend calcula subtotal, IVA e total para nao confiar no browser.
+- **Estado `DRAFT` e emissao:** o documento nasce como rascunho e so ganha numero definitivo ao emitir; no BK-MF1-06 esta regra passa a exigir aprovacao.
+- **Transacao:** protege criacao de linhas, totais e numeracao num bloco unico; se algo falhar, nada fica gravado parcialmente.
+- **Formulario React:** recolhe dados minimos e mostra listagem; a validacao local melhora UX mas nao substitui o backend.
+- **Seguranca:** o `companyId` vem da sessao e as permissoes sao verificadas na route; isto evita emissao noutra empresa.
+- **Handoff:** recebimentos, lancamentos contabilisticos, aprovacao e relatorios dependem do documento emitido neste BK.
 
 ## Arquitetura do BK
 
@@ -360,8 +363,12 @@ export function buildSaleDocumentRoutes({ prisma }) {
     const guards = [requireAuth(prisma), requireCompanyContext(prisma), requireRole("ADMIN", "GESTOR", "CONTABILISTA", "OPERACIONAL")];
 
     router.post("/", guards, async (req, res) => {
-        try { return res.status(201).json({ data: await createSaleDocument(prisma, req.companyId, req.user.id, req.body) }); }
-        catch (error) { return sendError(res, error); }
+        try {
+            const data = await createSaleDocument(prisma, req.companyId, req.user.id, req.body);
+            return res.status(201).json({ data });
+        } catch (error) {
+            return sendError(res, error);
+        }
     });
 
     router.get("/", guards, async (req, res) => {
@@ -440,6 +447,105 @@ export async function issueSaleDocument(id: string) {
 }
 ```
 
+Localização: `apps/web/src/pages/SaleDocumentsPage.tsx`.
+
+```tsx
+// apps/web/src/pages/SaleDocumentsPage.tsx
+import { FormEvent, useEffect, useState } from "react";
+import { createSaleDocument, fetchSaleDocuments, issueSaleDocument, type SaleDocumentInput } from "../lib/salesApi";
+
+type SaleDocumentRow = { id: string; number: string | null; kind: string; status: string; totalCents: number };
+
+const emptyForm: SaleDocumentInput = {
+    kind: "INVOICE",
+    customerId: "",
+    issuedAt: new Date().toISOString().slice(0, 10),
+    lines: [{ itemId: "", vatRateId: "", description: "", quantity: 1, unitPriceCents: 0 }],
+};
+
+export function SaleDocumentsPage() {
+    const [documents, setDocuments] = useState<SaleDocumentRow[]>([]);
+    const [form, setForm] = useState<SaleDocumentInput>(emptyForm);
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [success, setSuccess] = useState<string | null>(null);
+
+    async function loadDocuments() {
+        setLoading(true);
+        setError(null);
+        try {
+            const response = await fetchSaleDocuments() as { data: SaleDocumentRow[] };
+            setDocuments(response.data);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Nao foi possivel carregar documentos de venda.");
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    useEffect(() => { void loadDocuments(); }, []);
+
+    async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+        event.preventDefault();
+        setError(null);
+        setSuccess(null);
+        const line = form.lines[0];
+        if (!form.customerId || !line.itemId || !line.vatRateId || line.quantity <= 0 || line.unitPriceCents <= 0) {
+            setError("Preenche cliente, artigo, IVA, quantidade e preco antes de guardar.");
+            return;
+        }
+        setSaving(true);
+        try {
+            await createSaleDocument(form);
+            setForm(emptyForm);
+            setSuccess("Documento de venda criado em rascunho.");
+            await loadDocuments();
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Nao foi possivel criar o documento.");
+        } finally {
+            setSaving(false);
+        }
+    }
+
+    async function handleIssue(id: string) {
+        setError(null);
+        setSuccess(null);
+        try {
+            await issueSaleDocument(id);
+            setSuccess("Documento emitido com numeracao definitiva.");
+            await loadDocuments();
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Nao foi possivel emitir o documento.");
+        }
+    }
+
+    return (
+        <main>
+            <h1>Documentos de venda</h1>
+            <form onSubmit={handleSubmit} aria-label="Criar documento de venda">
+                <select value={form.kind} onChange={(event) => setForm({ ...form, kind: event.target.value as SaleDocumentInput["kind"] })}>
+                    <option value="INVOICE">Fatura</option>
+                    <option value="INVOICE_RECEIPT">Fatura-recibo</option>
+                    <option value="CREDIT_NOTE">Nota de credito</option>
+                </select>
+                <input value={form.customerId} onChange={(event) => setForm({ ...form, customerId: event.target.value })} placeholder="ID do cliente" />
+                <input type="date" value={form.issuedAt} onChange={(event) => setForm({ ...form, issuedAt: event.target.value })} />
+                <input value={form.lines[0].itemId} onChange={(event) => setForm({ ...form, lines: [{ ...form.lines[0], itemId: event.target.value }] })} placeholder="ID do artigo" />
+                <input value={form.lines[0].vatRateId} onChange={(event) => setForm({ ...form, lines: [{ ...form.lines[0], vatRateId: event.target.value }] })} placeholder="ID da taxa IVA" />
+                <input type="number" value={form.lines[0].unitPriceCents} onChange={(event) => setForm({ ...form, lines: [{ ...form.lines[0], unitPriceCents: Number(event.target.value) }] })} />
+                <button type="submit" disabled={saving}>{saving ? "A guardar..." : "Guardar rascunho"}</button>
+            </form>
+            {error && <p role="alert">{error}</p>}
+            {success && <p role="status">{success}</p>}
+            {loading ? <p>A carregar documentos...</p> : documents.length === 0 ? <p>Ainda nao existem documentos.</p> : (
+                <ul>{documents.map((document) => <li key={document.id}>{document.number ?? "Rascunho"} - {document.status} - {document.totalCents / 100} EUR <button type="button" onClick={() => void handleIssue(document.id)}>Emitir</button></li>)}</ul>
+            )}
+        </main>
+    );
+}
+```
+
 Localização: teste unitário ou de contrato do service.
 
 ```js
@@ -453,6 +559,8 @@ it("gera numeros diferentes em duas faturas da mesma empresa", async () => {
 ```
 
 5. Explicação do código.
+
+A pagina `SaleDocumentsPage.tsx` fecha a parte visual deste BK: tem estado local, validacao minima, mensagens de erro/sucesso e chama endpoints reais atraves do cliente API. A UI ajuda o utilizador, mas as regras de seguranca, multiempresa e fiscalidade continuam no backend.
 
 O cliente API mantém o contrato entre UI e backend num ponto único. Os testes focam o comportamento que protege a contabilidade: validação, transação, estado e isolamento por empresa.
 

@@ -64,11 +64,14 @@ Cada recebimento fica ligado ao documento de venda, atualiza o montante recebido
 
 ## Conceitos teóricos essenciais
 
-- O backend é a autoridade para regras contabilísticas, valores monetários, datas e estados.
-- Valores monetários devem ser guardados em cêntimos para evitar erros de arredondamento.
-- Operações por empresa exigem filtro por `companyId` em todas as queries.
-- Estados devem bloquear transições inválidas e devolver erros previsíveis.
-- Escritas compostas devem usar transação para evitar dados parciais.
+- **Recebimento:** e o valor recebido de um cliente para liquidar uma venda; vem do RF15 e alimenta saldos e previsao de tesouraria.
+- **Parcial e total:** um recebimento parcial reduz o saldo em aberto; um recebimento total muda o documento para liquidado.
+- **Saldo em aberto:** e `totalCents - amountPaidCents`; evita receber mais do que o cliente deve.
+- **Periodo fiscal:** deve estar aberto na data do recebimento para impedir alteracoes financeiras em periodo fechado.
+- **Transacao:** cria o recibo e atualiza o documento de venda no mesmo bloco para evitar saldos incoerentes.
+- **Formulario React:** pede documento, valor, data, metodo e referencia; valida o minimo antes de chamar o backend.
+- **Seguranca:** o backend filtra por empresa e rejeita documento de outra empresa como `404` ou `403`.
+- **Handoff:** BK-MF1-05 e BK-MF3-04 usam estes saldos para titulos em aberto e previsao de tesouraria.
 
 ## Arquitetura do BK
 
@@ -251,8 +254,12 @@ export function buildReceiptRoutes({ prisma }) {
     const guards = [requireAuth(prisma), requireCompanyContext(prisma), requireRole("ADMIN", "GESTOR", "CONTABILISTA", "OPERACIONAL")];
 
     router.post("/:id/receipts", guards, async (req, res) => {
-        try { return res.status(201).json({ data: await registerReceipt(prisma, req.companyId, req.user.id, req.params.id, req.body) }); }
-        catch (error) { return sendError(res, error); }
+        try {
+            const data = await registerReceipt(prisma, req.companyId, req.user.id, req.params.id, req.body);
+            return res.status(201).json({ data });
+        } catch (error) {
+            return sendError(res, error);
+        }
     });
 
     return router;
@@ -309,6 +316,71 @@ export async function registerReceipt(saleDocumentId: string, input: ReceiptInpu
 }
 ```
 
+Localização: `apps/web/src/pages/ReceiptsPage.tsx`.
+
+```tsx
+// apps/web/src/pages/ReceiptsPage.tsx
+import { FormEvent, useState } from "react";
+import { registerReceipt, type ReceiptInput } from "../lib/receiptApi";
+
+const emptyForm: ReceiptInput & { saleDocumentId: string } = {
+    saleDocumentId: "",
+    amountCents: 0,
+    receivedAt: new Date().toISOString().slice(0, 10),
+    method: "BANK_TRANSFER",
+    reference: "",
+    notes: "",
+};
+
+export function ReceiptsPage() {
+    const [form, setForm] = useState(emptyForm);
+    const [saving, setSaving] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [success, setSuccess] = useState<string | null>(null);
+
+    async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+        event.preventDefault();
+        setError(null);
+        setSuccess(null);
+        if (!form.saleDocumentId || form.amountCents <= 0 || !form.receivedAt) {
+            setError("Preenche documento, valor e data do recebimento.");
+            return;
+        }
+        setSaving(true);
+        try {
+            await registerReceipt(form.saleDocumentId, form);
+            setForm(emptyForm);
+            setSuccess("Recebimento registado com sucesso.");
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Nao foi possivel registar o recebimento.");
+        } finally {
+            setSaving(false);
+        }
+    }
+
+    return (
+        <main>
+            <h1>Recebimentos</h1>
+            <form onSubmit={handleSubmit} aria-label="Registar recebimento">
+                <input value={form.saleDocumentId} onChange={(event) => setForm({ ...form, saleDocumentId: event.target.value })} placeholder="ID do documento de venda" />
+                <input type="number" value={form.amountCents} onChange={(event) => setForm({ ...form, amountCents: Number(event.target.value) })} />
+                <input type="date" value={form.receivedAt} onChange={(event) => setForm({ ...form, receivedAt: event.target.value })} />
+                <select value={form.method} onChange={(event) => setForm({ ...form, method: event.target.value as ReceiptInput["method"] })}>
+                    <option value="CASH">Numerario</option>
+                    <option value="BANK_TRANSFER">Transferencia bancaria</option>
+                    <option value="CARD">Cartao</option>
+                    <option value="OTHER">Outro</option>
+                </select>
+                <input value={form.reference ?? ""} onChange={(event) => setForm({ ...form, reference: event.target.value })} placeholder="Referencia" />
+                <button type="submit" disabled={saving}>{saving ? "A guardar..." : "Registar recebimento"}</button>
+            </form>
+            {error && <p role="alert">{error}</p>}
+            {success && <p role="status">{success}</p>}
+        </main>
+    );
+}
+```
+
 Localização: teste unitário ou de contrato do service.
 
 ```js
@@ -319,6 +391,8 @@ it("bloqueia recebimento superior ao valor em aberto", async () => {
 ```
 
 5. Explicação do código.
+
+A pagina `ReceiptsPage.tsx` fecha a parte visual deste BK: tem estado local, validacao minima, mensagens de erro/sucesso e chama endpoints reais atraves do cliente API. A UI ajuda o utilizador, mas as regras de seguranca, multiempresa e fiscalidade continuam no backend.
 
 O cliente API mantém o contrato entre UI e backend num ponto único. Os testes focam o comportamento que protege a contabilidade: validação, transação, estado e isolamento por empresa.
 

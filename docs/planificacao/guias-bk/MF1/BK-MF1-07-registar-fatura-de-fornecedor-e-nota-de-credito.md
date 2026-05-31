@@ -64,11 +64,14 @@ A aplicação regista faturas e notas de crédito de fornecedor por empresa, com
 
 ## Conceitos teóricos essenciais
 
-- O backend é a autoridade para regras contabilísticas, valores monetários, datas e estados.
-- Valores monetários devem ser guardados em cêntimos para evitar erros de arredondamento.
-- Operações por empresa exigem filtro por `companyId` em todas as queries.
-- Estados devem bloquear transições inválidas e devolver erros previsíveis.
-- Escritas compostas devem usar transação para evitar dados parciais.
+- **Fatura de fornecedor:** regista uma obrigacao a pagar a fornecedor; vem do RF19 e usa fornecedores, artigos e IVA.
+- **Nota de credito de fornecedor:** reduz uma compra/divida anterior; e guardada com valores positivos e invertida pela contabilidade.
+- **Numero do fornecedor:** identifica o documento externo; deve ser unico por fornecedor e empresa para evitar duplicados.
+- **Estado `APPROVED` temporario:** mantem BK-MF1-08 e BK-MF1-09 executaveis antes do workflow formal do BK-MF1-10.
+- **Calculo backend:** subtotal, IVA e total sao calculados no service e nao aceites do frontend.
+- **Formulario React:** recolhe fornecedor, numero, data e uma linha minima; mostra erro antes de chamar a API.
+- **Multiempresa:** fornecedor, artigo e taxa de IVA devem pertencer a empresa ativa.
+- **Handoff:** pagamentos, lancamentos e aprovacao de compras dependem deste modelo.
 
 ## Arquitetura do BK
 
@@ -288,10 +291,20 @@ export function buildPurchaseDocumentRoutes({ prisma }) {
     const router = Router();
     const guards = [requireAuth(prisma), requireCompanyContext(prisma), requireRole("ADMIN", "GESTOR", "CONTABILISTA", "OPERACIONAL")];
     router.post("/", guards, async (req, res) => {
-        try { return res.status(201).json({ data: await createPurchaseDocument(prisma, req.companyId, req.user.id, req.body) }); } catch (error) { return sendError(res, error); }
+        try {
+            const data = await createPurchaseDocument(prisma, req.companyId, req.user.id, req.body);
+            return res.status(201).json({ data });
+        } catch (error) {
+            return sendError(res, error);
+        }
     });
     router.get("/", guards, async (req, res) => {
-        try { return res.status(200).json({ data: await prisma.purchaseDocument.findMany({ where: { companyId: req.companyId }, include: { supplier: true, lines: true }, orderBy: { issuedAt: "desc" } }) }); } catch (error) { return sendError(res, error); }
+        try {
+            const data = await prisma.purchaseDocument.findMany({ where: { companyId: req.companyId }, include: { supplier: true, lines: true }, orderBy: { issuedAt: "desc" } });
+            return res.status(200).json({ data });
+        } catch (error) {
+            return sendError(res, error);
+        }
     });
     return router;
 }
@@ -347,6 +360,71 @@ export async function createPurchaseDocument(input: PurchaseDocumentInput) {
 }
 ```
 
+Localização: `apps/web/src/pages/PurchaseDocumentsPage.tsx`.
+
+```tsx
+// apps/web/src/pages/PurchaseDocumentsPage.tsx
+import { FormEvent, useState } from "react";
+import { createPurchaseDocument, type PurchaseDocumentInput } from "../lib/purchasesApi";
+
+const emptyForm: PurchaseDocumentInput = {
+    kind: "SUPPLIER_INVOICE",
+    supplierId: "",
+    supplierNumber: "",
+    issuedAt: new Date().toISOString().slice(0, 10),
+    lines: [{ itemId: "", vatRateId: "", description: "", quantity: 1, unitCostCents: 0 }],
+};
+
+export function PurchaseDocumentsPage() {
+    const [form, setForm] = useState<PurchaseDocumentInput>(emptyForm);
+    const [saving, setSaving] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [success, setSuccess] = useState<string | null>(null);
+
+    async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+        event.preventDefault();
+        setError(null);
+        setSuccess(null);
+        const line = form.lines[0];
+        if (!form.supplierId || !form.supplierNumber || !line.itemId || !line.vatRateId || line.quantity <= 0 || line.unitCostCents <= 0) {
+            setError("Preenche fornecedor, numero, artigo, IVA, quantidade e custo.");
+            return;
+        }
+        setSaving(true);
+        try {
+            await createPurchaseDocument(form);
+            setForm(emptyForm);
+            setSuccess("Documento de compra registado com sucesso.");
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Nao foi possivel registar a compra.");
+        } finally {
+            setSaving(false);
+        }
+    }
+
+    return (
+        <main>
+            <h1>Compras</h1>
+            <form onSubmit={handleSubmit} aria-label="Registar documento de compra">
+                <select value={form.kind} onChange={(event) => setForm({ ...form, kind: event.target.value as PurchaseDocumentInput["kind"] })}>
+                    <option value="SUPPLIER_INVOICE">Fatura de fornecedor</option>
+                    <option value="SUPPLIER_CREDIT_NOTE">Nota de credito</option>
+                </select>
+                <input value={form.supplierId} onChange={(event) => setForm({ ...form, supplierId: event.target.value })} placeholder="ID do fornecedor" />
+                <input value={form.supplierNumber} onChange={(event) => setForm({ ...form, supplierNumber: event.target.value })} placeholder="Numero do fornecedor" />
+                <input type="date" value={form.issuedAt} onChange={(event) => setForm({ ...form, issuedAt: event.target.value })} />
+                <input value={form.lines[0].itemId} onChange={(event) => setForm({ ...form, lines: [{ ...form.lines[0], itemId: event.target.value }] })} placeholder="ID do artigo" />
+                <input value={form.lines[0].vatRateId} onChange={(event) => setForm({ ...form, lines: [{ ...form.lines[0], vatRateId: event.target.value }] })} placeholder="ID da taxa IVA" />
+                <input type="number" value={form.lines[0].unitCostCents} onChange={(event) => setForm({ ...form, lines: [{ ...form.lines[0], unitCostCents: Number(event.target.value) }] })} />
+                <button type="submit" disabled={saving}>{saving ? "A guardar..." : "Registar compra"}</button>
+            </form>
+            {error && <p role="alert">{error}</p>}
+            {success && <p role="status">{success}</p>}
+        </main>
+    );
+}
+```
+
 Localização: teste unitário ou de contrato do service.
 
 ```js
@@ -358,6 +436,8 @@ it("rejeita numero duplicado para o mesmo fornecedor", async () => {
 ```
 
 5. Explicação do código.
+
+A pagina `PurchaseDocumentsPage.tsx` fecha a parte visual deste BK: tem estado local, validacao minima, mensagens de erro/sucesso e chama endpoints reais atraves do cliente API. A UI ajuda o utilizador, mas as regras de seguranca, multiempresa e fiscalidade continuam no backend.
 
 O cliente API mantém o contrato entre UI e backend num ponto único. Os testes focam o comportamento que protege a contabilidade: validação, transação, estado e isolamento por empresa.
 

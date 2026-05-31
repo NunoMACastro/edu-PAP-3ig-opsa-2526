@@ -63,11 +63,14 @@ O documento pode circular entre rascunho, submetido, aprovado e rejeitado, com u
 
 ## Conceitos teóricos essenciais
 
-- O backend é a autoridade para regras contabilísticas, valores monetários, datas e estados.
-- Valores monetários devem ser guardados em cêntimos para evitar erros de arredondamento.
-- Operações por empresa exigem filtro por `companyId` em todas as queries.
-- Estados devem bloquear transições inválidas e devolver erros previsíveis.
-- Escritas compostas devem usar transação para evitar dados parciais.
+- **Workflow de aprovacao:** controla o caminho `DRAFT -> SUBMITTED -> APPROVED/REJECTED`; vem do RF18 e evita emissao sem revisao.
+- **Segregacao de funcoes:** separa quem prepara o documento de quem aprova; reduz risco de erro ou abuso.
+- **Auditoria:** regista utilizador, acao, entidade e data em `AuditLog`; prepara RF47/RNF17.
+- **Motivo de rejeicao:** explica porque o documento voltou ao estado anterior; ajuda defesa e rastreabilidade.
+- **Emissao apos aprovacao:** a funcao `issueSaleDocument` passa a exigir `APPROVED`; isto aperta a regra criada no BK-MF1-02.
+- **Routes protegidas:** roles diferentes submetem e aprovam; o backend bloqueia mesmo que a UI mostre botao por engano.
+- **Frontend:** exibe acoes de submeter, aprovar e rejeitar com motivo e feedback claro.
+- **Handoff:** BK-MF2-01 pode expandir historico e justificacoes com base no audit log.
 
 ## Arquitetura do BK
 
@@ -320,13 +323,28 @@ function sendError(res, error) {
 export function buildSaleApprovalRoutes({ prisma }) {
     const router = Router();
     router.post("/:id/submit", requireAuth(prisma), requireCompanyContext(prisma), requireRole("ADMIN", "GESTOR", "OPERACIONAL"), async (req, res) => {
-        try { return res.status(200).json({ data: await submitSaleDocument(prisma, req.companyId, req.user.id, req.params.id) }); } catch (error) { return sendError(res, error); }
+        try {
+            const data = await submitSaleDocument(prisma, req.companyId, req.user.id, req.params.id);
+            return res.status(200).json({ data });
+        } catch (error) {
+            return sendError(res, error);
+        }
     });
     router.post("/:id/approve", requireAuth(prisma), requireCompanyContext(prisma), requireRole("ADMIN", "GESTOR"), async (req, res) => {
-        try { return res.status(200).json({ data: await approveSaleDocument(prisma, req.companyId, req.user.id, req.params.id) }); } catch (error) { return sendError(res, error); }
+        try {
+            const data = await approveSaleDocument(prisma, req.companyId, req.user.id, req.params.id);
+            return res.status(200).json({ data });
+        } catch (error) {
+            return sendError(res, error);
+        }
     });
     router.post("/:id/reject", requireAuth(prisma), requireCompanyContext(prisma), requireRole("ADMIN", "GESTOR"), async (req, res) => {
-        try { return res.status(200).json({ data: await rejectSaleDocument(prisma, req.companyId, req.user.id, req.params.id, req.body) }); } catch (error) { return sendError(res, error); }
+        try {
+            const data = await rejectSaleDocument(prisma, req.companyId, req.user.id, req.params.id, req.body);
+            return res.status(200).json({ data });
+        } catch (error) {
+            return sendError(res, error);
+        }
     });
     return router;
 }
@@ -375,9 +393,76 @@ Localização: `apps/web/src/lib/saleApprovalApi.ts`.
 ```ts
 import { apiClient } from "./apiClient";
 
-export async function submitSaleDocument(id: string) { return apiClient.post("/api/sales/documents/" + id + "/submit", {}); }
-export async function approveSaleDocument(id: string) { return apiClient.post("/api/sales/documents/" + id + "/approve", {}); }
-export async function rejectSaleDocument(id: string, reason: string) { return apiClient.post("/api/sales/documents/" + id + "/reject", { reason }); }
+export async function submitSaleDocument(id: string) {
+    return apiClient.post("/api/sales/documents/" + id + "/submit", {});
+}
+export async function approveSaleDocument(id: string) {
+    return apiClient.post("/api/sales/documents/" + id + "/approve", {});
+}
+export async function rejectSaleDocument(id: string, reason: string) {
+    return apiClient.post("/api/sales/documents/" + id + "/reject", { reason });
+}
+```
+
+Localização: `apps/web/src/pages/SaleApprovalPage.tsx`.
+
+```tsx
+// apps/web/src/pages/SaleApprovalPage.tsx
+import { FormEvent, useState } from "react";
+import { approveSaleDocument, rejectSaleDocument, submitSaleDocument } from "../lib/saleApprovalApi";
+
+export function SaleApprovalPage() {
+    const [saleDocumentId, setSaleDocumentId] = useState("");
+    const [reason, setReason] = useState("");
+    const [loadingAction, setLoadingAction] = useState<string | null>(null);
+    const [error, setError] = useState<string | null>(null);
+    const [success, setSuccess] = useState<string | null>(null);
+
+    async function runAction(action: "submit" | "approve" | "reject") {
+        setError(null);
+        setSuccess(null);
+        if (!saleDocumentId.trim()) {
+            setError("Indica o documento de venda.");
+            return;
+        }
+        if (action === "reject" && !reason.trim()) {
+            setError("Indica o motivo da rejeicao.");
+            return;
+        }
+        setLoadingAction(action);
+        try {
+            if (action === "submit") await submitSaleDocument(saleDocumentId.trim());
+            if (action === "approve") await approveSaleDocument(saleDocumentId.trim());
+            if (action === "reject") await rejectSaleDocument(saleDocumentId.trim(), reason.trim());
+            setSuccess("Estado do documento atualizado com sucesso.");
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Nao foi possivel atualizar o documento.");
+        } finally {
+            setLoadingAction(null);
+        }
+    }
+
+    function handleReject(event: FormEvent<HTMLFormElement>) {
+        event.preventDefault();
+        void runAction("reject");
+    }
+
+    return (
+        <main>
+            <h1>Aprovacao de vendas</h1>
+            <input value={saleDocumentId} onChange={(event) => setSaleDocumentId(event.target.value)} placeholder="ID do documento de venda" />
+            <button type="button" disabled={loadingAction !== null} onClick={() => void runAction("submit")}>Submeter</button>
+            <button type="button" disabled={loadingAction !== null} onClick={() => void runAction("approve")}>Aprovar</button>
+            <form onSubmit={handleReject} aria-label="Rejeitar documento de venda">
+                <input value={reason} onChange={(event) => setReason(event.target.value)} placeholder="Motivo de rejeicao" />
+                <button type="submit" disabled={loadingAction !== null}>Rejeitar</button>
+            </form>
+            {loadingAction && <p>A processar...</p>}
+            {error && <p role="alert">{error}</p>}
+            {success && <p role="status">{success}</p>}
+        </main>
+    );
+}
 ```
 
 Localização: teste unitário ou de contrato do service.
@@ -390,6 +475,8 @@ it("obriga motivo ao rejeitar venda", async () => {
 ```
 
 5. Explicação do código.
+
+A pagina `SaleApprovalPage.tsx` fecha a parte visual deste BK: tem estado local, validacao minima, mensagens de erro/sucesso e chama endpoints reais atraves do cliente API. A UI ajuda o utilizador, mas as regras de seguranca, multiempresa e fiscalidade continuam no backend.
 
 O cliente API mantém o contrato entre UI e backend num ponto único. Os testes focam o comportamento que protege a contabilidade: validação, transação, estado e isolamento por empresa.
 

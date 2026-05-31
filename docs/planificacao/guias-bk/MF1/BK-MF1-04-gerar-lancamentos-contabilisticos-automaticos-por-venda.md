@@ -63,11 +63,14 @@ Uma venda emitida gera lançamento equilibrado por empresa, bloqueado por perío
 
 ## Conceitos teóricos essenciais
 
-- O backend é a autoridade para regras contabilísticas, valores monetários, datas e estados.
-- Valores monetários devem ser guardados em cêntimos para evitar erros de arredondamento.
-- Operações por empresa exigem filtro por `companyId` em todas as queries.
-- Estados devem bloquear transições inválidas e devolver erros previsíveis.
-- Escritas compostas devem usar transação para evitar dados parciais.
+- **Lancamento contabilistico:** traduz a venda operacional em linhas de debito e credito; vem do RF16 e alimenta razao, balancete e mapas de IVA.
+- **Conta 211:** representa clientes; na fatura normal aumenta o valor a receber.
+- **Conta 72:** representa vendas/prestacoes de servicos; recebe o credito do proveito.
+- **Conta 2433:** representa IVA liquidado; guarda o imposto cobrado ao cliente.
+- **Nota de credito:** inverte o efeito da venda, reduzindo cliente, proveito e IVA liquidado sem usar valores negativos no documento.
+- **Idempotencia:** impede criar dois diarios para a mesma venda; evita duplicar proveitos e IVA.
+- **Periodo fiscal aberto:** bloqueia contabilizacao quando o periodo ja foi fechado.
+- **Frontend:** executa a acao de contabilizar e mostra feedback, mas nao calcula os debitos/creditos.
 
 ## Arquitetura do BK
 
@@ -272,8 +275,12 @@ export function buildSalePostingRoutes({ prisma }) {
     const router = Router();
     const guards = [requireAuth(prisma), requireCompanyContext(prisma), requireRole("ADMIN", "GESTOR", "CONTABILISTA")];
     router.post("/:saleDocumentId", guards, async (req, res) => {
-        try { return res.status(201).json({ data: await postSaleDocument(prisma, req.companyId, req.user.id, req.params.saleDocumentId) }); }
-        catch (error) { return sendError(res, error); }
+        try {
+            const data = await postSaleDocument(prisma, req.companyId, req.user.id, req.params.saleDocumentId);
+            return res.status(201).json({ data });
+        } catch (error) {
+            return sendError(res, error);
+        }
     });
     return router;
 }
@@ -327,6 +334,52 @@ export async function postSaleDocument(saleDocumentId: string) {
 }
 ```
 
+Localização: `apps/web/src/pages/SalePostingsPage.tsx`.
+
+```tsx
+// apps/web/src/pages/SalePostingsPage.tsx
+import { FormEvent, useState } from "react";
+import { postSaleDocument } from "../lib/accountingApi";
+
+export function SalePostingsPage() {
+    const [saleDocumentId, setSaleDocumentId] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [success, setSuccess] = useState<string | null>(null);
+
+    async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+        event.preventDefault();
+        setError(null);
+        setSuccess(null);
+        if (!saleDocumentId.trim()) {
+            setError("Indica o documento de venda a contabilizar.");
+            return;
+        }
+        setLoading(true);
+        try {
+            await postSaleDocument(saleDocumentId.trim());
+            setSuccess("Lancamento contabilistico da venda criado com sucesso.");
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Nao foi possivel contabilizar a venda.");
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    return (
+        <main>
+            <h1>Contabilizar venda</h1>
+            <form onSubmit={handleSubmit} aria-label="Contabilizar venda">
+                <input value={saleDocumentId} onChange={(event) => setSaleDocumentId(event.target.value)} placeholder="ID do documento de venda" />
+                <button type="submit" disabled={loading}>{loading ? "A contabilizar..." : "Criar lancamento"}</button>
+            </form>
+            {error && <p role="alert">{error}</p>}
+            {success && <p role="status">{success}</p>}
+        </main>
+    );
+}
+```
+
 Localização: teste unitário ou de contrato do service.
 
 ```js
@@ -338,6 +391,8 @@ it("nao duplica diario da mesma venda", async () => {
 ```
 
 5. Explicação do código.
+
+A pagina `SalePostingsPage.tsx` fecha a parte visual deste BK: tem estado local, validacao minima, mensagens de erro/sucesso e chama endpoints reais atraves do cliente API. A UI ajuda o utilizador, mas as regras de seguranca, multiempresa e fiscalidade continuam no backend.
 
 O cliente API mantém o contrato entre UI e backend num ponto único. Os testes focam o comportamento que protege a contabilidade: validação, transação, estado e isolamento por empresa.
 

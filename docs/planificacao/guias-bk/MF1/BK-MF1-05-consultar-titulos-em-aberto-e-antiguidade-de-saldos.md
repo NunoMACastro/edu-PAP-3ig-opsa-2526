@@ -64,11 +64,14 @@ A API devolve documentos de venda com saldo em aberto, dias de atraso e bucket d
 
 ## Conceitos teóricos essenciais
 
-- O backend é a autoridade para regras contabilísticas, valores monetários, datas e estados.
-- Valores monetários devem ser guardados em cêntimos para evitar erros de arredondamento.
-- Operações por empresa exigem filtro por `companyId` em todas as queries.
-- Estados devem bloquear transições inválidas e devolver erros previsíveis.
-- Escritas compostas devem usar transação para evitar dados parciais.
+- **Titulo em aberto:** e um documento de venda emitido com saldo por receber; vem do RF17 e ajuda gestor e operacional a acompanhar cobrancas.
+- **Antiguidade de saldos:** agrupa dividas por dias de atraso: nao vencido, 1-30, 31-60, 61-90 e mais de 90 dias.
+- **Data de referencia:** permite calcular ageing numa data especifica sem alterar os documentos.
+- **Saldo aberto:** usa totais e recebimentos anteriores; evita mostrar documentos liquidados.
+- **Service de consulta:** nao cria dados, apenas le documentos da empresa ativa e calcula buckets.
+- **Componente React:** mostra filtro por data, loading, empty, erro e tabela de resultados.
+- **Seguranca:** auditor pode consultar, mas nao escrever; roles sao verificadas no backend.
+- **Handoff:** a previsao de tesouraria usa estes saldos como entradas futuras esperadas.
 
 ## Arquitetura do BK
 
@@ -223,8 +226,12 @@ export function buildSalesOpenItemsRoutes({ prisma }) {
     const router = Router();
     const guards = [requireAuth(prisma), requireCompanyContext(prisma), requireRole("ADMIN", "GESTOR", "CONTABILISTA", "AUDITOR")];
     router.get("/", guards, async (req, res) => {
-        try { return res.status(200).json({ data: await listSalesOpenItems(prisma, req.companyId, req.query) }); }
-        catch (error) { return sendError(res, error); }
+        try {
+            const data = await listSalesOpenItems(prisma, req.companyId, req.query);
+            return res.status(200).json({ data });
+        } catch (error) {
+            return sendError(res, error);
+        }
     });
     return router;
 }
@@ -280,6 +287,58 @@ export async function fetchSalesOpenItems(asOfDate: string) {
 }
 ```
 
+Localização: `apps/web/src/pages/SalesOpenItemsPage.tsx`.
+
+```tsx
+// apps/web/src/pages/SalesOpenItemsPage.tsx
+import { FormEvent, useEffect, useState } from "react";
+import { fetchSalesOpenItems, type SalesOpenItem } from "../lib/salesOpenItemsApi";
+
+export function SalesOpenItemsPage() {
+    const [asOfDate, setAsOfDate] = useState(new Date().toISOString().slice(0, 10));
+    const [items, setItems] = useState<SalesOpenItem[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    async function loadItems(date = asOfDate) {
+        setLoading(true);
+        setError(null);
+        try {
+            const response = await fetchSalesOpenItems(date);
+            setItems(response.data);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Nao foi possivel carregar titulos em aberto.");
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    useEffect(() => { void loadItems(); }, []);
+
+    function handleSubmit(event: FormEvent<HTMLFormElement>) {
+        event.preventDefault();
+        void loadItems(asOfDate);
+    }
+
+    return (
+        <main>
+            <h1>Titulos em aberto</h1>
+            <form onSubmit={handleSubmit} aria-label="Filtrar titulos em aberto">
+                <input type="date" value={asOfDate} onChange={(event) => setAsOfDate(event.target.value)} />
+                <button type="submit">Atualizar</button>
+            </form>
+            {error && <p role="alert">{error}</p>}
+            {loading ? <p>A carregar titulos...</p> : items.length === 0 ? <p>Nao existem valores em aberto.</p> : (
+                <table>
+                    <thead><tr><th>Documento</th><th>Cliente</th><th>Valor em aberto</th><th>Atraso</th><th>Bucket</th></tr></thead>
+                    <tbody>{items.map((item) => <tr key={item.id}><td>{item.number}</td><td>{item.customerName}</td><td>{item.openAmountCents / 100} EUR</td><td>{item.daysOverdue} dias</td><td>{item.bucket}</td></tr>)}</tbody>
+                </table>
+            )}
+        </main>
+    );
+}
+```
+
 Localização: teste unitário ou de contrato do service.
 
 ```js
@@ -290,6 +349,8 @@ it("coloca documento vencido ha 45 dias no bucket correto", async () => {
 ```
 
 5. Explicação do código.
+
+A pagina `SalesOpenItemsPage.tsx` fecha a parte visual deste BK: tem estado local, validacao minima, mensagens de erro/sucesso e chama endpoints reais atraves do cliente API. A UI ajuda o utilizador, mas as regras de seguranca, multiempresa e fiscalidade continuam no backend.
 
 O cliente API mantém o contrato entre UI e backend num ponto único. Os testes focam o comportamento que protege a contabilidade: validação, transação, estado e isolamento por empresa.
 

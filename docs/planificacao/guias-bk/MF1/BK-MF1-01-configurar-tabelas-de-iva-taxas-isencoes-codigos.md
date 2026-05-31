@@ -65,11 +65,14 @@ A empresa consegue criar, listar e desativar taxas/códigos de IVA por empresa, 
 
 ## Conceitos teóricos essenciais
 
-- O backend é a autoridade para regras contabilísticas, valores monetários, datas e estados.
-- Valores monetários devem ser guardados em cêntimos para evitar erros de arredondamento.
-- Operações por empresa exigem filtro por `companyId` em todas as queries.
-- Estados devem bloquear transições inválidas e devolver erros previsíveis.
-- Escritas compostas devem usar transação para evitar dados parciais.
+- **Tabela de IVA:** e o conjunto de codigos, taxas e motivos de isencao que a empresa usa em artigos, vendas, compras e mapas fiscais; vem do RF13 e prepara BK-MF1-02, BK-MF1-07 e BK-MF3-01.
+- **Basis points:** guardam a taxa como inteiro: 2300 representa 23%; isto evita erros de arredondamento com numeros decimais em JavaScript.
+- **Motivo de isencao:** explica porque uma taxa a 0% e aceite; evita documentos fiscais sem justificação quando o tipo e `EXEMPT`.
+- **Service backend:** valida codigo, descricao, taxa, tipo e isencao antes de gravar; recebe dados do controller e grava sempre com `companyId` da sessao.
+- **Route protegida:** exige utilizador autenticado, empresa ativa e role autorizada; evita que a UI seja a unica barreira de seguranca.
+- **Componente React:** mostra lista, formulario e feedback de erro/sucesso; envia cookies com `credentials: "include"` atraves do `apiClient`.
+- **Multiempresa:** obriga cada query a filtrar por empresa; evita que uma taxa de IVA de uma empresa apareca noutra.
+- **Handoff:** os documentos de venda e compra passam a referenciar `vatRateId` em vez de aceitar taxas soltas enviadas pelo browser.
 
 ## Arquitetura do BK
 
@@ -264,18 +267,30 @@ export function buildVatRateRoutes({ prisma }) {
     const guards = [requireAuth(prisma), requireCompanyContext(prisma), requireRole("ADMIN", "GESTOR", "CONTABILISTA")];
 
     router.get("/", guards, async (req, res) => {
-        try { return res.status(200).json({ data: await listVatRates(prisma, req.companyId) }); }
-        catch (error) { return sendError(res, error); }
+        try {
+            const data = await listVatRates(prisma, req.companyId);
+            return res.status(200).json({ data });
+        } catch (error) {
+            return sendError(res, error);
+        }
     });
 
     router.post("/", guards, async (req, res) => {
-        try { return res.status(201).json({ data: await createVatRate(prisma, req.companyId, req.body) }); }
-        catch (error) { return sendError(res, error); }
+        try {
+            const data = await createVatRate(prisma, req.companyId, req.body);
+            return res.status(201).json({ data });
+        } catch (error) {
+            return sendError(res, error);
+        }
     });
 
     router.patch("/:id/active", guards, async (req, res) => {
-        try { return res.status(200).json({ data: await setVatRateActive(prisma, req.companyId, req.params.id, req.body.isActive) }); }
-        catch (error) { return sendError(res, error); }
+        try {
+            const data = await setVatRateActive(prisma, req.companyId, req.params.id, req.body.isActive);
+            return res.status(200).json({ data });
+        } catch (error) {
+            return sendError(res, error);
+        }
     });
 
     return router;
@@ -371,6 +386,90 @@ export async function createVatRate(input: { code: string; description: string; 
 }
 ```
 
+Localização: `apps/web/src/pages/VatRatesPage.tsx`.
+
+```tsx
+// apps/web/src/pages/VatRatesPage.tsx
+import { FormEvent, useEffect, useState } from "react";
+import { createVatRate, fetchVatRates, type VatRate } from "../lib/vatRateApi";
+
+const emptyForm = { code: "", description: "", rateBps: 2300, type: "NORMAL", exemptionReason: "" };
+
+export function VatRatesPage() {
+    const [rates, setRates] = useState<VatRate[]>([]);
+    const [form, setForm] = useState(emptyForm);
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [success, setSuccess] = useState<string | null>(null);
+
+    async function loadRates() {
+        setLoading(true);
+        setError(null);
+        try {
+            setRates(await fetchVatRates());
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Nao foi possivel carregar as taxas de IVA.");
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    useEffect(() => { void loadRates(); }, []);
+
+    async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+        event.preventDefault();
+        setError(null);
+        setSuccess(null);
+        if (!form.code.trim() || !form.description.trim()) {
+            setError("Preenche o codigo e a descricao da taxa de IVA.");
+            return;
+        }
+        if (form.type === "EXEMPT" && !form.exemptionReason.trim()) {
+            setError("Uma taxa isenta precisa de motivo de isencao.");
+            return;
+        }
+
+        setSaving(true);
+        try {
+            await createVatRate({ ...form, code: form.code.trim(), description: form.description.trim() });
+            setForm(emptyForm);
+            setSuccess("Taxa de IVA criada com sucesso.");
+            await loadRates();
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Nao foi possivel criar a taxa de IVA.");
+        } finally {
+            setSaving(false);
+        }
+    }
+
+    return (
+        <main>
+            <h1>Tabelas de IVA</h1>
+            <form onSubmit={handleSubmit} aria-label="Criar taxa de IVA">
+                <input value={form.code} onChange={(event) => setForm({ ...form, code: event.target.value })} placeholder="Codigo" />
+                <input value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} placeholder="Descricao" />
+                <input type="number" value={form.rateBps} onChange={(event) => setForm({ ...form, rateBps: Number(event.target.value) })} />
+                <select value={form.type} onChange={(event) => setForm({ ...form, type: event.target.value })}>
+                    <option value="NORMAL">Normal</option>
+                    <option value="INTERMEDIATE">Intermedia</option>
+                    <option value="REDUCED">Reduzida</option>
+                    <option value="EXEMPT">Isenta</option>
+                    <option value="OTHER">Outra</option>
+                </select>
+                <input value={form.exemptionReason} onChange={(event) => setForm({ ...form, exemptionReason: event.target.value })} placeholder="Motivo de isencao" />
+                <button type="submit" disabled={saving}>{saving ? "A guardar..." : "Guardar taxa"}</button>
+            </form>
+            {error && <p role="alert">{error}</p>}
+            {success && <p role="status">{success}</p>}
+            {loading ? <p>A carregar taxas...</p> : rates.length === 0 ? <p>Ainda nao existem taxas de IVA.</p> : (
+                <ul>{rates.map((rate) => <li key={rate.id}>{rate.code} - {rate.description} ({rate.rateBps / 100}%)</li>)}</ul>
+            )}
+        </main>
+    );
+}
+```
+
 Localização: teste unitário ou de contrato do service.
 
 ```js
@@ -381,6 +480,8 @@ it("rejeita taxa isenta sem motivo", async () => {
 ```
 
 5. Explicação do código.
+
+A pagina `VatRatesPage.tsx` fecha a parte visual deste BK: tem estado local, validacao minima, mensagens de erro/sucesso e chama endpoints reais atraves do cliente API. A UI ajuda o utilizador, mas as regras de seguranca, multiempresa e fiscalidade continuam no backend.
 
 `apiClient.ts` fica como ponto único para chamadas HTTP do frontend. O uso de `credentials: "include"` é obrigatório porque a autenticação da MF0 usa cookie HttpOnly; sem isto, o browser não envia a sessão e a API responde `401`.
 

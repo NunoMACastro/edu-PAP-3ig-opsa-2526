@@ -63,11 +63,14 @@ A compra tem transições controladas: DRAFT para APPROVED e APPROVED para POSTE
 
 ## Conceitos teóricos essenciais
 
-- O backend é a autoridade para regras contabilísticas, valores monetários, datas e estados.
-- Valores monetários devem ser guardados em cêntimos para evitar erros de arredondamento.
-- Operações por empresa exigem filtro por `companyId` em todas as queries.
-- Estados devem bloquear transições inválidas e devolver erros previsíveis.
-- Escritas compostas devem usar transação para evitar dados parciais.
+- **Workflow de compra:** controla `DRAFT -> APPROVED -> POSTED`; vem do RF22 e separa registo, aprovacao e lancamento.
+- **Rascunho:** permite preparar a compra sem impacto final ate ser revista.
+- **Aprovado:** significa que gestor/administrador validou a compra para seguir para pagamento ou contabilizacao.
+- **Lancado:** significa que existe `JournalEntry`; nao e apenas uma etiqueta de UI.
+- **Transicao com BK-MF1-07:** a partir deste BK, novas compras devem nascer `DRAFT` para respeitar o workflow formal.
+- **Auditoria:** cada aprovacao/lancamento regista utilizador e acao em `AuditLog`.
+- **Segregacao de funcoes:** gestor aprova e contabilista lanca; o backend aplica roles.
+- **Handoff:** BK-MF2-01 pode acrescentar historico detalhado e justificacoes.
 
 ## Arquitetura do BK
 
@@ -283,10 +286,20 @@ function sendError(res, error) {
 export function buildPurchaseApprovalRoutes({ prisma }) {
     const router = Router();
     router.post("/:id/approve", requireAuth(prisma), requireCompanyContext(prisma), requireRole("ADMIN", "GESTOR"), async (req, res) => {
-        try { return res.status(200).json({ data: await approvePurchaseDocument(prisma, req.companyId, req.user.id, req.params.id) }); } catch (error) { return sendError(res, error); }
+        try {
+            const data = await approvePurchaseDocument(prisma, req.companyId, req.user.id, req.params.id);
+            return res.status(200).json({ data });
+        } catch (error) {
+            return sendError(res, error);
+        }
     });
     router.post("/:id/post-state", requireAuth(prisma), requireCompanyContext(prisma), requireRole("ADMIN", "CONTABILISTA"), async (req, res) => {
-        try { return res.status(200).json({ data: await markPurchaseDocumentPosted(prisma, req.companyId, req.user.id, req.params.id) }); } catch (error) { return sendError(res, error); }
+        try {
+            const data = await markPurchaseDocumentPosted(prisma, req.companyId, req.user.id, req.params.id);
+            return res.status(200).json({ data });
+        } catch (error) {
+            return sendError(res, error);
+        }
     });
     return router;
 }
@@ -335,8 +348,58 @@ Localização: `apps/web/src/lib/purchaseApprovalApi.ts`.
 ```ts
 import { apiClient } from "./apiClient";
 
-export async function approvePurchaseDocument(id: string) { return apiClient.post("/api/purchases/documents/" + id + "/approve", {}); }
-export async function markPurchaseDocumentPosted(id: string) { return apiClient.post("/api/purchases/documents/" + id + "/post-state", {}); }
+export async function approvePurchaseDocument(id: string) {
+    return apiClient.post("/api/purchases/documents/" + id + "/approve", {});
+}
+export async function markPurchaseDocumentPosted(id: string) {
+    return apiClient.post("/api/purchases/documents/" + id + "/post-state", {});
+}
+```
+
+Localização: `apps/web/src/pages/PurchaseApprovalPage.tsx`.
+
+```tsx
+// apps/web/src/pages/PurchaseApprovalPage.tsx
+import { useState } from "react";
+import { approvePurchaseDocument, markPurchaseDocumentPosted } from "../lib/purchaseApprovalApi";
+
+export function PurchaseApprovalPage() {
+    const [purchaseDocumentId, setPurchaseDocumentId] = useState("");
+    const [loadingAction, setLoadingAction] = useState<string | null>(null);
+    const [error, setError] = useState<string | null>(null);
+    const [success, setSuccess] = useState<string | null>(null);
+
+    async function runAction(action: "approve" | "post") {
+        setError(null);
+        setSuccess(null);
+        if (!purchaseDocumentId.trim()) {
+            setError("Indica o documento de compra.");
+            return;
+        }
+        setLoadingAction(action);
+        try {
+            if (action === "approve") await approvePurchaseDocument(purchaseDocumentId.trim());
+            if (action === "post") await markPurchaseDocumentPosted(purchaseDocumentId.trim());
+            setSuccess(action === "approve" ? "Compra aprovada com sucesso." : "Compra lancada com diario contabilistico.");
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Nao foi possivel atualizar a compra.");
+        } finally {
+            setLoadingAction(null);
+        }
+    }
+
+    return (
+        <main>
+            <h1>Aprovacao de compras</h1>
+            <input value={purchaseDocumentId} onChange={(event) => setPurchaseDocumentId(event.target.value)} placeholder="ID do documento de compra" />
+            <button type="button" disabled={loadingAction !== null} onClick={() => void runAction("approve")}>Aprovar</button>
+            <button type="button" disabled={loadingAction !== null} onClick={() => void runAction("post")}>Marcar como lancada</button>
+            {loadingAction && <p>A processar...</p>}
+            {error && <p role="alert">{error}</p>}
+            {success && <p role="status">{success}</p>}
+        </main>
+    );
+}
 ```
 
 Localização: teste unitário ou de contrato do service.
@@ -349,6 +412,8 @@ it("impede lancar compra antes de aprovar", async () => {
 ```
 
 5. Explicação do código.
+
+A pagina `PurchaseApprovalPage.tsx` fecha a parte visual deste BK: tem estado local, validacao minima, mensagens de erro/sucesso e chama endpoints reais atraves do cliente API. A UI ajuda o utilizador, mas as regras de seguranca, multiempresa e fiscalidade continuam no backend.
 
 O cliente API mantém o contrato entre UI e backend num ponto único. Os testes focam o comportamento que protege a contabilidade: validação, transação, estado e isolamento por empresa.
 

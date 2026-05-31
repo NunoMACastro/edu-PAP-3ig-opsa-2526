@@ -63,11 +63,14 @@ Uma compra registada/aprovada gera lançamento equilibrado com gastos, IVA dedut
 
 ## Conceitos teóricos essenciais
 
-- O backend é a autoridade para regras contabilísticas, valores monetários, datas e estados.
-- Valores monetários devem ser guardados em cêntimos para evitar erros de arredondamento.
-- Operações por empresa exigem filtro por `companyId` em todas as queries.
-- Estados devem bloquear transições inválidas e devolver erros previsíveis.
-- Escritas compostas devem usar transação para evitar dados parciais.
+- **Lancamento de compra:** transforma a compra operacional em diario contabilistico; vem do RF21 e prepara mapas de IVA.
+- **Conta 62:** representa gastos ou compras; recebe debito em fatura normal.
+- **Conta 2432:** representa IVA dedutivel; recebe debito quando a empresa pode deduzir IVA.
+- **Conta 221:** representa fornecedores; recebe credito pelo valor a pagar.
+- **Nota de credito de fornecedor:** inverte fornecedor, gasto e IVA dedutivel para reduzir a divida.
+- **Idempotencia:** impede contabilizar a mesma compra duas vezes.
+- **Periodo fiscal aberto:** bloqueia lancamento quando o periodo esta fechado.
+- **Frontend:** dispara contabilizacao e mostra feedback; os valores contabilisticos ficam sempre no backend.
 
 ## Arquitetura do BK
 
@@ -245,7 +248,12 @@ export function buildPurchasePostingRoutes({ prisma }) {
     const router = Router();
     const guards = [requireAuth(prisma), requireCompanyContext(prisma), requireRole("ADMIN", "GESTOR", "CONTABILISTA")];
     router.post("/:purchaseDocumentId", guards, async (req, res) => {
-        try { return res.status(201).json({ data: await postPurchaseDocument(prisma, req.companyId, req.user.id, req.params.purchaseDocumentId) }); } catch (error) { return sendError(res, error); }
+        try {
+            const data = await postPurchaseDocument(prisma, req.companyId, req.user.id, req.params.purchaseDocumentId);
+            return res.status(201).json({ data });
+        } catch (error) {
+            return sendError(res, error);
+        }
     });
     return router;
 }
@@ -299,6 +307,52 @@ export async function postPurchaseDocument(purchaseDocumentId: string) {
 }
 ```
 
+Localização: `apps/web/src/pages/PurchasePostingsPage.tsx`.
+
+```tsx
+// apps/web/src/pages/PurchasePostingsPage.tsx
+import { FormEvent, useState } from "react";
+import { postPurchaseDocument } from "../lib/accountingApi";
+
+export function PurchasePostingsPage() {
+    const [purchaseDocumentId, setPurchaseDocumentId] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [success, setSuccess] = useState<string | null>(null);
+
+    async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+        event.preventDefault();
+        setError(null);
+        setSuccess(null);
+        if (!purchaseDocumentId.trim()) {
+            setError("Indica o documento de compra a contabilizar.");
+            return;
+        }
+        setLoading(true);
+        try {
+            await postPurchaseDocument(purchaseDocumentId.trim());
+            setSuccess("Lancamento contabilistico da compra criado com sucesso.");
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Nao foi possivel contabilizar a compra.");
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    return (
+        <main>
+            <h1>Contabilizar compra</h1>
+            <form onSubmit={handleSubmit} aria-label="Contabilizar compra">
+                <input value={purchaseDocumentId} onChange={(event) => setPurchaseDocumentId(event.target.value)} placeholder="ID do documento de compra" />
+                <button type="submit" disabled={loading}>{loading ? "A contabilizar..." : "Criar lancamento"}</button>
+            </form>
+            {error && <p role="alert">{error}</p>}
+            {success && <p role="status">{success}</p>}
+        </main>
+    );
+}
+```
+
 Localização: teste unitário ou de contrato do service.
 
 ```js
@@ -310,6 +364,8 @@ it("nao duplica diario da mesma compra", async () => {
 ```
 
 5. Explicação do código.
+
+A pagina `PurchasePostingsPage.tsx` fecha a parte visual deste BK: tem estado local, validacao minima, mensagens de erro/sucesso e chama endpoints reais atraves do cliente API. A UI ajuda o utilizador, mas as regras de seguranca, multiempresa e fiscalidade continuam no backend.
 
 O cliente API mantém o contrato entre UI e backend num ponto único. Os testes focam o comportamento que protege a contabilidade: validação, transação, estado e isolamento por empresa.
 
