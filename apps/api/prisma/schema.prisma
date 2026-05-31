@@ -85,9 +85,7 @@ model Company {
   invitations CompanyInvitation[]
   profile CompanyProfile?
   accounts Account[]
-  fiscalPeriods FiscalPeriod[]
   customers Customer[]
-  items Item[]
   createdAt   DateTime            @default(now())
   updatedAt   DateTime            @updatedAt
 }
@@ -159,24 +157,6 @@ model PasswordResetToken {
   @@index([expiresAt])
 }
 
-model FiscalPeriod {
-  id          String             @id @default(uuid())
-  companyId   String
-  name        String
-  startDate   DateTime
-  endDate     DateTime
-  status      FiscalPeriodStatus @default(OPEN)
-  closedAt    DateTime?
-  closedById  String?
-  createdAt   DateTime           @default(now())
-  updatedAt   DateTime           @updatedAt
-
-  company Company @relation(fields: [companyId], references: [id])
-
-  @@unique([companyId, name])
-  @@index([companyId, startDate, endDate])
-}
-
 model Customer {
   id          String   @id @default(uuid())
   companyId   String
@@ -194,24 +174,5 @@ model Customer {
   company Company @relation(fields: [companyId], references: [id])
 
   @@unique([companyId, nif])
-  @@index([companyId])
-}
-
-model Item {
-  id          String   @id @default(uuid())
-  companyId   String
-  sku         String
-  name        String
-  type        ItemType
-  costCents   Int
-  priceCents  Int
-  vatRateBps  Int
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  company Company @relation(fields: [companyId], references: [id])
-
-  @@unique([companyId, sku])
   @@index([companyId])
 }
