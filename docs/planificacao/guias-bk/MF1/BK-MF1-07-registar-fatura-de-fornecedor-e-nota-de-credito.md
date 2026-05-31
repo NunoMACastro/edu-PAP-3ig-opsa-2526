@@ -132,7 +132,7 @@ deps=BK-MF0-10, BK-MF0-11, BK-MF1-01
 
 5. Explicação do código.
 
-Este bloco não é executado pela app; é o contrato mínimo que impede drift antes de editar código. A execução real começa no passo seguinte.
+As chaves acima formalizam o contrato mínimo do BK e devem bater certo com a matriz antes de qualquer alteração de código.
 
 6. Validação do passo.
 
@@ -170,7 +170,6 @@ enum PurchaseDocumentKind {
 
 enum PurchaseDocumentStatus {
   DRAFT
-  REGISTERED
   APPROVED
   POSTED
   PAID
@@ -181,7 +180,7 @@ model PurchaseDocument {
   companyId       String
   supplierId      String
   kind            PurchaseDocumentKind
-  status          PurchaseDocumentStatus @default(REGISTERED)
+  status          PurchaseDocumentStatus @default(DRAFT)
   supplierNumber  String
   issuedAt        DateTime
   dueDate         DateTime?
@@ -263,7 +262,7 @@ export async function createPurchaseDocument(prisma, companyId, userId, input) {
         });
         const subtotalCents = computedLines.reduce((sum, line) => sum + line.subtotalCents, 0);
         const vatCents = computedLines.reduce((sum, line) => sum + line.vatCents, 0);
-        return tx.purchaseDocument.create({ data: { companyId, supplierId: supplier.id, kind, status: "REGISTERED", supplierNumber, issuedAt, dueDate: input.dueDate ? new Date(input.dueDate) : null, subtotalCents, vatCents, totalCents: subtotalCents + vatCents, createdById: userId, lines: { create: computedLines } }, include: { supplier: true, lines: true } });
+        return tx.purchaseDocument.create({ data: { companyId, supplierId: supplier.id, kind, status: "DRAFT", supplierNumber, issuedAt, dueDate: input.dueDate ? new Date(input.dueDate) : null, subtotalCents, vatCents, totalCents: subtotalCents + vatCents, createdById: userId, lines: { create: computedLines } }, include: { supplier: true, lines: true } });
     });
 }
 ```
@@ -370,6 +369,116 @@ O cliente API mantém o contrato entre UI e backend num ponto único. Os testes 
 
 Se o backend devolver `400`, `401`, `403`, `404` ou `409`, a UI deve mostrar erro controlado e manter o formulário/listagem num estado recuperável.
 
+### Passo 4 - Validar regras unitárias
+
+1. Objetivo funcional do passo no ERP.
+Confirmar que o service cria compras em `DRAFT`, calcula totais e bloqueia duplicados por fornecedor.
+2. Ficheiros envolvidos:
+- CRIAR: testes unitários do módulo.
+- EDITAR: service apenas se o teste revelar falha.
+- REVER: validações de fornecedor, linhas, IVA e número do fornecedor.
+- LOCALIZAÇÃO: testes do backend.
+3. Instruções do que fazer.
+Executar os testes unitários antes de testar a UI.
+4. Código completo, correto e integrado com a app final.
+```bash
+npm run test:unit
+```
+5. Explicação do código.
+O comando valida a regra de negócio no ponto onde a compra é criada.
+6. Validação do passo.
+O documento nasce em `DRAFT` para seguir para aprovação.
+7. Cenário negativo/erro esperado.
+Documento duplicado para o mesmo fornecedor deve falhar com conflito.
+
+### Passo 5 - Validar contrato HTTP
+
+1. Objetivo funcional do passo no ERP.
+Garantir respostas previsíveis para o endpoint de compras.
+2. Ficheiros envolvidos:
+- CRIAR: testes de contrato.
+- EDITAR: route se o contrato HTTP não estiver normalizado.
+- REVER: autenticação e permissões.
+- LOCALIZAÇÃO: testes de contrato do backend.
+3. Instruções do que fazer.
+Cobrir sessão ausente, empresa ausente, payload inválido e fornecedor de outra empresa.
+4. Código completo, correto e integrado com a app final.
+```bash
+npm run test:contracts
+```
+5. Explicação do código.
+O comando confirma que o frontend recebe erros consistentes e seguros.
+6. Validação do passo.
+Nenhum erro devolve stack trace.
+7. Cenário negativo/erro esperado.
+Fornecedor inexistente deve devolver `SUPPLIER_NOT_FOUND`.
+
+### Passo 6 - Validar fluxo integrado
+
+1. Objetivo funcional do passo no ERP.
+Confirmar que a compra registada fica pronta para aprovação.
+2. Ficheiros envolvidos:
+- CRIAR: teste de integração.
+- EDITAR: cliente API ou página se a ligação falhar.
+- REVER: estado visual de sucesso e erro.
+- LOCALIZAÇÃO: testes de integração.
+3. Instruções do que fazer.
+Executar o fluxo com fornecedor ativo, taxa de IVA ativa e período fiscal aberto.
+4. Código completo, correto e integrado com a app final.
+```bash
+npm run test:integration
+```
+5. Explicação do código.
+O comando valida a ligação entre API, persistência e UI.
+6. Validação do passo.
+A compra fica visível para o BK de aprovação.
+7. Cenário negativo/erro esperado.
+Período fiscal fechado deve bloquear o registo.
+
+### Passo 7 - Rever diff técnico
+
+1. Objetivo funcional do passo no ERP.
+Impedir alterações fora do domínio do BK.
+2. Ficheiros envolvidos:
+- CRIAR: nenhum.
+- EDITAR: nenhum.
+- REVER: diff completo.
+- LOCALIZAÇÃO: raiz do repositório.
+3. Instruções do que fazer.
+Confirmar que todos os acessos usam `companyId` do contexto autenticado.
+4. Código completo, correto e integrado com a app final.
+```bash
+git diff --check
+```
+5. Explicação do código.
+O comando deteta problemas de whitespace antes da revisão.
+6. Validação do passo.
+O comando termina sem erros.
+7. Cenário negativo/erro esperado.
+Se falhar, corrigir as linhas indicadas.
+
+### Passo 8 - Preparar evidência
+
+1. Objetivo funcional do passo no ERP.
+Fechar o BK com prova de implementação e validação.
+2. Ficheiros envolvidos:
+- CRIAR: nota de evidência.
+- EDITAR: changelog se houver alteração real.
+- REVER: critérios de aceite.
+- LOCALIZAÇÃO: guia e PR.
+3. Instruções do que fazer.
+Registar comandos, resultados, decisão de estado e handoff para aprovação de compras.
+4. Código completo, correto e integrado com a app final.
+```bash
+git diff -- docs/planificacao/guias-bk/MF1
+```
+5. Explicação do código.
+O comando foca a revisão documental na MF1.
+6. Validação do passo.
+A evidência permite perceber o que mudou sem reler todo o código.
+7. Cenário negativo/erro esperado.
+Sem evidência de testes, não pedir revisão final.
+
 ## Expected results
 
 - A aplicação regista faturas e notas de crédito de fornecedor por empresa, com número do fornecedor único e totais calculados no backend.
@@ -383,7 +492,7 @@ Se o backend devolver `400`, `401`, `403`, `404` ou `409`, a UI deve mostrar err
 - Nenhum dado de outra empresa aparece na resposta.
 - Entradas inválidas falham com erro previsível.
 - Escritas compostas são transacionais.
-- O próximo BK consegue reutilizar os modelos e endpoints aqui definidos.
+- O próximo BK consegue usar os modelos e endpoints aqui definidos.
 
 ## Validação final
 
@@ -405,4 +514,4 @@ O `BK-MF1-08` usa `PurchaseDocument.totalCents`, `amountPaidCents` e `status` pa
 
 ## Changelog
 
-- `2026-05-31`: Guia corrigido no modo `corrigir_apenas`, com contrato técnico completo, código por camada, validações e handoff MF1.
+- `2026-05-31`: Guia consolidado com contrato técnico completo, código por camada, validações e handoff MF1.

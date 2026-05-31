@@ -132,7 +132,7 @@ deps=-
 
 5. Explicação do código.
 
-Este bloco não é executado pela app; é o contrato mínimo que impede drift antes de editar código. A execução real começa no passo seguinte.
+As chaves acima formalizam o contrato mínimo do BK e devem bater certo com a matriz antes de qualquer alteração de código.
 
 6. Validação do passo.
 
@@ -216,6 +216,7 @@ export async function registerReceipt(prisma, companyId, userId, saleDocumentId,
     return prisma.$transaction(async (tx) => {
         const document = await tx.saleDocument.findFirst({ where: { id: saleDocumentId, companyId } });
         if (!document) throw httpError(404, "SALE_DOCUMENT_NOT_FOUND", "Documento de venda nao encontrado");
+        if (document.status !== "ISSUED" && document.status !== "SETTLED") throw httpError(409, "INVALID_STATUS", "Apenas documentos emitidos podem receber valores");
         const openAmount = document.totalCents - document.amountPaidCents;
         if (openAmount <= 0) throw httpError(409, "DOCUMENT_ALREADY_SETTLED", "Documento ja liquidado");
         if (data.amountCents > openAmount) throw httpError(400, "AMOUNT_EXCEEDS_OPEN", "Valor excede o montante em aberto");
@@ -329,6 +330,116 @@ O cliente API mantém o contrato entre UI e backend num ponto único. Os testes 
 
 Se o backend devolver `400`, `401`, `403`, `404` ou `409`, a UI deve mostrar erro controlado e manter o formulário/listagem num estado recuperável.
 
+### Passo 4 - Validar regras unitárias
+
+1. Objetivo funcional do passo no ERP.
+Confirmar que o service rejeita valores inválidos, documento inexistente, empresa errada e estado não emitido.
+2. Ficheiros envolvidos:
+- CRIAR: testes unitários do módulo.
+- EDITAR: service apenas se o teste revelar falha.
+- REVER: validações de montante, data, método e estado.
+- LOCALIZAÇÃO: testes do backend.
+3. Instruções do que fazer.
+Executar os testes unitários antes de testar a UI.
+4. Código completo, correto e integrado com a app final.
+```bash
+npm run test:unit
+```
+5. Explicação do código.
+O comando valida a regra de negócio no ponto onde a escrita é autorizada.
+6. Validação do passo.
+Os cenários negativos falham com `400`, `404` ou `409`.
+7. Cenário negativo/erro esperado.
+Um recebimento superior ao saldo em aberto deve devolver `AMOUNT_EXCEEDS_OPEN`.
+
+### Passo 5 - Validar contrato HTTP
+
+1. Objetivo funcional do passo no ERP.
+Garantir respostas previsíveis para o endpoint de recebimentos.
+2. Ficheiros envolvidos:
+- CRIAR: testes de contrato.
+- EDITAR: route se o contrato HTTP não estiver normalizado.
+- REVER: autenticação e permissões.
+- LOCALIZAÇÃO: testes de contrato do backend.
+3. Instruções do que fazer.
+Cobrir sessão ausente, empresa ausente, payload inválido e documento de outra empresa.
+4. Código completo, correto e integrado com a app final.
+```bash
+npm run test:contracts
+```
+5. Explicação do código.
+O comando confirma que o frontend recebe erros consistentes e seguros.
+6. Validação do passo.
+Nenhum erro devolve stack trace.
+7. Cenário negativo/erro esperado.
+Sem sessão autenticada, a API deve devolver `401`.
+
+### Passo 6 - Validar fluxo integrado
+
+1. Objetivo funcional do passo no ERP.
+Confirmar que o recebimento atualiza `amountPaidCents` e `status`.
+2. Ficheiros envolvidos:
+- CRIAR: teste de integração.
+- EDITAR: cliente API ou página se a ligação falhar.
+- REVER: estado visual de sucesso e erro.
+- LOCALIZAÇÃO: testes de integração.
+3. Instruções do que fazer.
+Executar o fluxo com fatura emitida e saldo em aberto.
+4. Código completo, correto e integrado com a app final.
+```bash
+npm run test:integration
+```
+5. Explicação do código.
+O comando valida a ligação entre API, persistência e UI.
+6. Validação do passo.
+Recebimento parcial mantém o documento aberto; recebimento total muda para `SETTLED`.
+7. Cenário negativo/erro esperado.
+Documento em `DRAFT`, `SUBMITTED`, `APPROVED` ou `REJECTED` deve devolver `409`.
+
+### Passo 7 - Rever diff técnico
+
+1. Objetivo funcional do passo no ERP.
+Impedir alterações fora do domínio do BK.
+2. Ficheiros envolvidos:
+- CRIAR: nenhum.
+- EDITAR: nenhum.
+- REVER: diff completo.
+- LOCALIZAÇÃO: raiz do repositório.
+3. Instruções do que fazer.
+Confirmar que todos os acessos usam `companyId` do contexto autenticado.
+4. Código completo, correto e integrado com a app final.
+```bash
+git diff --check
+```
+5. Explicação do código.
+O comando deteta problemas de whitespace antes da revisão.
+6. Validação do passo.
+O comando termina sem erros.
+7. Cenário negativo/erro esperado.
+Se falhar, corrigir as linhas indicadas.
+
+### Passo 8 - Preparar evidência
+
+1. Objetivo funcional do passo no ERP.
+Fechar o BK com prova de implementação e validação.
+2. Ficheiros envolvidos:
+- CRIAR: nota de evidência.
+- EDITAR: changelog se houver alteração real.
+- REVER: critérios de aceite.
+- LOCALIZAÇÃO: guia e PR.
+3. Instruções do que fazer.
+Registar comandos, resultados, decisão de estado e handoff para BKs financeiros seguintes.
+4. Código completo, correto e integrado com a app final.
+```bash
+git diff -- docs/planificacao/guias-bk/MF1
+```
+5. Explicação do código.
+O comando foca a revisão documental na MF1.
+6. Validação do passo.
+A evidência permite perceber o que mudou sem reler todo o código.
+7. Cenário negativo/erro esperado.
+Sem evidência de testes, não pedir revisão final.
+
 ## Expected results
 
 - Cada recebimento fica ligado ao documento de venda, atualiza o montante recebido e fecha o documento apenas quando o total fica liquidado.
@@ -342,7 +453,7 @@ Se o backend devolver `400`, `401`, `403`, `404` ou `409`, a UI deve mostrar err
 - Nenhum dado de outra empresa aparece na resposta.
 - Entradas inválidas falham com erro previsível.
 - Escritas compostas são transacionais.
-- O próximo BK consegue reutilizar os modelos e endpoints aqui definidos.
+- O próximo BK consegue usar os modelos e endpoints aqui definidos.
 
 ## Validação final
 
@@ -360,8 +471,8 @@ Se o backend devolver `400`, `401`, `403`, `404` ou `409`, a UI deve mostrar err
 
 ## Handoff
 
-O `BK-MF1-04` pode contabilizar vendas já emitidas; `BK-MF3-04` deve reutilizar recebimentos para entradas futuras e realizadas.
+O `BK-MF1-04` pode contabilizar vendas já emitidas; `BK-MF3-04` deve usar recebimentos para entradas futuras e realizadas.
 
 ## Changelog
 
-- `2026-05-31`: Guia corrigido no modo `corrigir_apenas`, com contrato técnico completo, código por camada, validações e handoff MF1.
+- `2026-05-31`: Guia consolidado com contrato técnico completo, código por camada, validações e handoff MF1.

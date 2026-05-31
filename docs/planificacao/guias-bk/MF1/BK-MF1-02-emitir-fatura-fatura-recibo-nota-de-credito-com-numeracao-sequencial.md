@@ -134,7 +134,7 @@ deps=BK-MF0-09, BK-MF0-11, BK-MF1-01
 
 5. Explicação do código.
 
-Este bloco não é executado pela app; é o contrato mínimo que impede drift antes de editar código. A execução real começa no passo seguinte.
+As chaves acima formalizam o contrato mínimo do BK e devem bater certo com a matriz antes de qualquer alteração de código.
 
 6. Validação do passo.
 
@@ -173,6 +173,9 @@ enum SaleDocumentKind {
 
 enum SaleDocumentStatus {
   DRAFT
+  SUBMITTED
+  APPROVED
+  REJECTED
   ISSUED
   SETTLED
 }
@@ -196,8 +199,8 @@ model SaleDocument {
   companyId       String
   customerId      String
   kind            SaleDocumentKind
-  status          SaleDocumentStatus @default(ISSUED)
-  number          String
+  status          SaleDocumentStatus @default(DRAFT)
+  number          String?
   issuedAt        DateTime
   dueDate         DateTime?
   subtotalCents   Int
@@ -205,6 +208,8 @@ model SaleDocument {
   totalCents      Int
   amountPaidCents Int                @default(0)
   createdById     String
+  issuedById      String?
+  issuedDefinitiveAt DateTime?
   createdAt       DateTime           @default(now())
   updatedAt       DateTime           @updatedAt
 
@@ -261,11 +266,16 @@ function parseLine(line) {
 async function nextSaleNumber(tx, companyId, kind, issuedAt) {
     const year = issuedAt.getUTCFullYear();
     const scope = "SALE_" + kind;
-    const sequence = await tx.numberSequence.upsert({
-        where: { companyId_scope_year: { companyId, scope, year } },
-        update: { nextValue: { increment: 1 } },
-        create: { companyId, scope, year, prefix: kind + "-" + year + "-", nextValue: 2 },
-    });
+    const prefix = kind + "-" + year + "-";
+    const sequence = await tx.numberSequence.findUnique({ where: { companyId_scope_year: { companyId, scope, year } } });
+
+    // A sequência só avança dentro da transação que emite o documento definitivo.
+    if (!sequence) {
+        await tx.numberSequence.create({ data: { companyId, scope, year, prefix, nextValue: 2 } });
+        return prefix + "000001";
+    }
+
+    await tx.numberSequence.update({ where: { id: sequence.id }, data: { nextValue: { increment: 1 } } });
     return sequence.prefix + String(sequence.nextValue).padStart(6, "0");
 }
 
@@ -297,10 +307,32 @@ export async function createSaleDocument(prisma, companyId, userId, input) {
         const subtotalCents = computedLines.reduce((sum, line) => sum + line.subtotalCents, 0);
         const vatCents = computedLines.reduce((sum, line) => sum + line.vatCents, 0);
         const totalCents = subtotalCents + vatCents;
-        const number = await nextSaleNumber(tx, companyId, kind, issuedAt);
-
         return tx.saleDocument.create({
-            data: { companyId, customerId: customer.id, kind, status: kind === "INVOICE_RECEIPT" ? "SETTLED" : "ISSUED", number, issuedAt, dueDate, subtotalCents, vatCents, totalCents, amountPaidCents: kind === "INVOICE_RECEIPT" ? totalCents : 0, createdById: userId, lines: { create: computedLines } },
+            data: { companyId, customerId: customer.id, kind, status: "DRAFT", number: null, issuedAt, dueDate, subtotalCents, vatCents, totalCents, amountPaidCents: 0, createdById: userId, lines: { create: computedLines } },
+            include: { lines: true, customer: true },
+        });
+    });
+}
+
+export async function issueSaleDocument(prisma, companyId, userId, id) {
+    return prisma.$transaction(async (tx) => {
+        const document = await tx.saleDocument.findFirst({ where: { id, companyId }, include: { lines: true } });
+        if (!document) throw httpError(404, "SALE_DOCUMENT_NOT_FOUND", "Documento de venda nao encontrado");
+        if (document.status !== "APPROVED") throw httpError(409, "INVALID_STATUS", "Apenas documentos aprovados podem ser emitidos");
+        if (document.number) throw httpError(409, "DOCUMENT_ALREADY_ISSUED", "Documento ja emitido");
+
+        const number = await nextSaleNumber(tx, companyId, document.kind, document.issuedAt);
+        const settled = document.kind === "INVOICE_RECEIPT";
+
+        return tx.saleDocument.update({
+            where: { id: document.id },
+            data: {
+                number,
+                status: settled ? "SETTLED" : "ISSUED",
+                amountPaidCents: settled ? document.totalCents : document.amountPaidCents,
+                issuedById: userId,
+                issuedDefinitiveAt: new Date(),
+            },
             include: { lines: true, customer: true },
         });
     });
@@ -420,6 +452,176 @@ O cliente API mantém o contrato entre UI e backend num ponto único. Os testes 
 
 Se o backend devolver `400`, `401`, `403`, `404` ou `409`, a UI deve mostrar erro controlado e manter o formulário/listagem num estado recuperável.
 
+### Passo 4 - Validar schema e regras de negócio
+
+1. Objetivo funcional do passo no ERP.
+
+Confirmar que a camada de dados e o service respeitam o contrato do BK atual.
+
+2. Ficheiros envolvidos:
+- CRIAR: testes unitários do módulo alterado.
+- EDITAR: nenhum ficheiro fora do domínio do BK.
+- REVER: schema, service e validações.
+- LOCALIZAÇÃO: pasta de testes do backend.
+
+3. Instruções do que fazer.
+
+Criar ou atualizar testes unitários para o caso feliz, entradas inválidas, empresa errada e estado inválido. Os testes devem chamar a camada de service, porque é aí que vivem as regras de negócio.
+
+4. Código completo, correto e integrado com a app final.
+
+```bash
+npm run test:unit
+```
+
+5. Explicação do código.
+
+O comando executa a bateria unitária do backend e confirma que o domínio do BK não depende da UI para validar regras críticas.
+
+6. Validação do passo.
+
+O teste passa sem regressões e cobre pelo menos um caso feliz e três cenários negativos relevantes.
+
+7. Cenário negativo/erro esperado.
+
+Se o teste falhar por ausência de validação, corrigir o service antes de avançar para a rota ou frontend.
+
+### Passo 5 - Validar contratos HTTP
+
+1. Objetivo funcional do passo no ERP.
+
+Garantir que a API protegida responde com códigos HTTP previsíveis.
+
+2. Ficheiros envolvidos:
+- CRIAR: testes de contrato do endpoint principal.
+- EDITAR: rota e serialização de erro, se necessário.
+- REVER: autenticação, contexto de empresa e permissões.
+- LOCALIZAÇÃO: testes de contrato do backend.
+
+3. Instruções do que fazer.
+
+Cobrir `401`, `403`, `400`, `404` e `409` sempre que o fluxo do BK tiver esses cenários.
+
+4. Código completo, correto e integrado com a app final.
+
+```bash
+npm run test:contracts
+```
+
+5. Explicação do código.
+
+O comando valida que o contrato externo da API se mantém estável para o frontend e para BKs seguintes.
+
+6. Validação do passo.
+
+As respostas não expõem stack traces e mantêm `{ error, message }` ou o formato já usado pela app.
+
+7. Cenário negativo/erro esperado.
+
+Um pedido sem sessão deve falhar antes de qualquer leitura ou escrita de dados.
+
+### Passo 6 - Validar fluxo integrado
+
+1. Objetivo funcional do passo no ERP.
+
+Confirmar que backend, frontend e persistência funcionam em conjunto no fluxo principal.
+
+2. Ficheiros envolvidos:
+- CRIAR: teste de integração ou cenário smoke.
+- EDITAR: cliente API ou página, caso o fluxo quebre.
+- REVER: mensagens de erro e estados de carregamento.
+- LOCALIZAÇÃO: testes de integração da app.
+
+3. Instruções do que fazer.
+
+Executar o cenário principal com utilizador autenticado, empresa ativa e permissões adequadas.
+
+4. Código completo, correto e integrado com a app final.
+
+```bash
+npm run test:integration
+```
+
+5. Explicação do código.
+
+O comando valida o comportamento final visto pelo utilizador e protege a integração entre camadas.
+
+6. Validação do passo.
+
+O fluxo termina com dados persistidos na empresa correta e UI em estado de sucesso.
+
+7. Cenário negativo/erro esperado.
+
+Com empresa ausente ou permissões insuficientes, a operação deve ser bloqueada sem gravar dados.
+
+### Passo 7 - Rever diff técnico
+
+1. Objetivo funcional do passo no ERP.
+
+Garantir que a implementação não introduz alterações fora do âmbito.
+
+2. Ficheiros envolvidos:
+- CRIAR: nenhum.
+- EDITAR: nenhum.
+- REVER: todos os ficheiros alterados no BK.
+- LOCALIZAÇÃO: raiz do repositório.
+
+3. Instruções do que fazer.
+
+Rever nomes, responsabilidades, validações, mensagens, transações, roles e filtros por `companyId`.
+
+4. Código completo, correto e integrado com a app final.
+
+```bash
+git diff --check
+```
+
+5. Explicação do código.
+
+O comando deteta whitespace problemático e ajuda a manter o diff limpo antes da revisão.
+
+6. Validação do passo.
+
+O comando termina sem erros.
+
+7. Cenário negativo/erro esperado.
+
+Se houver erro de whitespace, corrigir apenas as linhas afetadas.
+
+### Passo 8 - Preparar evidência de entrega
+
+1. Objetivo funcional do passo no ERP.
+
+Fechar o BK com prova técnica clara para revisão e defesa.
+
+2. Ficheiros envolvidos:
+- CRIAR: nota de evidência no PR ou documento de entrega.
+- EDITAR: changelog do BK, se a implementação real o justificar.
+- REVER: expected results, critérios de aceite e handoff.
+- LOCALIZAÇÃO: guia do BK e descrição do PR.
+
+3. Instruções do que fazer.
+
+Registar ficheiros alterados, comandos executados, resultado dos testes, decisão de integração e próximos BKs afetados.
+
+4. Código completo, correto e integrado com a app final.
+
+```bash
+git diff -- docs/planificacao/guias-bk/MF1
+```
+
+5. Explicação do código.
+
+O comando limita a revisão documental à MF1 e facilita confirmar que o guia mantém o contrato do BK.
+
+6. Validação do passo.
+
+A evidência identifica o que foi alterado, porquê e como foi validado.
+
+7. Cenário negativo/erro esperado.
+
+Se a evidência não explicar uma decisão técnica, completar a nota antes de pedir revisão.
+
 ## Expected results
 
 - A aplicação emite documentos de venda por empresa, com sequência atómica, linhas validadas, totais calculados no backend e estado controlado.
@@ -433,7 +635,7 @@ Se o backend devolver `400`, `401`, `403`, `404` ou `409`, a UI deve mostrar err
 - Nenhum dado de outra empresa aparece na resposta.
 - Entradas inválidas falham com erro previsível.
 - Escritas compostas são transacionais.
-- O próximo BK consegue reutilizar os modelos e endpoints aqui definidos.
+- O próximo BK consegue usar os modelos e endpoints aqui definidos.
 
 ## Validação final
 
@@ -455,4 +657,4 @@ O `BK-MF1-03` usa `SaleDocument.totalCents`, `amountPaidCents` e `status` para r
 
 ## Changelog
 
-- `2026-05-31`: Guia corrigido no modo `corrigir_apenas`, com contrato técnico completo, código por camada, validações e handoff MF1.
+- `2026-05-31`: Guia consolidado com contrato técnico completo, código por camada, validações e handoff MF1.

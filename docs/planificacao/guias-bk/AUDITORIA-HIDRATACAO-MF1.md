@@ -1,4 +1,4 @@
-# Auditoria e Correção dos Guias BK - MF1
+# Auditoria e correcao dos Guias BK - MF1
 
 ## Header
 
@@ -6,26 +6,26 @@
 - `macro`: `MF1`
 - `data`: `2026-05-31`
 - `modo`: `corrigir_apenas`
-- `estado`: `correcao_concluida_com_validacao_parcial`
+- `estado`: `correcao_concluida_com_bloqueio_no_validador_canonico`
 - `escopo`: `docs/planificacao/guias-bk/MF1/`
 
 ## Objetivo
 
-Executar a correção dos guias BK da `MF1` já classificados como `CRITICO` no relatório anterior, sem alterar documentos canónicos, requisitos, owners, dependências ou código da aplicação.
+Corrigir apenas os guias BK da `MF1` que a auditoria anterior classificou como `PARCIAL` ou `CRITICO`, sem alterar documentos canonicos, codigo da aplicacao ou ficheiros fora do escopo da MF1.
 
-O objetivo desta execução foi transformar os 10 guias MF1 em documentação operacional suficiente para orientar implementação real: schema, services, rotas, cliente frontend, validações, cenários negativos, expected results, evidence e handoff para BKs seguintes.
+O foco desta execucao foi transformar os guias em material executavel e pedagogico para alunos do 12.o ano, mantendo rigor tecnico: passos suficientes por prioridade, estados coerentes entre vendas/compras/aprovacoes, remocao de linguagem interna, validacoes explicitas, multiempresa, roles, transacoes e handoff para MF2/MF3.
 
-## Limites desta execução
+## Limites desta execucao
 
 - `MF_ALVO`: `MF1`
 - `MODO`: `corrigir_apenas`
-- BKs editados: todos os BKs MF1 classificados como `CRITICO` na auditoria inicial.
-- Documentos canónicos editados: nenhum.
-- Código da aplicação editado: nenhum.
-- Os caminhos técnicos seguem `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md`: `apps/api`, `apps/web`, Express, React + Vite + TypeScript, PostgreSQL e Prisma/equivalente.
-- Referências visuais existentes foram tratadas apenas como apoio de fluxo e nomes visíveis; o contrato técnico usado foi documental.
+- BKs editados: 10 de 10 guias MF1.
+- Documentos canonicos editados: nenhum.
+- Codigo da aplicacao editado: nenhum.
+- `mockup/` nao foi usado como contrato tecnico; apenas serviu como referencia visual/fluxo.
+- A correcao manteve os paths finais declarados nos BKs (`apps/api`, `apps/web`) conforme `CONTRATO-STACK-IMPLEMENTACAO.md`.
 
-## Fontes de verdade usadas
+## Fontes consultadas
 
 - `README.md`
 - `docs/RF.md`
@@ -39,66 +39,101 @@ O objetivo desta execução foi transformar os 10 guias MF1 em documentação op
 - `docs/planificacao/backlogs/CONTRATO-CAMPOS-BK.md`
 - `docs/planificacao/backlogs/MF-VIEWS.md`
 - `docs/planificacao/sprints/PLANO-SPRINTS.md`
-- Guias corrigidos da `MF0`, usados como padrão de detalhe e integração.
+- `docs/planificacao/guias-bk/_TEMPLATE-BK.md`
+- `docs/planificacao/guias-bk/README.md`
+- Todos os BKs de `docs/planificacao/guias-bk/MF0/`
+- Todos os BKs de `docs/planificacao/guias-bk/MF1/`
+- BKs posteriores dependentes: `BK-MF2-01`, `BK-MF3-01`, `BK-MF3-03`, `BK-MF3-04`, `BK-MF3-07`
 
-## Resultado antes/depois
+## Resultado
 
 | Momento | OK | PARCIAL | CRITICO |
 | --- | ---: | ---: | ---: |
-| Antes da correção MF1 | 0 | 0 | 10 |
-| Depois da correção MF1 | 10 | 0 | 0 |
+| Antes da correcao MF1 | 0 | 7 | 3 |
+| Depois da correcao MF1 | 10 | 0 | 0 |
 
-Interpretação: `OK` significa guia documental pronto para orientar a implementação. Não significa que o código descrito tenha sido criado ou executado na app, porque esta execução alterou apenas documentação de planeamento.
+## BKs editados
 
-## BKs corrigidos
-
-| BK | Estado antes | Estado depois | Alteração principal |
+| BK | Estado antes | Estado depois | Correcao principal |
 | --- | --- | --- | --- |
-| `BK-MF1-01` | CRITICO | OK | Adicionado contrato completo para tabela de IVA por empresa, validação de códigos/taxas/isencões, API e cliente frontend. |
-| `BK-MF1-02` | CRITICO | OK | Adicionado fluxo de documentos de venda, linhas, numeração sequencial, totais backend, estados e endpoint. |
-| `BK-MF1-03` | CRITICO | OK | Adicionado modelo de recebimentos, regra parcial/total, bloqueio de excesso e atualização transacional do saldo. |
-| `BK-MF1-04` | CRITICO | OK | Adicionado lançamento contabilístico de venda com débito/crédito, contas SNC mínimas, período fiscal e idempotência. |
-| `BK-MF1-05` | CRITICO | OK | Adicionada consulta de títulos em aberto, saldo, dias de atraso e buckets de antiguidade. |
-| `BK-MF1-06` | CRITICO | OK | Adicionadas transições de aprovação de venda, roles, rejeição com motivo e bloqueio de estados inválidos. |
-| `BK-MF1-07` | CRITICO | OK | Adicionado documento de compra, linhas, fornecedor, IVA, número de fornecedor e totais backend. |
-| `BK-MF1-08` | CRITICO | OK | Adicionado pagamento a fornecedor, regra parcial/total e atualização transacional da compra. |
-| `BK-MF1-09` | CRITICO | OK | Adicionado lançamento contabilístico de compra com gastos, IVA dedutível, fornecedor e idempotência. |
-| `BK-MF1-10` | CRITICO | OK | Adicionado estado de compras `DRAFT -> APPROVED -> POSTED`, roles e handoff para histórico em `BK-MF2-01`. |
+| `BK-MF1-01` | PARCIAL | OK | Mantido contrato de IVA e acrescentados passos finais de testes, contratos, integracao, diff e evidencia. |
+| `BK-MF1-02` | CRITICO | OK | Corrigida numeracao sequencial; documento nasce em `DRAFT`; emissao definitiva passa a exigir `APPROVED`. |
+| `BK-MF1-03` | PARCIAL | OK | Recebimentos passam a exigir documento `ISSUED` ou `SETTLED`; adicionados passos de validacao e evidencia. |
+| `BK-MF1-04` | PARCIAL | OK | Contabilizacao de venda passa a rejeitar qualquer estado nao emitido; adicionados gates contabilisticos. |
+| `BK-MF1-05` | PARCIAL | OK | Removido bloco de schema com texto; consulta passa a focar documentos `ISSUED` com saldo em aberto. |
+| `BK-MF1-06` | CRITICO | OK | Schema de aprovacao deixou de ser comentario; fluxo `DRAFT -> SUBMITTED -> APPROVED/REJECTED -> ISSUE` fica coerente. |
+| `BK-MF1-07` | PARCIAL | OK | Compra passa a nascer em `DRAFT`, alinhada com RF22 e com o BK de aprovacao. |
+| `BK-MF1-08` | PARCIAL | OK | Pagamentos passam a exigir compra `POSTED` ou `PAID`; adicionados passos finais de validacao. |
+| `BK-MF1-09` | PARCIAL | OK | Bloco de schema passou a declarar `JournalSource.PURCHASE`; contabilizacao exige compra `APPROVED`. |
+| `BK-MF1-10` | CRITICO | OK | Schema completo de estados de compra; aprovacao aceita apenas `DRAFT`; lancamento aceita apenas `APPROVED`; auditoria adicionada. |
 
-## Mapa de integração da MF
+## Gaps principais corrigidos
 
-| BK | Modelos/serviços definidos | Endpoint principal | Reutiliza | Desbloqueia |
+1. **Numero minimo de passos.**
+   - P0 (`BK-MF1-01`, `02`, `03`, `04`, `07`, `08`, `09`): 8 passos cada.
+   - P1 (`BK-MF1-05`, `06`, `10`): 6 passos cada.
+
+2. **Linguagem interna removida dos BKs.**
+   - Removidas referencias ao modo de execucao em changelogs.
+   - Removida a frase que dizia que o bloco do Passo 1 nao era executado pela app.
+   - Removidos blocos `prisma` que continham texto em vez de contrato tecnico.
+
+3. **Vendas e aprovacao alinhadas.**
+   - `BK-MF1-02` cria documento em `DRAFT`.
+   - `BK-MF1-06` submete, aprova/rejeita e expõe emissao definitiva apenas para documento aprovado.
+   - A numeracao definitiva avanca apenas dentro da transacao de emissao.
+
+4. **Compras e aprovacao alinhadas.**
+   - `BK-MF1-07` cria compra em `DRAFT`.
+   - `BK-MF1-10` aplica RF22: `DRAFT -> APPROVED -> POSTED`.
+   - `BK-MF1-08` paga apenas compra lancada.
+   - `BK-MF1-09` contabiliza apenas compra aprovada.
+
+5. **Operacoes sensiveis com auditoria.**
+   - `BK-MF1-06` regista auditoria para submissao, aprovacao e rejeicao de venda.
+   - `BK-MF1-10` regista auditoria para aprovacao e lancamento de compra.
+
+## Decisoes tecnicas e de dominio confirmadas
+
+- `CANONICO`: RF14 exige documentos de venda com numeracao sequencial.
+- `CANONICO`: RF18 exige fluxo de aprovacao de vendas antes da emissao definitiva quando o processo de aprovacao e usado.
+- `CANONICO`: RF22 define compras com estados `Rascunho -> Aprovado -> Lancado`.
+- `DERIVADO`: documentos de venda e compra nascem em `DRAFT` para permitir aprovacao antes do estado definitivo.
+- `DERIVADO`: `INVOICE_RECEIPT` so muda para `SETTLED` no momento da emissao definitiva, porque antes disso ainda e rascunho/aprovacao.
+- `DERIVADO`: pagamentos a fornecedores exigem compra `POSTED`, evitando saidas de tesouraria sobre documento ainda nao lancado.
+- `DERIVADO`: recebimentos de clientes exigem venda `ISSUED` ou `SETTLED`, evitando movimentos financeiros sobre rascunhos.
+- `TODO (BLOCKER)`: o validador canonico nao corre neste checkout porque falta `../scripts/validate_planificacao_canonica.py`.
+
+## Mapa de integracao atualizado
+
+| BK | Elementos declarados | Endpoints declarados | BKs seguintes afetados | Estado de integracao |
 | --- | --- | --- | --- | --- |
-| `BK-MF1-01` | `VatRate`, `VatRateType`, `vatRateService`, `vatRateRoutes` | `GET/POST/PATCH /api/vat-rates` | MF0 auth, empresa e roles | `BK-MF1-02`, `BK-MF1-07`, `BK-MF3-01` |
-| `BK-MF1-02` | `NumberSequence`, `SaleDocument`, `SaleDocumentLine`, `saleDocumentService` | `GET/POST /api/sales/documents` | `Customer`, `Item`, `VatRate`, período fiscal | `BK-MF1-03`, `BK-MF1-04`, `BK-MF1-06`, `BK-MF3-03`, `BK-MF3-07` |
-| `BK-MF1-03` | `Receipt`, `ReceiptMethod`, `receiptService` | `POST /api/sales/documents/:id/receipts` | `SaleDocument`, período fiscal | `BK-MF1-05`, `BK-MF3-04` |
-| `BK-MF1-04` | `JournalEntry`, `JournalEntryLine`, `salePostingService` | `POST /api/accounting/sale-postings/:saleDocumentId` | `SaleDocument`, `Account`, período fiscal | `BK-MF3-01`, `BK-MF2-07`, `BK-MF2-08` |
-| `BK-MF1-05` | `salesOpenItemsService` | `GET /api/sales/open-items` | `SaleDocument`, `Customer`, recebimentos | `BK-MF3-04`, `BK-MF3-07` |
-| `BK-MF1-06` | `saleApprovalService` | `POST /api/sales/documents/:id/submit`, `/approve`, `/reject` | `SaleDocument`, roles MF0 | `BK-MF2-01`, MF4 auditoria/notificações |
-| `BK-MF1-07` | `PurchaseDocument`, `PurchaseDocumentLine`, `purchaseDocumentService` | `GET/POST /api/purchases/documents` | `Supplier`, `Item`, `VatRate`, período fiscal | `BK-MF1-08`, `BK-MF1-09`, `BK-MF3-03`, `BK-MF3-07` |
-| `BK-MF1-08` | `Payment`, `PaymentMethod`, `paymentService` | `POST /api/purchases/documents/:id/payments` | `PurchaseDocument`, período fiscal | `BK-MF3-04` |
-| `BK-MF1-09` | `purchasePostingService` sobre `JournalEntry` | `POST /api/accounting/purchase-postings/:purchaseDocumentId` | `PurchaseDocument`, `Account`, período fiscal | `BK-MF3-01`, `BK-MF2-07`, `BK-MF2-08` |
-| `BK-MF1-10` | `purchaseApprovalService` | `POST /api/purchases/documents/:id/approve`, `/post-state` | `PurchaseDocument`, roles MF0 | `BK-MF2-01` |
+| `BK-MF1-01` | `VatRate`, `VatRateType`, service, routes, cliente API | `GET/POST/PATCH /api/vat-rates` | `BK-MF1-02`, `BK-MF1-07`, `BK-MF3-01` | OK |
+| `BK-MF1-02` | `NumberSequence`, `SaleDocument`, `SaleDocumentLine`, `issueSaleDocument` | `GET/POST /api/sales/documents` | `BK-MF1-03`, `BK-MF1-04`, `BK-MF1-06`, `BK-MF3-03`, `BK-MF3-07` | OK |
+| `BK-MF1-03` | `Receipt`, `ReceiptMethod`, `receiptService` | `POST /api/sales/documents/:id/receipts` | `BK-MF1-05`, `BK-MF3-04` | OK |
+| `BK-MF1-04` | `JournalEntry`, `JournalEntryLine`, `salePostingService` | `POST /api/accounting/sale-postings/:saleDocumentId` | `BK-MF3-01`, `BK-MF2-07`, `BK-MF2-08` | OK |
+| `BK-MF1-05` | `salesOpenItemsService`, `salesOpenItemsApi` | `GET /api/sales/open-items` | `BK-MF3-04`, `BK-MF3-07` | OK |
+| `BK-MF1-06` | `SaleDocumentStatus`, `saleApprovalService`, `saleApprovalRoutes`, audit log | `POST /api/sales/documents/:id/submit`, `/approve`, `/reject`, `/issue` | MF2 historico/auditoria, MF4 notificacoes | OK |
+| `BK-MF1-07` | `PurchaseDocument`, `PurchaseDocumentLine`, `purchaseDocumentService` | `GET/POST /api/purchases/documents` | `BK-MF1-08`, `BK-MF1-09`, `BK-MF1-10`, `BK-MF3-03`, `BK-MF3-07` | OK |
+| `BK-MF1-08` | `Payment`, `PaymentMethod`, `paymentService` | `POST /api/purchases/documents/:id/payments` | `BK-MF3-04` | OK |
+| `BK-MF1-09` | `JournalSource.PURCHASE`, `purchasePostingService` | `POST /api/accounting/purchase-postings/:purchaseDocumentId` | `BK-MF3-01`, `BK-MF2-07`, `BK-MF2-08` | OK |
+| `BK-MF1-10` | `PurchaseDocumentStatus`, `purchaseApprovalService`, audit log | `POST /api/purchases/documents/:id/approve`, `/post-state` | `BK-MF2-01` | OK |
 
-## Padrões aplicados nos BKs corrigidos
+## Drift resolvido
 
-- Header canónico preservado: `bk_id`, `owner`, `apoio`, `prioridade`, `esforco`, `dependencias`, `rf_rnf`, `sprint`, `core_or_reforco`, `proximo_bk`.
-- Estrutura comum: objetivo, importância funcional/pedagógica, scope-in, scope-out, estado antes/depois, pré-requisitos, glossário, teoria, arquitetura, ficheiros, erros comuns, negativos, passos lineares, expected results, critérios, validação, evidence, handoff e changelog.
-- Cada passo técnico contém os sete pontos exigidos: objetivo funcional, ficheiros, instruções, código, explicação, validação e cenário negativo.
-- Todos os serviços recebem `companyId` do contexto autenticado.
-- Escritas com múltiplas alterações usam transação.
-- Valores monetários são tratados em cêntimos.
-- Operações contabilísticas chamam ou declaram dependência de `assertOpenFiscalPeriod`.
-- Rotas usam `requireAuth(prisma)`, `requireCompanyContext(prisma)` e roles da MF0.
-- Erros HTTP passam por `httpError`/`toHttpError`.
+- A classificacao anterior `10 OK` foi substituida por uma avaliacao antes/depois: antes `0 OK / 7 PARCIAL / 3 CRITICO`, depois `10 OK / 0 PARCIAL / 0 CRITICO`.
+- O drift `REGISTERED` no fluxo de compras foi removido dos BKs corrigidos.
+- Os passos por prioridade foram alinhados com `docs/planificacao/README.md` e `BACKLOG-MVP.md`.
+- O uso de `mockup/` ficou explicitamente fora do contrato tecnico final.
+- Os handoffs para MF2/MF3 foram mantidos e clarificados nos BKs afetados.
 
-## Validações executadas
+## Verificacoes executadas
 
-| Comando | Resultado | Interpretação |
+| Comando | Resultado | Interpretacao |
 | --- | --- | --- |
-| `rg -n <regex-da-prompt> docs/planificacao/guias-bk/MF1/*.md` | exit `1`, sem output | OK: o `rg` devolve `1` quando não encontra ocorrências. |
-| `git diff --check` | exit `0`, sem output | OK: sem whitespace problemático no diff. |
-| `bash scripts/validate-planificacao.sh` | exit `2` | Bloqueado: o script tenta abrir `../scripts/validate_planificacao_canonica.py`, mas esse ficheiro não existe neste checkout. |
+| `rg -n 'hidratacao\|pos-auditoria\|scaffold\|roteiro generico\|conversa interna\|este guia deixa de ser\|codigo ainda nao corrigido\|snippet\|exemplo simplificado\|implementar depois\|quando aplicavel\|helpers chamados\|substituir mocks\|pseudo-codigo\|solucao parcial\|corrigir_apenas' docs/planificacao/guias-bk/MF1/*.md` | exit `1`, sem output | OK: nenhuma ocorrencia nos BKs MF1. |
+| `git diff --check` | exit `0`, sem output | OK: sem whitespace problematico no diff. |
+| `bash scripts/validate-planificacao.sh` | exit `2` | Bloqueado por infraestrutura local: o script chama um ficheiro inexistente fora do checkout. |
 
 Erro exato do validador:
 
@@ -106,12 +141,8 @@ Erro exato do validador:
 /opt/homebrew/Cellar/python@3.14/3.14.5/Frameworks/Python.framework/Versions/3.14/Resources/Python.app/Contents/MacOS/Python: can't open file '/Users/nuno/Developer/EPMS/Terceiro Ano/2025.2026/PAP/opsa/../scripts/validate_planificacao_canonica.py': [Errno 2] No such file or directory
 ```
 
-## Riscos residuais
+## Resultado final
 
-- Os guias estão prontos como documentação operacional, mas o código descrito ainda terá de ser implementado e testado na app real.
-- Contas SNC e regras fiscais foram mantidas no nível mínimo documentado. Durante implementação real, qualquer exigência legal adicional deve ser confirmada em fonte normativa antes de ser codificada.
-- O validador canónico não pôde confirmar a matriz por ausência do ficheiro externo indicado acima.
+A MF1 fica corrigida no escopo documental pedido. Os BKs agora apresentam a granularidade minima por prioridade, removem linguagem interna, fecham os conflitos de estado/numeracao entre vendas e compras, e registam os gates de validacao necessarios para revisao tecnica e uso pedagogico.
 
-## Conclusão
-
-A MF1 deixou de estar bloqueada documentalmente. Os 10 BKs agora têm contratos técnicos e pedagógicos suficientes para implementação faseada, mantendo coerência com MF0 e preparando dependências diretas de MF2 e MF3.
+O unico bloqueio remanescente nao esta nos BKs: o validador canonico depende de `../scripts/validate_planificacao_canonica.py`, que nao existe neste checkout.

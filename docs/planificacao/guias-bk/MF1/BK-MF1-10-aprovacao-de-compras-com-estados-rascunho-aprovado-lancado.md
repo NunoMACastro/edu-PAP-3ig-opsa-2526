@@ -132,7 +132,7 @@ deps=-
 
 5. Explicação do código.
 
-Este bloco não é executado pela app; é o contrato mínimo que impede drift antes de editar código. A execução real começa no passo seguinte.
+As chaves acima formalizam o contrato mínimo do BK e devem bater certo com a matriz antes de qualquer alteração de código.
 
 6. Validação do passo.
 
@@ -163,16 +163,41 @@ Aplicar o schema, criar migration, implementar service antes da rota, usar `comp
 Localização: `apps/api/prisma/schema.prisma`.
 
 ```prisma
-// Acrescentar ao modelo PurchaseDocument existente:
-// approvedAt DateTime?
-// approvedById String?
-// postedAt DateTime?
-// postedById String?
+enum PurchaseDocumentStatus {
+  DRAFT
+  APPROVED
+  POSTED
+  PAID
+}
 
-// Confirmar que PurchaseDocumentStatus inclui:
-// DRAFT
-// APPROVED
-// POSTED
+model PurchaseDocument {
+  id              String                 @id @default(uuid())
+  companyId       String
+  supplierId      String
+  kind            PurchaseDocumentKind
+  status          PurchaseDocumentStatus @default(DRAFT)
+  supplierNumber  String
+  issuedAt        DateTime
+  dueDate         DateTime?
+  subtotalCents   Int
+  vatCents        Int
+  totalCents      Int
+  amountPaidCents Int                    @default(0)
+  createdById     String
+  approvedAt      DateTime?
+  approvedById    String?
+  postedAt        DateTime?
+  postedById      String?
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+
+  company  Company  @relation(fields: [companyId], references: [id])
+  supplier Supplier @relation(fields: [supplierId], references: [id])
+  lines    PurchaseDocumentLine[]
+
+  @@unique([companyId, supplierId, supplierNumber])
+  @@index([companyId, status, issuedAt])
+}
 ```
 
 Localização: `apps/api/src/modules/purchase-approval/purchaseApprovalService.js`.
@@ -186,16 +211,30 @@ async function findPurchaseDocument(prisma, companyId, id) {
     return document;
 }
 
+async function recordPurchaseApprovalAudit(tx, companyId, userId, purchaseDocumentId, action) {
+    await tx.auditLog.create({
+        data: { companyId, userId, action, entity: "PurchaseDocument", entityId: purchaseDocumentId },
+    });
+}
+
 export async function approvePurchaseDocument(prisma, companyId, userId, id) {
     const document = await findPurchaseDocument(prisma, companyId, id);
-    if (!["DRAFT", "REGISTERED"].includes(document.status)) throw httpError(409, "INVALID_STATUS", "Apenas rascunhos ou documentos registados podem ser aprovados");
-    return prisma.purchaseDocument.update({ where: { id }, data: { status: "APPROVED", approvedAt: new Date(), approvedById: userId } });
+    if (document.status !== "DRAFT") throw httpError(409, "INVALID_STATUS", "Apenas rascunhos podem ser aprovados");
+    return prisma.$transaction(async (tx) => {
+        const updated = await tx.purchaseDocument.update({ where: { id }, data: { status: "APPROVED", approvedAt: new Date(), approvedById: userId } });
+        await recordPurchaseApprovalAudit(tx, companyId, userId, id, "PURCHASE_DOCUMENT_APPROVED");
+        return updated;
+    });
 }
 
 export async function markPurchaseDocumentPosted(prisma, companyId, userId, id) {
     const document = await findPurchaseDocument(prisma, companyId, id);
     if (document.status !== "APPROVED") throw httpError(409, "INVALID_STATUS", "Apenas compras aprovadas podem ser lancadas");
-    return prisma.purchaseDocument.update({ where: { id }, data: { status: "POSTED", postedAt: new Date(), postedById: userId } });
+    return prisma.$transaction(async (tx) => {
+        const updated = await tx.purchaseDocument.update({ where: { id }, data: { status: "POSTED", postedAt: new Date(), postedById: userId } });
+        await recordPurchaseApprovalAudit(tx, companyId, userId, id, "PURCHASE_DOCUMENT_POSTED");
+        return updated;
+    });
 }
 ```
 
@@ -296,6 +335,72 @@ O cliente API mantém o contrato entre UI e backend num ponto único. Os testes 
 
 Se o backend devolver `400`, `401`, `403`, `404` ou `409`, a UI deve mostrar erro controlado e manter o formulário/listagem num estado recuperável.
 
+### Passo 4 - Validar regras unitárias
+
+1. Objetivo funcional do passo no ERP.
+Confirmar as transições `DRAFT -> APPROVED -> POSTED` e o bloqueio dos restantes estados.
+2. Ficheiros envolvidos:
+- CRIAR: testes unitários do módulo.
+- EDITAR: service apenas se o teste revelar falha.
+- REVER: transições, auditoria e roles.
+- LOCALIZAÇÃO: testes do backend.
+3. Instruções do que fazer.
+Testar aprovação, lançamento e tentativa de lançar compra não aprovada.
+4. Código completo, correto e integrado com a app final.
+```bash
+npm run test:unit
+```
+5. Explicação do código.
+O comando valida o ciclo de estado da compra antes do transporte HTTP.
+6. Validação do passo.
+Cada transição sensível cria registo de auditoria.
+7. Cenário negativo/erro esperado.
+Compra em `DRAFT` não pode ser lançada.
+
+### Passo 5 - Validar contrato HTTP
+
+1. Objetivo funcional do passo no ERP.
+Garantir que os endpoints de aprovação e lançamento devolvem códigos previsíveis.
+2. Ficheiros envolvidos:
+- CRIAR: testes de contrato.
+- EDITAR: route se o contrato HTTP não estiver normalizado.
+- REVER: autenticação, empresa e permissões.
+- LOCALIZAÇÃO: testes de contrato do backend.
+3. Instruções do que fazer.
+Cobrir sessão ausente, empresa ausente, role insuficiente e compra de outra empresa.
+4. Código completo, correto e integrado com a app final.
+```bash
+npm run test:contracts
+```
+5. Explicação do código.
+O comando protege a API de compras contra regressões de segurança.
+6. Validação do passo.
+Erros usam o formato normalizado da app.
+7. Cenário negativo/erro esperado.
+Utilizador sem role autorizada deve receber `403`.
+
+### Passo 6 - Preparar evidência
+
+1. Objetivo funcional do passo no ERP.
+Fechar o BK com prova técnica e handoff para pagamentos e relatórios.
+2. Ficheiros envolvidos:
+- CRIAR: nota de evidência.
+- EDITAR: changelog se houver alteração real.
+- REVER: critérios de aceite.
+- LOCALIZAÇÃO: guia e PR.
+3. Instruções do que fazer.
+Registar comandos, resultados, matriz de estados e impacto em BK-MF1-08/BK-MF1-09.
+4. Código completo, correto e integrado com a app final.
+```bash
+git diff -- docs/planificacao/guias-bk/MF1
+```
+5. Explicação do código.
+O comando foca a revisão documental na MF1.
+6. Validação do passo.
+A evidência mostra que compras só são pagas e contabilizadas após o estado correto.
+7. Cenário negativo/erro esperado.
+Sem evidência de transições, não pedir revisão final.
+
 ## Expected results
 
 - A compra tem transições controladas: DRAFT para APPROVED e APPROVED para POSTED, com utilizador e data.
@@ -309,7 +414,7 @@ Se o backend devolver `400`, `401`, `403`, `404` ou `409`, a UI deve mostrar err
 - Nenhum dado de outra empresa aparece na resposta.
 - Entradas inválidas falham com erro previsível.
 - Escritas compostas são transacionais.
-- O próximo BK consegue reutilizar os modelos e endpoints aqui definidos.
+- O próximo BK consegue usar os modelos e endpoints aqui definidos.
 
 ## Validação final
 
@@ -331,4 +436,4 @@ O `BK-MF2-01` deve acrescentar histórico e justificações às decisões de apr
 
 ## Changelog
 
-- `2026-05-31`: Guia corrigido no modo `corrigir_apenas`, com contrato técnico completo, código por camada, validações e handoff MF1.
+- `2026-05-31`: Guia consolidado com contrato técnico completo, código por camada, validações e handoff MF1.

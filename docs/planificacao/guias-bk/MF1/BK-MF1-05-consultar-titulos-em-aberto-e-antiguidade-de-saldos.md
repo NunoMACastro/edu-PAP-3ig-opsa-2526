@@ -132,7 +132,7 @@ deps=-
 
 5. Explicação do código.
 
-Este bloco não é executado pela app; é o contrato mínimo que impede drift antes de editar código. A execução real começa no passo seguinte.
+As chaves acima formalizam o contrato mínimo do BK e devem bater certo com a matriz antes de qualquer alteração de código.
 
 6. Validação do passo.
 
@@ -162,9 +162,7 @@ Aplicar o schema, criar migration, implementar service antes da rota, usar `comp
 
 Localização: `apps/api/prisma/schema.prisma`.
 
-```prisma
-Sem alteração de schema. Este BK reutiliza `SaleDocument`, `Customer` e `Receipt`.
-```
+Este passo usa os modelos `SaleDocument`, `Customer` e `Receipt` criados nos BKs anteriores. Antes de avançar, confirmar que `SaleDocument` tem `companyId`, `customerId`, `status`, `totalCents`, `amountPaidCents`, `issuedAt` e `dueDate`.
 
 Localização: `apps/api/src/modules/open-items/salesOpenItemsService.js`.
 
@@ -188,7 +186,7 @@ function bucketFor(daysOverdue) {
 export async function listSalesOpenItems(prisma, companyId, query) {
     const asOfDate = parseAsOfDate(query.asOfDate);
     const documents = await prisma.saleDocument.findMany({
-        where: { companyId, totalCents: { gt: 0 }, NOT: { status: "SETTLED" } },
+        where: { companyId, totalCents: { gt: 0 }, status: "ISSUED" },
         include: { customer: true },
         orderBy: [{ dueDate: "asc" }, { issuedAt: "asc" }],
     });
@@ -303,6 +301,72 @@ O cliente API mantém o contrato entre UI e backend num ponto único. Os testes 
 
 Se o backend devolver `400`, `401`, `403`, `404` ou `409`, a UI deve mostrar erro controlado e manter o formulário/listagem num estado recuperável.
 
+### Passo 4 - Validar regras unitárias
+
+1. Objetivo funcional do passo no ERP.
+Confirmar que a consulta mostra apenas títulos emitidos, não liquidados e da empresa ativa.
+2. Ficheiros envolvidos:
+- CRIAR: testes unitários do módulo.
+- EDITAR: service apenas se o teste revelar falha.
+- REVER: filtros por `companyId`, `status` e saldo.
+- LOCALIZAÇÃO: testes do backend.
+3. Instruções do que fazer.
+Executar testes unitários para data de referência, antiguidade e cliente.
+4. Código completo, correto e integrado com a app final.
+```bash
+npm run test:unit
+```
+5. Explicação do código.
+O comando valida a regra de consulta sem depender da interface.
+6. Validação do passo.
+Documentos `DRAFT`, `SUBMITTED`, `APPROVED`, `REJECTED` e `SETTLED` não entram na listagem.
+7. Cenário negativo/erro esperado.
+Data de referência inválida deve devolver `INVALID_DATE`.
+
+### Passo 5 - Validar contrato HTTP
+
+1. Objetivo funcional do passo no ERP.
+Garantir que a API de títulos em aberto responde de forma previsível.
+2. Ficheiros envolvidos:
+- CRIAR: testes de contrato.
+- EDITAR: route se o contrato HTTP não estiver normalizado.
+- REVER: autenticação e contexto de empresa.
+- LOCALIZAÇÃO: testes de contrato do backend.
+3. Instruções do que fazer.
+Cobrir pedido sem sessão, sem empresa e com data inválida.
+4. Código completo, correto e integrado com a app final.
+```bash
+npm run test:contracts
+```
+5. Explicação do código.
+O comando protege o contrato usado pela UI e por relatórios financeiros.
+6. Validação do passo.
+As respostas usam o formato de erro da app.
+7. Cenário negativo/erro esperado.
+Sem empresa ativa, a API não devolve títulos.
+
+### Passo 6 - Preparar evidência
+
+1. Objetivo funcional do passo no ERP.
+Fechar o BK com prova técnica e handoff para relatórios.
+2. Ficheiros envolvidos:
+- CRIAR: nota de evidência.
+- EDITAR: changelog se houver alteração real.
+- REVER: critérios de aceite.
+- LOCALIZAÇÃO: guia e PR.
+3. Instruções do que fazer.
+Registar comandos, resultados, filtros usados e impacto em ageing/forecast.
+4. Código completo, correto e integrado com a app final.
+```bash
+git diff -- docs/planificacao/guias-bk/MF1
+```
+5. Explicação do código.
+O comando foca a revisão documental na MF1.
+6. Validação do passo.
+A evidência explica que dados entram e que dados ficam fora da consulta.
+7. Cenário negativo/erro esperado.
+Sem evidência de filtros por empresa, não pedir revisão final.
+
 ## Expected results
 
 - A API devolve documentos de venda com saldo em aberto, dias de atraso e bucket de antiguidade por empresa.
@@ -316,7 +380,7 @@ Se o backend devolver `400`, `401`, `403`, `404` ou `409`, a UI deve mostrar err
 - Nenhum dado de outra empresa aparece na resposta.
 - Entradas inválidas falham com erro previsível.
 - Escritas compostas são transacionais.
-- O próximo BK consegue reutilizar os modelos e endpoints aqui definidos.
+- O próximo BK consegue usar os modelos e endpoints aqui definidos.
 
 ## Validação final
 
@@ -338,4 +402,4 @@ O `BK-MF1-06` não altera a leitura de saldos; apenas impede emissão final ante
 
 ## Changelog
 
-- `2026-05-31`: Guia corrigido no modo `corrigir_apenas`, com contrato técnico completo, código por camada, validações e handoff MF1.
+- `2026-05-31`: Guia consolidado com contrato técnico completo, código por camada, validações e handoff MF1.

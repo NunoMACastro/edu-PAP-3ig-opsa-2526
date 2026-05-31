@@ -132,7 +132,7 @@ deps=BK-MF1-07
 
 5. Explicação do código.
 
-Este bloco não é executado pela app; é o contrato mínimo que impede drift antes de editar código. A execução real começa no passo seguinte.
+As chaves acima formalizam o contrato mínimo do BK e devem bater certo com a matriz antes de qualquer alteração de código.
 
 6. Validação do passo.
 
@@ -163,7 +163,11 @@ Aplicar o schema, criar migration, implementar service antes da rota, usar `comp
 Localização: `apps/api/prisma/schema.prisma`.
 
 ```prisma
-Reutiliza `JournalEntry`, `JournalEntryLine` e `JournalSource` criados no `BK-MF1-04`; garantir que `PURCHASE` existe no enum.
+enum JournalSource {
+  SALE
+  PURCHASE
+  MANUAL
+}
 ```
 
 Localização: `apps/api/src/modules/accounting/purchasePostingService.js`.
@@ -188,7 +192,7 @@ export async function postPurchaseDocument(prisma, companyId, userId, purchaseDo
     return prisma.$transaction(async (tx) => {
         const document = await tx.purchaseDocument.findFirst({ where: { id: purchaseDocumentId, companyId }, include: { lines: true } });
         if (!document) throw httpError(404, "PURCHASE_DOCUMENT_NOT_FOUND", "Documento de compra nao encontrado");
-        if (!["REGISTERED", "APPROVED", "POSTED", "PAID"].includes(document.status)) throw httpError(409, "INVALID_STATUS", "Compra sem estado contabilizavel");
+        if (document.status !== "APPROVED") throw httpError(409, "INVALID_STATUS", "Apenas compras aprovadas podem ser contabilizadas");
         await assertOpenFiscalPeriod(tx, companyId, document.issuedAt);
 
         const expenseAccount = await accountByCode(tx, companyId, "62");
@@ -310,6 +314,116 @@ O cliente API mantém o contrato entre UI e backend num ponto único. Os testes 
 
 Se o backend devolver `400`, `401`, `403`, `404` ou `409`, a UI deve mostrar erro controlado e manter o formulário/listagem num estado recuperável.
 
+### Passo 4 - Validar regras unitárias
+
+1. Objetivo funcional do passo no ERP.
+Confirmar que o service só contabiliza compras aprovadas e equilibradas.
+2. Ficheiros envolvidos:
+- CRIAR: testes unitários do módulo.
+- EDITAR: service apenas se o teste revelar falha.
+- REVER: contas SNC, totais e estado da compra.
+- LOCALIZAÇÃO: testes do backend.
+3. Instruções do que fazer.
+Executar os testes unitários antes de testar a UI.
+4. Código completo, correto e integrado com a app final.
+```bash
+npm run test:unit
+```
+5. Explicação do código.
+O comando valida a regra de negócio no ponto onde o lançamento é criado.
+6. Validação do passo.
+O débito total é igual ao crédito total.
+7. Cenário negativo/erro esperado.
+Compra não aprovada deve devolver `INVALID_STATUS`.
+
+### Passo 5 - Validar contrato HTTP
+
+1. Objetivo funcional do passo no ERP.
+Garantir respostas previsíveis para o endpoint de contabilização de compras.
+2. Ficheiros envolvidos:
+- CRIAR: testes de contrato.
+- EDITAR: route se o contrato HTTP não estiver normalizado.
+- REVER: autenticação e permissões.
+- LOCALIZAÇÃO: testes de contrato do backend.
+3. Instruções do que fazer.
+Cobrir sessão ausente, empresa ausente, contas em falta e compra já contabilizada.
+4. Código completo, correto e integrado com a app final.
+```bash
+npm run test:contracts
+```
+5. Explicação do código.
+O comando confirma que o frontend recebe erros consistentes e seguros.
+6. Validação do passo.
+Nenhum erro devolve stack trace.
+7. Cenário negativo/erro esperado.
+Compra já contabilizada deve devolver `PURCHASE_ALREADY_POSTED`.
+
+### Passo 6 - Validar fluxo integrado
+
+1. Objetivo funcional do passo no ERP.
+Confirmar que a compra aprovada gera lançamento contabilístico automático.
+2. Ficheiros envolvidos:
+- CRIAR: teste de integração.
+- EDITAR: cliente API ou página se a ligação falhar.
+- REVER: estado visual de sucesso e erro.
+- LOCALIZAÇÃO: testes de integração.
+3. Instruções do que fazer.
+Executar o fluxo com compra `APPROVED`, contas ativas e período fiscal aberto.
+4. Código completo, correto e integrado com a app final.
+```bash
+npm run test:integration
+```
+5. Explicação do código.
+O comando valida a ligação entre API, persistência e UI.
+6. Validação do passo.
+O lançamento fica associado a `source=PURCHASE` e `sourceId` do documento.
+7. Cenário negativo/erro esperado.
+Período fiscal fechado deve bloquear a contabilização.
+
+### Passo 7 - Rever diff técnico
+
+1. Objetivo funcional do passo no ERP.
+Impedir alterações fora do domínio do BK.
+2. Ficheiros envolvidos:
+- CRIAR: nenhum.
+- EDITAR: nenhum.
+- REVER: diff completo.
+- LOCALIZAÇÃO: raiz do repositório.
+3. Instruções do que fazer.
+Confirmar que todos os acessos usam `companyId` do contexto autenticado.
+4. Código completo, correto e integrado com a app final.
+```bash
+git diff --check
+```
+5. Explicação do código.
+O comando deteta problemas de whitespace antes da revisão.
+6. Validação do passo.
+O comando termina sem erros.
+7. Cenário negativo/erro esperado.
+Se falhar, corrigir as linhas indicadas.
+
+### Passo 8 - Preparar evidência
+
+1. Objetivo funcional do passo no ERP.
+Fechar o BK com prova de implementação e validação.
+2. Ficheiros envolvidos:
+- CRIAR: nota de evidência.
+- EDITAR: changelog se houver alteração real.
+- REVER: critérios de aceite.
+- LOCALIZAÇÃO: guia e PR.
+3. Instruções do que fazer.
+Registar comandos, resultados, decisão contabilística e impacto em mapas de IVA.
+4. Código completo, correto e integrado com a app final.
+```bash
+git diff -- docs/planificacao/guias-bk/MF1
+```
+5. Explicação do código.
+O comando foca a revisão documental na MF1.
+6. Validação do passo.
+A evidência permite perceber o que mudou sem reler todo o código.
+7. Cenário negativo/erro esperado.
+Sem evidência de testes, não pedir revisão final.
+
 ## Expected results
 
 - Uma compra registada/aprovada gera lançamento equilibrado com gastos, IVA dedutível e fornecedor.
@@ -323,7 +437,7 @@ Se o backend devolver `400`, `401`, `403`, `404` ou `409`, a UI deve mostrar err
 - Nenhum dado de outra empresa aparece na resposta.
 - Entradas inválidas falham com erro previsível.
 - Escritas compostas são transacionais.
-- O próximo BK consegue reutilizar os modelos e endpoints aqui definidos.
+- O próximo BK consegue usar os modelos e endpoints aqui definidos.
 
 ## Validação final
 
@@ -345,4 +459,4 @@ O `BK-MF3-01` deve ler `JournalEntry` com `source=PURCHASE` e contas de IVA para
 
 ## Changelog
 
-- `2026-05-31`: Guia corrigido no modo `corrigir_apenas`, com contrato técnico completo, código por camada, validações e handoff MF1.
+- `2026-05-31`: Guia consolidado com contrato técnico completo, código por camada, validações e handoff MF1.

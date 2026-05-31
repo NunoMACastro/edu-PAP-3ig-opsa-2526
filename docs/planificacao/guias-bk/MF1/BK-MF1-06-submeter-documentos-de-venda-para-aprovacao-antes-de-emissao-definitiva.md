@@ -132,7 +132,7 @@ deps=BK-MF1-02
 
 5. Explicação do código.
 
-Este bloco não é executado pela app; é o contrato mínimo que impede drift antes de editar código. A execução real começa no passo seguinte.
+As chaves acima formalizam o contrato mínimo do BK e devem bater certo com a matriz antes de qualquer alteração de código.
 
 6. Validação do passo.
 
@@ -172,13 +172,38 @@ enum SaleDocumentStatus {
   SETTLED
 }
 
-// Acrescentar ao modelo SaleDocument existente:
-// submittedAt DateTime?
-// approvedAt DateTime?
-// approvedById String?
-// rejectedAt DateTime?
-// rejectedById String?
-// rejectionReason String?
+model SaleDocument {
+  id              String             @id @default(uuid())
+  companyId       String
+  customerId      String
+  kind            SaleDocumentKind
+  status          SaleDocumentStatus @default(DRAFT)
+  number          String?
+  issuedAt        DateTime
+  dueDate         DateTime?
+  subtotalCents   Int
+  vatCents        Int
+  totalCents      Int
+  amountPaidCents Int                @default(0)
+  createdById     String
+  submittedAt     DateTime?
+  approvedAt      DateTime?
+  approvedById    String?
+  rejectedAt      DateTime?
+  rejectedById    String?
+  rejectionReason String?
+  issuedById      String?
+  issuedDefinitiveAt DateTime?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  company  Company  @relation(fields: [companyId], references: [id])
+  customer Customer @relation(fields: [customerId], references: [id])
+  lines    SaleDocumentLine[]
+
+  @@unique([companyId, number])
+  @@index([companyId, status, issuedAt])
+}
 ```
 
 Localização: `apps/api/src/modules/sales-approval/saleApprovalService.js`.
@@ -192,16 +217,30 @@ async function findSaleDocument(prisma, companyId, id) {
     return document;
 }
 
-export async function submitSaleDocument(prisma, companyId, id) {
+async function recordSaleApprovalAudit(tx, companyId, userId, saleDocumentId, action, details = {}) {
+    await tx.auditLog.create({
+        data: { companyId, userId, action, entity: "SaleDocument", entityId: saleDocumentId, details },
+    });
+}
+
+export async function submitSaleDocument(prisma, companyId, userId, id) {
     const document = await findSaleDocument(prisma, companyId, id);
     if (document.status !== "DRAFT") throw httpError(409, "INVALID_STATUS", "Apenas rascunhos podem ser submetidos");
-    return prisma.saleDocument.update({ where: { id }, data: { status: "SUBMITTED", submittedAt: new Date(), rejectionReason: null } });
+    return prisma.$transaction(async (tx) => {
+        const updated = await tx.saleDocument.update({ where: { id }, data: { status: "SUBMITTED", submittedAt: new Date(), rejectionReason: null } });
+        await recordSaleApprovalAudit(tx, companyId, userId, id, "SALE_DOCUMENT_SUBMITTED");
+        return updated;
+    });
 }
 
 export async function approveSaleDocument(prisma, companyId, userId, id) {
     const document = await findSaleDocument(prisma, companyId, id);
     if (document.status !== "SUBMITTED") throw httpError(409, "INVALID_STATUS", "Apenas documentos submetidos podem ser aprovados");
-    return prisma.saleDocument.update({ where: { id }, data: { status: "APPROVED", approvedAt: new Date(), approvedById: userId } });
+    return prisma.$transaction(async (tx) => {
+        const updated = await tx.saleDocument.update({ where: { id }, data: { status: "APPROVED", approvedAt: new Date(), approvedById: userId } });
+        await recordSaleApprovalAudit(tx, companyId, userId, id, "SALE_DOCUMENT_APPROVED");
+        return updated;
+    });
 }
 
 export async function rejectSaleDocument(prisma, companyId, userId, id, input) {
@@ -209,7 +248,11 @@ export async function rejectSaleDocument(prisma, companyId, userId, id, input) {
     if (reason.length < 3) throw httpError(400, "INVALID_REASON", "Motivo de rejeicao obrigatorio");
     const document = await findSaleDocument(prisma, companyId, id);
     if (document.status !== "SUBMITTED") throw httpError(409, "INVALID_STATUS", "Apenas documentos submetidos podem ser rejeitados");
-    return prisma.saleDocument.update({ where: { id }, data: { status: "REJECTED", rejectedAt: new Date(), rejectedById: userId, rejectionReason: reason } });
+    return prisma.$transaction(async (tx) => {
+        const updated = await tx.saleDocument.update({ where: { id }, data: { status: "REJECTED", rejectedAt: new Date(), rejectedById: userId, rejectionReason: reason } });
+        await recordSaleApprovalAudit(tx, companyId, userId, id, "SALE_DOCUMENT_REJECTED", { reason });
+        return updated;
+    });
 }
 ```
 
@@ -222,6 +265,7 @@ import { requireCompanyContext } from "../companies/companyContext.js";
 import { requireRole } from "../permissions/permissionMiddleware.js";
 import { toHttpError } from "../../lib/httpErrors.js";
 import { approveSaleDocument, rejectSaleDocument, submitSaleDocument } from "./saleApprovalService.js";
+import { issueSaleDocument } from "../sales/saleDocumentService.js";
 
 function sendError(res, error) {
     const response = toHttpError(error);
@@ -231,13 +275,16 @@ function sendError(res, error) {
 export function buildSaleApprovalRoutes({ prisma }) {
     const router = Router();
     router.post("/:id/submit", requireAuth(prisma), requireCompanyContext(prisma), requireRole("ADMIN", "GESTOR", "OPERACIONAL"), async (req, res) => {
-        try { return res.status(200).json({ data: await submitSaleDocument(prisma, req.companyId, req.params.id) }); } catch (error) { return sendError(res, error); }
+        try { return res.status(200).json({ data: await submitSaleDocument(prisma, req.companyId, req.user.id, req.params.id) }); } catch (error) { return sendError(res, error); }
     });
     router.post("/:id/approve", requireAuth(prisma), requireCompanyContext(prisma), requireRole("ADMIN", "GESTOR"), async (req, res) => {
         try { return res.status(200).json({ data: await approveSaleDocument(prisma, req.companyId, req.user.id, req.params.id) }); } catch (error) { return sendError(res, error); }
     });
     router.post("/:id/reject", requireAuth(prisma), requireCompanyContext(prisma), requireRole("ADMIN", "GESTOR"), async (req, res) => {
         try { return res.status(200).json({ data: await rejectSaleDocument(prisma, req.companyId, req.user.id, req.params.id, req.body) }); } catch (error) { return sendError(res, error); }
+    });
+    router.post("/:id/issue", requireAuth(prisma), requireCompanyContext(prisma), requireRole("ADMIN", "GESTOR", "CONTABILISTA"), async (req, res) => {
+        try { return res.status(200).json({ data: await issueSaleDocument(prisma, req.companyId, req.user.id, req.params.id) }); } catch (error) { return sendError(res, error); }
     });
     return router;
 }
@@ -314,6 +361,72 @@ O cliente API mantém o contrato entre UI e backend num ponto único. Os testes 
 
 Se o backend devolver `400`, `401`, `403`, `404` ou `409`, a UI deve mostrar erro controlado e manter o formulário/listagem num estado recuperável.
 
+### Passo 4 - Validar regras unitárias
+
+1. Objetivo funcional do passo no ERP.
+Confirmar que apenas transições válidas alteram o estado do documento.
+2. Ficheiros envolvidos:
+- CRIAR: testes unitários do módulo.
+- EDITAR: service apenas se o teste revelar falha.
+- REVER: transições, auditoria e motivo de rejeição.
+- LOCALIZAÇÃO: testes do backend.
+3. Instruções do que fazer.
+Testar `DRAFT -> SUBMITTED`, `SUBMITTED -> APPROVED`, `SUBMITTED -> REJECTED` e emissão apenas após aprovação.
+4. Código completo, correto e integrado com a app final.
+```bash
+npm run test:unit
+```
+5. Explicação do código.
+O comando valida as regras sensíveis antes do transporte HTTP.
+6. Validação do passo.
+Cada alteração cria registo de auditoria.
+7. Cenário negativo/erro esperado.
+Rejeição sem motivo deve devolver `INVALID_REASON`.
+
+### Passo 5 - Validar contrato HTTP
+
+1. Objetivo funcional do passo no ERP.
+Garantir que os endpoints de aprovação devolvem códigos previsíveis.
+2. Ficheiros envolvidos:
+- CRIAR: testes de contrato.
+- EDITAR: route se o contrato HTTP não estiver normalizado.
+- REVER: roles de submissão, aprovação, rejeição e emissão.
+- LOCALIZAÇÃO: testes de contrato do backend.
+3. Instruções do que fazer.
+Cobrir sessão ausente, empresa ausente, role insuficiente e estado inválido.
+4. Código completo, correto e integrado com a app final.
+```bash
+npm run test:contracts
+```
+5. Explicação do código.
+O comando protege a API de aprovação contra regressões de segurança.
+6. Validação do passo.
+Erros usam o formato normalizado da app.
+7. Cenário negativo/erro esperado.
+Documento já emitido não pode voltar a aprovação.
+
+### Passo 6 - Preparar evidência
+
+1. Objetivo funcional do passo no ERP.
+Fechar o BK com prova técnica e handoff para recebimentos e contabilização.
+2. Ficheiros envolvidos:
+- CRIAR: nota de evidência.
+- EDITAR: changelog se houver alteração real.
+- REVER: critérios de aceite.
+- LOCALIZAÇÃO: guia e PR.
+3. Instruções do que fazer.
+Registar comandos, resultados, matriz de estados e impacto em BK-MF1-03/BK-MF1-04.
+4. Código completo, correto e integrado com a app final.
+```bash
+git diff -- docs/planificacao/guias-bk/MF1
+```
+5. Explicação do código.
+O comando foca a revisão documental na MF1.
+6. Validação do passo.
+A evidência permite perceber a sequência antes da emissão definitiva.
+7. Cenário negativo/erro esperado.
+Sem evidência de auditoria, não pedir revisão final.
+
 ## Expected results
 
 - O documento pode circular entre rascunho, submetido, aprovado e rejeitado, com utilizador e data de decisão.
@@ -327,7 +440,7 @@ Se o backend devolver `400`, `401`, `403`, `404` ou `409`, a UI deve mostrar err
 - Nenhum dado de outra empresa aparece na resposta.
 - Entradas inválidas falham com erro previsível.
 - Escritas compostas são transacionais.
-- O próximo BK consegue reutilizar os modelos e endpoints aqui definidos.
+- O próximo BK consegue usar os modelos e endpoints aqui definidos.
 
 ## Validação final
 
@@ -349,4 +462,4 @@ O `BK-MF1-07` inicia o fluxo de compras; o histórico comum de aprovações fica
 
 ## Changelog
 
-- `2026-05-31`: Guia corrigido no modo `corrigir_apenas`, com contrato técnico completo, código por camada, validações e handoff MF1.
+- `2026-05-31`: Guia consolidado com contrato técnico completo, código por camada, validações e handoff MF1.
