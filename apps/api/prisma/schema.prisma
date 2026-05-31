@@ -27,6 +27,11 @@ enum FiscalPeriodStatus {
   CLOSED
 }
 
+enum ItemType {
+  PRODUCT
+  SERVICE
+}
+
 model CompanyInvitation {
   id        String           @id @default(uuid())
   companyId String
@@ -81,6 +86,8 @@ model Company {
   profile CompanyProfile?
   accounts Account[]
   fiscalPeriods FiscalPeriod[]
+  customers Customer[]
+  items Item[]
   createdAt   DateTime            @default(now())
   updatedAt   DateTime            @updatedAt
 }
@@ -168,4 +175,43 @@ model FiscalPeriod {
 
   @@unique([companyId, name])
   @@index([companyId, startDate, endDate])
+}
+
+model Customer {
+  id          String   @id @default(uuid())
+  companyId   String
+  name        String
+  nif         String?
+  email       String?
+  phone       String?
+  addressLine String?
+  postalCode  String?
+  city        String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id])
+
+  @@unique([companyId, nif])
+  @@index([companyId])
+}
+
+model Item {
+  id          String   @id @default(uuid())
+  companyId   String
+  sku         String
+  name        String
+  type        ItemType
+  costCents   Int
+  priceCents  Int
+  vatRateBps  Int
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id])
+
+  @@unique([companyId, sku])
+  @@index([companyId])
 }
