@@ -4,6 +4,7 @@ import { buildAuthRoutes } from "./modules/auth/authRoutes.js";
 import { buildPermissionsRoutes } from "./modules/permissions/permissionsRoutes.js";
 import { buildCompanyRoutes } from "./modules/companies/companyRoutes.js";
 import { buildCompanyUserRoutes } from "./modules/company-users/companyUserRoutes.js";
+import { buildCompanyProfileRoutes } from "./modules/company-profile/companyProfileRoutes.js";
 
 const app = express();
 const prisma = new PrismaClient();
@@ -33,6 +34,7 @@ app.use(
 
 app.use("/api/permissions", buildPermissionsRoutes({ prisma }));
 app.use("/api", buildCompanyRoutes({ prisma }));
+app.use("/api/company/profile", buildCompanyProfileRoutes({ prisma }));
 
 app.listen(PORT, () => {
     console.log(`API a correr em http://localhost:${PORT}`);
