@@ -1,6 +1,7 @@
 # BK-MF1-04 - Gerar lançamentos contabilísticos automáticos por venda.
 
 ## Header
+
 - `doc_id`: `GUIA-BK-MF1-04`
 - `bk_id`: `BK-MF1-04`
 - `macro`: `MF1`
@@ -16,100 +17,364 @@
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF1-05`
 - `guia_path`: `docs/planificacao/guias-bk/MF1/BK-MF1-04-gerar-lancamentos-contabilisticos-automaticos-por-venda.md`
-- `last_updated`: `2026-04-19`
+- `last_updated`: `2026-05-31`
 
-## Contexto do BK
-- Entrega alvo: implementar `Gerar lançamentos contabilísticos automáticos por venda.` com rastreabilidade direta ao requisito `RF16`.
-- Foco tecnico da macro: fluxo comercial (vendas/compras) com impacto contabilistico imediato.
-- Regra de governanca: nao alterar IDs nem contratos de dados (`bk_id/mf/sprint/owner/rf_rnf/deps/guia_path/core_or_reforco`).
+## Objetivo
 
-## Bloco pedagogico
-### Objetivo
-Executar `Gerar lançamentos contabilísticos automáticos por venda.` com autonomia técnica, garantindo cobertura do requisito `RF16` e evidência objetiva para avaliação.
-- Intenção pedagógica da macro `MF1`: Fechar o ciclo comercial minimo com impacto contabilistico validado..
+Executar RF16 para contabilidade de vendas, seguindo os documentos canónicos e a stack contratada: React + Vite + TypeScript no frontend, Node.js + Express em ES Modules no backend, PostgreSQL e Prisma/equivalente na persistência.
 
-### Pre-requisitos
-- Ler o requisito `RF16` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.
-- Validar dependencias declaradas: `BK-MF1-02`.
-- Preparar ambiente para smoke test e validacao negativa.
+## Importância funcional e pedagógica
 
-### Erros comuns
-- Fechar o BK sem validar cenario negativo.
-- Alterar metadados no guia sem refletir backlog/matriz.
-- Submeter evidence sem provas objetivas (ex.: output real, screenshot, log, teste).
+Este BK transforma o requisito RF16 num caminho de implementação rastreável. Funcionalmente, fecha uma operação essencial da MF1; pedagogicamente, mostra como ligar requisito, modelo de dados, service, rota HTTP, UI, testes e evidência sem inventar regras fora dos documentos canónicos.
 
-### Check de compreensao
-- [ ] Sei justificar porque este BK existe no fluxo da macro `MF1`.
-- [ ] Sei mostrar onde esta o requisito `RF16` no sistema.
-- [ ] Sei demonstrar pelo menos 1 negativo relevante do BK.
+## Scope-in
 
-### Tempo estimado
-- `Core`: `60-90 min`.
-- `Reforco`: `+20-40 min`.
+- Diário automático de venda.
+- Débito de cliente e créditos de proveitos e IVA liquidado.
+- Idempotência por documento.
+- Validação de período fiscal aberto.
 
-## Bloco operacional
-### Entrada
-- BK: `BK-MF1-04`
-- Requisito: `RF16`
-- Dependencias: `BK-MF1-02`
-- Artefactos de referencia: `MATRIZ-CANONICA-BK.md`, `BACKLOG-MVP.md`, `PLANO-SPRINTS.md`
+## Scope-out
 
-### Passos
-1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do `BK-MF1-04` e o requisito `RF16`.
-2. Validar dependencias técnicas (`BK-MF1-02`) e preparar dados de teste mínimos para `Gerar lançamentos contabilísticos automáticos por venda.`.
-3. Implementar fluxo comercial fim-a-fim com cálculo fiscal e registo contabilístico associado.
-4. Validar transição de estados/documentos e coerência entre documento comercial e lançamento.
-5. Executar pelo menos 1 teste de smoke orientado ao caso principal do BK.
-6. Executar cenários negativos obrigatórios e registar resultado observado (mensagem/código/efeito).
-7. Aplicar reforço técnico (robustez/performance/segurança) no risco principal identificado para este BK.
-8. Atualizar evidence (`pr`, `proof`, `neg`) com artefactos concretos e verificaveis.
+- Lançamentos manuais, que pertencem a `BK-MF2-06`.
+- Mapa de IVA, que pertence a `BK-MF3-01`.
 
-### Cenarios negativos recomendados
-- entrada obrigatoria em falta
-- estado de negocio invalido
-- tentativa sem permissoes/contexto valido
+## Estado antes
 
-### Validacao
-- [ ] Smoke: fluxo principal executa sem erro bloqueante.
-- [ ] Negativos: minimo `3` cenarios com resultado controlado.
-- [ ] Tecnico: metadados e contratos de dados estao alinhados entre backlog/matriz/guia.
-- [ ] Evidencia: `pr`, `proof`, `neg` preenchidos com artefactos reais.
+A venda existe como documento operacional, mas ainda não gera diário contabilístico.
 
-### Handoff
-- Proximo BK recomendado: `BK-MF1-05`
-- Registar no handoff: estado de dependencias, risco aberto e decisao tomada.
-- Se houver bloqueio >48h, escalar no scorecard da sprint.
+## Estado depois
 
-## Snippet tecnico aplicavel
-**Validacao fiscal minima antes de lancar documento**
+Uma venda emitida gera lançamento equilibrado por empresa, bloqueado por período fechado, com origem e referência ao documento.
 
-Contexto de rastreabilidade: `BK-MF1-04` -> `RF16`.
+## Pré-requisitos
 
-```ts
-type LinhaDocumento = { conta: string; base: number; taxaIVA: number };
+- Ler `docs/RF.md`, `docs/RNF.md`, `docs/planificacao/backlogs/BACKLOG-MVP.md`, `docs/planificacao/backlogs/MATRIZ-CANONICA-BK.md`, `docs/planificacao/backlogs/CONTRATO-CAMPOS-BK.md` e `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md`.
+- Confirmar que autenticação, contexto de empresa, roles/permissões e erros HTTP da MF0 estão disponíveis.
+- Confirmar dependências canónicas: `BK-MF1-02`.
+- Nunca receber `companyId` do corpo do pedido; usar sempre o contexto autenticado.
 
-export function validarDocumentoFiscal(linhas: LinhaDocumento[], bkId = 'BK-MF1-04') {
-  if (!linhas.length) throw new Error('Documento sem linhas');
-  for (const l of linhas) {
-    if (l.base <= 0) throw new Error(`Base invalida em ${l.conta}`);
-    if (l.taxaIVA < 0 || l.taxaIVA > 1) throw new Error(`Taxa IVA invalida em ${l.conta}`);
-  }
-  return { bkId, totalIVA: linhas.reduce((acc, l) => acc + l.base * l.taxaIVA, 0) };
+## Glossário
+
+- **Documento canónico:** fonte documental que define RF/RNF, BK, owner, dependências e prioridade.
+- **Service:** camada backend onde ficam regras de negócio e transações.
+- **Validator:** função que rejeita entrada inválida antes de persistir dados.
+- **Evidência:** registo objetivo de ficheiros alterados, comandos executados e resultado obtido.
+
+## Conceitos teóricos essenciais
+
+- O backend é a autoridade para regras contabilísticas, valores monetários, datas e estados.
+- Valores monetários devem ser guardados em cêntimos para evitar erros de arredondamento.
+- Operações por empresa exigem filtro por `companyId` em todas as queries.
+- Estados devem bloquear transições inválidas e devolver erros previsíveis.
+- Escritas compostas devem usar transação para evitar dados parciais.
+
+## Arquitetura do BK
+
+- Fluxo: `FLOW-MF1-SALE-POSTING`
+- Endpoint principal: `/api/accounting/sale-postings/:saleDocumentId`
+- Módulo backend: `apps/api/src/modules/accounting/`
+- Cliente frontend: `apps/web/src/lib/accountingApi.ts`
+- Rotas protegidas por `requireAuth(prisma)` e `requireCompanyContext(prisma)`.
+- Respostas de erro normalizadas por `toHttpError`.
+
+## Ficheiros a criar/editar/rever
+
+- `apps/api/prisma/schema.prisma`
+- `apps/api/src/modules/accounting/`
+- `apps/api/src/server.js`
+- `apps/web/src/lib/accountingApi.ts`
+- `apps/web/src/pages/SalePostingsPage.tsx`
+- Testes unitários e de contrato do domínio alterado.
+
+## Erros comuns
+
+- Calcular totais no browser e confiar neles no backend.
+- Esquecer filtros por `companyId`.
+- Guardar dinheiro como decimal binário.
+- Permitir estados impossíveis por falta de validação.
+- Devolver stack traces ou mensagens técnicas cruas ao utilizador.
+
+## Cenários negativos
+
+- Pedido sem sessão deve devolver `401`.
+- Pedido sem empresa ativa deve devolver `403` ou o erro já definido na MF0.
+- Entrada mal formada deve devolver `400` sem escrita parcial.
+- Recurso de outra empresa deve devolver `404` ou `403`, nunca dados cruzados.
+
+## Passos lineares
+
+### Passo 1 - Confirmar contrato canónico e fronteiras
+
+1. Objetivo funcional do passo no ERP.
+
+Garantir que BK-MF1-04 implementa apenas RF16, com dependências, owner, prioridade e próximo BK iguais aos documentos canónicos.
+
+2. Ficheiros envolvidos:
+- CRIAR: nenhum ficheiro neste passo.
+- EDITAR: nenhum ficheiro neste passo.
+- REVER: documentos canónicos listados nos pré-requisitos.
+- LOCALIZAÇÃO: topo deste guia e matriz/backlog.
+
+3. Instruções do que fazer.
+
+Confirmar que o BK é `BK-MF1-04`, requisito `RF16`, dependências `BK-MF1-02`, sprint `S03-S04` e próximo BK `BK-MF1-05`. Se o código real tiver caminhos diferentes, manter contratos de negócio e registar a decisão na evidência.
+
+4. Código completo, correto e integrado com a app final.
+
+```text
+bk=BK-MF1-04
+macro=MF1
+rf=RF16
+endpoint=/api/accounting/sale-postings/:saleDocumentId
+deps=BK-MF1-02
+```
+
+5. Explicação do código.
+
+Este bloco não é executado pela app; é o contrato mínimo que impede drift antes de editar código. A execução real começa no passo seguinte.
+
+6. Validação do passo.
+
+Comparar header do guia com `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`. Qualquer divergência bloqueia a implementação.
+
+7. Cenário negativo/erro esperado.
+
+Se surgir uma regra sem fonte documental, não a transformar em requisito; registar a incerteza na evidência e pedir decisão ao responsável.
+
+### Passo 2 - Implementar dados e backend
+
+1. Objetivo funcional do passo no ERP.
+
+Criar a persistência e as regras backend para contabilidade de vendas, com validação, transações e isolamento por empresa.
+
+2. Ficheiros envolvidos:
+- CRIAR: `apps/api/src/modules/accounting/` com service e routes.
+- EDITAR: `apps/api/prisma/schema.prisma` e `apps/api/src/server.js`.
+- REVER: BKs dependentes da MF0/MF1 indicados no header.
+- LOCALIZAÇÃO: modelos Prisma no domínio correspondente e rota montada em `/api/accounting/sale-postings/:saleDocumentId`.
+
+3. Instruções do que fazer.
+
+Aplicar o schema, criar migration, implementar service antes da rota, usar `companyId` do contexto e devolver erros HTTP normalizados. Montar a rota em `server.js` junto das restantes rotas da app.
+
+4. Código completo, correto e integrado com a app final.
+
+Localização: `apps/api/prisma/schema.prisma`.
+
+```prisma
+enum JournalSource {
+  SALE
+  PURCHASE
+  MANUAL
+}
+
+model JournalEntry {
+  id          String        @id @default(uuid())
+  companyId   String
+  source      JournalSource
+  sourceId    String
+  entryDate   DateTime
+  description String
+  createdById String
+  createdAt   DateTime      @default(now())
+
+  company Company            @relation(fields: [companyId], references: [id])
+  lines   JournalEntryLine[]
+
+  @@unique([companyId, source, sourceId])
+  @@index([companyId, entryDate])
+}
+
+model JournalEntryLine {
+  id             String @id @default(uuid())
+  journalEntryId String
+  accountId      String
+  debitCents     Int    @default(0)
+  creditCents    Int    @default(0)
+  memo           String?
+
+  journalEntry JournalEntry @relation(fields: [journalEntryId], references: [id])
+  account      Account      @relation(fields: [accountId], references: [id])
 }
 ```
 
-Aplicar antes de persistir documento para evitar registos contabilisticos inconsistentes e garantir rastreio do requisito.
+Localização: `apps/api/src/modules/accounting/salePostingService.js`.
 
-## Criterios de aceite
-- BK implementado no scope definido, sem romper dependencias.
-- Validacao de smoke e negativos concluida.
-- Contrato de dados canónico mantido (`bk_id/mf/sprint/owner/rf_rnf/deps/guia_path/core_or_reforco`).
-- Evidence pronta para revisao tecnica e defesa PAP.
+```js
+import { httpError } from "../../lib/httpErrors.js";
+import { assertOpenFiscalPeriod } from "../fiscal-periods/fiscalPeriodService.js";
+
+function assertBalanced(lines) {
+    const debit = lines.reduce((sum, line) => sum + line.debitCents, 0);
+    const credit = lines.reduce((sum, line) => sum + line.creditCents, 0);
+    if (debit !== credit) throw httpError(500, "UNBALANCED_ENTRY", "Lancamento desequilibrado");
+}
+
+async function accountByCode(tx, companyId, code) {
+    const account = await tx.account.findFirst({ where: { companyId, code, isActive: true } });
+    if (!account) throw httpError(409, "ACCOUNT_NOT_FOUND", "Conta SNC em falta: " + code);
+    return account;
+}
+
+export async function postSaleDocument(prisma, companyId, userId, saleDocumentId) {
+    return prisma.$transaction(async (tx) => {
+        const document = await tx.saleDocument.findFirst({ where: { id: saleDocumentId, companyId }, include: { lines: true } });
+        if (!document) throw httpError(404, "SALE_DOCUMENT_NOT_FOUND", "Documento de venda nao encontrado");
+        if (document.status === "DRAFT") throw httpError(409, "DOCUMENT_NOT_ISSUED", "Documento ainda nao emitido");
+        await assertOpenFiscalPeriod(tx, companyId, document.issuedAt);
+
+        const customerAccount = await accountByCode(tx, companyId, "211");
+        const revenueAccount = await accountByCode(tx, companyId, "72");
+        const vatAccount = await accountByCode(tx, companyId, "2433");
+        const lines = [
+            { accountId: customerAccount.id, debitCents: document.totalCents, creditCents: 0, memo: "Cliente" },
+            { accountId: revenueAccount.id, debitCents: 0, creditCents: document.subtotalCents, memo: "Venda" },
+            { accountId: vatAccount.id, debitCents: 0, creditCents: document.vatCents, memo: "IVA liquidado" },
+        ].filter((line) => line.debitCents > 0 || line.creditCents > 0);
+        assertBalanced(lines);
+
+        try {
+            return await tx.journalEntry.create({ data: { companyId, source: "SALE", sourceId: document.id, entryDate: document.issuedAt, description: "Venda " + document.number, createdById: userId, lines: { create: lines } }, include: { lines: true } });
+        } catch (error) {
+            if (error.code === "P2002") throw httpError(409, "SALE_ALREADY_POSTED", "Venda ja contabilizada");
+            throw error;
+        }
+    });
+}
+```
+
+Localização: `apps/api/src/modules/accounting/salePostingRoutes.js`.
+
+```js
+import { Router } from "express";
+import { requireAuth } from "../auth/authMiddleware.js";
+import { requireCompanyContext } from "../companies/companyContext.js";
+import { requireRole } from "../permissions/permissionMiddleware.js";
+import { toHttpError } from "../../lib/httpErrors.js";
+import { postSaleDocument } from "./salePostingService.js";
+
+function sendError(res, error) {
+    const response = toHttpError(error);
+    return res.status(response.status).json({ error: response.code, message: response.message });
+}
+
+export function buildSalePostingRoutes({ prisma }) {
+    const router = Router();
+    const guards = [requireAuth(prisma), requireCompanyContext(prisma), requireRole("ADMIN", "GESTOR", "CONTABILISTA")];
+    router.post("/:saleDocumentId", guards, async (req, res) => {
+        try { return res.status(201).json({ data: await postSaleDocument(prisma, req.companyId, req.user.id, req.params.saleDocumentId) }); }
+        catch (error) { return sendError(res, error); }
+    });
+    return router;
+}
+```
+
+Localização: editar `apps/api/src/server.js`.
+
+```js
+import { buildSalePostingRoutes } from "./modules/accounting/salePostingRoutes.js";
+
+app.use("/api/accounting/sale-postings", buildSalePostingRoutes({ prisma }));
+```
+
+5. Explicação do código.
+
+O schema define as invariantes persistentes. O service concentra validação, cálculo, transações e regras de estado. A route só trata transporte HTTP, autenticação, contexto de empresa e resposta. Esta separação facilita testes e reduz regressões entre MF1 e MF3.
+
+6. Validação do passo.
+
+Executar teste unitário do service, teste de contrato do endpoint `/api/accounting/sale-postings/:saleDocumentId` e confirmar que todos os registos criados pertencem a `req.companyId`.
+
+7. Cenário negativo/erro esperado.
+
+Entrada inválida deve falhar antes do Prisma; estado inválido deve devolver `409`; ausência de recurso dentro da empresa ativa deve devolver `404`.
+
+### Passo 3 - Implementar frontend, testes e handoff
+
+1. Objetivo funcional do passo no ERP.
+
+Disponibilizar a operação ao utilizador, com cliente API tipado, estados de carregamento/erro/sucesso e evidência que permita revisão técnica.
+
+2. Ficheiros envolvidos:
+- CRIAR: `apps/web/src/lib/accountingApi.ts` e página/componente do domínio.
+- EDITAR: rotas frontend existentes, se a app já tiver router.
+- REVER: `apps/web/src/lib/apiClient.ts` e componentes de formulário/listagem já usados na MF0.
+- LOCALIZAÇÃO: módulo visual correspondente à operação da MF1.
+
+3. Instruções do que fazer.
+
+Criar funções de API tipadas, consumir erros normalizados do backend e mostrar mensagens claras. Não recalcular no frontend valores que o backend já calcula como fonte de verdade.
+
+4. Código completo, correto e integrado com a app final.
+
+Localização: `apps/web/src/lib/accountingApi.ts`.
+
+```ts
+import { apiClient } from "./apiClient";
+
+export async function postSaleDocument(saleDocumentId: string) {
+    return apiClient.post("/api/accounting/sale-postings/" + saleDocumentId, {});
+}
+```
+
+Localização: teste unitário ou de contrato do service.
+
+```js
+it("nao duplica diario da mesma venda", async () => {
+    await postSaleDocument(prisma, companyId, userId, saleDocumentId);
+    await expect(postSaleDocument(prisma, companyId, userId, saleDocumentId))
+        .rejects.toMatchObject({ status: 409, code: "SALE_ALREADY_POSTED" });
+});
+```
+
+5. Explicação do código.
+
+O cliente API mantém o contrato entre UI e backend num ponto único. Os testes focam o comportamento que protege a contabilidade: validação, transação, estado e isolamento por empresa.
+
+6. Validação do passo.
+
+- Correr testes unitários do módulo.
+- Fazer smoke via UI ou chamada HTTP autenticada.
+- Confirmar que mensagens de erro são compreensíveis e não expõem detalhes internos.
+
+7. Cenário negativo/erro esperado.
+
+Se o backend devolver `400`, `401`, `403`, `404` ou `409`, a UI deve mostrar erro controlado e manter o formulário/listagem num estado recuperável.
+
+## Expected results
+
+- Uma venda emitida gera lançamento equilibrado por empresa, bloqueado por período fechado, com origem e referência ao documento.
+- Endpoint `/api/accounting/sale-postings/:saleDocumentId` protegido e filtrado por empresa.
+- Testes cobrem pelo menos um caso feliz e três cenários negativos relevantes.
+- Evidência lista schema, services, rotas, UI e comandos executados.
+
+## Critérios de aceite
+
+- RF16 fica coberto sem alterar o contrato canónico do BK.
+- Nenhum dado de outra empresa aparece na resposta.
+- Entradas inválidas falham com erro previsível.
+- Escritas compostas são transacionais.
+- O próximo BK consegue reutilizar os modelos e endpoints aqui definidos.
+
+## Validação final
+
+- `npm run test:unit`
+- `npm run test:contracts`
+- Smoke autenticado do endpoint principal.
+- Revisão manual do diff para confirmar ausência de alteração de RF/RNF.
 
 ## Evidence para PR/defesa
-- `pr`: link do commit/PR com resumo objetivo da alteracao.
-- `proof`: prova funcional (output, screenshot, log, ou teste automatizado).
-- `neg`: cenario negativo executado com resultado esperado.
+
+- Ficheiros alterados e motivo.
+- Prints ou logs do caso feliz.
+- Resultado dos testes e dos cenários negativos.
+- Nota explícita sobre dependências cumpridas e handoff.
+
+## Handoff
+
+O `BK-MF3-01` deve ler `JournalEntry` com `source=SALE` e contas de IVA para apurar IVA liquidado.
 
 ## Changelog
-- `2026-04-17`: guia migrado para naming com slug e template pedagogico-operacional executavel.
+
+- `2026-05-31`: Guia corrigido no modo `corrigir_apenas`, com contrato técnico completo, código por camada, validações e handoff MF1.
