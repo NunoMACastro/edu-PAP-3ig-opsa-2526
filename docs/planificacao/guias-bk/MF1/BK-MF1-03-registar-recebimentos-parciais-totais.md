@@ -55,6 +55,13 @@ Cada recebimento fica ligado ao documento de venda, atualiza o montante recebido
 - Confirmar reutilização técnica do `BK-MF1-02`: o documento de venda deve estar emitido por `/api/sales/documents/:id/issue` antes de receber valores.
 - Nunca receber `companyId` do corpo do pedido; usar sempre o contexto autenticado.
 
+## Fundamentação documental
+
+- `CANONICO`: `RF15` distingue recebimentos de clientes de pagamentos a fornecedores e exige suporte a recebimentos parciais/totais.
+- `CANONICO`: `RF47` e `RNF17` tornam o registo de auditoria obrigatório porque o recebimento altera saldos financeiros.
+- `DERIVADO`: `Receipt` guarda método, referência e notas para explicar o movimento sem substituir reconciliação bancária futura.
+- `DERIVADO`: `AuditLog`, criado no `BK-MF1-02`, é reutilizado para provar quem registou o recebimento e que saldo resultou da operação.
+
 ## Glossário
 
 - **Documento canónico:** fonte documental que define RF/RNF, BK, owner, dependências e prioridade.
@@ -193,6 +200,77 @@ model Receipt {
   @@index([companyId, receivedAt])
   @@index([saleDocumentId])
 }
+
+```
+
+O modelo `AuditLog` já foi criado no `BK-MF1-02`. Neste BK reutilizas esse modelo e não o duplicas no schema.
+
+Localização: no mesmo ficheiro, substituir estes modelos existentes pelas versões acumuladas até este BK.
+
+```prisma
+model Company {
+  id              String              @id @default(uuid())
+  name            String
+  nif             String?             @unique
+  memberships     CompanyMembership[]
+  invitations     CompanyInvitation[]
+  profile         CompanyProfile?
+  accounts        Account[]
+  fiscalPeriods   FiscalPeriod[]
+  customers       Customer[]
+  suppliers       Supplier[]
+  items           Item[]
+  warehouses      Warehouse[]
+  vatRates        VatRate[]
+  numberSequences NumberSequence[]
+  saleDocuments   SaleDocument[]
+  receipts        Receipt[]
+  auditLogs       AuditLog[]
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+}
+
+model SaleDocument {
+  id                 String             @id @default(uuid())
+  companyId          String
+  customerId         String
+  kind               SaleDocumentKind
+  status             SaleDocumentStatus @default(DRAFT)
+  number             String?
+  issuedAt           DateTime
+  dueDate            DateTime?
+  subtotalCents      Int
+  vatCents           Int
+  totalCents         Int
+  amountPaidCents    Int                @default(0)
+  createdById        String
+  issuedById         String?
+  issuedDefinitiveAt DateTime?
+  receipts           Receipt[]
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  company  Company            @relation(fields: [companyId], references: [id])
+  customer Customer           @relation(fields: [customerId], references: [id])
+  lines    SaleDocumentLine[]
+
+  @@unique([companyId, number])
+  @@index([companyId, customerId, issuedAt])
+}
+
+model User {
+  id                  String               @id @default(uuid())
+  email               String               @unique
+  name                String?
+  passwordHash        String
+  isActive            Boolean              @default(true)
+  sessions            Session[]
+  memberships         CompanyMembership[]
+  passwordResetTokens PasswordResetToken[]
+  auditLogs           AuditLog[]
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+}
 ```
 
 Localização: `apps/api/src/modules/receipts/receiptService.js`.
@@ -229,6 +307,16 @@ export async function registerReceipt(prisma, companyId, userId, saleDocumentId,
         const receipt = await tx.receipt.create({ data: { ...data, companyId, saleDocumentId, createdById: userId } });
         const nextPaid = document.amountPaidCents + data.amountCents;
         await tx.saleDocument.update({ where: { id: document.id }, data: { amountPaidCents: nextPaid, status: nextPaid === document.totalCents ? "SETTLED" : document.status } });
+        await tx.auditLog.create({
+            data: {
+                companyId,
+                userId,
+                action: "RECEIPT_REGISTERED",
+                entity: "Receipt",
+                entityId: receipt.id,
+                details: { saleDocumentId, amountCents: data.amountCents, resultingAmountPaidCents: nextPaid },
+            },
+        });
         return receipt;
     });
 }
@@ -381,12 +469,30 @@ export function ReceiptsPage() {
 }
 ```
 
-Localização: teste unitário ou de contrato do service.
+Localização: `apps/api/src/modules/receipts/receiptService.test.js`.
 
 ```js
-it("bloqueia recebimento superior ao valor em aberto", async () => {
-    await expect(registerReceipt(prisma, companyId, userId, saleDocumentId, { amountCents: 999999, receivedAt: "2026-05-31", method: "BANK_TRANSFER" }))
-        .rejects.toMatchObject({ status: 400, code: "AMOUNT_EXCEEDS_OPEN" });
+import test from "node:test";
+import assert from "node:assert/strict";
+import { registerReceipt } from "./receiptService.js";
+
+test("bloqueia recebimento superior ao valor em aberto", async () => {
+    const prisma = {
+        fiscalPeriod: { findFirst: async () => ({ id: "period-1", isClosed: false }) },
+        $transaction: async (callback) => callback({
+            saleDocument: {
+                findFirst: async () => ({ id: "sale-1", companyId: "company-1", status: "ISSUED", totalCents: 10000, amountPaidCents: 2500 }),
+                update: async () => assert.fail("Nao deve atualizar documento quando o valor excede o aberto"),
+            },
+            receipt: { create: async () => assert.fail("Nao deve criar recebimento invalido") },
+            auditLog: { create: async () => assert.fail("Nao deve auditar recebimento recusado") },
+        }),
+    };
+
+    await assert.rejects(
+        () => registerReceipt(prisma, "company-1", "user-1", "sale-1", { amountCents: 999999, receivedAt: "2026-05-31", method: "BANK_TRANSFER" }),
+        (error) => error.status === 400 && error.code === "AMOUNT_EXCEEDS_OPEN",
+    );
 });
 ```
 
@@ -551,4 +657,5 @@ O `BK-MF1-04` pode contabilizar vendas já emitidas; `BK-MF3-04` deve usar receb
 
 ## Changelog
 
+- `2026-05-31`: Corrigida fundamentação documental, reutilização de `AuditLog`, auditoria do recebimento e teste autocontido.
 - `2026-05-31`: Guia consolidado com contrato técnico completo, código por camada, validações e handoff MF1.

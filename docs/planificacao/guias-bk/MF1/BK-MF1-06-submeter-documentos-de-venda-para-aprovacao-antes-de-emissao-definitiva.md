@@ -54,6 +54,13 @@ O documento pode circular entre rascunho, submetido, aprovado e rejeitado, com u
 - Confirmar dependências canónicas: `BK-MF1-02`.
 - Nunca receber `companyId` do corpo do pedido; usar sempre o contexto autenticado.
 
+## Fundamentação documental
+
+- `CANONICO`: `RF18` exige fluxo simples de documentos de venda com submissão, aprovação e rejeição.
+- `CANONICO`: `RF47` e `RNF17` exigem auditoria para aprovações e rejeições.
+- `DERIVADO`: `submittedById` permite aplicar segregação mínima entre quem submete e quem aprova ou rejeita.
+- `DERIVADO`: a emissão definitiva continua no endpoint criado no `BK-MF1-02`, mas passa a aceitar apenas documentos `APPROVED`.
+
 ## Glossário
 
 - **Documento canónico:** fonte documental que define RF/RNF, BK, owner, dependências e prioridade.
@@ -190,6 +197,7 @@ model SaleDocument {
   amountPaidCents Int                @default(0)
   createdById     String
   submittedAt     DateTime?
+  submittedById   String?
   approvedAt      DateTime?
   approvedById    String?
   rejectedAt      DateTime?
@@ -203,28 +211,14 @@ model SaleDocument {
   company  Company  @relation(fields: [companyId], references: [id])
   customer Customer @relation(fields: [customerId], references: [id])
   lines    SaleDocumentLine[]
+  receipts Receipt[]
 
   @@unique([companyId, number])
   @@index([companyId, status, issuedAt])
 }
-
-model AuditLog {
-  id        String   @id @default(uuid())
-  companyId String
-  userId    String
-  action    String
-  entity    String
-  entityId  String
-  details   Json?
-  createdAt DateTime @default(now())
-
-  company Company @relation(fields: [companyId], references: [id])
-  user    User    @relation(fields: [userId], references: [id])
-
-  @@index([companyId, entity, entityId])
-  @@index([companyId, createdAt])
-}
 ```
+
+O modelo `AuditLog` já foi criado no `BK-MF1-02`. Neste BK reutilizas esse modelo e não o duplicas no schema.
 
 Localização: `apps/api/src/modules/sales/saleDocumentService.js`.
 
@@ -276,7 +270,7 @@ export async function submitSaleDocument(prisma, companyId, userId, id) {
     const document = await findSaleDocument(prisma, companyId, id);
     if (document.status !== "DRAFT") throw httpError(409, "INVALID_STATUS", "Apenas rascunhos podem ser submetidos");
     return prisma.$transaction(async (tx) => {
-        const updated = await tx.saleDocument.update({ where: { id }, data: { status: "SUBMITTED", submittedAt: new Date(), rejectionReason: null } });
+        const updated = await tx.saleDocument.update({ where: { id }, data: { status: "SUBMITTED", submittedAt: new Date(), submittedById: userId, rejectionReason: null } });
         await recordSaleApprovalAudit(tx, companyId, userId, id, "SALE_DOCUMENT_SUBMITTED");
         return updated;
     });
@@ -285,6 +279,7 @@ export async function submitSaleDocument(prisma, companyId, userId, id) {
 export async function approveSaleDocument(prisma, companyId, userId, id) {
     const document = await findSaleDocument(prisma, companyId, id);
     if (document.status !== "SUBMITTED") throw httpError(409, "INVALID_STATUS", "Apenas documentos submetidos podem ser aprovados");
+    if (document.submittedById === userId) throw httpError(403, "SEGREGATION_REQUIRED", "Outro utilizador deve aprovar o documento");
     return prisma.$transaction(async (tx) => {
         const updated = await tx.saleDocument.update({ where: { id }, data: { status: "APPROVED", approvedAt: new Date(), approvedById: userId } });
         await recordSaleApprovalAudit(tx, companyId, userId, id, "SALE_DOCUMENT_APPROVED");
@@ -297,6 +292,7 @@ export async function rejectSaleDocument(prisma, companyId, userId, id, input) {
     if (reason.length < 3) throw httpError(400, "INVALID_REASON", "Motivo de rejeicao obrigatorio");
     const document = await findSaleDocument(prisma, companyId, id);
     if (document.status !== "SUBMITTED") throw httpError(409, "INVALID_STATUS", "Apenas documentos submetidos podem ser rejeitados");
+    if (document.submittedById === userId) throw httpError(403, "SEGREGATION_REQUIRED", "Outro utilizador deve rejeitar o documento");
     return prisma.$transaction(async (tx) => {
         const updated = await tx.saleDocument.update({ where: { id }, data: { status: "REJECTED", rejectedAt: new Date(), rejectedById: userId, rejectionReason: reason } });
         await recordSaleApprovalAudit(tx, companyId, userId, id, "SALE_DOCUMENT_REJECTED", { reason });
@@ -360,7 +356,7 @@ app.use("/api/sales/documents", buildSaleApprovalRoutes({ prisma }));
 
 5. Explicação do código.
 
-O schema acrescenta campos de decisão e o `AuditLog`, que regista quem submeteu, aprovou ou rejeitou. O service concentra validação, transações, regras de estado e auditoria. A rota de emissão criada no `BK-MF1-02` continua a existir, mas a função `issueSaleDocument` passa a exigir `APPROVED`. Assim não existem dois endpoints para emitir; existe uma regra mais restritiva no service partilhado.
+O schema acrescenta campos de decisão e reutiliza o `AuditLog`, que regista quem submeteu, aprovou ou rejeitou. O campo `submittedById` permite impedir que o mesmo utilizador aprove ou rejeite o documento que submeteu. O service concentra validação, transações, regras de estado, segregação e auditoria. A rota de emissão criada no `BK-MF1-02` continua a existir, mas a função `issueSaleDocument` passa a exigir `APPROVED`. Assim não existem dois endpoints para emitir; existe uma regra mais restritiva no service partilhado.
 
 6. Validação do passo.
 
@@ -465,12 +461,30 @@ export function SaleApprovalPage() {
 }
 ```
 
-Localização: teste unitário ou de contrato do service.
+Localização: `apps/api/src/modules/sales-approval/saleApprovalService.test.js`.
 
 ```js
-it("obriga motivo ao rejeitar venda", async () => {
-    await expect(rejectSaleDocument(prisma, companyId, userId, saleDocumentId, { reason: "" }))
-        .rejects.toMatchObject({ status: 400, code: "INVALID_REASON" });
+import test from "node:test";
+import assert from "node:assert/strict";
+import { approveSaleDocument, rejectSaleDocument } from "./saleApprovalService.js";
+
+test("obriga motivo ao rejeitar venda", async () => {
+    await assert.rejects(
+        () => rejectSaleDocument({}, "company-1", "user-2", "sale-1", { reason: "" }),
+        (error) => error.status === 400 && error.code === "INVALID_REASON",
+    );
+});
+
+test("impede que o mesmo utilizador aprove o documento que submeteu", async () => {
+    const prisma = {
+        saleDocument: { findFirst: async () => ({ id: "sale-1", companyId: "company-1", status: "SUBMITTED", submittedById: "user-1" }) },
+        $transaction: async () => assert.fail("Nao deve abrir transacao quando a segregacao falha"),
+    };
+
+    await assert.rejects(
+        () => approveSaleDocument(prisma, "company-1", "user-1", "sale-1"),
+        (error) => error.status === 403 && error.code === "SEGREGATION_REQUIRED",
+    );
 });
 ```
 
@@ -591,4 +605,5 @@ O `BK-MF1-07` inicia o fluxo de compras; o histórico comum de aprovações fica
 
 ## Changelog
 
+- `2026-05-31`: Corrigida fundamentação documental, segregação de submissão/aprovação, schema acumulado e testes autocontidos.
 - `2026-05-31`: Guia consolidado com contrato técnico completo, código por camada, validações e handoff MF1.

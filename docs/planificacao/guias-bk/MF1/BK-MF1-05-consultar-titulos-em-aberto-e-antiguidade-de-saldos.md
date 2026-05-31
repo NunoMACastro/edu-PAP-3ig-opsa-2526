@@ -55,6 +55,13 @@ A API devolve documentos de venda com saldo em aberto, dias de atraso e bucket d
 - Confirmar reutilização técnica do `BK-MF1-02` e `BK-MF1-03`: a listagem usa documentos emitidos e montantes recebidos.
 - Nunca receber `companyId` do corpo do pedido; usar sempre o contexto autenticado.
 
+## Fundamentação documental
+
+- `CANONICO`: `RF17` pede consulta de títulos em aberto e antiguidade de saldos.
+- `CANONICO`: `RF15` alimenta o saldo em aberto através de recebimentos parciais/totais.
+- `DERIVADO`: os buckets `NOT_DUE`, `DAYS_1_30`, `DAYS_31_60`, `DAYS_61_90` e `DAYS_90_PLUS` são faixas simples para preparar reporting e previsão de tesouraria.
+- `DERIVADO`: o endpoint `/api/sales/open-items` é leitura pura e deve filtrar por `companyId` no backend.
+
 ## Glossário
 
 - **Documento canónico:** fonte documental que define RF/RNF, BK, owner, dependências e prioridade.
@@ -339,12 +346,36 @@ export function SalesOpenItemsPage() {
 }
 ```
 
-Localização: teste unitário ou de contrato do service.
+Localização: `apps/api/src/modules/open-items/salesOpenItemsService.test.js`.
 
 ```js
-it("coloca documento vencido ha 45 dias no bucket correto", async () => {
-    const rows = await listSalesOpenItems(prisma, companyId, { asOfDate: "2026-05-31" });
-    expect(rows.find((row) => row.id === saleDocumentId)?.bucket).toBe("DAYS_31_60");
+import test from "node:test";
+import assert from "node:assert/strict";
+import { listSalesOpenItems } from "./salesOpenItemsService.js";
+
+test("coloca documento vencido ha 45 dias no bucket correto", async () => {
+    const prisma = {
+        saleDocument: {
+            findMany: async ({ where }) => {
+                assert.equal(where.companyId, "company-1");
+                assert.equal(where.status, "ISSUED");
+                return [{
+                    id: "sale-1",
+                    number: "INVOICE-2026-000001",
+                    customer: { name: "Cliente Teste" },
+                    issuedAt: new Date("2026-04-01"),
+                    dueDate: new Date("2026-04-16"),
+                    totalCents: 12300,
+                    amountPaidCents: 2300,
+                }];
+            },
+        },
+    };
+
+    const rows = await listSalesOpenItems(prisma, "company-1", { asOfDate: "2026-05-31" });
+
+    assert.equal(rows[0].openAmountCents, 10000);
+    assert.equal(rows[0].bucket, "DAYS_31_60");
 });
 ```
 
@@ -465,4 +496,5 @@ O `BK-MF1-06` não altera a leitura de saldos; apenas impede emissão final ante
 
 ## Changelog
 
+- `2026-05-31`: Corrigida fundamentação documental dos buckets e teste autocontido de antiguidade.
 - `2026-05-31`: Guia consolidado com contrato técnico completo, código por camada, validações e handoff MF1.

@@ -19,7 +19,7 @@ Trabalha como arquiteto de software senior, professor de programacao e revisor d
 
 ```md
 MF_ALVO: MF1
-MODO: corrigir_apenas
+MODO: auditar_apenas
 ```
 
 Valores possiveis para `MF_ALVO`:

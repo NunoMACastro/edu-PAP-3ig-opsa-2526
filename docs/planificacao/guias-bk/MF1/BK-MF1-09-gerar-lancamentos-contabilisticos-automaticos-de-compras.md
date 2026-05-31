@@ -54,6 +54,13 @@ Uma compra registada/aprovada gera lançamento equilibrado com gastos, IVA dedut
 - Confirmar dependências canónicas: `BK-MF1-07`.
 - Nunca receber `companyId` do corpo do pedido; usar sempre o contexto autenticado.
 
+## Fundamentação documental
+
+- `CANONICO`: `RF21` liga documentos de compra a lançamentos contabilísticos automáticos.
+- `CANONICO`: `RF08`, `RF47` e `RNF17` obrigam período fiscal aberto e auditoria em alterações contabilísticas.
+- `DERIVADO`: `postPurchaseDocumentInTransaction` permite que `BK-MF1-10` lance compra, estado e auditoria numa única transação.
+- `DERIVADO`: as contas `62`, `2432` e `221` representam um mapeamento pedagógico mínimo do SNC já criado no `BK-MF0-07`.
+
 ## Glossário
 
 - **Documento canónico:** fonte documental que define RF/RNF, BK, owner, dependências e prioridade.
@@ -173,6 +180,8 @@ enum JournalSource {
 }
 ```
 
+O modelo `JournalEntry` e as relações inversas em `Company` e `Account` já foram criados no `BK-MF1-04`. O modelo `AuditLog` já foi criado no `BK-MF1-02`. Neste BK apenas reutilizas esses modelos e confirmas que `JournalSource` inclui `PURCHASE`.
+
 Localização: `apps/api/src/modules/accounting/purchasePostingService.js`.
 
 ```js
@@ -191,41 +200,53 @@ async function accountByCode(tx, companyId, code) {
     return account;
 }
 
+export async function postPurchaseDocumentInTransaction(tx, companyId, userId, purchaseDocumentId) {
+    const document = await tx.purchaseDocument.findFirst({ where: { id: purchaseDocumentId, companyId }, include: { lines: true } });
+    if (!document) throw httpError(404, "PURCHASE_DOCUMENT_NOT_FOUND", "Documento de compra nao encontrado");
+    if (document.status !== "APPROVED" && document.status !== "PAID") throw httpError(409, "INVALID_STATUS", "Apenas compras aprovadas ou pagas podem ser contabilizadas");
+    await assertOpenFiscalPeriod(tx, companyId, document.issuedAt);
+
+    const expenseAccount = await accountByCode(tx, companyId, "62");
+    const vatAccount = await accountByCode(tx, companyId, "2432");
+    const supplierAccount = await accountByCode(tx, companyId, "221");
+    const isCreditNote = document.kind === "SUPPLIER_CREDIT_NOTE";
+    const lines = isCreditNote
+        ? [
+            // A nota de crédito reduz a dívida ao fornecedor e reverte gasto e IVA dedutível.
+            { accountId: supplierAccount.id, debitCents: document.totalCents, creditCents: 0, memo: "Credito de fornecedor" },
+            { accountId: expenseAccount.id, debitCents: 0, creditCents: document.subtotalCents, memo: "Reversao de gasto" },
+            { accountId: vatAccount.id, debitCents: 0, creditCents: document.vatCents, memo: "Reversao de IVA dedutivel" },
+        ]
+        : [
+            { accountId: expenseAccount.id, debitCents: document.subtotalCents, creditCents: 0, memo: "Compra" },
+            { accountId: vatAccount.id, debitCents: document.vatCents, creditCents: 0, memo: "IVA dedutivel" },
+            { accountId: supplierAccount.id, debitCents: 0, creditCents: document.totalCents, memo: "Fornecedor" },
+        ];
+    const nonZeroLines = lines.filter((line) => line.debitCents > 0 || line.creditCents > 0);
+    assertBalanced(nonZeroLines);
+
+    try {
+        const entry = await tx.journalEntry.create({ data: { companyId, source: "PURCHASE", sourceId: document.id, entryDate: document.issuedAt, description: "Compra " + document.supplierNumber, createdById: userId, lines: { create: nonZeroLines } }, include: { lines: true } });
+        await tx.purchaseDocument.update({ where: { id: document.id }, data: { status: document.status === "PAID" ? "PAID" : "POSTED" } });
+        await tx.auditLog.create({
+            data: {
+                companyId,
+                userId,
+                action: "PURCHASE_DOCUMENT_POSTED",
+                entity: "JournalEntry",
+                entityId: entry.id,
+                details: { purchaseDocumentId: document.id, totalCents: document.totalCents, source: "PURCHASE" },
+            },
+        });
+        return entry;
+    } catch (error) {
+        if (error.code === "P2002") throw httpError(409, "PURCHASE_ALREADY_POSTED", "Compra ja contabilizada");
+        throw error;
+    }
+}
+
 export async function postPurchaseDocument(prisma, companyId, userId, purchaseDocumentId) {
-    return prisma.$transaction(async (tx) => {
-        const document = await tx.purchaseDocument.findFirst({ where: { id: purchaseDocumentId, companyId }, include: { lines: true } });
-        if (!document) throw httpError(404, "PURCHASE_DOCUMENT_NOT_FOUND", "Documento de compra nao encontrado");
-        if (document.status !== "APPROVED" && document.status !== "PAID") throw httpError(409, "INVALID_STATUS", "Apenas compras aprovadas ou pagas podem ser contabilizadas");
-        await assertOpenFiscalPeriod(tx, companyId, document.issuedAt);
-
-        const expenseAccount = await accountByCode(tx, companyId, "62");
-        const vatAccount = await accountByCode(tx, companyId, "2432");
-        const supplierAccount = await accountByCode(tx, companyId, "221");
-        const isCreditNote = document.kind === "SUPPLIER_CREDIT_NOTE";
-        const lines = isCreditNote
-            ? [
-                // A nota de crédito reduz a dívida ao fornecedor e reverte gasto e IVA dedutível.
-                { accountId: supplierAccount.id, debitCents: document.totalCents, creditCents: 0, memo: "Credito de fornecedor" },
-                { accountId: expenseAccount.id, debitCents: 0, creditCents: document.subtotalCents, memo: "Reversao de gasto" },
-                { accountId: vatAccount.id, debitCents: 0, creditCents: document.vatCents, memo: "Reversao de IVA dedutivel" },
-            ]
-            : [
-                { accountId: expenseAccount.id, debitCents: document.subtotalCents, creditCents: 0, memo: "Compra" },
-                { accountId: vatAccount.id, debitCents: document.vatCents, creditCents: 0, memo: "IVA dedutivel" },
-                { accountId: supplierAccount.id, debitCents: 0, creditCents: document.totalCents, memo: "Fornecedor" },
-            ];
-        const nonZeroLines = lines.filter((line) => line.debitCents > 0 || line.creditCents > 0);
-        assertBalanced(nonZeroLines);
-
-        try {
-            const entry = await tx.journalEntry.create({ data: { companyId, source: "PURCHASE", sourceId: document.id, entryDate: document.issuedAt, description: "Compra " + document.supplierNumber, createdById: userId, lines: { create: nonZeroLines } }, include: { lines: true } });
-            await tx.purchaseDocument.update({ where: { id: document.id }, data: { status: document.status === "PAID" ? "PAID" : "POSTED" } });
-            return entry;
-        } catch (error) {
-            if (error.code === "P2002") throw httpError(409, "PURCHASE_ALREADY_POSTED", "Compra ja contabilizada");
-            throw error;
-        }
-    });
+    return prisma.$transaction((tx) => postPurchaseDocumentInTransaction(tx, companyId, userId, purchaseDocumentId));
 }
 ```
 
@@ -269,7 +290,7 @@ app.use("/api/accounting/purchase-postings", buildPurchasePostingRoutes({ prisma
 
 5. Explicação do código.
 
-O schema define as invariantes persistentes. O service concentra validação, cálculo, transações e regras de estado. Para faturas de fornecedor, o lançamento debita gasto e IVA dedutível e credita fornecedor. Para notas de crédito, faz o inverso para reduzir a dívida e reverter gasto/IVA. A compra já paga também pode ser contabilizada porque o pagamento e o lançamento são responsabilidades diferentes. A route só trata transporte HTTP, autenticação, contexto de empresa e resposta.
+O schema define as invariantes persistentes. O service concentra validação, cálculo, transações, auditoria e regras de estado. Para faturas de fornecedor, o lançamento debita gasto e IVA dedutível e credita fornecedor. Para notas de crédito, faz o inverso para reduzir a dívida e reverter gasto/IVA. A função `postPurchaseDocumentInTransaction` permite que o workflow de compras do `BK-MF1-10` reutilize a mesma lógica dentro da sua própria transação. A compra já paga também pode ser contabilizada porque o pagamento e o lançamento são responsabilidades diferentes. A route só trata transporte HTTP, autenticação, contexto de empresa e resposta.
 
 6. Validação do passo.
 
@@ -353,13 +374,34 @@ export function PurchasePostingsPage() {
 }
 ```
 
-Localização: teste unitário ou de contrato do service.
+Localização: `apps/api/src/modules/accounting/purchasePostingService.test.js`.
 
 ```js
-it("nao duplica diario da mesma compra", async () => {
-    await postPurchaseDocument(prisma, companyId, userId, purchaseDocumentId);
-    await expect(postPurchaseDocument(prisma, companyId, userId, purchaseDocumentId))
-        .rejects.toMatchObject({ status: 409, code: "PURCHASE_ALREADY_POSTED" });
+import test from "node:test";
+import assert from "node:assert/strict";
+import { postPurchaseDocument } from "./purchasePostingService.js";
+
+test("nao duplica diario da mesma compra", async () => {
+    const prisma = {
+        $transaction: async (callback) => callback({
+            purchaseDocument: { findFirst: async () => ({ id: "purchase-1", companyId: "company-1", status: "APPROVED", kind: "SUPPLIER_INVOICE", supplierNumber: "FT-FORN-1", issuedAt: new Date("2026-05-31"), subtotalCents: 10000, vatCents: 2300, totalCents: 12300, lines: [] }) },
+            fiscalPeriod: { findFirst: async () => ({ id: "period-1", isClosed: false }) },
+            account: { findFirst: async ({ where }) => ({ id: "account-" + where.code }) },
+            journalEntry: {
+                create: async () => {
+                    const error = new Error("duplicate");
+                    error.code = "P2002";
+                    throw error;
+                },
+            },
+            auditLog: { create: async () => assert.fail("Nao deve auditar lancamento duplicado") },
+        }),
+    };
+
+    await assert.rejects(
+        () => postPurchaseDocument(prisma, "company-1", "user-1", "purchase-1"),
+        (error) => error.status === 409 && error.code === "PURCHASE_ALREADY_POSTED",
+    );
 });
 ```
 
@@ -524,4 +566,5 @@ O `BK-MF3-01` deve ler `JournalEntry` com `source=PURCHASE` e contas de IVA para
 
 ## Changelog
 
+- `2026-05-31`: Corrigida fundamentação documental, helper transacional de contabilização, auditoria do lançamento e teste autocontido.
 - `2026-05-31`: Guia consolidado com contrato técnico completo, código por camada, validações e handoff MF1.

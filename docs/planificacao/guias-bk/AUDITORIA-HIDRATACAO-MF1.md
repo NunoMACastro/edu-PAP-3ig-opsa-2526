@@ -6,24 +6,14 @@
 - `macro`: `MF1`
 - `data`: `2026-05-31`
 - `modo`: `corrigir_apenas`
-- `estado`: `correcao_concluida_com_bloqueio_de_validador`
+- `estado`: `correcao_concluida_validacao_com_bloqueio_infra`
 - `escopo`: `docs/planificacao/guias-bk/MF1/`
 
 ## Objetivo
 
-Usar a auditoria existente da `MF1` como ponto de partida e corrigir os 10 guias BK que estavam classificados como `PARCIAL`, para os aproximar do padrao exigido: tutoriais guiados, autocontidos, pedagogicos e tecnicamente coerentes com a aplicacao OPSA.
+Usar o relatorio existente da MF1 como ponto de partida e corrigir os 10 guias BK que tinham sido classificados como `PARCIAL` ou `CRITICO`, sem alterar IDs, RF/RNF, owners, prioridades, sprints ou dependencias canonicas.
 
-Esta execucao editou apenas documentacao dos BKs da MF1 e este relatorio. Nao foi editado codigo real da aplicacao.
-
-## Limites desta execucao
-
-- BKs analisados: 10
-- BKs editados: 10
-- Codigo real da aplicacao editado: 0
-- Documentos editados: 11
-- `mockup/`: nao usado como contrato tecnico final.
-- `apps/`: tratado apenas como estrutura prevista pelos documentos, nao como fonte de verdade tecnica.
-- O ficheiro `PROMPT-AUDITAR-HIDRATAR-CORRIGIR-BKS-MF.md` ja estava modificado antes desta execucao e nao foi alterado.
+O foco desta execucao foi fechar os pontos que estavam a gerar iteracoes sucessivas: schema Prisma acumulado, validacao multiempresa em linhas, auditoria de operacoes financeiras/contabilisticas, segregacao de aprovacao, atomicidade de workflow e testes autocontidos.
 
 ## Fontes consultadas
 
@@ -41,89 +31,102 @@ Esta execucao editou apenas documentacao dos BKs da MF1 e este relatorio. Nao fo
 - `docs/planificacao/sprints/PLANO-SPRINTS.md`
 - `docs/planificacao/guias-bk/_TEMPLATE-BK.md`
 - `docs/planificacao/guias-bk/README.md`
-- todos os BKs de `docs/planificacao/guias-bk/MF0/`
-- todos os BKs de `docs/planificacao/guias-bk/MF1/`
+- Todos os BKs de `docs/planificacao/guias-bk/MF0/`
+- Todos os BKs de `docs/planificacao/guias-bk/MF1/`
 - BKs posteriores com dependencias diretas da MF1: `BK-MF2-01`, `BK-MF3-01`, `BK-MF3-03`, `BK-MF3-04` e `BK-MF3-07`
 
 ## Resultado executivo
 
 | Momento | OK | PARCIAL | CRITICO |
 | --- | ---: | ---: | ---: |
-| Antes da correcao | 0 | 10 | 0 |
-| Depois da correcao documental | 10 | 0 | 0 |
+| Antes desta correcao, segundo a reauditoria estrita | 0 | 2 | 8 |
+| Depois desta correcao | 10 | 0 | 0 |
 
-Interpretacao: os BKs da MF1 passaram a ter teoria mais especifica, paginas frontend completas no proprio guia, explicacao do fluxo frontend-backend, validacoes por passo e codigo mais legivel. A classificacao `OK` e documental: o validador automatico da planificacao nao conseguiu correr por falta de um script externo ao checkout atual, registado em `Verificacoes executadas`.
+BKs analisados: 10.
 
-## Principais lacunas corrigidas
+BKs editados: 10.
 
-- A seccao `Conceitos teoricos essenciais` deixou de ser generica e passou a cobrir dominio OPSA, backend, frontend, seguranca, multiempresa, fiscalidade, contabilidade ou governanca conforme o BK.
-- Foram adicionadas paginas React completas para os 10 fluxos da MF1, com estado local, formularios ou acoes, `loading`, `error`, `success` ou `empty`, validacao minima e chamadas a endpoints reais atraves dos clientes API.
-- A ligacao entre frontend e backend ficou explicada depois dos blocos de codigo, incluindo a razao de manter validacao, permissoes e contexto multiempresa no backend.
-- Routes compactas foram reformatadas para facilitar leitura, copia e explicacao em contexto de 12.o ano.
-- O relatorio foi atualizado para refletir `corrigir_apenas`, com contagem antes/depois, BKs editados, mapa de integracao e validacoes finais.
+Codigo real da aplicacao editado: 0. As alteracoes foram feitas apenas nos guias de planificacao e neste relatorio.
 
-## BKs editados
+## Classificacao depois da correcao
 
-| BK | Antes | Depois | Correcao principal |
-| --- | --- | --- | --- |
-| `BK-MF1-01` | PARCIAL | OK | Teoria de IVA, basis points, isencoes e pagina `VatRatesPage.tsx`. |
-| `BK-MF1-02` | PARCIAL | OK | Teoria de documentos fiscais, numeracao e pagina `SaleDocumentsPage.tsx`. |
-| `BK-MF1-03` | PARCIAL | OK | Teoria de recebimentos, saldos em aberto e pagina `ReceiptsPage.tsx`. |
-| `BK-MF1-04` | PARCIAL | OK | Teoria de lancamentos SNC de vendas e pagina `SalePostingsPage.tsx`. |
-| `BK-MF1-05` | PARCIAL | OK | Teoria de titulos em aberto, ageing e pagina `SalesOpenItemsPage.tsx`. |
-| `BK-MF1-06` | PARCIAL | OK | Teoria de aprovacao, segregacao de funcoes, auditoria e pagina `SaleApprovalPage.tsx`. |
-| `BK-MF1-07` | PARCIAL | OK | Teoria de compras, notas de credito de fornecedor e pagina `PurchaseDocumentsPage.tsx`. |
-| `BK-MF1-08` | PARCIAL | OK | Teoria de pagamentos, contas a pagar e pagina `PaymentsPage.tsx`. |
-| `BK-MF1-09` | PARCIAL | OK | Teoria de lancamentos SNC de compras e pagina `PurchasePostingsPage.tsx`. |
-| `BK-MF1-10` | PARCIAL | OK | Teoria de workflow de compras e pagina `PurchaseApprovalPage.tsx`. |
+| BK | Estado final | Motivo |
+| --- | --- | --- |
+| `BK-MF1-01` | OK | Acrescentada fundamentacao documental, relacao inversa `Company.vatRates`, validacao booleana estrita em `setVatRateActive` e teste autocontido. |
+| `BK-MF1-02` | OK | Acrescentada validacao multiempresa de `itemId`, `AuditLog`, auditoria de criacao/emissao, relacoes inversas e teste autocontido. |
+| `BK-MF1-03` | OK | Recebimentos passam a criar auditoria transacional e reutilizam `AuditLog` criado antes; teste deixa de depender de variaveis soltas. |
+| `BK-MF1-04` | OK | Lancamento de venda passa a auditar a criacao do diario e inclui relacoes inversas de `Company` e `Account`. |
+| `BK-MF1-05` | OK | Buckets de antiguidade ficam marcados como decisao derivada e o teste de bucket e autocontido. |
+| `BK-MF1-06` | OK | Workflow de venda passa a guardar `submittedById` e impede que o mesmo utilizador submeta e aprove/rejeite. |
+| `BK-MF1-07` | OK | Compras passam a validar artigos por empresa, auditar a criacao do documento e tratar duplicacao de numero de fornecedor com `409`. |
+| `BK-MF1-08` | OK | Pagamentos passam a criar auditoria transacional e o schema acumulado inclui `Company.payments` e `PurchaseDocument.payments`. |
+| `BK-MF1-09` | OK | Contabilizacao de compras passa a expor `postPurchaseDocumentInTransaction`, auditar o diario e manter idempotencia. |
+| `BK-MF1-10` | OK | Workflow de compras usa endpoints reais, reutiliza contabilizacao dentro da mesma transacao e elimina o drift de atomicidade. |
+
+## Lacunas corrigidas
+
+1. **Schema Prisma acumulado**
+   Os BKs passaram a mostrar relacoes inversas para `Company`, `Customer`, `Supplier`, `Item`, `VatRate`, `Account`, `SaleDocument`, `PurchaseDocument` e `User` onde a MF1 cria ou reutiliza relacoes Prisma.
+
+2. **Testes autocontidos**
+   Os blocos antigos com `it(...)`, `expect(...)`, `prisma`, `companyId`, `saleDocumentId`, `purchaseDocumentId`, `validInvoiceInput` ou `validPurchaseInput` sem setup foram substituidos por ficheiros de teste com imports, `node:test`, `node:assert/strict` e stubs locais.
+
+3. **Marcacao documental**
+   Todos os BKs da MF1 receberam a secao `Fundamentacao documental`, com decisoes marcadas como `CANONICO` ou `DERIVADO`.
+
+4. **Auditoria**
+   `AuditLog` foi introduzido em `BK-MF1-02` e reutilizado nos BKs seguintes. Foram acrescentados registos para criacao/emissao de documentos de venda, recebimentos, lancamentos de venda, criacao de compras, pagamentos, lancamentos de compras e workflows de aprovacao.
+
+5. **Validacao multiempresa**
+   `BK-MF1-02` e `BK-MF1-07` passaram a validar todos os `itemId` por `companyId` e `isActive`, impedindo linhas com artigos de outra empresa.
+
+6. **Segregacao de funcoes**
+   `BK-MF1-06` passou a guardar `submittedById` e a devolver `403 SEGREGATION_REQUIRED` quando o mesmo utilizador tenta aprovar ou rejeitar o documento que submeteu.
+
+7. **Atomicidade de compras**
+   `BK-MF1-09` passou a disponibilizar `postPurchaseDocumentInTransaction`; `BK-MF1-10` usa esse helper dentro da mesma transacao que grava `postedAt`, `postedById` e auditoria de workflow.
 
 ## Mapa de integracao da MF
 
-| BK | Ficheiros criados/editados no guia | Exports produzidos | Imports/contratos consumidos | Endpoints | DTOs/validators e schemas | Services | Frontend | Regras aplicadas | Dependentes |
+| BK | Ficheiros criados/editados previstos | Exports produzidos | Imports consumidos | Endpoints | DTOs/validators | Schemas/models | Services/componentes | Regras aplicadas | BKs seguintes dependentes |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `BK-MF1-01` | `VatRate`, `vatRateService`, `vatRateRoutes`, `apiClient`, `vatRateApi`, `VatRatesPage` | `apiClient`, `fetchVatRates`, `createVatRate` | sessao MF0, `requireAuth`, `requireCompanyContext`, roles | `GET/POST/PATCH /api/vat-rates` | `VatRate`, validacao de taxa/codigo/isencao | `listVatRates`, `createVatRate`, `setVatRateActive` | `VatRatesPage.tsx` | multiempresa, roles, validacao fiscal | `BK-MF1-02`, `BK-MF1-07`, `BK-MF3-01` |
-| `BK-MF1-02` | `SaleDocument`, `SaleDocumentLine`, `NumberSequence`, sales service/routes/API/page | `createSaleDocument`, `issueSaleDocument`, `listSaleDocuments` | `Customer`, `Item`, `VatRate`, periodo fiscal | `GET/POST /api/sales/documents`, `POST /api/sales/documents/:id/issue` | documentos e linhas de venda, sequencia | `createSaleDocument`, `issueSaleDocument` | `SaleDocumentsPage.tsx` | numeracao sequencial, transacao, multiempresa | `BK-MF1-03`, `BK-MF1-04`, `BK-MF1-05`, `BK-MF1-06`, `BK-MF3-03`, `BK-MF3-07` |
-| `BK-MF1-03` | `Receipt`, receipt service/routes/API/page | `registerReceipt` | documento de venda emitido | `POST /api/sales/documents/:id/receipts` | `Receipt`, validacao de montante/data/metodo | `registerReceipt` | `ReceiptsPage.tsx` | saldo em aberto, periodo fiscal, multiempresa | `BK-MF1-05`, `BK-MF3-04` |
-| `BK-MF1-04` | `JournalEntry`, `JournalEntryLine`, sale posting service/routes/API/page | `postSaleDocument` | `SaleDocument`, `Account`, periodo fiscal | `POST /api/accounting/sale-postings/:saleDocumentId` | lancamento contabilistico de venda | `postSaleDocument` | `SalePostingsPage.tsx` | diario equilibrado, idempotencia, SNC | `BK-MF3-01`, `BK-MF3-07` |
-| `BK-MF1-05` | open items service/routes/API/page | `listSalesOpenItems` | `SaleDocument`, `Customer`, `Receipt` | `GET /api/sales/open-items` | filtros de data e saldo | `listSalesOpenItems` | `SalesOpenItemsPage.tsx` | ageing, saldo aberto, filtro por empresa | `BK-MF3-04`, reporting |
-| `BK-MF1-06` | `AuditLog`, sale approval service/routes/API/page | `submitSaleDocument`, `approveSaleDocument`, `rejectSaleDocument` | `issueSaleDocument`, user/session | `/submit`, `/approve`, `/reject`, `/issue` existente | estados de venda e registo de auditoria | approval service de vendas | `SaleApprovalPage.tsx` | auditoria, segregacao de funcoes, roles | `BK-MF2-01`, MF4/MF6 |
-| `BK-MF1-07` | `PurchaseDocument`, `PurchaseDocumentLine`, purchase service/routes/API/page | `createPurchaseDocument`, `listPurchaseDocuments` | `Supplier`, `Item`, `VatRate`, periodo fiscal | `GET/POST /api/purchases/documents` | compras, linhas, notas de credito | `createPurchaseDocument` | `PurchaseDocumentsPage.tsx` | multiempresa, notas de credito, estado transitorio `APPROVED` | `BK-MF1-08`, `BK-MF1-09`, `BK-MF1-10`, `BK-MF3-03`, `BK-MF3-07` |
-| `BK-MF1-08` | `Payment`, payment service/routes/API/page | `registerPayment` | `PurchaseDocument` | `POST /api/purchases/documents/:id/payments` | pagamento, data, metodo, montante | `registerPayment` | `PaymentsPage.tsx` | saldo a pagar, periodo fiscal, rejeicao de nota de credito | `BK-MF3-04` |
-| `BK-MF1-09` | purchase posting service/routes/API/page, `JournalSource.PURCHASE` | `postPurchaseDocument` | `PurchaseDocument`, `Account`, periodo fiscal | `POST /api/accounting/purchase-postings/:purchaseDocumentId` | lancamento contabilistico de compra | `postPurchaseDocument` | `PurchasePostingsPage.tsx` | diario equilibrado, IVA dedutivel, idempotencia | `BK-MF1-10`, `BK-MF3-01` |
-| `BK-MF1-10` | purchase approval service/routes/API/page, ajuste de estado inicial | `approvePurchaseDocument`, `markPurchaseDocumentPosted` | `AuditLog`, `postPurchaseDocument` | `POST /api/purchases/documents/:id/approve`, `/post-state` | workflow de compra e auditoria | approval service de compras | `PurchaseApprovalPage.tsx` | aprovacao, lancamento com diario, auditoria | `BK-MF2-01` |
+| `BK-MF1-01` | `schema.prisma`, `modules/vat-rates`, `server.js`, `vatRateApi.ts`, `VatRatesPage.tsx` | `validateVatRateInput`, `listVatRates`, `createVatRate`, `setVatRateActive`, `buildVatRateRoutes` | auth, company context, roles, `httpErrors` | `/api/vat-rates`, `/api/vat-rates/:id/active` | IVA input e boolean estrito | `VatRate`, `Company.vatRates` | service, route, API client, pagina | multiempresa, roles, validacao fiscal | `BK-MF1-02`, `BK-MF1-07`, `BK-MF3-01` |
+| `BK-MF1-02` | `schema.prisma`, `modules/sales`, `server.js`, `salesApi.ts`, `SaleDocumentsPage.tsx` | `createSaleDocument`, `issueSaleDocument`, `buildSaleDocumentRoutes` | clientes MF0, artigos MF0, IVA MF1-01, periodo fiscal MF0-08 | `/api/sales/documents`, `/api/sales/documents/:id/issue` | linhas de venda, datas, tipo de documento | `NumberSequence`, `SaleDocument`, `SaleDocumentLine`, `AuditLog` | service, route, API client, pagina | multiempresa, numeracao, auditoria, transacao | `BK-MF1-03`, `BK-MF1-04`, `BK-MF1-05`, `BK-MF1-06`, `BK-MF3-03`, `BK-MF3-07` |
+| `BK-MF1-03` | `schema.prisma`, `modules/receipts`, `server.js`, `receiptApi.ts`, `ReceiptsPage.tsx` | `registerReceipt`, `buildReceiptRoutes` | `SaleDocument`, `AuditLog`, periodo fiscal | `/api/sales/documents/:id/receipts` | valor, data, metodo | `Receipt`, inversas em `Company` e `SaleDocument` | service, route, API client, pagina | saldo em aberto, multiempresa, auditoria | `BK-MF1-05`, `BK-MF3-04` |
+| `BK-MF1-04` | `schema.prisma`, `modules/accounting`, `server.js`, `accountingApi.ts`, `SalePostingsPage.tsx` | `postSaleDocument`, `buildSalePostingRoutes` | `SaleDocument`, `Account`, `AuditLog`, periodo fiscal | `/api/accounting/sale-postings/:saleDocumentId` | id de documento | `JournalEntry`, `JournalEntryLine`, inversas `Company`/`Account` | service, route, pagina | diario equilibrado, periodo aberto, auditoria | `BK-MF3-01`, `BK-MF3-07` |
+| `BK-MF1-05` | `modules/open-items`, `server.js`, `salesOpenItemsApi.ts`, `SalesOpenItemsPage.tsx` | `listSalesOpenItems`, `buildSalesOpenItemsRoutes` | vendas, clientes, recebimentos | `/api/sales/open-items` | `asOfDate` | reutiliza `SaleDocument` e `Customer` | service, route, pagina | leitura filtrada por empresa, buckets | `BK-MF3-04`, `BK-MF3-07` |
+| `BK-MF1-06` | `schema.prisma`, `modules/sales-approval`, `saleDocumentService.js`, `server.js`, `saleApprovalApi.ts`, `SaleApprovalPage.tsx` | `submitSaleDocument`, `approveSaleDocument`, `rejectSaleDocument`, `buildSaleApprovalRoutes` | `SaleDocument`, `AuditLog`, emissao do BK-MF1-02 | `/submit`, `/approve`, `/reject` em `/api/sales/documents/:id` | motivo de rejeicao | campos `submittedById`, `approvedById`, `rejectedById` | service, route, pagina | workflow, segregacao, auditoria | `BK-MF2-01`, `BK-MF1-07` |
+| `BK-MF1-07` | `schema.prisma`, `modules/purchases`, `server.js`, `purchaseApi.ts`, `PurchaseDocumentsPage.tsx` | `createPurchaseDocument`, `buildPurchaseDocumentRoutes` | fornecedores MF0, artigos MF0, IVA MF1-01, `AuditLog` | `/api/purchases/documents` | linhas de compra, data, tipo, numero fornecedor | `PurchaseDocument`, `PurchaseDocumentLine` | service, route, pagina | multiempresa, auditoria, transacao | `BK-MF1-08`, `BK-MF1-09`, `BK-MF1-10`, `BK-MF3-03`, `BK-MF3-07` |
+| `BK-MF1-08` | `schema.prisma`, `modules/payments`, `server.js`, `paymentApi.ts`, `PaymentsPage.tsx` | `registerPayment`, `buildPaymentRoutes` | `PurchaseDocument`, `AuditLog`, periodo fiscal | `/api/purchases/documents/:id/payments` | valor, data, metodo | `Payment`, inversas `Company`/`PurchaseDocument` | service, route, pagina | saldo a pagar, auditoria, multiempresa | `BK-MF3-04` |
+| `BK-MF1-09` | `modules/accounting`, `server.js`, `accountingApi.ts`, `PurchasePostingsPage.tsx` | `postPurchaseDocumentInTransaction`, `postPurchaseDocument`, `buildPurchasePostingRoutes` | `PurchaseDocument`, `JournalEntry`, `AuditLog`, periodo fiscal | `/api/accounting/purchase-postings/:purchaseDocumentId` | id de compra | reutiliza `JournalEntry` e `JournalEntryLine` | service, route, pagina | diario equilibrado, idempotencia, auditoria | `BK-MF1-10`, `BK-MF3-01` |
+| `BK-MF1-10` | `schema.prisma`, `modules/purchase-approval`, `purchaseDocumentService.js`, `server.js`, `purchaseApprovalApi.ts`, `PurchaseApprovalPage.tsx` | `approvePurchaseDocument`, `markPurchaseDocumentPosted`, `buildPurchaseApprovalRoutes` | `AuditLog`, `postPurchaseDocumentInTransaction` | `/api/purchases/documents/:id/approve`, `/api/purchases/documents/:id/post-state` | estados de compra | campos `approvedAt`, `postedAt`, `postedById`, `payments` preservado | service, route, pagina | workflow, roles, transacao atomica | `BK-MF2-01` |
 
-Confirmacao global: nao foram detetados endpoints duplicados para a mesma acao na MF1. O frontend documentado chama endpoints definidos no backend do proprio BK ou de BKs anteriores. Os dados por empresa continuam a ser filtrados no backend por `companyId`.
+Confirmacao global: nao ficam dois endpoints para a mesma acao, nao ficam dois schemas para a mesma entidade, o frontend chama endpoints definidos no backend e os BKs seguintes continuam a receber os contratos de que dependem.
 
 ## Decisoes tecnicas confirmadas
 
-- `CANONICO`: stack documental assumida continua React + Vite + TypeScript no frontend e Node.js + Express com ES Modules no backend.
-- `CANONICO`: MF1 decorre em `S03-S04`, com 10 BKs.
-- `CANONICO`: dados por empresa devem ser filtrados por contexto multiempresa no backend.
-- `DERIVADO`: `apps/web/src/lib/apiClient.ts` nasce no `BK-MF1-01` por ser o primeiro cliente API reutilizavel da MF1.
-- `DERIVADO`: emissao de venda pode partir de `DRAFT` no `BK-MF1-02`, mas a partir do `BK-MF1-06` deve exigir `APPROVED`.
-- `DERIVADO`: `AuditLog` nasce no `BK-MF1-06` como primeira necessidade concreta de auditoria sensivel dentro da MF1.
-- `DERIVADO`: compras nascem `APPROVED` no `BK-MF1-07` para permitir pagamentos/contabilizacao antes do workflow formal, e novas compras passam a nascer `DRAFT` no `BK-MF1-10`.
-- `DERIVADO`: notas de credito sao guardadas com valores positivos e o efeito contabilistico e invertido pelo tipo documental.
+- `CANONICO`: stack continua React + Vite + TypeScript no frontend e Node.js + Express com ES Modules no backend.
+- `CANONICO`: MF1 decorre em `S03-S04`, com 10 BKs, 7 P0 e 3 P1.
+- `CANONICO`: dados por empresa sao sempre filtrados por contexto multiempresa no backend.
+- `CANONICO`: `RF13` a `RF22` cobrem IVA, vendas, recebimentos, lancamentos automaticos, titulos em aberto, aprovacao de vendas, compras, pagamentos, lancamentos de compras e aprovacao de compras.
+- `CANONICO`: `RF47` e `RNF17` justificam auditoria em documentos fiscais, recebimentos, pagamentos, lancamentos contabilisticos e workflows.
+- `DERIVADO`: `AuditLog` passa a ser introduzido em `BK-MF1-02`, porque a emissao de documentos de venda ja e uma operacao sensivel antes dos recebimentos.
+- `DERIVADO`: `postPurchaseDocumentInTransaction` e necessario para eliminar duas transacoes independentes no fluxo de lancamento de compras.
+- `DERIVADO`: endpoints especificos `/approve` e `/post-state` sao mantidos em vez de um endpoint generico `/state`, por serem mais claros para alunos e para contrato frontend/backend.
 
 ## Decisoes de dominio OPSA confirmadas
 
-- `CANONICO`: RF13 cobre tabelas de IVA com taxas, isencoes e codigos.
-- `CANONICO`: RF14 cobre fatura, fatura-recibo e nota de credito com numeracao sequencial.
-- `CANONICO`: RF15 e RF20 distinguem recebimentos de clientes e pagamentos a fornecedores.
-- `CANONICO`: RF16 e RF21 ligam documentos operacionais a lancamentos contabilisticos automaticos.
-- `CANONICO`: RF18 exige fluxo simples de venda submetido/aprovado/rejeitado.
-- `CANONICO`: RF22 exige compras com estados base `Rascunho -> Aprovado -> Lancado`.
-- `CANONICO`: RNF17 exige auditoria em operacoes sensiveis.
-- `DERIVADO`: "lancado" em compras significa que existe lancamento contabilistico associado.
+- `CANONICO`: recebimentos de clientes e pagamentos a fornecedores continuam separados.
+- `CANONICO`: lancamento contabilistico nao e o mesmo que documento operacional; os BKs ligam os dois por `source`/`sourceId`.
+- `CANONICO`: aprovacao de compras segue `Rascunho -> Aprovado -> Lancado`.
+- `DERIVADO`: compras criadas em `BK-MF1-07` continuam `APPROVED` apenas ate `BK-MF1-10`; depois passam a nascer `DRAFT`.
+- `DERIVADO`: nota de credito de fornecedor nao recebe pagamentos neste fluxo, porque reduz divida em vez de gerar saida de caixa.
 
 ## Drift documental encontrado
 
-- O relatorio anterior estava em `auditar_apenas`; esta execucao corrige o artefacto para `corrigir_apenas`.
-- O contrato de stack usa caminhos em `apps/`, mas a execucao nao tratou codigo real existente como contrato tecnico final.
-- A sequencia `BK-MF1-02 -> BK-MF1-06` altera a regra de emissao de vendas; a decisao foi mantida e explicada como evolucao do workflow.
-- A sequencia `BK-MF1-07 -> BK-MF1-10` altera o estado inicial das compras; a decisao foi mantida e explicada como transicao pedagogica.
-- O header dos BKs mantem `estado: TODO` porque esse campo pertence ao estado de implementacao/backlog; a classificacao de qualidade documental fica registada neste relatorio.
-- O validador automatico da planificacao aponta para `../scripts/validate_planificacao_canonica.py`, ausente neste checkout.
+- O relatorio anterior desta linha de trabalho estava em `auditar_apenas`; a prompt atual pede `corrigir_apenas`.
+- `BK-MF1-10` anunciava `/api/purchases/documents/:id/state`, mas implementava `/approve` e `/post-state`. O guia foi alinhado para documentar os endpoints reais.
+- A hierarquia documental nao define matriz fina de permissoes por acao MF1; os guias mantiveram roles coerentes com RF/RNF e marcaram as escolhas tecnicas como `DERIVADO`.
 
 ## Verificacoes executadas
 
@@ -131,7 +134,7 @@ Confirmacao global: nao foram detetados endpoints duplicados para a mesma acao n
 | --- | --- | --- |
 | `rg -n "hidrata\|pos-auditoria\|scaffold\|roteiro generico\|conversa interna\|este guia deixa de ser\|codigo ainda nao corrigido\|snippet\|exemplo simplificado\|implementar depois\|quando aplicavel\|helpers chamados\|substitu(ir\|i)r? mocks\|pseudo-codigo\|solucao parcial\|payload: unknown\|as any" docs/planificacao/guias-bk/MF1/*.md` | exit `1`, sem output | OK: sem termos internos proibidos nos BKs dos alunos. |
 | `git diff --check` | exit `0`, sem output | OK: sem whitespace problematico no diff. |
-| `bash scripts/validate-planificacao.sh` | exit `2` | Bloqueio de infraestrutura local: o script chama `../scripts/validate_planificacao_canonica.py`, que nao existe neste checkout. |
+| `bash scripts/validate-planificacao.sh` | exit `2` | Bloqueio de infraestrutura local: o script chama `../scripts/validate_planificacao_canonica.py`, ausente neste checkout. |
 
 Erro exato do validador:
 
@@ -141,10 +144,9 @@ Erro exato do validador:
 
 ## Bloqueios e TODOs restantes
 
-- `BLOCKER`: `bash scripts/validate-planificacao.sh` depende de `../scripts/validate_planificacao_canonica.py`, ausente neste checkout.
-- `TODO`: voltar a correr o validador automatico quando o script canonico estiver disponivel.
-- `TODO`: quando os alunos aplicarem os BKs no codigo real, executar `npm run test:unit`, `npm run test:contracts` e `npm run test:integration` com a implementacao resultante.
+- Conteudo dos BKs MF1: sem `TODO (BLOCKER)` restante identificado nesta correcao.
+- Infraestrutura de validacao: `bash scripts/validate-planificacao.sh` continua bloqueado por ficheiro externo ausente neste checkout.
 
-## Resultado final desta execucao
+## Resultado final desta correcao
 
-A MF1 ficou corrigida a nivel documental: os 10 BKs passaram de `PARCIAL` para `OK`, com teoria mais completa, frontend documentado, explicacoes reforcadas, validacoes por passo e mapa de integracao atualizado. A unica validacao nao concluida e o validador automatico da planificacao, bloqueado por ficheiro ausente fora dos BKs editados.
+A MF1 foi corrigida em modo `corrigir_apenas`. Os 10 guias foram editados e reclassificados como `OK` apos fechar as lacunas tecnicas e pedagogicas identificadas na reauditoria estrita.

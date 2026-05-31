@@ -54,6 +54,13 @@ A compra tem transições controladas: DRAFT para APPROVED e APPROVED para POSTE
 - Confirmar dependências canónicas: `-`.
 - Nunca receber `companyId` do corpo do pedido; usar sempre o contexto autenticado.
 
+## Fundamentação documental
+
+- `CANONICO`: `RF22` exige estados base `Rascunho -> Aprovado -> Lançado` nas compras.
+- `CANONICO`: `RF47` e `RNF17` exigem auditoria em aprovações e lançamentos.
+- `DERIVADO`: os endpoints específicos `/approve` e `/post-state` tornam a intenção explícita e evitam um endpoint genérico com ações ambíguas.
+- `DERIVADO`: `markPurchaseDocumentPosted` reutiliza `postPurchaseDocumentInTransaction` do `BK-MF1-09` para manter diário, estado e auditoria na mesma transação.
+
 ## Glossário
 
 - **Documento canónico:** fonte documental que define RF/RNF, BK, owner, dependências e prioridade.
@@ -75,7 +82,7 @@ A compra tem transições controladas: DRAFT para APPROVED e APPROVED para POSTE
 ## Arquitetura do BK
 
 - Fluxo: `FLOW-MF1-PURCHASE-APPROVAL`
-- Endpoint principal: `/api/purchases/documents/:id/state`
+- Endpoints principais: `/api/purchases/documents/:id/approve` e `/api/purchases/documents/:id/post-state`
 - Módulo backend: `apps/api/src/modules/purchase-approval/`
 - Cliente frontend: `apps/web/src/lib/purchaseApprovalApi.ts`
 - Rotas protegidas por `requireAuth(prisma)` e `requireCompanyContext(prisma)`.
@@ -129,7 +136,7 @@ Confirmar que o BK é `BK-MF1-10`, requisito `RF22`, dependências `-`, sprint `
 bk=BK-MF1-10
 macro=MF1
 rf=RF22
-endpoint=/api/purchases/documents/:id/state
+endpoints=/api/purchases/documents/:id/approve,/api/purchases/documents/:id/post-state
 deps=-
 ```
 
@@ -154,8 +161,8 @@ Criar a persistência e as regras backend para aprovação de compras, com valid
 2. Ficheiros envolvidos:
 - CRIAR: `apps/api/src/modules/purchase-approval/` com service e routes.
 - EDITAR: `apps/api/prisma/schema.prisma`, `apps/api/src/modules/purchases/purchaseDocumentService.js` e `apps/api/src/server.js`.
-- REVER: `AuditLog` criado no `BK-MF1-06` e `postPurchaseDocument` criado no `BK-MF1-09`.
-- LOCALIZAÇÃO: modelos Prisma no domínio correspondente e rota montada em `/api/purchases/documents/:id/state`.
+- REVER: `AuditLog` criado no `BK-MF1-02` e `postPurchaseDocumentInTransaction` criado no `BK-MF1-09`.
+- LOCALIZAÇÃO: modelos Prisma no domínio correspondente e rotas montadas em `/api/purchases/documents/:id/approve` e `/api/purchases/documents/:id/post-state`.
 
 3. Instruções do que fazer.
 
@@ -191,6 +198,7 @@ model PurchaseDocument {
   approvedById    String?
   postedAt        DateTime?
   postedById      String?
+  payments        Payment[]
   createdAt       DateTime               @default(now())
   updatedAt       DateTime               @updatedAt
 
@@ -231,7 +239,7 @@ Localização: `apps/api/src/modules/purchase-approval/purchaseApprovalService.j
 
 ```js
 import { httpError } from "../../lib/httpErrors.js";
-import { postPurchaseDocument } from "../accounting/purchasePostingService.js";
+import { postPurchaseDocumentInTransaction } from "../accounting/purchasePostingService.js";
 
 async function findPurchaseDocument(prisma, companyId, id) {
     const document = await prisma.purchaseDocument.findFirst({ where: { id, companyId } });
@@ -256,15 +264,15 @@ export async function approvePurchaseDocument(prisma, companyId, userId, id) {
 }
 
 export async function markPurchaseDocumentPosted(prisma, companyId, userId, id) {
-    const document = await findPurchaseDocument(prisma, companyId, id);
-    if (document.status !== "APPROVED") throw httpError(409, "INVALID_STATUS", "Apenas compras aprovadas podem ser lancadas");
-    const entry = await postPurchaseDocument(prisma, companyId, userId, id);
-    await prisma.$transaction(async (tx) => {
+    return prisma.$transaction(async (tx) => {
+        const document = await findPurchaseDocument(tx, companyId, id);
+        if (document.status !== "APPROVED") throw httpError(409, "INVALID_STATUS", "Apenas compras aprovadas podem ser lancadas");
+        const entry = await postPurchaseDocumentInTransaction(tx, companyId, userId, id);
         // O estado POSTED só fica registado depois de existir diário contabilístico.
         await tx.purchaseDocument.update({ where: { id }, data: { postedAt: new Date(), postedById: userId } });
         await recordPurchaseApprovalAudit(tx, companyId, userId, id, "PURCHASE_DOCUMENT_POSTED");
+        return entry;
     });
-    return entry;
 }
 ```
 
@@ -315,7 +323,7 @@ app.use("/api/purchases/documents", buildPurchaseApprovalRoutes({ prisma }));
 
 5. Explicação do código.
 
-O schema define as invariantes persistentes. A partir deste BK, o service de compras criado no `BK-MF1-07` deve passar a criar compras em `DRAFT`, porque a aprovação formal já existe. O service de aprovação só muda `DRAFT` para `APPROVED`. Para lançar, reutiliza `postPurchaseDocument` do `BK-MF1-09`; assim `POSTED` nunca aparece sem diário contabilístico. A route só trata transporte HTTP, autenticação, contexto de empresa e resposta.
+O schema define as invariantes persistentes. A partir deste BK, o service de compras criado no `BK-MF1-07` deve passar a criar compras em `DRAFT`, porque a aprovação formal já existe. O service de aprovação só muda `DRAFT` para `APPROVED`. Para lançar, reutiliza `postPurchaseDocumentInTransaction` do `BK-MF1-09` dentro da mesma transação que grava `postedAt`, `postedById` e auditoria de workflow; assim `POSTED` nunca aparece sem diário contabilístico nem diário fica separado da auditoria. A route só trata transporte HTTP, autenticação, contexto de empresa e resposta.
 
 6. Validação do passo.
 
@@ -402,12 +410,29 @@ export function PurchaseApprovalPage() {
 }
 ```
 
-Localização: teste unitário ou de contrato do service.
+Localização: `apps/api/src/modules/purchase-approval/purchaseApprovalService.test.js`.
 
 ```js
-it("impede lancar compra antes de aprovar", async () => {
-    await expect(markPurchaseDocumentPosted(prisma, companyId, userId, purchaseDocumentId))
-        .rejects.toMatchObject({ status: 409, code: "INVALID_STATUS" });
+import test from "node:test";
+import assert from "node:assert/strict";
+import { markPurchaseDocumentPosted } from "./purchaseApprovalService.js";
+
+test("impede lancar compra antes de aprovar", async () => {
+    const prisma = {
+        $transaction: async (callback) => callback({
+            purchaseDocument: {
+                findFirst: async () => ({ id: "purchase-1", companyId: "company-1", status: "DRAFT" }),
+                update: async () => assert.fail("Nao deve atualizar compra sem aprovacao"),
+            },
+            journalEntry: { create: async () => assert.fail("Nao deve criar diario sem aprovacao") },
+            auditLog: { create: async () => assert.fail("Nao deve auditar lancamento recusado") },
+        }),
+    };
+
+    await assert.rejects(
+        () => markPurchaseDocumentPosted(prisma, "company-1", "user-1", "purchase-1"),
+        (error) => error.status === 409 && error.code === "INVALID_STATUS",
+    );
 });
 ```
 
@@ -496,7 +521,7 @@ Sem evidência de transições, não pedir revisão final.
 ## Expected results
 
 - A compra tem transições controladas: DRAFT para APPROVED e APPROVED para POSTED, com utilizador e data.
-- Endpoint `/api/purchases/documents/:id/state` protegido e filtrado por empresa.
+- Endpoints `/api/purchases/documents/:id/approve` e `/api/purchases/documents/:id/post-state` protegidos e filtrados por empresa.
 - Testes cobrem pelo menos um caso feliz e três cenários negativos relevantes.
 - Evidência lista schema, services, rotas, UI e comandos executados.
 
@@ -528,4 +553,5 @@ O `BK-MF2-01` deve acrescentar histórico e justificações às decisões de apr
 
 ## Changelog
 
+- `2026-05-31`: Corrigida fundamentação documental, endpoints reais, atomicidade de lançamento e teste autocontido.
 - `2026-05-31`: Guia consolidado com contrato técnico completo, código por camada, validações e handoff MF1.

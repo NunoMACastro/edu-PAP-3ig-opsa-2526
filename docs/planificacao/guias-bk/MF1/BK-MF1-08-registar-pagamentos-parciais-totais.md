@@ -54,6 +54,13 @@ Cada pagamento a fornecedor fica registado, atualiza saldo pago e fecha a compra
 - Confirmar dependências canónicas: `BK-MF1-07`.
 - Nunca receber `companyId` do corpo do pedido; usar sempre o contexto autenticado.
 
+## Fundamentação documental
+
+- `CANONICO`: `RF20` cobre pagamentos parciais/totais a fornecedores.
+- `CANONICO`: `RF47` e `RNF17` exigem auditoria porque o pagamento altera dívida financeira.
+- `DERIVADO`: `Payment` separa tesouraria de contabilização; o diário contabilístico continua no `BK-MF1-09`.
+- `DERIVADO`: notas de crédito de fornecedor não recebem pagamentos neste fluxo porque reduzem dívida.
+
 ## Glossário
 
 - **Documento canónico:** fonte documental que define RF/RNF, BK, owner, dependências e prioridade.
@@ -193,6 +200,61 @@ model Payment {
 }
 ```
 
+Localização: no mesmo ficheiro, substituir estes modelos existentes pelas versões acumuladas até este BK.
+
+```prisma
+model Company {
+  id                String              @id @default(uuid())
+  name              String
+  nif               String?             @unique
+  memberships       CompanyMembership[]
+  invitations       CompanyInvitation[]
+  profile           CompanyProfile?
+  accounts          Account[]
+  fiscalPeriods     FiscalPeriod[]
+  customers         Customer[]
+  suppliers         Supplier[]
+  items             Item[]
+  warehouses        Warehouse[]
+  vatRates          VatRate[]
+  numberSequences   NumberSequence[]
+  saleDocuments     SaleDocument[]
+  receipts          Receipt[]
+  journalEntries    JournalEntry[]
+  purchaseDocuments PurchaseDocument[]
+  payments          Payment[]
+  auditLogs         AuditLog[]
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+}
+
+model PurchaseDocument {
+  id              String                 @id @default(uuid())
+  companyId       String
+  supplierId      String
+  kind            PurchaseDocumentKind
+  status          PurchaseDocumentStatus @default(APPROVED)
+  supplierNumber  String
+  issuedAt        DateTime
+  dueDate         DateTime?
+  subtotalCents   Int
+  vatCents        Int
+  totalCents      Int
+  amountPaidCents Int                    @default(0)
+  createdById     String
+  payments        Payment[]
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+
+  company  Company                @relation(fields: [companyId], references: [id])
+  supplier Supplier               @relation(fields: [supplierId], references: [id])
+  lines    PurchaseDocumentLine[]
+
+  @@unique([companyId, supplierId, supplierNumber])
+  @@index([companyId, supplierId, issuedAt])
+}
+```
+
 Localização: `apps/api/src/modules/payments/paymentService.js`.
 
 ```js
@@ -228,6 +290,16 @@ export async function registerPayment(prisma, companyId, userId, purchaseDocumen
         const payment = await tx.payment.create({ data: { ...data, companyId, purchaseDocumentId, createdById: userId } });
         const nextPaid = document.amountPaidCents + data.amountCents;
         await tx.purchaseDocument.update({ where: { id: document.id }, data: { amountPaidCents: nextPaid, status: nextPaid === document.totalCents ? "PAID" : document.status } });
+        await tx.auditLog.create({
+            data: {
+                companyId,
+                userId,
+                action: "PAYMENT_REGISTERED",
+                entity: "Payment",
+                entityId: payment.id,
+                details: { purchaseDocumentId, amountCents: data.amountCents, resultingAmountPaidCents: nextPaid },
+            },
+        });
         return payment;
     });
 }
@@ -378,12 +450,30 @@ export function PaymentsPage() {
 }
 ```
 
-Localização: teste unitário ou de contrato do service.
+Localização: `apps/api/src/modules/payments/paymentService.test.js`.
 
 ```js
-it("bloqueia pagamento superior ao valor em aberto", async () => {
-    await expect(registerPayment(prisma, companyId, userId, purchaseDocumentId, { amountCents: 999999, paidAt: "2026-05-31", method: "BANK_TRANSFER" }))
-        .rejects.toMatchObject({ status: 400, code: "AMOUNT_EXCEEDS_OPEN" });
+import test from "node:test";
+import assert from "node:assert/strict";
+import { registerPayment } from "./paymentService.js";
+
+test("bloqueia pagamento superior ao valor em aberto", async () => {
+    const prisma = {
+        fiscalPeriod: { findFirst: async () => ({ id: "period-1", isClosed: false }) },
+        $transaction: async (callback) => callback({
+            purchaseDocument: {
+                findFirst: async () => ({ id: "purchase-1", companyId: "company-1", kind: "SUPPLIER_INVOICE", status: "APPROVED", totalCents: 10000, amountPaidCents: 2500 }),
+                update: async () => assert.fail("Nao deve atualizar compra quando o valor excede o aberto"),
+            },
+            payment: { create: async () => assert.fail("Nao deve criar pagamento invalido") },
+            auditLog: { create: async () => assert.fail("Nao deve auditar pagamento recusado") },
+        }),
+    };
+
+    await assert.rejects(
+        () => registerPayment(prisma, "company-1", "user-1", "purchase-1", { amountCents: 999999, paidAt: "2026-05-31", method: "BANK_TRANSFER" }),
+        (error) => error.status === 400 && error.code === "AMOUNT_EXCEEDS_OPEN",
+    );
 });
 ```
 
@@ -548,4 +638,5 @@ O `BK-MF1-09` contabiliza a compra; `BK-MF3-04` usa pagamentos para saídas real
 
 ## Changelog
 
+- `2026-05-31`: Corrigida fundamentação documental, relações inversas de pagamentos, auditoria do pagamento e teste autocontido.
 - `2026-05-31`: Guia consolidado com contrato técnico completo, código por camada, validações e handoff MF1.

@@ -54,6 +54,13 @@ Uma venda emitida gera lançamento equilibrado por empresa, bloqueado por perío
 - Confirmar dependências canónicas: `BK-MF1-02`.
 - Nunca receber `companyId` do corpo do pedido; usar sempre o contexto autenticado.
 
+## Fundamentação documental
+
+- `CANONICO`: `RF16` liga documentos de venda a lançamentos contabilísticos automáticos.
+- `CANONICO`: `RF08` bloqueia lançamentos em períodos fiscais fechados; `RF47` e `RNF17` exigem auditoria em alterações contabilísticas.
+- `DERIVADO`: `JournalEntry` usa `source` e `sourceId` para idempotência e para ligar o diário ao documento operacional.
+- `DERIVADO`: as contas `211`, `72` e `2433` representam um mapeamento pedagógico mínimo do SNC já criado no `BK-MF0-07`.
+
 ## Glossário
 
 - **Documento canónico:** fonte documental que define RF/RNF, BK, owner, dependências e prioridade.
@@ -202,6 +209,51 @@ model JournalEntryLine {
 }
 ```
 
+Localização: no mesmo ficheiro, substituir estes modelos existentes pelas versões acumuladas até este BK.
+
+```prisma
+model Company {
+  id              String              @id @default(uuid())
+  name            String
+  nif             String?             @unique
+  memberships     CompanyMembership[]
+  invitations     CompanyInvitation[]
+  profile         CompanyProfile?
+  accounts        Account[]
+  fiscalPeriods   FiscalPeriod[]
+  customers       Customer[]
+  suppliers       Supplier[]
+  items           Item[]
+  warehouses      Warehouse[]
+  vatRates        VatRate[]
+  numberSequences NumberSequence[]
+  saleDocuments   SaleDocument[]
+  receipts        Receipt[]
+  journalEntries  JournalEntry[]
+  auditLogs       AuditLog[]
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+}
+
+model Account {
+  id                String             @id @default(uuid())
+  companyId         String
+  code              String
+  name              String
+  parentCode        String?
+  level             Int
+  isActive          Boolean            @default(true)
+  journalEntryLines JournalEntryLine[]
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id])
+
+  @@unique([companyId, code])
+  @@index([companyId])
+}
+```
+
 Localização: `apps/api/src/modules/accounting/salePostingService.js`.
 
 ```js
@@ -247,7 +299,18 @@ export async function postSaleDocument(prisma, companyId, userId, saleDocumentId
         assertBalanced(nonZeroLines);
 
         try {
-            return await tx.journalEntry.create({ data: { companyId, source: "SALE", sourceId: document.id, entryDate: document.issuedAt, description: "Venda " + document.number, createdById: userId, lines: { create: nonZeroLines } }, include: { lines: true } });
+            const entry = await tx.journalEntry.create({ data: { companyId, source: "SALE", sourceId: document.id, entryDate: document.issuedAt, description: "Venda " + document.number, createdById: userId, lines: { create: nonZeroLines } }, include: { lines: true } });
+            await tx.auditLog.create({
+                data: {
+                    companyId,
+                    userId,
+                    action: "SALE_DOCUMENT_POSTED",
+                    entity: "JournalEntry",
+                    entityId: entry.id,
+                    details: { saleDocumentId: document.id, totalCents: document.totalCents, source: "SALE" },
+                },
+            });
+            return entry;
         } catch (error) {
             if (error.code === "P2002") throw httpError(409, "SALE_ALREADY_POSTED", "Venda ja contabilizada");
             throw error;
@@ -380,13 +443,34 @@ export function SalePostingsPage() {
 }
 ```
 
-Localização: teste unitário ou de contrato do service.
+Localização: `apps/api/src/modules/accounting/salePostingService.test.js`.
 
 ```js
-it("nao duplica diario da mesma venda", async () => {
-    await postSaleDocument(prisma, companyId, userId, saleDocumentId);
-    await expect(postSaleDocument(prisma, companyId, userId, saleDocumentId))
-        .rejects.toMatchObject({ status: 409, code: "SALE_ALREADY_POSTED" });
+import test from "node:test";
+import assert from "node:assert/strict";
+import { postSaleDocument } from "./salePostingService.js";
+
+test("nao duplica diario da mesma venda", async () => {
+    const prisma = {
+        $transaction: async (callback) => callback({
+            saleDocument: { findFirst: async () => ({ id: "sale-1", companyId: "company-1", status: "ISSUED", kind: "INVOICE", number: "INVOICE-2026-000001", issuedAt: new Date("2026-05-31"), subtotalCents: 10000, vatCents: 2300, totalCents: 12300, lines: [] }) },
+            fiscalPeriod: { findFirst: async () => ({ id: "period-1", isClosed: false }) },
+            account: { findFirst: async ({ where }) => ({ id: "account-" + where.code }) },
+            journalEntry: {
+                create: async () => {
+                    const error = new Error("duplicate");
+                    error.code = "P2002";
+                    throw error;
+                },
+            },
+            auditLog: { create: async () => assert.fail("Nao deve auditar lancamento duplicado") },
+        }),
+    };
+
+    await assert.rejects(
+        () => postSaleDocument(prisma, "company-1", "user-1", "sale-1"),
+        (error) => error.status === 409 && error.code === "SALE_ALREADY_POSTED",
+    );
 });
 ```
 
@@ -551,4 +635,5 @@ O `BK-MF3-01` deve ler `JournalEntry` com `source=SALE` e contas de IVA para apu
 
 ## Changelog
 
+- `2026-05-31`: Corrigida fundamentação documental, relações inversas contabilísticas, auditoria do lançamento e teste autocontido.
 - `2026-05-31`: Guia consolidado com contrato técnico completo, código por camada, validações e handoff MF1.

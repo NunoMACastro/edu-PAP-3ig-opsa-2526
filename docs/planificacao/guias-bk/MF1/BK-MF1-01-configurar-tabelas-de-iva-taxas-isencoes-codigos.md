@@ -56,6 +56,13 @@ A empresa consegue criar, listar e desativar taxas/códigos de IVA por empresa, 
 - Confirmar dependências canónicas: `-`.
 - Nunca receber `companyId` do corpo do pedido; usar sempre o contexto autenticado.
 
+## Fundamentação documental
+
+- `CANONICO`: `RF13` exige tabelas de IVA com taxas, isenções e códigos; `BK-MF1-01` é P0 de MF1 em `S03-S04` e prepara `BK-MF1-02`.
+- `CANONICO`: `RF03`, `RF47` e `RNF17` obrigam isolamento por empresa e rastreabilidade em operações sensíveis.
+- `DERIVADO`: guardar a taxa em `rateBps` evita arredondamentos binários em JavaScript e mantém os cálculos fiscais previsíveis.
+- `DERIVADO`: expor `/api/vat-rates` como módulo próprio mantém IVA reutilizável por vendas, compras e mapas de IVA.
+
 ## Glossário
 
 - **Documento canónico:** fonte documental que define RF/RNF, BK, owner, dependências e prioridade.
@@ -195,6 +202,28 @@ model VatRate {
 }
 ```
 
+Localização: no mesmo ficheiro, substituir o modelo `Company` existente pela versão acumulada até este BK.
+
+```prisma
+model Company {
+  id          String              @id @default(uuid())
+  name        String
+  nif         String?             @unique
+  memberships CompanyMembership[]
+  invitations CompanyInvitation[]
+  profile     CompanyProfile?
+  accounts    Account[]
+  fiscalPeriods FiscalPeriod[]
+  customers   Customer[]
+  suppliers   Supplier[]
+  items       Item[]
+  warehouses  Warehouse[]
+  vatRates    VatRate[]
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+}
+```
+
 Localização: `apps/api/src/modules/vat-rates/vatRateService.js`.
 
 ```js
@@ -243,7 +272,10 @@ export async function createVatRate(prisma, companyId, input) {
 export async function setVatRateActive(prisma, companyId, id, isActive) {
     const found = await prisma.vatRate.findFirst({ where: { id, companyId } });
     if (!found) throw httpError(404, "VAT_RATE_NOT_FOUND", "Taxa de IVA nao encontrada");
-    return prisma.vatRate.update({ where: { id }, data: { isActive: Boolean(isActive) } });
+    if (typeof isActive !== "boolean") {
+        throw httpError(400, "INVALID_ACTIVE_FLAG", "isActive deve ser booleano");
+    }
+    return prisma.vatRate.update({ where: { id }, data: { isActive } });
 }
 ```
 
@@ -470,12 +502,39 @@ export function VatRatesPage() {
 }
 ```
 
-Localização: teste unitário ou de contrato do service.
+Localização: `apps/api/src/modules/vat-rates/vatRateService.test.js`.
 
 ```js
-it("rejeita taxa isenta sem motivo", async () => {
-    await expect(createVatRate(prisma, companyId, { code: "ISE", description: "Isento", rateBps: 0, type: "EXEMPT" }))
-        .rejects.toMatchObject({ status: 400, code: "MISSING_EXEMPTION_REASON" });
+import test from "node:test";
+import assert from "node:assert/strict";
+import { validateVatRateInput } from "./vatRateService.js";
+
+test("rejeita taxa isenta sem motivo", () => {
+    assert.throws(
+        () => validateVatRateInput({ code: "ISE", description: "Isento", rateBps: 0, type: "EXEMPT" }),
+        (error) => error.status === 400 && error.code === "MISSING_EXEMPTION_REASON",
+    );
+});
+
+test("rejeita ativacao quando isActive nao e booleano", async () => {
+    const calls = [];
+    const prisma = {
+        vatRate: {
+            findFirst: async () => ({ id: "vat-1", companyId: "company-1" }),
+            update: async (query) => {
+                calls.push(query);
+                return query.data;
+            },
+        },
+    };
+
+    const { setVatRateActive } = await import("./vatRateService.js");
+
+    await assert.rejects(
+        () => setVatRateActive(prisma, "company-1", "vat-1", "false"),
+        (error) => error.status === 400 && error.code === "INVALID_ACTIVE_FLAG",
+    );
+    assert.equal(calls.length, 0);
 });
 ```
 
@@ -702,4 +761,5 @@ O `BK-MF1-02` deve usar `VatRate` ativo para calcular linhas de venda e guardar 
 
 ## Changelog
 
+- `2026-05-31`: Corrigida fundamentação documental, relação inversa de `VatRate`, validação booleana estrita e teste autocontido.
 - `2026-05-31`: Guia consolidado com contrato técnico completo, código por camada, validações e handoff MF1.

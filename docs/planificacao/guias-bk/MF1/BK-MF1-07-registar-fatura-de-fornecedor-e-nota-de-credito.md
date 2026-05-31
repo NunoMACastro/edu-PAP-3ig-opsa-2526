@@ -55,6 +55,13 @@ A aplicação regista faturas e notas de crédito de fornecedor por empresa, com
 - Confirmar dependências canónicas: `BK-MF0-10, BK-MF0-11, BK-MF1-01`.
 - Nunca receber `companyId` do corpo do pedido; usar sempre o contexto autenticado.
 
+## Fundamentação documental
+
+- `CANONICO`: `RF19` cobre fatura de fornecedor e nota de crédito, dependente de fornecedores, artigos e IVA.
+- `CANONICO`: `RF03` obriga a validar fornecedor, artigo e taxa de IVA dentro da empresa ativa.
+- `CANONICO`: `RF47` e `RNF17` exigem auditoria em escrita financeira sensível.
+- `DERIVADO`: o estado inicial `APPROVED` mantém compras executáveis até o workflow formal de `BK-MF1-10`, onde passa a `DRAFT`.
+
 ## Glossário
 
 - **Documento canónico:** fonte documental que define RF/RNF, BK, owner, dependências e prioridade.
@@ -222,6 +229,96 @@ model PurchaseDocumentLine {
 }
 ```
 
+Localização: no mesmo ficheiro, substituir estes modelos existentes pelas versões acumuladas até este BK.
+
+```prisma
+model Company {
+  id                String              @id @default(uuid())
+  name              String
+  nif               String?             @unique
+  memberships       CompanyMembership[]
+  invitations       CompanyInvitation[]
+  profile           CompanyProfile?
+  accounts          Account[]
+  fiscalPeriods     FiscalPeriod[]
+  customers         Customer[]
+  suppliers         Supplier[]
+  items             Item[]
+  warehouses        Warehouse[]
+  vatRates          VatRate[]
+  numberSequences   NumberSequence[]
+  saleDocuments     SaleDocument[]
+  receipts          Receipt[]
+  journalEntries    JournalEntry[]
+  purchaseDocuments PurchaseDocument[]
+  auditLogs         AuditLog[]
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+}
+
+model Supplier {
+  id                String             @id @default(uuid())
+  companyId         String
+  name              String
+  nif               String?
+  email             String?
+  phone             String?
+  addressLine       String?
+  postalCode        String?
+  city              String?
+  isActive          Boolean            @default(true)
+  purchaseDocuments PurchaseDocument[]
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id])
+
+  @@unique([companyId, nif])
+  @@index([companyId])
+}
+
+model Item {
+  id                    String                 @id @default(uuid())
+  companyId             String
+  sku                   String
+  name                  String
+  type                  ItemType
+  costCents             Int
+  priceCents            Int
+  vatRateBps            Int
+  isActive              Boolean                @default(true)
+  saleDocumentLines     SaleDocumentLine[]
+  purchaseDocumentLines PurchaseDocumentLine[]
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id])
+
+  @@unique([companyId, sku])
+  @@index([companyId])
+}
+
+model VatRate {
+  id                    String                 @id @default(uuid())
+  companyId             String
+  code                  String
+  description           String
+  rateBps               Int
+  type                  VatRateType
+  exemptionReason       String?
+  isActive              Boolean                @default(true)
+  saleDocumentLines     SaleDocumentLine[]
+  purchaseDocumentLines PurchaseDocumentLine[]
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id])
+
+  @@unique([companyId, code])
+  @@index([companyId, isActive])
+}
+```
+
 Localização: `apps/api/src/modules/purchases/purchaseDocumentService.js`.
 
 ```js
@@ -255,10 +352,16 @@ export async function createPurchaseDocument(prisma, companyId, userId, input) {
     return prisma.$transaction(async (tx) => {
         const supplier = await tx.supplier.findFirst({ where: { id: input.supplierId, companyId, isActive: true } });
         if (!supplier) throw httpError(404, "SUPPLIER_NOT_FOUND", "Fornecedor nao encontrado");
-        const vatRates = await tx.vatRate.findMany({ where: { id: { in: lines.map((line) => line.vatRateId) }, companyId, isActive: true } });
+        const itemIds = [...new Set(lines.map((line) => line.itemId))];
+        const vatRateIds = [...new Set(lines.map((line) => line.vatRateId))];
+        const items = await tx.item.findMany({ where: { id: { in: itemIds }, companyId, isActive: true } });
+        const vatRates = await tx.vatRate.findMany({ where: { id: { in: vatRateIds }, companyId, isActive: true } });
+        const itemById = new Map(items.map((item) => [item.id, item]));
         const vatById = new Map(vatRates.map((rate) => [rate.id, rate]));
         const computedLines = lines.map((line) => {
+            const item = itemById.get(line.itemId);
             const vatRate = vatById.get(line.vatRateId);
+            if (!item) throw httpError(400, "ITEM_NOT_FOUND", "Artigo invalido para esta empresa");
             if (!vatRate) throw httpError(400, "VAT_RATE_NOT_FOUND", "Taxa de IVA invalida");
             const subtotalCents = line.quantity * line.unitCostCents;
             const vatCents = Math.round(subtotalCents * vatRate.rateBps / 10000);
@@ -267,7 +370,23 @@ export async function createPurchaseDocument(prisma, companyId, userId, input) {
         const subtotalCents = computedLines.reduce((sum, line) => sum + line.subtotalCents, 0);
         const vatCents = computedLines.reduce((sum, line) => sum + line.vatCents, 0);
         // Os valores ficam positivos; o tipo SUPPLIER_CREDIT_NOTE diz aos BKs seguintes para inverter o efeito contabilístico.
-        return tx.purchaseDocument.create({ data: { companyId, supplierId: supplier.id, kind, status: "APPROVED", supplierNumber, issuedAt, dueDate: input.dueDate ? new Date(input.dueDate) : null, subtotalCents, vatCents, totalCents: subtotalCents + vatCents, createdById: userId, lines: { create: computedLines } }, include: { supplier: true, lines: true } });
+        try {
+            const document = await tx.purchaseDocument.create({ data: { companyId, supplierId: supplier.id, kind, status: "APPROVED", supplierNumber, issuedAt, dueDate: input.dueDate ? new Date(input.dueDate) : null, subtotalCents, vatCents, totalCents: subtotalCents + vatCents, createdById: userId, lines: { create: computedLines } }, include: { supplier: true, lines: true } });
+            await tx.auditLog.create({
+                data: {
+                    companyId,
+                    userId,
+                    action: "PURCHASE_DOCUMENT_CREATED",
+                    entity: "PurchaseDocument",
+                    entityId: document.id,
+                    details: { supplierId: supplier.id, supplierNumber, totalCents: document.totalCents },
+                },
+            });
+            return document;
+        } catch (error) {
+            if (error.code === "P2002") throw httpError(409, "PURCHASE_DOCUMENT_EXISTS", "Numero de fornecedor ja existe nesta empresa");
+            throw error;
+        }
     });
 }
 ```
@@ -425,13 +544,47 @@ export function PurchaseDocumentsPage() {
 }
 ```
 
-Localização: teste unitário ou de contrato do service.
+Localização: `apps/api/src/modules/purchases/purchaseDocumentService.test.js`.
 
 ```js
-it("rejeita numero duplicado para o mesmo fornecedor", async () => {
-    await createPurchaseDocument(prisma, companyId, userId, validPurchaseInput);
-    await expect(createPurchaseDocument(prisma, companyId, userId, validPurchaseInput))
-        .rejects.toMatchObject({ status: 409 });
+import test from "node:test";
+import assert from "node:assert/strict";
+import { createPurchaseDocument } from "./purchaseDocumentService.js";
+
+function prismaForItemValidation() {
+    const tx = {
+        supplier: { findFirst: async () => ({ id: "supplier-1" }) },
+        item: { findMany: async () => [] },
+        vatRate: { findMany: async () => [{ id: "vat-1", rateBps: 2300 }] },
+        purchaseDocument: {
+            create: async () => {
+                throw new Error("Nao deve criar compra quando o artigo nao pertence a empresa");
+            },
+        },
+        auditLog: { create: async () => assert.fail("Nao deve auditar compra invalida") },
+    };
+    return {
+        fiscalPeriod: { findFirst: async () => ({ id: "period-1", isClosed: false }) },
+        $transaction: async (callback) => callback(tx),
+    };
+}
+
+test("rejeita linha com artigo que nao pertence a empresa ativa", async () => {
+    const prisma = prismaForItemValidation();
+    const input = {
+        kind: "SUPPLIER_INVOICE",
+        supplierId: "supplier-1",
+        supplierNumber: "FT-FORN-1",
+        issuedAt: "2026-05-31",
+        lines: [
+            { itemId: "item-outra-empresa", vatRateId: "vat-1", description: "Mercadoria", quantity: 1, unitCostCents: 10000 },
+        ],
+    };
+
+    await assert.rejects(
+        () => createPurchaseDocument(prisma, "company-1", "user-1", input),
+        (error) => error.status === 400 && error.code === "ITEM_NOT_FOUND",
+    );
 });
 ```
 
@@ -596,4 +749,5 @@ O `BK-MF1-08` usa `PurchaseDocument.totalCents`, `amountPaidCents` e `status` pa
 
 ## Changelog
 
+- `2026-05-31`: Corrigida fundamentação documental, validação multiempresa de artigos, auditoria de compra e teste autocontido.
 - `2026-05-31`: Guia consolidado com contrato técnico completo, código por camada, validações e handoff MF1.
