@@ -73,6 +73,7 @@ model Company {
   nif         String?             @unique
   memberships CompanyMembership[]
   invitations CompanyInvitation[]
+  accounts Account[]
   profile CompanyProfile?
   createdAt   DateTime            @default(now())
   updatedAt   DateTime            @updatedAt
@@ -94,6 +95,21 @@ model CompanyMembership {
   @@index([companyId])
 }
 
+model Account {
+  id          String   @id @default(uuid())
+  companyId   String
+  code        String
+  name        String
+  parentCode  String?
+  level       Int
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id])
+
+  @@unique([companyId, code])
+  @@index([companyId])
 model CompanyProfile {
   id                   String   @id @default(uuid())
   companyId            String   @unique
