@@ -72,6 +72,7 @@ model Company {
   nif         String?             @unique
   memberships CompanyMembership[]
   invitations CompanyInvitation[]
+  profile CompanyProfile?
   createdAt   DateTime            @default(now())
   updatedAt   DateTime            @updatedAt
 }
@@ -90,4 +91,24 @@ model CompanyMembership {
 
   @@unique([userId, companyId])
   @@index([companyId])
+}
+
+model CompanyProfile {
+  id                   String   @id @default(uuid())
+  companyId            String   @unique
+  legalName            String
+  nif                  String   @unique
+  addressLine1         String
+  addressLine2         String?
+  postalCode           String
+  city                 String
+  country              String   @default("PT")
+  currency             String   @default("EUR")
+  logoUrl              String?
+  fiscalYearStartMonth Int
+  fiscalYearStartDay   Int
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id])
 }
