@@ -73,8 +73,9 @@ model Company {
   nif         String?             @unique
   memberships CompanyMembership[]
   invitations CompanyInvitation[]
-  accounts Account[]
   profile CompanyProfile?
+  accounts Account[]
+  customers Customer[]
   createdAt   DateTime            @default(now())
   updatedAt   DateTime            @updatedAt
 }
@@ -110,6 +111,8 @@ model Account {
 
   @@unique([companyId, code])
   @@index([companyId])
+}
+
 model CompanyProfile {
   id                   String   @id @default(uuid())
   companyId            String   @unique
@@ -127,7 +130,9 @@ model CompanyProfile {
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
 
-  company Company @relation(fields: [companyId], references: [id])
+  company Company @relation(fields: [companyId], references: [id]) 
+}
+
 model PasswordResetToken {
   id        String    @id @default(uuid())
   userId    String
@@ -140,4 +145,24 @@ model PasswordResetToken {
 
   @@index([userId])
   @@index([expiresAt])
+}
+
+model Customer {
+  id          String   @id @default(uuid())
+  companyId   String
+  name        String
+  nif         String?
+  email       String?
+  phone       String?
+  addressLine String?
+  postalCode  String?
+  city        String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id])
+
+  @@unique([companyId, nif])
+  @@index([companyId])
 }
