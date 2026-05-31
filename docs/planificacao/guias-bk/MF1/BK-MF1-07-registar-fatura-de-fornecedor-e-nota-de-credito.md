@@ -345,9 +345,11 @@ export async function createPurchaseDocument(prisma, companyId, userId, input) {
     if (!supplierNumber) throw httpError(400, "INVALID_SUPPLIER_NUMBER", "Numero do fornecedor obrigatorio");
     const issuedAt = new Date(input.issuedAt);
     if (Number.isNaN(issuedAt.getTime())) throw httpError(400, "INVALID_DATE", "Data invalida");
+    const dueDate = input.dueDate ? new Date(input.dueDate) : null;
+    if (dueDate && Number.isNaN(dueDate.getTime())) throw httpError(400, "INVALID_DUE_DATE", "Data de vencimento invalida");
     const lines = Array.isArray(input.lines) ? input.lines.map(parseLine) : [];
     if (lines.length === 0) throw httpError(400, "EMPTY_LINES", "Documento sem linhas");
-    await assertOpenFiscalPeriod(prisma, companyId, issuedAt);
+    await assertOpenFiscalPeriod(prisma, { companyId, documentDate: issuedAt });
 
     return prisma.$transaction(async (tx) => {
         const supplier = await tx.supplier.findFirst({ where: { id: input.supplierId, companyId, isActive: true } });
@@ -371,7 +373,7 @@ export async function createPurchaseDocument(prisma, companyId, userId, input) {
         const vatCents = computedLines.reduce((sum, line) => sum + line.vatCents, 0);
         // Os valores ficam positivos; o tipo SUPPLIER_CREDIT_NOTE diz aos BKs seguintes para inverter o efeito contabilístico.
         try {
-            const document = await tx.purchaseDocument.create({ data: { companyId, supplierId: supplier.id, kind, status: "APPROVED", supplierNumber, issuedAt, dueDate: input.dueDate ? new Date(input.dueDate) : null, subtotalCents, vatCents, totalCents: subtotalCents + vatCents, createdById: userId, lines: { create: computedLines } }, include: { supplier: true, lines: true } });
+            const document = await tx.purchaseDocument.create({ data: { companyId, supplierId: supplier.id, kind, status: "APPROVED", supplierNumber, issuedAt, dueDate, subtotalCents, vatCents, totalCents: subtotalCents + vatCents, createdById: userId, lines: { create: computedLines } }, include: { supplier: true, lines: true } });
             await tx.auditLog.create({
                 data: {
                     companyId,

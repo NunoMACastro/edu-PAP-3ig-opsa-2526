@@ -294,11 +294,12 @@ function parseReceiptInput(input) {
 
 export async function registerReceipt(prisma, companyId, userId, saleDocumentId, input) {
     const data = parseReceiptInput(input);
-    await assertOpenFiscalPeriod(prisma, companyId, data.receivedAt);
+    await assertOpenFiscalPeriod(prisma, { companyId, documentDate: data.receivedAt });
 
     return prisma.$transaction(async (tx) => {
         const document = await tx.saleDocument.findFirst({ where: { id: saleDocumentId, companyId } });
         if (!document) throw httpError(404, "SALE_DOCUMENT_NOT_FOUND", "Documento de venda nao encontrado");
+        if (document.kind === "CREDIT_NOTE") throw httpError(409, "CREDIT_NOTE_NOT_RECEIVABLE", "Notas de credito nao recebem recebimentos");
         if (document.status !== "ISSUED" && document.status !== "SETTLED") throw httpError(409, "INVALID_STATUS", "Apenas documentos emitidos podem receber valores");
         const openAmount = document.totalCents - document.amountPaidCents;
         if (openAmount <= 0) throw httpError(409, "DOCUMENT_ALREADY_SETTLED", "Documento ja liquidado");

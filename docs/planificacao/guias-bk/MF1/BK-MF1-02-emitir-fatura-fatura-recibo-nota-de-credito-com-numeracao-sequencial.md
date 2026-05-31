@@ -416,7 +416,7 @@ export async function createSaleDocument(prisma, companyId, userId, input) {
     const lines = Array.isArray(input.lines) ? input.lines.map(parseLine) : [];
     if (lines.length === 0) throw httpError(400, "EMPTY_LINES", "Documento sem linhas");
 
-    await assertOpenFiscalPeriod(prisma, companyId, issuedAt);
+    await assertOpenFiscalPeriod(prisma, { companyId, documentDate: issuedAt });
 
     return prisma.$transaction(async (tx) => {
         const customer = await tx.customer.findFirst({ where: { id: input.customerId, companyId, isActive: true } });
@@ -465,6 +465,7 @@ export async function issueSaleDocument(prisma, companyId, userId, id) {
         // Neste BK, a emissão parte de rascunho. O BK-MF1-06 acrescenta o fluxo de aprovação e aperta esta regra para APPROVED.
         if (document.status !== "DRAFT") throw httpError(409, "INVALID_STATUS", "Apenas rascunhos podem ser emitidos neste fluxo");
         if (document.number) throw httpError(409, "DOCUMENT_ALREADY_ISSUED", "Documento ja emitido");
+        await assertOpenFiscalPeriod(tx, { companyId, documentDate: document.issuedAt });
 
         const number = await nextSaleNumber(tx, companyId, document.kind, document.issuedAt);
         const settled = document.kind === "INVOICE_RECEIPT";

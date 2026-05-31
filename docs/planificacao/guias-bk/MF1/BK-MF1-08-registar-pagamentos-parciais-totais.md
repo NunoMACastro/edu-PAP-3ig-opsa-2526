@@ -276,7 +276,7 @@ function parsePaymentInput(input) {
 
 export async function registerPayment(prisma, companyId, userId, purchaseDocumentId, input) {
     const data = parsePaymentInput(input);
-    await assertOpenFiscalPeriod(prisma, companyId, data.paidAt);
+    await assertOpenFiscalPeriod(prisma, { companyId, documentDate: data.paidAt });
 
     return prisma.$transaction(async (tx) => {
         const document = await tx.purchaseDocument.findFirst({ where: { id: purchaseDocumentId, companyId } });

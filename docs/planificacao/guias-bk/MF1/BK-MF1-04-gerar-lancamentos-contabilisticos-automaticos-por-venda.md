@@ -277,7 +277,7 @@ export async function postSaleDocument(prisma, companyId, userId, saleDocumentId
         const document = await tx.saleDocument.findFirst({ where: { id: saleDocumentId, companyId }, include: { lines: true } });
         if (!document) throw httpError(404, "SALE_DOCUMENT_NOT_FOUND", "Documento de venda nao encontrado");
         if (document.status !== "ISSUED" && document.status !== "SETTLED") throw httpError(409, "DOCUMENT_NOT_ISSUED", "Documento ainda nao emitido");
-        await assertOpenFiscalPeriod(tx, companyId, document.issuedAt);
+        await assertOpenFiscalPeriod(tx, { companyId, documentDate: document.issuedAt });
 
         const customerAccount = await accountByCode(tx, companyId, "211");
         const revenueAccount = await accountByCode(tx, companyId, "72");

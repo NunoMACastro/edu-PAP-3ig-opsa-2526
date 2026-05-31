@@ -198,7 +198,7 @@ function bucketFor(daysOverdue) {
 export async function listSalesOpenItems(prisma, companyId, query) {
     const asOfDate = parseAsOfDate(query.asOfDate);
     const documents = await prisma.saleDocument.findMany({
-        where: { companyId, totalCents: { gt: 0 }, status: "ISSUED" },
+        where: { companyId, totalCents: { gt: 0 }, status: "ISSUED", kind: { not: "CREDIT_NOTE" } },
         include: { customer: true },
         orderBy: [{ dueDate: "asc" }, { issuedAt: "asc" }],
     });
@@ -359,6 +359,7 @@ test("coloca documento vencido ha 45 dias no bucket correto", async () => {
             findMany: async ({ where }) => {
                 assert.equal(where.companyId, "company-1");
                 assert.equal(where.status, "ISSUED");
+                assert.deepEqual(where.kind, { not: "CREDIT_NOTE" });
                 return [{
                     id: "sale-1",
                     number: "INVOICE-2026-000001",

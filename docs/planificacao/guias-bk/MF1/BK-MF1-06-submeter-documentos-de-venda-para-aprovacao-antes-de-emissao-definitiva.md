@@ -230,11 +230,12 @@ export async function issueSaleDocument(prisma, companyId, userId, id) {
         // A partir deste BK, a emissão definitiva exige aprovação para garantir segregação de funções.
         if (document.status !== "APPROVED") throw httpError(409, "INVALID_STATUS", "Apenas documentos aprovados podem ser emitidos");
         if (document.number) throw httpError(409, "DOCUMENT_ALREADY_ISSUED", "Documento ja emitido");
+        await assertOpenFiscalPeriod(tx, { companyId, documentDate: document.issuedAt });
 
         const number = await nextSaleNumber(tx, companyId, document.kind, document.issuedAt);
         const settled = document.kind === "INVOICE_RECEIPT";
 
-        return tx.saleDocument.update({
+        const issued = await tx.saleDocument.update({
             where: { id: document.id },
             data: {
                 number,
@@ -245,6 +246,17 @@ export async function issueSaleDocument(prisma, companyId, userId, id) {
             },
             include: { lines: true, customer: true },
         });
+        await tx.auditLog.create({
+            data: {
+                companyId,
+                userId,
+                action: "SALE_DOCUMENT_ISSUED",
+                entity: "SaleDocument",
+                entityId: issued.id,
+                details: { number, status: issued.status, totalCents: issued.totalCents },
+            },
+        });
+        return issued;
     });
 }
 ```

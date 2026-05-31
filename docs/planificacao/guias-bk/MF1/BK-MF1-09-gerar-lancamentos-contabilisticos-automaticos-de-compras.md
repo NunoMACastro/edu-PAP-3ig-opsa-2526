@@ -204,7 +204,7 @@ export async function postPurchaseDocumentInTransaction(tx, companyId, userId, p
     const document = await tx.purchaseDocument.findFirst({ where: { id: purchaseDocumentId, companyId }, include: { lines: true } });
     if (!document) throw httpError(404, "PURCHASE_DOCUMENT_NOT_FOUND", "Documento de compra nao encontrado");
     if (document.status !== "APPROVED" && document.status !== "PAID") throw httpError(409, "INVALID_STATUS", "Apenas compras aprovadas ou pagas podem ser contabilizadas");
-    await assertOpenFiscalPeriod(tx, companyId, document.issuedAt);
+    await assertOpenFiscalPeriod(tx, { companyId, documentDate: document.issuedAt });
 
     const expenseAccount = await accountByCode(tx, companyId, "62");
     const vatAccount = await accountByCode(tx, companyId, "2432");

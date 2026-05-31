@@ -416,6 +416,10 @@ export async function fetchVatRates(): Promise<VatRate[]> {
 export async function createVatRate(input: { code: string; description: string; rateBps: number; type: string; exemptionReason?: string }) {
     return apiClient.post<{ data: VatRate }>("/api/vat-rates", input);
 }
+
+export async function setVatRateActive(id: string, isActive: boolean) {
+    return apiClient.patch<{ data: VatRate }>("/api/vat-rates/" + id + "/active", { isActive });
+}
 ```
 
 Localização: `apps/web/src/pages/VatRatesPage.tsx`.
@@ -423,7 +427,7 @@ Localização: `apps/web/src/pages/VatRatesPage.tsx`.
 ```tsx
 // apps/web/src/pages/VatRatesPage.tsx
 import { FormEvent, useEffect, useState } from "react";
-import { createVatRate, fetchVatRates, type VatRate } from "../lib/vatRateApi";
+import { createVatRate, fetchVatRates, setVatRateActive, type VatRate } from "../lib/vatRateApi";
 
 const emptyForm = { code: "", description: "", rateBps: 2300, type: "NORMAL", exemptionReason: "" };
 
@@ -432,6 +436,7 @@ export function VatRatesPage() {
     const [form, setForm] = useState(emptyForm);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [updatingId, setUpdatingId] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
 
@@ -475,6 +480,21 @@ export function VatRatesPage() {
         }
     }
 
+    async function handleSetActive(rate: VatRate) {
+        setUpdatingId(rate.id);
+        setError(null);
+        setSuccess(null);
+        try {
+            await setVatRateActive(rate.id, !rate.isActive);
+            setSuccess(rate.isActive ? "Taxa de IVA desativada." : "Taxa de IVA ativada.");
+            await loadRates();
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Nao foi possivel alterar o estado da taxa de IVA.");
+        } finally {
+            setUpdatingId(null);
+        }
+    }
+
     return (
         <main>
             <h1>Tabelas de IVA</h1>
@@ -495,7 +515,16 @@ export function VatRatesPage() {
             {error && <p role="alert">{error}</p>}
             {success && <p role="status">{success}</p>}
             {loading ? <p>A carregar taxas...</p> : rates.length === 0 ? <p>Ainda nao existem taxas de IVA.</p> : (
-                <ul>{rates.map((rate) => <li key={rate.id}>{rate.code} - {rate.description} ({rate.rateBps / 100}%)</li>)}</ul>
+                <ul>
+                    {rates.map((rate) => (
+                        <li key={rate.id}>
+                            {rate.code} - {rate.description} ({rate.rateBps / 100}%) - {rate.isActive ? "Ativa" : "Inativa"}
+                            <button type="button" disabled={updatingId === rate.id} onClick={() => void handleSetActive(rate)}>
+                                {rate.isActive ? "Desativar" : "Ativar"}
+                            </button>
+                        </li>
+                    ))}
+                </ul>
             )}
         </main>
     );
@@ -544,7 +573,7 @@ A pagina `VatRatesPage.tsx` fecha a parte visual deste BK: tem estado local, val
 
 `apiClient.ts` fica como ponto único para chamadas HTTP do frontend. O uso de `credentials: "include"` é obrigatório porque a autenticação da MF0 usa cookie HttpOnly; sem isto, o browser não envia a sessão e a API responde `401`.
 
-`vatRateApi.ts` usa esse cliente base para expor funções específicas de IVA. A UI não conhece detalhes de `fetch`, cookies ou JSON; apenas chama funções tipadas. Os testes focam o comportamento que protege a contabilidade: validação, transação, estado e isolamento por empresa.
+`vatRateApi.ts` usa esse cliente base para expor funções específicas de IVA, incluindo a ativação/desativação através de `PATCH /api/vat-rates/:id/active`. A UI não conhece detalhes de `fetch`, cookies ou JSON; apenas chama funções tipadas. Os testes focam o comportamento que protege a contabilidade: validação, transação, estado e isolamento por empresa.
 
 6. Validação do passo.
 
