@@ -23,115 +23,115 @@
 
 ##### O que vamos fazer neste BK
 
-Neste BK vamos transformar o requisito RF06 num guia de execucao para construir a parte da app relacionada com configuracoes. O foco nao e produzir documentacao generica: e deixar claro que modelos, endpoints, validacoes, UI e evidencia devem existir quando a equipa implementar o BK.
+Neste BK vamos transformar o requisito RF06 num guia de execução para construir a parte da app relacionada com configurações. O foco não é produzir documentação genérica: é deixar claro que modelos, endpoints, validações, UI e evidência devem existir quando a equipa implementar o BK.
 
-A app real ainda esta marcada como `sem_codigo`; por isso, os caminhos tecnicos propostos seguem o contrato central `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md`. Esse contrato define a stack assumida, a estrutura indicativa e a regra de adaptacao quando existir scaffold real, sem alterar RF, BK, owners, dependencias ou criterios de aceite.
+A app real ainda está marcada como `sem_codigo`; por isso, os caminhos técnicos propostos seguem o contrato central `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md`. Esse contrato define a stack assumida, a estrutura indicativa e a regra de adaptação quando existir scaffold real, sem alterar RF, BK, owners, dependências ou critérios de aceite.
 
-Como a fase alvo e MF0, nao existem BKs de fases anteriores a reutilizar. A continuidade nasce aqui: os outputs deste BK devem ser contratos estaveis para BK-MF0-07 e para os BKs de vendas, compras, inventario, contabilidade e seguranca das fases seguintes.
+Como a fase alvo é MF0, não existem BKs de fases anteriores a reutilizar. A continuidade nasce aqui: os outputs deste BK devem ser contratos estáveis para BK-MF0-07 e para os BKs de vendas, compras, inventário, contabilidade e segurança das fases seguintes.
 
-##### Porque e que isto e importante
+##### Porque é que isto é importante
 
 - Funcionalmente, cobre RF06 e desbloqueia o fluxo seguinte da MF0.
 - Tecnicamente, cria contratos de CompanyProfile e API que outros BKs podem reutilizar.
-- Pedagogicamente, mostra aos alunos a ligacao entre requisito, modelo, endpoint, UI, teste e evidence.
-- Em seguranca/robustez, obriga a validar dados no backend e a tratar erros previsiveis.
+- Pedagogicamente, mostra aos alunos a ligação entre requisito, modelo, endpoint, UI, teste e evidence.
+- Em segurança/robustez, obriga a validar dados no backend e a tratar erros previsíveis.
 - Para continuidade, prepara explicitamente o handoff para BK-MF0-07.
 
 ##### O que entra (scope)
 
-- Criar/editar nome, NIF, morada, codigo postal, cidade e moeda.
-- Preparar campo de logotipo sem obrigar upload definitivo se a storage nao estiver decidida.
-- Guardar limites do periodo fiscal base.
-- Validar formato minimo de NIF e moeda.
-- Ligar formulario de configuracoes ao backend.
+- Criar/editar nome, NIF, morada, código postal, cidade e moeda.
+- Preparar campo de logotipo sem obrigar upload definitivo se a storage não estiver decidida.
+- Guardar limites do período fiscal base.
+- Validar formato mínimo de NIF e moeda.
+- Ligar formulário de configurações ao backend.
 
-##### O que nao entra (scope-out)
+##### O que não entra (scope-out)
 
-- Fecho/abertura de periodos, porque pertence ao BK-MF0-08.
+- Fecho/abertura de períodos, porque pertence ao BK-MF0-08.
 - SAF-T real, porque pertence a fases posteriores.
-- Validacao legal exaustiva de NIF por fonte externa, se nao documentada.
-- Gestao avancada de moradas/estabelecimentos.
+- Validação legal exaustiva de NIF por fonte externa, se não documentada.
+- Gestão avançada de moradas/estabelecimentos.
 
 ##### Como saber que isto ficou bem
 
-- O caso principal de Registar dados da empresa (NIF, morada, moeda, logótipo, período fiscal) funciona atraves da UI ou de chamadas API documentadas.
-- Os endpoints definidos respondem com codigos HTTP previsiveis e sem expor dados sensiveis.
-- Os validadores rejeitam entradas invalidas antes de chegar a persistencia.
+- O caso principal de Registar dados da empresa (NIF, morada, moeda, logótipo, período fiscal) funciona através da UI ou de chamadas API documentadas.
+- Os endpoints definidos respondem com códigos HTTP previsíveis e sem expor dados sensíveis.
+- Os validadores rejeitam entradas inválidas antes de chegar a persistência.
 - A evidence inclui smoke, negativos, ficheiros alterados e comandos executados.
-- Nao existe ALTERACAO DE CONTRATO face aos documentos canonicos; se surgir, deve ser marcada e justificada.
+- Não existe ALTERAÇÃO DE CONTRATO face aos documentos canónicos; se surgir, deve ser marcada e justificada.
 
 #### Metadados do BK (CANONICO/DERIVADO):
 
 - Prioridade: `P0` (CANONICO)
-- Estado: `TODO` (CANONICO; nao marcar DONE apenas por o guia estar detalhado)
-- Esforco: `M` (CANONICO)
+- Estado: `TODO` (CANONICO; não marcar DONE apenas por o guia estar detalhado)
+- Esforço: `M` (CANONICO)
 - macro: `MF0` (CANONICO)
 - Owner: `Oleksii` (CANONICO)
 - Apoio: `Sofia` (CANONICO)
-- Dependencias (BK IDs): `-` (CANONICO)
-- Pre-condicoes: Sem dependencias anteriores declaradas. App real pode ainda nao existir; nesse caso criar a estrutura tecnica assumida antes dos ficheiros alvo. (DERIVADO)
+- Dependências (BK IDs): `-` (CANONICO)
+- Pré-condições: Sem dependências anteriores declaradas. App real pode ainda não existir; nesse caso criar a estrutura técnica assumida antes dos ficheiros alvo. (DERIVADO)
 - Ref. Plano: `PLANO-IMPLEMENTACAO-TOTAL.md` MF0; `PLANO-SPRINTS.md` S01-S02. (CANONICO)
 - Flow ID: `FLOW-COMPANY-PROFILE` (DERIVADO)
 - Fonte de verdade: `docs/RF.md` -> `RF06` (CANONICO)
 - Fonte de verdade: `docs/planificacao/backlogs/BACKLOG-MVP.md` (CANONICO)
 - Fonte de verdade: `docs/planificacao/backlogs/MATRIZ-CANONICA-BK.md` e `docs/planificacao/backlogs/MF-VIEWS.md` (CANONICO)
-- Descricao: Registar dados da empresa (NIF, morada, moeda, logótipo, período fiscal). (CANONICO)
-- Stack decidida: `DERIVADO` e centralizada em `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md`; este BK usa essa stack apenas como assuncao tecnica ate existir scaffold real.
-- Mockup usado: `mockup/` existe e foi usado como referencia de fluxo, hierarquia e nomes visiveis; nao e contrato pixel-perfect.
+- Descrição: Registar dados da empresa (NIF, morada, moeda, logótipo, período fiscal). (CANONICO)
+- Stack decidida: `DERIVADO` e centralizada em `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md`; este BK usa essa stack apenas como assunção técnica até existir scaffold real.
+- Mockup usado: `mockup/` existe e foi usado como referência de fluxo, hierarquia e nomes visíveis; não é contrato pixel-perfect.
 
 #### O que vamos fazer neste BK (DERIVADO):
 
-- Estado esperado antes do BK: Pode existir ou nao multiempresa; se BK-MF0-03 ja existir, usar companyId ativo.
-- Estado esperado depois do BK: Cada empresa tem dados base guardados e validados, prontos para faturas, SAF-T, reporting e periodos fiscais.
-- Ficheiros a criar/editar/rever: schema Prisma, modulo backend `configuracoes`, cliente API frontend e componentes/paginas referenciados em `mockup/src/app/components/modules/Configuracoes.tsx, card Dados da Empresa`.
-- Dependencias de BK anteriores e uso: Sem dependencias anteriores declaradas.
-- Reutilizacao tecnica opcional (sem alterar dependencias canonicas): se BK-MF0-03 estiver implementado, usar `companyId` ativo em vez de criar um contexto paralelo de empresa.
-- Impacto na arquitetura: reforca separacao entre routes, controllers, services, validators e UI.
-- Impacto frontend: liga o fluxo visual do mockup a API real com estados loading/error/empty/success quando aplicavel.
+- Estado esperado antes do BK: Pode existir ou não multiempresa; se BK-MF0-03 já existir, usar companyId ativo.
+- Estado esperado depois do BK: Cada empresa tem dados base guardados e validados, prontos para faturas, SAF-T, reporting e períodos fiscais.
+- Ficheiros a criar/editar/rever: schema Prisma, módulo backend `configuracoes`, cliente API frontend e componentes/páginas referenciados em `mockup/src/app/components/modules/Configuracoes.tsx, card Dados da Empresa`.
+- Dependências de BK anteriores e uso: Sem dependências anteriores declaradas.
+- Reutilização técnica opcional (sem alterar dependências canónicas): se BK-MF0-03 estiver implementado, usar `companyId` ativo em vez de criar um contexto paralelo de empresa.
+- Impacto na arquitetura: reforça separação entre routes, controllers, services, validators e UI.
+- Impacto frontend: liga o fluxo visual do mockup a API real com estados loading/error/empty/success quando aplicável.
 - Impacto backend/dados: cria ou prepara `CompanyProfile` e endpoints `GET /api/company/profile, PUT /api/company/profile`.
-- Impacto seguranca: valida inputs no backend, aplica sessao/permissao quando aplicavel e evita exposicao de dados sensiveis.
+- Impacto segurança: valida inputs no backend, aplica sessão/permissão quando aplicável e evita exposição de dados sensíveis.
 - Impacto testes: exige smoke e 3 negativos concretos.
 - Handoff: BK-MF0-07 deve reutilizar os contratos aqui criados.
 
-#### Pre-leitura minima (10-15 min) (DERIVADO):
+#### Pré-leitura mínima (10-15 min) (DERIVADO):
 
-- `README.md` seccoes 1, 4, 5 e 7.
-- `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md` para stack assumida e regras de adaptacao de caminhos.
+- `README.md` secções 1, 4, 5 e 7.
+- `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md` para stack assumida e regras de adaptação de caminhos.
 - `docs/RF.md` linha do requisito `RF06`.
-- `docs/RNF.md` seccoes RNF05, RNF06, RNF12-RNF17, RNF25-RNF30 quando aplicavel.
+- `docs/RNF.md` secções RNF05, RNF06, RNF12-RNF17, RNF25-RNF30 quando aplicável.
 - `docs/planificacao/backlogs/BACKLOG-MVP.md` linha deste BK.
 - `docs/planificacao/backlogs/MATRIZ-CANONICA-BK.md` linha deste BK.
 - `docs/planificacao/backlogs/MF-VIEWS.md` -> MF0.
 - `docs/planificacao/sprints/PLANO-SPRINTS.md` -> S01-S02.
 - Mockup: `mockup/src/app/components/modules/Configuracoes.tsx, card Dados da Empresa`.
-- BKs anteriores: nao existem dependencias formais anteriores para este BK.
+- BKs anteriores: não existem dependências formais anteriores para este BK.
 
-#### Glossario (rapido) (DERIVADO):
+#### Glossário (rápido) (DERIVADO):
 
-- **NIF:** Numero de Identificacao Fiscal usado em documentos e entidades portuguesas.
+- **NIF:** Número de Identificação Fiscal usado em documentos e entidades portuguesas.
 - **Moeda base:** Moeda principal usada nos registos financeiros da empresa.
-- **Periodo fiscal:** Intervalo contabilistico em que documentos e lancamentos sao aceites.
+- **Período fiscal:** Intervalo contabilístico em que documentos e lançamentos são aceites.
 - **Upload:** Envio de ficheiro do browser para o servidor.
-- **Dados mestre:** Dados de base reutilizados por varios modulos.
+- **Dados mestre:** Dados de base reutilizados por vários módulos.
 
-#### Conceitos teoricos essenciais (DERIVADO):
+#### Conceitos teóricos essenciais (DERIVADO):
 
-- Dados da empresa sao dados mestre: muitos modulos futuros dependem deles, especialmente faturacao, contabilidade e SAF-T.
+- Dados da empresa são dados mestre: muitos módulos futuros dependem deles, especialmente faturação, contabilidade e SAF-T.
 - Mesmo que o frontend valide NIF, o backend deve validar outra vez porque pedidos podem ser feitos diretamente por API.
-- Upload de logotipo deve limitar tipo e tamanho de ficheiro. Enquanto storage nao estiver decidida, pode ficar como URL/campo preparado.
-- A moeda deve ter contrato simples no MVP. O dominio portugues sugere EUR, mas qualquer regra multi-moeda avancada fica fora de escopo.
-- **Erros comuns a evitar:** implementar so no frontend, confiar em dados enviados pelo browser, esquecer `companyId` nos dados por empresa, devolver mensagens tecnicas cruas ao utilizador ou criar campos que nao aparecem nos RF/RNF.
-- **Negativos de seguranca/robustez:** todos os casos invalidos devem falhar de forma controlada, sem stack traces, sem dados sensiveis e sem escrita parcial na base de dados.
+- Upload de logotipo deve limitar tipo e tamanho de ficheiro. Enquanto storage não estiver decidida, pode ficar como URL/campo preparado.
+- A moeda deve ter contrato simples no MVP. O domínio português sugere EUR, mas qualquer regra multi-moeda avançada fica fora de escopo.
+- **Erros comuns a evitar:** implementar só no frontend, confiar em dados enviados pelo browser, esquecer `companyId` nos dados por empresa, devolver mensagens técnicas cruas ao utilizador ou criar campos que não aparecem nos RF/RNF.
+- **Negativos de segurança/robustez:** todos os casos inválidos devem falhar de forma controlada, sem stack traces, sem dados sensíveis e sem escrita parcial na base de dados.
 
-#### Tutorial tecnico linear (DERIVADO):
+#### Tutorial técnico linear (DERIVADO):
 
-Este tutorial organiza o BK em passos lineares. O aluno deve seguir de cima para baixo: confirmar contratos, modelar dados, validar entradas, implementar regras de negocio, expor HTTP, testar e deixar handoff. Sempre que o scaffold real ainda nao existir, usar a estrutura prevista em `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md` e registar a adaptacao na evidence.
+Este tutorial organiza o BK em passos lineares. O aluno deve seguir de cima para baixo: confirmar contratos, modelar dados, validar entradas, implementar regras de negócio, expor HTTP, testar e deixar handoff. Sempre que o scaffold real ainda não existir, usar a estrutura prevista em `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md` e registar a adaptação na evidence.
 
-### Passo 1 - Confirmar contrato, scope e ligacao aos BKs vizinhos
+### Passo 1 - Confirmar contrato, scope e ligação aos BKs vizinhos
 
 1. Objetivo funcional do passo no ERP.
 
-Confirmar a regra de negocio do BK, o RF/RNF associado e o impacto nos BKs seguintes antes de escrever codigo.
+Confirmar a regra de negócio do BK, o RF/RNF associado e o impacto nos BKs seguintes antes de escrever código.
 
 2. Ficheiros envolvidos:
     - CRIAR:
@@ -139,7 +139,7 @@ Confirmar a regra de negocio do BK, o RF/RNF associado e o impacto nos BKs segui
     - EDITAR:
     - Nenhum ficheiro existente neste passo.
     - LOCALIZACAO:
-    - Topo deste guia e documentos canonicos de planeamento.
+    - Topo deste guia e documentos canónicos de planeamento.
     - REVER:
     - README.md
     - docs/RF.md
@@ -150,31 +150,31 @@ Confirmar a regra de negocio do BK, o RF/RNF associado e o impacto nos BKs segui
     - docs/planificacao/backlogs/MF-VIEWS.md
     - docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md
 
-3. Instrucoes do que fazer.
+3. Instruções do que fazer.
 
-Confirma que nao vais alterar RF, RNF, ID do BK, owner, prioridade ou dependencias. Se o scaffold real divergir de `apps/api` e `apps/web`, adapta caminhos sem alterar contratos de negocio e regista essa decisao na evidence.
+Confirma que não vais alterar RF, RNF, ID do BK, owner, prioridade ou dependências. Se o scaffold real divergir de `apps/api` e `apps/web`, adapta caminhos sem alterar contratos de negócio e regista essa decisão na evidence.
 
-4. Codigo completo, correto e integrado com a app final.
+4. Código completo, correto e integrado com a app final.
 
-Sem codigo neste passo. O objetivo e impedir drift antes da implementacao.
+Sem código neste passo. O objetivo é impedir drift antes da implementação.
 
-5. Explicacao do codigo.
+5. Explicação do código.
 
-Este passo existe para evitar que o aluno comece por copiar codigo sem perceber o contrato. Num ERP, uma decisao errada no inicio, por exemplo tratar role como global ou ignorar companyId, propaga erros para faturacao, compras, stock e contabilidade.
+Este passo existe para evitar que o aluno comece por copiar código sem perceber o contrato. Num ERP, uma decisão errada no inicio, por exemplo tratar role como global ou ignorar companyId, propaga erros para faturação, compras, stock e contabilidade.
 
-6. Validacao do passo.
+6. Validação do passo.
 
-Antes de avancar, escreve na evidence qual RF/RNF cobre este BK e que BK seguinte depende dele.
+Antes de avançar, escreve na evidence qual RF/RNF cobre este BK e que BK seguinte depende dele.
 
-7. Cenario negativo/erro esperado.
+7. Cenário negativo/erro esperado.
 
-Se encontrares uma regra que nao aparece em RF/RNF/backlog, nao a implementes: marca como decisao em falta no Passo 7.
+Se encontrares uma regra que não aparece em RF/RNF/backlog, não a implementes: marca como decisão em falta no Passo 7.
 
 ### Passo 2 - Modelar dados e constraints na base de dados
 
 1. Objetivo funcional do passo no ERP.
 
-Criar a estrutura persistente que suporta a regra do BK sem duplicados, estados impossiveis ou fuga entre empresas.
+Criar a estrutura persistente que suporta a regra do BK sem duplicados, estados impossíveis ou fuga entre empresas.
 
 2. Ficheiros envolvidos:
     - CRIAR:
@@ -182,18 +182,18 @@ Criar a estrutura persistente que suporta a regra do BK sem duplicados, estados 
     - EDITAR:
     - apps/api/prisma/schema.prisma
     - LOCALIZACAO:
-    - Inserir os modelos junto dos modelos do mesmo dominio; quando o BK disser para atualizar um modelo existente, substituir o bloco antigo por uma versao coerente.
+    - Inserir os modelos junto dos modelos do mesmo domínio; quando o BK disser para atualizar um modelo existente, substituir o bloco antigo por uma versão coerente.
     - REVER:
     - docs/planificacao/backlogs/CONTRATO-CAMPOS-BK.md
     - BKs anteriores da MF0 que criam modelos reutilizados.
 
-3. Instrucoes do que fazer.
+3. Instruções do que fazer.
 
-Aplica primeiro o schema. Se o modelo pertencer a uma empresa, usa `companyId` e indices/constraints por empresa. Se o modelo atualizar `User`, `Company` ou `Session`, faz a substituicao completa indicada para evitar campos duplicados ou relacoes partidas.
+Aplica primeiro o schema. Se o modelo pertencer a uma empresa, usa `companyId` e indices/constraints por empresa. Se o modelo atualizar `User`, `Company` ou `Session`, faz a substituição completa indicada para evitar campos duplicados ou relações partidas.
 
-4. Codigo completo, correto e integrado com a app final.
+4. Código completo, correto e integrado com a app final.
 
-Localizacao: acrescentar a `apps/api/prisma/schema.prisma`.
+Localização: acrescentar a `apps/api/prisma/schema.prisma`.
 
 ```prisma
 model CompanyProfile {
@@ -217,7 +217,7 @@ model CompanyProfile {
 }
 ```
 
-Localizacao: no mesmo ficheiro, substituir o modelo `Company` existente pela versao acumulada ate este BK.
+Localização: no mesmo ficheiro, substituir o modelo `Company` existente pela versão acumulada até este BK.
 
 ```prisma
 model Company {
@@ -232,23 +232,23 @@ model Company {
 }
 ```
 
-5. Explicacao do codigo.
+5. Explicação do código.
 
-O schema e a camada mais baixa de integridade. Mesmo que o frontend tenha boas validacoes, a base de dados deve impedir duplicados e relacoes impossiveis. Em OPSA isto e critico porque clientes, fornecedores, artigos, contas SNC, periodos fiscais e armazens alimentam documentos fiscais e contabilisticos futuros.
+O schema é a camada mais baixa de integridade. Mesmo que o frontend tenha boas validações, a base de dados deve impedir duplicados e relações impossíveis. Em OPSA isto é crítico porque clientes, fornecedores, artigos, contas SNC, períodos fiscais e armazéns alimentam documentos fiscais e contabilísticos futuros.
 
-6. Validacao do passo.
+6. Validação do passo.
 
-Executa a geracao/migracao Prisma quando o scaffold existir e confirma que nao ha nomes de modelos ou relacoes duplicados.
+Executa a geração/migração Prisma quando o scaffold existir e confirma que não há nomes de modelos ou relações duplicados.
 
-7. Cenario negativo/erro esperado.
+7. Cenário negativo/erro esperado.
 
-Tentar criar dois registos que violam uma constraint unica deve falhar com conflito controlado, normalmente `409` no service/controller.
+Tentar criar dois registos que violam uma constraint única deve falhar com conflito controlado, normalmente `409` no service/controller.
 
 ### Passo 3 - Criar validadores, helpers e adaptadores de infraestrutura
 
 1. Objetivo funcional do passo no ERP.
 
-Validar entradas antes da regra de negocio e isolar detalhes tecnicos como cookies, hash, email ou permissao.
+Validar entradas antes da regra de negócio e isolar detalhes técnicos como cookies, hash, email ou permissão.
 
 2. Ficheiros envolvidos:
     - CRIAR:
@@ -257,17 +257,17 @@ Validar entradas antes da regra de negocio e isolar detalhes tecnicos como cooki
     - EDITAR:
     - Nenhum ficheiro existente neste passo.
     - LOCALIZACAO:
-    - Criar dentro do modulo do dominio em `apps/api/src/modules/...`; helpers partilhados ficam em `apps/api/src/lib` quando usados por varios BKs.
+    - Criar dentro do módulo do domínio em `apps/api/src/modules/...`; helpers partilhados ficam em `apps/api/src/lib` quando usados por vários BKs.
     - REVER:
     - docs/RNF.md: RNF05, RNF06, RNF12-RNF17, RNF21 quando existir email.
 
-3. Instrucoes do que fazer.
+3. Instruções do que fazer.
 
-Cria estes ficheiros antes dos services. Os services devem receber dados ja normalizados e nao devem repetir regex ou parse manual espalhado pelo codigo.
+Cria estes ficheiros antes dos services. Os services devem receber dados já normalizados e não devem repetir regex ou parse manual espalhado pelo código.
 
-4. Codigo completo, correto e integrado com a app final.
+4. Código completo, correto e integrado com a app final.
 
-Localizacao: criar `apps/api/src/modules/company-profile/nifValidator.js`.
+Localização: criar `apps/api/src/modules/company-profile/nifValidator.js`.
 
 ```js
 export function isValidPortugueseNif(value) {
@@ -286,7 +286,7 @@ export function isValidPortugueseNif(value) {
 }
 ```
 
-Localizacao: criar `apps/api/src/modules/company-profile/companyProfileValidators.js`.
+Localização: criar `apps/api/src/modules/company-profile/companyProfileValidators.js`.
 
 ```js
 import { httpError } from "../../lib/httpErrors.js";
@@ -294,7 +294,7 @@ import { isValidPortugueseNif } from "./nifValidator.js";
 
 function requiredString(value, field) {
     if (typeof value !== "string" || value.trim().length === 0) {
-        throw httpError(400, "INVALID_FIELD", `${field} e obrigatorio`);
+        throw httpError(400, "INVALID_FIELD", `${field} é obrigatório`);
     }
     return value.trim();
 }
@@ -302,16 +302,16 @@ function requiredString(value, field) {
 function optionalString(value) {
     if (value === undefined || value === null || value === "") return null;
     if (typeof value !== "string")
-        throw httpError(400, "INVALID_FIELD", "Campo invalido");
+        throw httpError(400, "INVALID_FIELD", "Campo inválido");
     return value.trim();
 }
 
 function validateFiscalDate(month, day) {
     if (!Number.isInteger(month) || month < 1 || month > 12) {
-        throw httpError(400, "INVALID_FISCAL_PERIOD", "Mes fiscal invalido");
+        throw httpError(400, "INVALID_FISCAL_PERIOD", "Mês fiscal inválido");
     }
     if (!Number.isInteger(day) || day < 1 || day > 31) {
-        throw httpError(400, "INVALID_FISCAL_PERIOD", "Dia fiscal invalido");
+        throw httpError(400, "INVALID_FISCAL_PERIOD", "Dia fiscal inválido");
     }
     return { month, day };
 }
@@ -323,7 +323,7 @@ export function validateCompanyProfilePayload(body) {
 
     const nif = requiredString(body.nif, "nif");
     if (!isValidPortugueseNif(nif)) {
-        throw httpError(400, "INVALID_NIF", "NIF portugues invalido");
+        throw httpError(400, "INVALID_NIF", "NIF português inválido");
     }
 
     if (body.currency !== "EUR") {
@@ -355,23 +355,23 @@ export function validateCompanyProfilePayload(body) {
 }
 ```
 
-5. Explicacao do codigo.
+5. Explicação do código.
 
-Validadores e helpers tornam o codigo mais facil de testar e explicar. Um aluno consegue perceber que validar NIF, email, datas ou dinheiro nao e detalhe visual: e defesa da integridade da empresa e da contabilidade.
+Validadores e helpers tornam o código mais fácil de testar e explicar. Um aluno consegue perceber que validar NIF, email, datas ou dinheiro não é detalhe visual: é defesa da integridade da empresa e da contabilidade.
 
-6. Validacao do passo.
+6. Validação do passo.
 
-Testa payloads invalidos diretamente contra as funcoes ou endpoint e confirma resposta `400` com mensagem clara.
+Testa payloads inválidos diretamente contra as funções ou endpoint e confirma resposta `400` com mensagem clara.
 
-7. Cenario negativo/erro esperado.
+7. Cenário negativo/erro esperado.
 
-Um payload mal formado nao pode chegar ao Prisma; deve parar no validator com `400`.
+Um payload mal formado não pode chegar ao Prisma; deve parar no validator com `400`.
 
-### Passo 4 - Implementar services e middleware de regra de negocio
+### Passo 4 - Implementar services e middleware de regra de negócio
 
 1. Objetivo funcional do passo no ERP.
 
-Concentrar a regra do ERP em funcoes testaveis, separadas de HTTP e frontend.
+Concentrar a regra do ERP em funções testáveis, separadas de HTTP e frontend.
 
 2. Ficheiros envolvidos:
     - CRIAR:
@@ -379,17 +379,17 @@ Concentrar a regra do ERP em funcoes testaveis, separadas de HTTP e frontend.
     - EDITAR:
     - Nenhum ficheiro existente neste passo.
     - LOCALIZACAO:
-    - Criar no modulo backend do dominio; middlewares reutilizaveis ficam junto do dominio que fornece o contexto.
+    - Criar no módulo backend do domínio; middlewares reutilizáveis ficam junto do domínio que fornece o contexto.
     - REVER:
-    - BKs anteriores que fornecem `requireAuth`, `requireCompanyContext`, permissoes, User, Company ou dados mestre.
+    - BKs anteriores que fornecem `requireAuth`, `requireCompanyContext`, permissões, User, Company ou dados mestre.
 
-3. Instrucoes do que fazer.
+3. Instruções do que fazer.
 
-Implementa services depois dos validadores. Quando houver dados empresariais, recebe sempre `companyId` vindo da sessao/contexto, nunca do body. Quando houver role/permissao, garante que a rota chama o guard antes do service.
+Implementa services depois dos validadores. Quando houver dados empresariais, recebe sempre `companyId` vindo da sessão/contexto, nunca do body. Quando houver role/permissão, garante que a rota chama o guard antes do service.
 
-4. Codigo completo, correto e integrado com a app final.
+4. Código completo, correto e integrado com a app final.
 
-Localizacao: criar `apps/api/src/modules/company-profile/companyProfileService.js`.
+Localização: criar `apps/api/src/modules/company-profile/companyProfileService.js`.
 
 ```js
 import { httpError } from "../../lib/httpErrors.js";
@@ -402,7 +402,7 @@ export async function getCompanyProfile(prisma, companyId) {
         throw httpError(
             404,
             "COMPANY_PROFILE_NOT_FOUND",
-            "Perfil da empresa nao encontrado",
+            "Perfil da empresa não encontrado",
         );
     return profile;
 }
@@ -416,23 +416,23 @@ export async function upsertCompanyProfile(prisma, companyId, input) {
 }
 ```
 
-5. Explicacao do codigo.
+5. Explicação do código.
 
-O service e onde vive a regra de negocio. Isto evita controllers gigantes e impede que a UI seja a unica barreira de seguranca. Em OPSA, esta separacao ajuda a garantir que IA, frontend ou scripts futuros nao alteram dados contabilisticos sem passar pelas mesmas regras.
+O service é onde vive a regra de negócio. Isto evita controllers gigantes e impede que a UI seja a única barreira de segurança. Em OPSA, esta separação ajuda a garantir que IA, frontend ou scripts futuros não alteram dados contabilísticos sem passar pelas mesmas regras.
 
-6. Validacao do passo.
+6. Validação do passo.
 
-Testa o service com dados validos e invalidos. Confirma que queries usam `companyId` quando aplicavel e que estados sensiveis devolvem `409` ou `403` conforme o caso.
+Testa o service com dados válidos e inválidos. Confirma que queries usam `companyId` quando aplicável e que estados sensíveis devolvem `409` ou `403` conforme o caso.
 
-7. Cenario negativo/erro esperado.
+7. Cenário negativo/erro esperado.
 
-Tentar aceder a dados de outra empresa, ou executar uma acao sem permissao, deve falhar sem expor dados existentes.
+Tentar aceder a dados de outra empresa, ou executar uma ação sem permissão, deve falhar sem expor dados existentes.
 
 ### Passo 5 - Expor controllers, rotas e registo no servidor
 
 1. Objetivo funcional do passo no ERP.
 
-Transformar a regra de negocio em API HTTP previsivel para o frontend e para testes.
+Transformar a regra de negócio em API HTTP previsível para o frontend e para testes.
 
 2. Ficheiros envolvidos:
     - CRIAR:
@@ -441,18 +441,18 @@ Transformar a regra de negocio em API HTTP previsivel para o frontend e para tes
     - EDITAR:
     - apps/api/src/server.js
     - LOCALIZACAO:
-    - Controllers e routes ficam no modulo do dominio; o `server.js` apenas monta o router no prefixo `/api/...`.
+    - Controllers e routes ficam no módulo do domínio; o `server.js` apenas monta o router no prefixo `/api/...`.
     - REVER:
     - docs/RNF.md: RNF25 e RNF28
     - Contratos de endpoints indicados no header do BK.
 
-3. Instrucoes do que fazer.
+3. Instruções do que fazer.
 
-Cria controllers finos: ler request, chamar validator/service e traduzir erros para HTTP. Regista o router no servidor sem misturar regra de negocio no `server.js`.
+Cria controllers finos: ler request, chamar validator/service e traduzir erros para HTTP. Regista o router no servidor sem misturar regra de negócio no `server.js`.
 
-4. Codigo completo, correto e integrado com a app final.
+4. Código completo, correto e integrado com a app final.
 
-Localizacao: criar `apps/api/src/modules/company-profile/companyProfileController.js`.
+Localização: criar `apps/api/src/modules/company-profile/companyProfileController.js`.
 
 ```js
 import { toHttpError } from "../../lib/httpErrors.js";
@@ -513,7 +513,7 @@ export function buildCompanyProfileController({ prisma }) {
 }
 ```
 
-Localizacao: criar `apps/api/src/modules/company-profile/companyProfileRoutes.js`.
+Localização: criar `apps/api/src/modules/company-profile/companyProfileRoutes.js`.
 
 ```js
 import { Router } from "express";
@@ -547,7 +547,7 @@ export function buildCompanyProfileRoutes({ prisma }) {
 }
 ```
 
-Localizacao: editar `apps/api/src/server.js`, junto das restantes rotas.
+Localização: editar `apps/api/src/server.js`, junto das restantes rotas.
 
 ```js
 import { buildCompanyProfileRoutes } from "./modules/company-profile/companyProfileRoutes.js";
@@ -555,19 +555,19 @@ import { buildCompanyProfileRoutes } from "./modules/company-profile/companyProf
 app.use("/api/company/profile", buildCompanyProfileRoutes({ prisma }));
 ```
 
-5. Explicacao do codigo.
+5. Explicação do código.
 
-A API e o contrato entre backend e frontend. Ao manter controller pequeno, o aluno percebe onde colocar cada responsabilidade: validacao no validator, regra no service, transporte HTTP no controller/route.
+A API é o contrato entre backend e frontend. Ao manter controller pequeno, o aluno percebe onde colocar cada responsabilidade: validação no validator, regra no service, transporte HTTP no controller/route.
 
-6. Validacao do passo.
+6. Validação do passo.
 
-Chama o endpoint principal com payload valido e confirma status `200` ou `201` conforme a operacao.
+Chama o endpoint principal com payload válido e confirma status `200` ou `201` conforme a operação.
 
-7. Cenario negativo/erro esperado.
+7. Cenário negativo/erro esperado.
 
-Sem sessao, sem empresa ativa ou sem permissao, o endpoint deve devolver `401` ou `403` antes de chamar o service.
+Sem sessão, sem empresa ativa ou sem permissão, o endpoint deve devolver `401` ou `403` antes de chamar o service.
 
-### Passo 6 - Validar payloads, respostas e cenarios negativos
+### Passo 6 - Validar payloads, respostas e cenários negativos
 
 1. Objetivo funcional do passo no ERP.
 
@@ -584,11 +584,11 @@ Demonstrar que o BK funciona para o caso principal e falha bem nos casos perigos
     - Payloads e negativos abaixo.
     - docs/planificacao/sprints/PLANO-SPRINTS.md quando existir planeamento de sprint.
 
-3. Instrucoes do que fazer.
+3. Instruções do que fazer.
 
-Executa primeiro o smoke principal e depois os negativos. Guarda status HTTP, payload enviado e resposta recebida. Nao marques DONE sem evidence.
+Executa primeiro o smoke principal e depois os negativos. Guarda status HTTP, payload enviado e resposta recebida. Não marques DONE sem evidence.
 
-4. Codigo completo, correto e integrado com a app final.
+4. Código completo, correto e integrado com a app final.
 
 Pedido `PUT /api/company/profile`:
 
@@ -620,91 +620,91 @@ Erros esperados:
 - `404 COMPANY_PROFILE_NOT_FOUND` em `GET` antes de existir perfil.
 - `409` pode surgir por unicidade de `nif`; mapear erro Prisma para `409 NIF_ALREADY_EXISTS` no handler global.
 
-- NIF com 9 digitos mas checksum invalido devolve `400`.
+- NIF com 9 dígitos mas checksum inválido devolve `400`.
 - Utilizador `AUDITOR` tenta `PUT` e recebe `403`.
-- Atualizar perfil de outra empresa nao e possivel porque a API usa `req.companyId`, nao recebe `companyId` no body.
+- Atualizar perfil de outra empresa não é possível porque a API usa `req.companyId`, não recebe `companyId` no body.
 
 - Selecionar empresa no BK-MF0-03 e executar `PUT /api/company/profile`.
-- Fazer `GET /api/company/profile` e confirmar persistencia.
+- Fazer `GET /api/company/profile` e confirmar persistência.
 - Trocar para outra empresa e confirmar que o perfil devolvido e diferente ou `404`.
 
 #
 
-5. Explicacao do codigo.
+5. Explicação do código.
 
-Testar negativos ensina que seguranca nao e so o caminho feliz. Um ERP deve recusar dados fiscais invalidos, acessos sem role, conflitos de unicidade e alteracoes em periodos fechados de forma previsivel.
+Testar negativos ensina que segurança não é só o caminho feliz. Um ERP deve recusar dados fiscais inválidos, acessos sem role, conflitos de unicidade e alterações em períodos fechados de forma previsível.
 
-6. Validacao do passo.
+6. Validação do passo.
 
 A evidence deve mostrar pelo menos o smoke principal, os negativos exigidos pela prioridade e qualquer comando executado.
 
-7. Cenario negativo/erro esperado.
+7. Cenário negativo/erro esperado.
 
-Se um erro devolve stack trace, segredo, dados de outra empresa ou status generico errado, o BK ainda nao esta pronto.
+Se um erro devolve stack trace, segredo, dados de outra empresa ou status genérico errado, o BK ainda não está pronto.
 
-### Passo 7 - Registar decisoes em falta, evidence e handoff
+### Passo 7 - Registar decisões em falta, evidence e handoff
 
 1. Objetivo funcional do passo no ERP.
 
-Fechar o BK como tutorial tecnico que o proximo aluno consegue continuar sem adivinhar contratos.
+Fechar o BK como tutorial técnico que o próximo aluno consegue continuar sem adivinhar contratos.
 
 2. Ficheiros envolvidos:
     - CRIAR:
-    - docs/evidence/<BK_ID>.md ou descricao equivalente no PR.
+    - docs/evidence/<BK_ID>.md ou descrição equivalente no PR.
     - EDITAR:
-    - Secao Evidence deste guia apenas quando houver PR/defesa real.
+    - Secção Evidence deste guia apenas quando houver PR/defesa real.
     - LOCALIZACAO:
-    - Fim do guia: criterios, validacao final, evidence, handoff e changelog.
+    - Fim do guia: critérios, validação final, evidence, handoff e changelog.
     - REVER:
     - BK seguinte indicado em `proximo_bk` e BKs dependentes futuros.
 
-3. Instrucoes do que fazer.
+3. Instruções do que fazer.
 
-Se falta fonte documental ou decisao de arquitetura, nao inventes. Regista exatamente o que falta confirmar e qual o impacto. Depois escreve o handoff para o BK seguinte.
+Se falta fonte documental ou decisão de arquitetura, não inventes. Regista exatamente o que falta confirmar e qual o impacto. Depois escreve o handoff para o BK seguinte.
 
-4. Codigo completo, correto e integrado com a app final.
+4. Código completo, correto e integrado com a app final.
 
-Decisoes em falta a manter visiveis durante a implementacao:
+Decisões em falta a manter visíveis durante a implementação:
 
-- Confirmar storage final de logotipo. Ate la, `logoUrl` e apenas uma referencia externa validada como string, nao upload.
-- Confirmar se OPSA vai suportar multi-moeda. O guia fixa `EUR` por ser o minimo seguro para o MVP portugues, mas isto deve ser revisto se RF/RNF futuros documentarem multi-moeda.
+- Confirmar storage final de logotipo. Até la, `logoUrl` e apenas uma referência externa validada como string, não upload.
+- Confirmar se OPSA vai suportar multi-moeda. O guia fixa `EUR` por ser o mínimo seguro para o MVP português, mas isto deve ser revisto se RF/RNF futuros documentarem multi-moeda.
 
-5. Explicacao do codigo.
+5. Explicação do código.
 
-O handoff protege continuidade. Num projeto PAP com varios alunos, a qualidade nao esta so no codigo: esta tambem em deixar claro o que ficou decidido, o que ainda falta decidir e que contratos o proximo BK pode reutilizar.
+O handoff protege continuidade. Num projeto PAP com vários alunos, a qualidade não está só no código: está também em deixar claro o que ficou decidido, o que ainda falta decidir e que contratos o próximo BK pode reutilizar.
 
-6. Validacao do passo.
+6. Validação do passo.
 
-Confirma que o final do BK contem apenas criterios de aceite, validacao final, evidence, handoff e changelog.
+Confirma que o final do BK contém apenas critérios de aceite, validação final, evidence, handoff e changelog.
 
-7. Cenario negativo/erro esperado.
+7. Cenário negativo/erro esperado.
 
-Se o handoff diz para usar algo que nao foi criado neste BK ou num BK anterior, ha contrato partido e deve ser corrigido antes de avancar.
+Se o handoff diz para usar algo que não foi criado neste BK ou num BK anterior, há contrato partido e deve ser corrigido antes de avançar.
 
-## Criterios de aceite
+## Critérios de aceite
 
-- O BK-MF0-06 cumpre os criterios mensuraveis definidos acima.
-- O contrato canonico do RF06 continua alinhado com backlog, matriz e MF-VIEWS.
+- O BK-MF0-06 cumpre os critérios mensuráveis definidos acima.
+- O contrato canónico do RF06 continua alinhado com backlog, matriz e MF-VIEWS.
 
-## Validacao final
+## Validação final
 
 - Executar o smoke principal descrito no Passo 6.
-- Executar todos os cenarios negativos do Passo 6.
-- Confirmar que os ficheiros do Passo 2 ao Passo 5 existem nos caminhos reais da app ou que a adaptacao ficou documentada na evidence.
-- Confirmar que nao houve drift em RF/RNF, owner, prioridade, dependencias ou escopo.
-- Confirmar que o handoff abaixo esta compreensivel para o proximo BK.
+- Executar todos os cenários negativos do Passo 6.
+- Confirmar que os ficheiros do Passo 2 ao Passo 5 existem nos caminhos reais da app ou que a adaptação ficou documentada na evidence.
+- Confirmar que não houve drift em RF/RNF, owner, prioridade, dependências ou escopo.
+- Confirmar que o handoff abaixo está compreensível para o próximo BK.
 
 ## Evidence para PR/defesa
 
 - `pr`: `A preencher no fecho do BK`
-- `proof`: `A preencher apos validacao`
-- `neg`: `A preencher apos testes negativos`
+- `proof`: `A preencher após validação`
+- `neg`: `A preencher após testes negativos`
 
 ## Handoff
 
-O plano de contas SNC deve usar o mesmo `companyId` ativo e deve poder consultar NIF/moeda/periodo fiscal da empresa quando precisar de contexto contabilistico.
+O plano de contas SNC deve usar o mesmo `companyId` ativo e deve poder consultar NIF/moeda/período fiscal da empresa quando precisar de contexto contabilístico.
 
 ## Changelog
 
-- `2026-05-24`: guia refinado para estrutura step-by-step executavel, com continuidade MF0, mockup, negativos, criterios e evidence.
-- `2026-04-19`: metadados canonicos preservados da vaga de normalizacao.
+- `2026-05-24`: guia refinado para estrutura step-by-step executável, com continuidade MF0, mockup, negativos, critérios e evidence.
+- `2026-04-19`: metadados canónicos preservados da vaga de normalização.

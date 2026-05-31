@@ -10,14 +10,14 @@
 - `prioridade`: `P1`
 - `estado`: `TODO`
 - `esforco`: `S`
-- `dependencias`: `-`
+- `dependencias`: `BK-MF0-03, BK-MF0-08, BK-MF1-07, BK-MF1-09`
 - `rf_rnf`: `RF22`
 - `fase_documental`: `Fase 1`
 - `sprint`: `S03-S04`
 - `core_or_reforco`: `Core`
 - `proximo_bk`: `BK-MF2-01`
 - `guia_path`: `docs/planificacao/guias-bk/MF1/BK-MF1-10-aprovacao-de-compras-com-estados-rascunho-aprovado-lancado.md`
-- `last_updated`: `2026-05-31`
+- `last_updated`: `2026-06-01`
 
 ## Objetivo
 
@@ -51,7 +51,7 @@ A compra tem transições controladas: DRAFT para APPROVED e APPROVED para POSTE
 
 - Ler `docs/RF.md`, `docs/RNF.md`, `docs/planificacao/backlogs/BACKLOG-MVP.md`, `docs/planificacao/backlogs/MATRIZ-CANONICA-BK.md`, `docs/planificacao/backlogs/CONTRATO-CAMPOS-BK.md` e `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md`.
 - Confirmar que autenticação, contexto de empresa, roles/permissões e erros HTTP da MF0 estão disponíveis.
-- Confirmar dependências canónicas: `-`.
+- Confirmar dependências canónicas: `BK-MF0-03, BK-MF0-08, BK-MF1-07, BK-MF1-09`.
 - Nunca receber `companyId` do corpo do pedido; usar sempre o contexto autenticado.
 
 ## Fundamentação documental
@@ -70,14 +70,14 @@ A compra tem transições controladas: DRAFT para APPROVED e APPROVED para POSTE
 
 ## Conceitos teóricos essenciais
 
-- **Workflow de compra:** controla `DRAFT -> APPROVED -> POSTED`; vem do RF22 e separa registo, aprovacao e lancamento.
-- **Rascunho:** permite preparar a compra sem impacto final ate ser revista.
-- **Aprovado:** significa que gestor/administrador validou a compra para seguir para pagamento ou contabilizacao.
-- **Lancado:** significa que existe `JournalEntry`; nao e apenas uma etiqueta de UI.
-- **Transicao com BK-MF1-07:** a partir deste BK, novas compras devem nascer `DRAFT` para respeitar o workflow formal.
-- **Auditoria:** cada aprovacao/lancamento regista utilizador e acao em `AuditLog`.
-- **Segregacao de funcoes:** gestor aprova e contabilista lanca; o backend aplica roles.
-- **Handoff:** BK-MF2-01 pode acrescentar historico detalhado e justificacoes.
+- **Workflow de compra:** controla `DRAFT -> APPROVED -> POSTED`; vem do RF22 e separa registo, aprovação e lançamento.
+- **Rascunho:** permite preparar a compra sem impacto final até ser revista.
+- **Aprovado:** significa que gestor/administrador validou a compra para seguir para pagamento ou contabilização.
+- **Lancado:** significa que existe `JournalEntry`; não é apenas uma etiqueta de UI.
+- **Transição com BK-MF1-07:** a partir deste BK, novas compras devem nascer `DRAFT` para respeitar o workflow formal.
+- **Auditoria:** cada aprovação/lançamento regista utilizador e ação em `AuditLog`.
+- **Segregação de funções:** gestor aprova e contabilista lança; o backend aplica roles.
+- **Handoff:** BK-MF2-01 pode acrescentar histórico detalhado e justificações.
 
 ## Arquitetura do BK
 
@@ -128,7 +128,7 @@ Garantir que BK-MF1-10 implementa apenas RF22, com dependências, owner, priorid
 
 3. Instruções do que fazer.
 
-Confirmar que o BK é `BK-MF1-10`, requisito `RF22`, dependências `-`, sprint `S03-S04` e próximo BK `BK-MF2-01`. Se o código real tiver caminhos diferentes, manter contratos de negócio e registar a decisão na evidência.
+Confirmar que o BK é `BK-MF1-10`, requisito `RF22`, dependências `BK-MF0-03, BK-MF0-08, BK-MF1-07, BK-MF1-09`, sprint `S03-S04` e próximo BK `BK-MF2-01`. Se o código real tiver caminhos diferentes, manter contratos de negócio e registar a decisão na evidência.
 
 4. Código completo, correto e integrado com a app final.
 
@@ -137,7 +137,7 @@ bk=BK-MF1-10
 macro=MF1
 rf=RF22
 endpoints=/api/purchases/documents/:id/approve,/api/purchases/documents/:id/post-state
-deps=-
+deps=BK-MF0-03, BK-MF0-08, BK-MF1-07, BK-MF1-09
 ```
 
 5. Explicação do código.
@@ -222,30 +222,30 @@ const kinds = new Set(["SUPPLIER_INVOICE", "SUPPLIER_CREDIT_NOTE"]);
 function parseLine(line) {
     const quantity = Number(line.quantity);
     const unitCostCents = Number(line.unitCostCents);
-    if (!line.itemId) throw httpError(400, "INVALID_ITEM", "Artigo obrigatorio");
-    if (!line.vatRateId) throw httpError(400, "INVALID_VAT", "Taxa de IVA obrigatoria");
-    if (!Number.isInteger(quantity) || quantity <= 0) throw httpError(400, "INVALID_QUANTITY", "Quantidade invalida");
-    if (!Number.isInteger(unitCostCents) || unitCostCents < 0) throw httpError(400, "INVALID_COST", "Custo invalido");
+    if (!line.itemId) throw httpError(400, "INVALID_ITEM", "Artigo obrigatório");
+    if (!line.vatRateId) throw httpError(400, "INVALID_VAT", "Taxa de IVA obrigatória");
+    if (!Number.isInteger(quantity) || quantity <= 0) throw httpError(400, "INVALID_QUANTITY", "Quantidade inválida");
+    if (!Number.isInteger(unitCostCents) || unitCostCents < 0) throw httpError(400, "INVALID_COST", "Custo inválido");
     return { itemId: line.itemId, vatRateId: line.vatRateId, description: String(line.description ?? "").trim(), quantity, unitCostCents };
 }
 
 export async function createPurchaseDocument(prisma, companyId, userId, input) {
     if (!input || typeof input !== "object") throw httpError(400, "INVALID_BODY", "O corpo do pedido deve ser JSON");
     const kind = String(input.kind ?? "").toUpperCase();
-    if (!kinds.has(kind)) throw httpError(400, "INVALID_KIND", "Tipo de compra invalido");
+    if (!kinds.has(kind)) throw httpError(400, "INVALID_KIND", "Tipo de compra inválido");
     const supplierNumber = String(input.supplierNumber ?? "").trim();
-    if (!supplierNumber) throw httpError(400, "INVALID_SUPPLIER_NUMBER", "Numero do fornecedor obrigatorio");
+    if (!supplierNumber) throw httpError(400, "INVALID_SUPPLIER_NUMBER", "Numero do fornecedor obrigatório");
     const issuedAt = new Date(input.issuedAt);
-    if (Number.isNaN(issuedAt.getTime())) throw httpError(400, "INVALID_DATE", "Data invalida");
+    if (Number.isNaN(issuedAt.getTime())) throw httpError(400, "INVALID_DATE", "Data inválida");
     const dueDate = input.dueDate ? new Date(input.dueDate) : null;
-    if (dueDate && Number.isNaN(dueDate.getTime())) throw httpError(400, "INVALID_DUE_DATE", "Data de vencimento invalida");
+    if (dueDate && Number.isNaN(dueDate.getTime())) throw httpError(400, "INVALID_DUE_DATE", "Data de vencimento inválida");
     const lines = Array.isArray(input.lines) ? input.lines.map(parseLine) : [];
     if (lines.length === 0) throw httpError(400, "EMPTY_LINES", "Documento sem linhas");
     await assertOpenFiscalPeriod(prisma, { companyId, documentDate: issuedAt });
 
     return prisma.$transaction(async (tx) => {
         const supplier = await tx.supplier.findFirst({ where: { id: input.supplierId, companyId, isActive: true } });
-        if (!supplier) throw httpError(404, "SUPPLIER_NOT_FOUND", "Fornecedor nao encontrado");
+        if (!supplier) throw httpError(404, "SUPPLIER_NOT_FOUND", "Fornecedor não encontrado");
         const itemIds = [...new Set(lines.map((line) => line.itemId))];
         const vatRateIds = [...new Set(lines.map((line) => line.vatRateId))];
         const items = await tx.item.findMany({ where: { id: { in: itemIds }, companyId, isActive: true } });
@@ -255,8 +255,8 @@ export async function createPurchaseDocument(prisma, companyId, userId, input) {
         const computedLines = lines.map((line) => {
             const item = itemById.get(line.itemId);
             const vatRate = vatById.get(line.vatRateId);
-            if (!item) throw httpError(400, "ITEM_NOT_FOUND", "Artigo invalido para esta empresa");
-            if (!vatRate) throw httpError(400, "VAT_RATE_NOT_FOUND", "Taxa de IVA invalida");
+            if (!item) throw httpError(400, "ITEM_NOT_FOUND", "Artigo inválido para esta empresa");
+            if (!vatRate) throw httpError(400, "VAT_RATE_NOT_FOUND", "Taxa de IVA inválida");
             const subtotalCents = line.quantity * line.unitCostCents;
             const vatCents = Math.round(subtotalCents * vatRate.rateBps / 10000);
             return { ...line, subtotalCents, vatCents, totalCents: subtotalCents + vatCents };
@@ -294,7 +294,7 @@ export async function createPurchaseDocument(prisma, companyId, userId, input) {
             });
             return document;
         } catch (error) {
-            if (error.code === "P2002") throw httpError(409, "PURCHASE_DOCUMENT_EXISTS", "Numero de fornecedor ja existe nesta empresa");
+            if (error.code === "P2002") throw httpError(409, "PURCHASE_DOCUMENT_EXISTS", "Número de fornecedor já existe nesta empresa");
             throw error;
         }
     });
@@ -309,7 +309,7 @@ import { postPurchaseDocumentInTransaction } from "../accounting/purchasePosting
 
 async function findPurchaseDocument(prisma, companyId, id) {
     const document = await prisma.purchaseDocument.findFirst({ where: { id, companyId } });
-    if (!document) throw httpError(404, "PURCHASE_DOCUMENT_NOT_FOUND", "Documento de compra nao encontrado");
+    if (!document) throw httpError(404, "PURCHASE_DOCUMENT_NOT_FOUND", "Documento de compra não encontrado");
     return document;
 }
 
@@ -332,7 +332,7 @@ export async function approvePurchaseDocument(prisma, companyId, userId, id) {
 export async function markPurchaseDocumentPosted(prisma, companyId, userId, id) {
     return prisma.$transaction(async (tx) => {
         const document = await findPurchaseDocument(tx, companyId, id);
-        if (document.status !== "APPROVED") throw httpError(409, "INVALID_STATUS", "Apenas compras aprovadas podem ser lancadas");
+        if (document.status !== "APPROVED") throw httpError(409, "INVALID_STATUS", "Apenas compras aprovadas podem ser lançadas");
         const entry = await postPurchaseDocumentInTransaction(tx, companyId, userId, id);
         // O estado POSTED só fica registado depois de existir diário contabilístico.
         await tx.purchaseDocument.update({ where: { id }, data: { postedAt: new Date(), postedById: userId } });
@@ -454,9 +454,9 @@ export function PurchaseApprovalPage() {
         try {
             if (action === "approve") await approvePurchaseDocument(purchaseDocumentId.trim());
             if (action === "post") await markPurchaseDocumentPosted(purchaseDocumentId.trim());
-            setSuccess(action === "approve" ? "Compra aprovada com sucesso." : "Compra lancada com diario contabilistico.");
+            setSuccess(action === "approve" ? "Compra aprovada com sucesso." : "Compra lançada com diário contabilístico.");
         } catch (err) {
-            setError(err instanceof Error ? err.message : "Nao foi possivel atualizar a compra.");
+            setError(err instanceof Error ? err.message : "Não foi possível atualizar a compra.");
         } finally {
             setLoadingAction(null);
         }
@@ -464,10 +464,10 @@ export function PurchaseApprovalPage() {
 
     return (
         <main>
-            <h1>Aprovacao de compras</h1>
+            <h1>Aprovação de compras</h1>
             <input value={purchaseDocumentId} onChange={(event) => setPurchaseDocumentId(event.target.value)} placeholder="ID do documento de compra" />
             <button type="button" disabled={loadingAction !== null} onClick={() => void runAction("approve")}>Aprovar</button>
-            <button type="button" disabled={loadingAction !== null} onClick={() => void runAction("post")}>Marcar como lancada</button>
+            <button type="button" disabled={loadingAction !== null} onClick={() => void runAction("post")}>Marcar como lançada</button>
             {loadingAction && <p>A processar...</p>}
             {error && <p role="alert">{error}</p>}
             {success && <p role="status">{success}</p>}
@@ -488,10 +488,10 @@ test("impede lancar compra antes de aprovar", async () => {
         $transaction: async (callback) => callback({
             purchaseDocument: {
                 findFirst: async () => ({ id: "purchase-1", companyId: "company-1", status: "DRAFT" }),
-                update: async () => assert.fail("Nao deve atualizar compra sem aprovacao"),
+                update: async () => assert.fail("Não deve atualizar compra sem aprovação"),
             },
-            journalEntry: { create: async () => assert.fail("Nao deve criar diario sem aprovacao") },
-            auditLog: { create: async () => assert.fail("Nao deve auditar lancamento recusado") },
+            journalEntry: { create: async () => assert.fail("Não deve criar diário sem aprovação") },
+            auditLog: { create: async () => assert.fail("Não deve auditar lançamento recusado") },
         }),
     };
 
@@ -504,7 +504,7 @@ test("impede lancar compra antes de aprovar", async () => {
 
 5. Explicação do código.
 
-A pagina `PurchaseApprovalPage.tsx` fecha a parte visual deste BK: tem estado local, validacao minima, mensagens de erro/sucesso e chama endpoints reais atraves do cliente API. A UI ajuda o utilizador, mas as regras de seguranca, multiempresa e fiscalidade continuam no backend.
+A página `PurchaseApprovalPage.tsx` fecha a parte visual deste BK: tem estado local, validação mínima, mensagens de erro/sucesso e chama endpoints reais através do cliente API. A UI ajuda o utilizador, mas as regras de segurança, multiempresa e fiscalidade continuam no backend.
 
 O cliente API mantém o contrato entre UI e backend num ponto único. Os testes focam o comportamento que protege a contabilidade: validação, transação, estado e isolamento por empresa.
 
@@ -619,5 +619,6 @@ O `BK-MF2-01` deve acrescentar histórico e justificações às decisões de apr
 
 ## Changelog
 
+- `2026-06-01`: Dependências técnicas canónicas alinhadas com a matriz, backlog e risco de PR da MF1.
 - `2026-05-31`: Corrigida fundamentação documental, endpoints reais, atomicidade de lançamento e teste autocontido.
 - `2026-05-31`: Guia consolidado com contrato técnico completo, código por camada, validações e handoff MF1.

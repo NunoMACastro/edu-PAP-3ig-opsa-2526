@@ -10,14 +10,14 @@
 - `prioridade`: `P0`
 - `estado`: `TODO`
 - `esforco`: `M`
-- `dependencias`: `BK-MF0-10, BK-MF0-11, BK-MF1-01`
+- `dependencias`: `BK-MF0-03, BK-MF0-08, BK-MF0-10, BK-MF0-11, BK-MF1-01`
 - `rf_rnf`: `RF19`
 - `fase_documental`: `Fase 1`
 - `sprint`: `S03-S04`
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF1-08`
 - `guia_path`: `docs/planificacao/guias-bk/MF1/BK-MF1-07-registar-fatura-de-fornecedor-e-nota-de-credito.md`
-- `last_updated`: `2026-05-31`
+- `last_updated`: `2026-06-01`
 
 ## Objetivo
 
@@ -52,7 +52,7 @@ A aplicação regista faturas e notas de crédito de fornecedor por empresa, com
 
 - Ler `docs/RF.md`, `docs/RNF.md`, `docs/planificacao/backlogs/BACKLOG-MVP.md`, `docs/planificacao/backlogs/MATRIZ-CANONICA-BK.md`, `docs/planificacao/backlogs/CONTRATO-CAMPOS-BK.md` e `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md`.
 - Confirmar que autenticação, contexto de empresa, roles/permissões e erros HTTP da MF0 estão disponíveis.
-- Confirmar dependências canónicas: `BK-MF0-10, BK-MF0-11, BK-MF1-01`.
+- Confirmar dependências canónicas: `BK-MF0-03, BK-MF0-08, BK-MF0-10, BK-MF0-11, BK-MF1-01`.
 - Nunca receber `companyId` do corpo do pedido; usar sempre o contexto autenticado.
 
 ## Fundamentação documental
@@ -71,14 +71,14 @@ A aplicação regista faturas e notas de crédito de fornecedor por empresa, com
 
 ## Conceitos teóricos essenciais
 
-- **Fatura de fornecedor:** regista uma obrigacao a pagar a fornecedor; vem do RF19 e usa fornecedores, artigos e IVA.
-- **Nota de credito de fornecedor:** reduz uma compra/divida anterior; e guardada com valores positivos e invertida pela contabilidade.
-- **Numero do fornecedor:** identifica o documento externo; deve ser unico por fornecedor e empresa para evitar duplicados.
-- **Estado `APPROVED` temporario:** mantem BK-MF1-08 e BK-MF1-09 executaveis antes do workflow formal do BK-MF1-10.
-- **Calculo backend:** subtotal, IVA e total sao calculados no service e nao aceites do frontend.
-- **Formulario React:** recolhe fornecedor, numero, data e uma linha minima; mostra erro antes de chamar a API.
+- **Fatura de fornecedor:** regista uma obrigação a pagar a fornecedor; vem do RF19 e usa fornecedores, artigos e IVA.
+- **Nota de crédito de fornecedor:** reduz uma compra/dívida anterior; é guardada com valores positivos e invertida pela contabilidade.
+- **Número do fornecedor:** identifica o documento externo; deve ser único por fornecedor e empresa para evitar duplicados.
+- **Estado `APPROVED` temporário:** mantém BK-MF1-08 e BK-MF1-09 executáveis antes do workflow formal do BK-MF1-10.
+- **Cálculo backend:** subtotal, IVA e total são calculados no service e não aceites do frontend.
+- **Formulário React:** recolhe fornecedor, número, data e uma linha mínima; mostra erro antes de chamar a API.
 - **Multiempresa:** fornecedor, artigo e taxa de IVA devem pertencer a empresa ativa.
-- **Handoff:** pagamentos, lancamentos e aprovacao de compras dependem deste modelo.
+- **Handoff:** pagamentos, lançamentos e aprovação de compras dependem deste modelo.
 
 ## Arquitetura do BK
 
@@ -129,7 +129,7 @@ Garantir que BK-MF1-07 implementa apenas RF19, com dependências, owner, priorid
 
 3. Instruções do que fazer.
 
-Confirmar que o BK é `BK-MF1-07`, requisito `RF19`, dependências `BK-MF0-10, BK-MF0-11, BK-MF1-01`, sprint `S03-S04` e próximo BK `BK-MF1-08`. Se o código real tiver caminhos diferentes, manter contratos de negócio e registar a decisão na evidência.
+Confirmar que o BK é `BK-MF1-07`, requisito `RF19`, dependências `BK-MF0-03, BK-MF0-08, BK-MF0-10, BK-MF0-11, BK-MF1-01`, sprint `S03-S04` e próximo BK `BK-MF1-08`. Se o código real tiver caminhos diferentes, manter contratos de negócio e registar a decisão na evidência.
 
 4. Código completo, correto e integrado com a app final.
 
@@ -138,7 +138,7 @@ bk=BK-MF1-07
 macro=MF1
 rf=RF19
 endpoint=/api/purchases/documents
-deps=BK-MF0-10, BK-MF0-11, BK-MF1-01
+deps=BK-MF0-03, BK-MF0-08, BK-MF0-10, BK-MF0-11, BK-MF1-01
 ```
 
 5. Explicação do código.
@@ -330,30 +330,30 @@ const kinds = new Set(["SUPPLIER_INVOICE", "SUPPLIER_CREDIT_NOTE"]);
 function parseLine(line) {
     const quantity = Number(line.quantity);
     const unitCostCents = Number(line.unitCostCents);
-    if (!line.itemId) throw httpError(400, "INVALID_ITEM", "Artigo obrigatorio");
-    if (!line.vatRateId) throw httpError(400, "INVALID_VAT", "Taxa de IVA obrigatoria");
-    if (!Number.isInteger(quantity) || quantity <= 0) throw httpError(400, "INVALID_QUANTITY", "Quantidade invalida");
-    if (!Number.isInteger(unitCostCents) || unitCostCents < 0) throw httpError(400, "INVALID_COST", "Custo invalido");
+    if (!line.itemId) throw httpError(400, "INVALID_ITEM", "Artigo obrigatório");
+    if (!line.vatRateId) throw httpError(400, "INVALID_VAT", "Taxa de IVA obrigatória");
+    if (!Number.isInteger(quantity) || quantity <= 0) throw httpError(400, "INVALID_QUANTITY", "Quantidade inválida");
+    if (!Number.isInteger(unitCostCents) || unitCostCents < 0) throw httpError(400, "INVALID_COST", "Custo inválido");
     return { itemId: line.itemId, vatRateId: line.vatRateId, description: String(line.description ?? "").trim(), quantity, unitCostCents };
 }
 
 export async function createPurchaseDocument(prisma, companyId, userId, input) {
     if (!input || typeof input !== "object") throw httpError(400, "INVALID_BODY", "O corpo do pedido deve ser JSON");
     const kind = String(input.kind ?? "").toUpperCase();
-    if (!kinds.has(kind)) throw httpError(400, "INVALID_KIND", "Tipo de compra invalido");
+    if (!kinds.has(kind)) throw httpError(400, "INVALID_KIND", "Tipo de compra inválido");
     const supplierNumber = String(input.supplierNumber ?? "").trim();
-    if (!supplierNumber) throw httpError(400, "INVALID_SUPPLIER_NUMBER", "Numero do fornecedor obrigatorio");
+    if (!supplierNumber) throw httpError(400, "INVALID_SUPPLIER_NUMBER", "Numero do fornecedor obrigatório");
     const issuedAt = new Date(input.issuedAt);
-    if (Number.isNaN(issuedAt.getTime())) throw httpError(400, "INVALID_DATE", "Data invalida");
+    if (Number.isNaN(issuedAt.getTime())) throw httpError(400, "INVALID_DATE", "Data inválida");
     const dueDate = input.dueDate ? new Date(input.dueDate) : null;
-    if (dueDate && Number.isNaN(dueDate.getTime())) throw httpError(400, "INVALID_DUE_DATE", "Data de vencimento invalida");
+    if (dueDate && Number.isNaN(dueDate.getTime())) throw httpError(400, "INVALID_DUE_DATE", "Data de vencimento inválida");
     const lines = Array.isArray(input.lines) ? input.lines.map(parseLine) : [];
     if (lines.length === 0) throw httpError(400, "EMPTY_LINES", "Documento sem linhas");
     await assertOpenFiscalPeriod(prisma, { companyId, documentDate: issuedAt });
 
     return prisma.$transaction(async (tx) => {
         const supplier = await tx.supplier.findFirst({ where: { id: input.supplierId, companyId, isActive: true } });
-        if (!supplier) throw httpError(404, "SUPPLIER_NOT_FOUND", "Fornecedor nao encontrado");
+        if (!supplier) throw httpError(404, "SUPPLIER_NOT_FOUND", "Fornecedor não encontrado");
         const itemIds = [...new Set(lines.map((line) => line.itemId))];
         const vatRateIds = [...new Set(lines.map((line) => line.vatRateId))];
         const items = await tx.item.findMany({ where: { id: { in: itemIds }, companyId, isActive: true } });
@@ -363,8 +363,8 @@ export async function createPurchaseDocument(prisma, companyId, userId, input) {
         const computedLines = lines.map((line) => {
             const item = itemById.get(line.itemId);
             const vatRate = vatById.get(line.vatRateId);
-            if (!item) throw httpError(400, "ITEM_NOT_FOUND", "Artigo invalido para esta empresa");
-            if (!vatRate) throw httpError(400, "VAT_RATE_NOT_FOUND", "Taxa de IVA invalida");
+            if (!item) throw httpError(400, "ITEM_NOT_FOUND", "Artigo inválido para esta empresa");
+            if (!vatRate) throw httpError(400, "VAT_RATE_NOT_FOUND", "Taxa de IVA inválida");
             const subtotalCents = line.quantity * line.unitCostCents;
             const vatCents = Math.round(subtotalCents * vatRate.rateBps / 10000);
             return { ...line, subtotalCents, vatCents, totalCents: subtotalCents + vatCents };
@@ -386,7 +386,7 @@ export async function createPurchaseDocument(prisma, companyId, userId, input) {
             });
             return document;
         } catch (error) {
-            if (error.code === "P2002") throw httpError(409, "PURCHASE_DOCUMENT_EXISTS", "Numero de fornecedor ja existe nesta empresa");
+            if (error.code === "P2002") throw httpError(409, "PURCHASE_DOCUMENT_EXISTS", "Número de fornecedor já existe nesta empresa");
             throw error;
         }
     });
@@ -508,7 +508,7 @@ export function PurchaseDocumentsPage() {
         setSuccess(null);
         const line = form.lines[0];
         if (!form.supplierId || !form.supplierNumber || !line.itemId || !line.vatRateId || line.quantity <= 0 || line.unitCostCents <= 0) {
-            setError("Preenche fornecedor, numero, artigo, IVA, quantidade e custo.");
+            setError("Preenche fornecedor, número, artigo, IVA, quantidade e custo.");
             return;
         }
         setSaving(true);
@@ -517,7 +517,7 @@ export function PurchaseDocumentsPage() {
             setForm(emptyForm);
             setSuccess("Documento de compra registado com sucesso.");
         } catch (err) {
-            setError(err instanceof Error ? err.message : "Nao foi possivel registar a compra.");
+            setError(err instanceof Error ? err.message : "Não foi possível registar a compra.");
         } finally {
             setSaving(false);
         }
@@ -529,7 +529,7 @@ export function PurchaseDocumentsPage() {
             <form onSubmit={handleSubmit} aria-label="Registar documento de compra">
                 <select value={form.kind} onChange={(event) => setForm({ ...form, kind: event.target.value as PurchaseDocumentInput["kind"] })}>
                     <option value="SUPPLIER_INVOICE">Fatura de fornecedor</option>
-                    <option value="SUPPLIER_CREDIT_NOTE">Nota de credito</option>
+                    <option value="SUPPLIER_CREDIT_NOTE">Nota de crédito</option>
                 </select>
                 <input value={form.supplierId} onChange={(event) => setForm({ ...form, supplierId: event.target.value })} placeholder="ID do fornecedor" />
                 <input value={form.supplierNumber} onChange={(event) => setForm({ ...form, supplierNumber: event.target.value })} placeholder="Numero do fornecedor" />
@@ -560,10 +560,10 @@ function prismaForItemValidation() {
         vatRate: { findMany: async () => [{ id: "vat-1", rateBps: 2300 }] },
         purchaseDocument: {
             create: async () => {
-                throw new Error("Nao deve criar compra quando o artigo nao pertence a empresa");
+                throw new Error("Não deve criar compra quando o artigo não pertence à empresa");
             },
         },
-        auditLog: { create: async () => assert.fail("Nao deve auditar compra invalida") },
+        auditLog: { create: async () => assert.fail("Não deve auditar compra inválida") },
     };
     return {
         fiscalPeriod: { findFirst: async () => ({ id: "period-1", isClosed: false }) },
@@ -571,7 +571,7 @@ function prismaForItemValidation() {
     };
 }
 
-test("rejeita linha com artigo que nao pertence a empresa ativa", async () => {
+test("rejeita linha com artigo que não pertence à empresa ativa", async () => {
     const prisma = prismaForItemValidation();
     const input = {
         kind: "SUPPLIER_INVOICE",
@@ -592,7 +592,7 @@ test("rejeita linha com artigo que nao pertence a empresa ativa", async () => {
 
 5. Explicação do código.
 
-A pagina `PurchaseDocumentsPage.tsx` fecha a parte visual deste BK: tem estado local, validacao minima, mensagens de erro/sucesso e chama endpoints reais atraves do cliente API. A UI ajuda o utilizador, mas as regras de seguranca, multiempresa e fiscalidade continuam no backend.
+A página `PurchaseDocumentsPage.tsx` fecha a parte visual deste BK: tem estado local, validação mínima, mensagens de erro/sucesso e chama endpoints reais através do cliente API. A UI ajuda o utilizador, mas as regras de segurança, multiempresa e fiscalidade continuam no backend.
 
 O cliente API mantém o contrato entre UI e backend num ponto único. Os testes focam o comportamento que protege a contabilidade: validação, transação, estado e isolamento por empresa.
 
@@ -751,5 +751,6 @@ O `BK-MF1-08` usa `PurchaseDocument.totalCents`, `amountPaidCents` e `status` pa
 
 ## Changelog
 
+- `2026-06-01`: Dependências técnicas canónicas alinhadas com a matriz, backlog e risco de PR da MF1.
 - `2026-05-31`: Corrigida fundamentação documental, validação multiempresa de artigos, auditoria de compra e teste autocontido.
 - `2026-05-31`: Guia consolidado com contrato técnico completo, código por camada, validações e handoff MF1.

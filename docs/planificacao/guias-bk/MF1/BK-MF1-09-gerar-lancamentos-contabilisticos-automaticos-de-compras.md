@@ -10,14 +10,14 @@
 - `prioridade`: `P0`
 - `estado`: `TODO`
 - `esforco`: `M`
-- `dependencias`: `BK-MF1-07`
+- `dependencias`: `BK-MF0-03, BK-MF0-08, BK-MF1-04, BK-MF1-07`
 - `rf_rnf`: `RF21`
 - `fase_documental`: `Fase 1`
 - `sprint`: `S03-S04`
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF1-10`
 - `guia_path`: `docs/planificacao/guias-bk/MF1/BK-MF1-09-gerar-lancamentos-contabilisticos-automaticos-de-compras.md`
-- `last_updated`: `2026-05-31`
+- `last_updated`: `2026-06-01`
 
 ## Objetivo
 
@@ -51,7 +51,7 @@ Uma compra registada/aprovada gera lançamento equilibrado com gastos, IVA dedut
 
 - Ler `docs/RF.md`, `docs/RNF.md`, `docs/planificacao/backlogs/BACKLOG-MVP.md`, `docs/planificacao/backlogs/MATRIZ-CANONICA-BK.md`, `docs/planificacao/backlogs/CONTRATO-CAMPOS-BK.md` e `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md`.
 - Confirmar que autenticação, contexto de empresa, roles/permissões e erros HTTP da MF0 estão disponíveis.
-- Confirmar dependências canónicas: `BK-MF1-07`.
+- Confirmar dependências canónicas: `BK-MF0-03, BK-MF0-08, BK-MF1-04, BK-MF1-07`.
 - Nunca receber `companyId` do corpo do pedido; usar sempre o contexto autenticado.
 
 ## Fundamentação documental
@@ -70,14 +70,14 @@ Uma compra registada/aprovada gera lançamento equilibrado com gastos, IVA dedut
 
 ## Conceitos teóricos essenciais
 
-- **Lancamento de compra:** transforma a compra operacional em diario contabilistico; vem do RF21 e prepara mapas de IVA.
-- **Conta 62:** representa gastos ou compras; recebe debito em fatura normal.
-- **Conta 2432:** representa IVA dedutivel; recebe debito quando a empresa pode deduzir IVA.
-- **Conta 221:** representa fornecedores; recebe credito pelo valor a pagar.
-- **Nota de credito de fornecedor:** inverte fornecedor, gasto e IVA dedutivel para reduzir a divida.
-- **Idempotencia:** impede contabilizar a mesma compra duas vezes.
-- **Periodo fiscal aberto:** bloqueia lancamento quando o periodo esta fechado.
-- **Frontend:** dispara contabilizacao e mostra feedback; os valores contabilisticos ficam sempre no backend.
+- **Lançamento de compra:** transforma a compra operacional em diário contabilístico; vem do RF21 e prepara mapas de IVA.
+- **Conta 62:** representa gastos ou compras; recebe débito em fatura normal.
+- **Conta 2432:** representa IVA dedutível; recebe débito quando a empresa pode deduzir IVA.
+- **Conta 221:** representa fornecedores; recebe crédito pelo valor a pagar.
+- **Nota de crédito de fornecedor:** inverte fornecedor, gasto e IVA dedutível para reduzir a dívida.
+- **Idempotência:** impede contabilizar a mesma compra duas vezes.
+- **Período fiscal aberto:** bloqueia lançamento quando o período está fechado.
+- **Frontend:** dispara contabilização e mostra feedback; os valores contabilísticos ficam sempre no backend.
 
 ## Arquitetura do BK
 
@@ -128,7 +128,7 @@ Garantir que BK-MF1-09 implementa apenas RF21, com dependências, owner, priorid
 
 3. Instruções do que fazer.
 
-Confirmar que o BK é `BK-MF1-09`, requisito `RF21`, dependências `BK-MF1-07`, sprint `S03-S04` e próximo BK `BK-MF1-10`. Se o código real tiver caminhos diferentes, manter contratos de negócio e registar a decisão na evidência.
+Confirmar que o BK é `BK-MF1-09`, requisito `RF21`, dependências `BK-MF0-03, BK-MF0-08, BK-MF1-04, BK-MF1-07`, sprint `S03-S04` e próximo BK `BK-MF1-10`. Se o código real tiver caminhos diferentes, manter contratos de negócio e registar a decisão na evidência.
 
 4. Código completo, correto e integrado com a app final.
 
@@ -137,7 +137,7 @@ bk=BK-MF1-09
 macro=MF1
 rf=RF21
 endpoint=/api/accounting/purchase-postings/:purchaseDocumentId
-deps=BK-MF1-07
+deps=BK-MF0-03, BK-MF0-08, BK-MF1-04, BK-MF1-07
 ```
 
 5. Explicação do código.
@@ -202,7 +202,7 @@ async function accountByCode(tx, companyId, code) {
 
 export async function postPurchaseDocumentInTransaction(tx, companyId, userId, purchaseDocumentId) {
     const document = await tx.purchaseDocument.findFirst({ where: { id: purchaseDocumentId, companyId }, include: { lines: true } });
-    if (!document) throw httpError(404, "PURCHASE_DOCUMENT_NOT_FOUND", "Documento de compra nao encontrado");
+    if (!document) throw httpError(404, "PURCHASE_DOCUMENT_NOT_FOUND", "Documento de compra não encontrado");
     if (document.status !== "APPROVED" && document.status !== "PAID") throw httpError(409, "INVALID_STATUS", "Apenas compras aprovadas ou pagas podem ser contabilizadas");
     await assertOpenFiscalPeriod(tx, { companyId, documentDate: document.issuedAt });
 
@@ -214,12 +214,12 @@ export async function postPurchaseDocumentInTransaction(tx, companyId, userId, p
         ? [
             // A nota de crédito reduz a dívida ao fornecedor e reverte gasto e IVA dedutível.
             { accountId: supplierAccount.id, debitCents: document.totalCents, creditCents: 0, memo: "Credito de fornecedor" },
-            { accountId: expenseAccount.id, debitCents: 0, creditCents: document.subtotalCents, memo: "Reversao de gasto" },
-            { accountId: vatAccount.id, debitCents: 0, creditCents: document.vatCents, memo: "Reversao de IVA dedutivel" },
+            { accountId: expenseAccount.id, debitCents: 0, creditCents: document.subtotalCents, memo: "Reversão de gasto" },
+            { accountId: vatAccount.id, debitCents: 0, creditCents: document.vatCents, memo: "Reversão de IVA dedutível" },
         ]
         : [
             { accountId: expenseAccount.id, debitCents: document.subtotalCents, creditCents: 0, memo: "Compra" },
-            { accountId: vatAccount.id, debitCents: document.vatCents, creditCents: 0, memo: "IVA dedutivel" },
+            { accountId: vatAccount.id, debitCents: document.vatCents, creditCents: 0, memo: "IVA dedutível" },
             { accountId: supplierAccount.id, debitCents: 0, creditCents: document.totalCents, memo: "Fornecedor" },
         ];
     const nonZeroLines = lines.filter((line) => line.debitCents > 0 || line.creditCents > 0);
@@ -240,7 +240,7 @@ export async function postPurchaseDocumentInTransaction(tx, companyId, userId, p
         });
         return entry;
     } catch (error) {
-        if (error.code === "P2002") throw httpError(409, "PURCHASE_ALREADY_POSTED", "Compra ja contabilizada");
+        if (error.code === "P2002") throw httpError(409, "PURCHASE_ALREADY_POSTED", "Compra já contabilizada");
         throw error;
     }
 }
@@ -352,9 +352,9 @@ export function PurchasePostingsPage() {
         setLoading(true);
         try {
             await postPurchaseDocument(purchaseDocumentId.trim());
-            setSuccess("Lancamento contabilistico da compra criado com sucesso.");
+            setSuccess("Lançamento contabilístico da compra criado com sucesso.");
         } catch (err) {
-            setError(err instanceof Error ? err.message : "Nao foi possivel contabilizar a compra.");
+            setError(err instanceof Error ? err.message : "Não foi possível contabilizar a compra.");
         } finally {
             setLoading(false);
         }
@@ -365,7 +365,7 @@ export function PurchasePostingsPage() {
             <h1>Contabilizar compra</h1>
             <form onSubmit={handleSubmit} aria-label="Contabilizar compra">
                 <input value={purchaseDocumentId} onChange={(event) => setPurchaseDocumentId(event.target.value)} placeholder="ID do documento de compra" />
-                <button type="submit" disabled={loading}>{loading ? "A contabilizar..." : "Criar lancamento"}</button>
+                <button type="submit" disabled={loading}>{loading ? "A contabilizar..." : "Criar lançamento"}</button>
             </form>
             {error && <p role="alert">{error}</p>}
             {success && <p role="status">{success}</p>}
@@ -381,7 +381,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { postPurchaseDocument } from "./purchasePostingService.js";
 
-test("nao duplica diario da mesma compra", async () => {
+test("não duplica diário da mesma compra", async () => {
     const prisma = {
         $transaction: async (callback) => callback({
             purchaseDocument: { findFirst: async () => ({ id: "purchase-1", companyId: "company-1", status: "APPROVED", kind: "SUPPLIER_INVOICE", supplierNumber: "FT-FORN-1", issuedAt: new Date("2026-05-31"), subtotalCents: 10000, vatCents: 2300, totalCents: 12300, lines: [] }) },
@@ -394,7 +394,7 @@ test("nao duplica diario da mesma compra", async () => {
                     throw error;
                 },
             },
-            auditLog: { create: async () => assert.fail("Nao deve auditar lancamento duplicado") },
+            auditLog: { create: async () => assert.fail("Não deve auditar lançamento duplicado") },
         }),
     };
 
@@ -407,7 +407,7 @@ test("nao duplica diario da mesma compra", async () => {
 
 5. Explicação do código.
 
-A pagina `PurchasePostingsPage.tsx` fecha a parte visual deste BK: tem estado local, validacao minima, mensagens de erro/sucesso e chama endpoints reais atraves do cliente API. A UI ajuda o utilizador, mas as regras de seguranca, multiempresa e fiscalidade continuam no backend.
+A página `PurchasePostingsPage.tsx` fecha a parte visual deste BK: tem estado local, validação mínima, mensagens de erro/sucesso e chama endpoints reais através do cliente API. A UI ajuda o utilizador, mas as regras de segurança, multiempresa e fiscalidade continuam no backend.
 
 O cliente API mantém o contrato entre UI e backend num ponto único. Os testes focam o comportamento que protege a contabilidade: validação, transação, estado e isolamento por empresa.
 
@@ -566,5 +566,6 @@ O `BK-MF3-01` deve ler `JournalEntry` com `source=PURCHASE` e contas de IVA para
 
 ## Changelog
 
+- `2026-06-01`: Dependências técnicas canónicas alinhadas com a matriz, backlog e risco de PR da MF1.
 - `2026-05-31`: Corrigida fundamentação documental, helper transacional de contabilização, auditoria do lançamento e teste autocontido.
 - `2026-05-31`: Guia consolidado com contrato técnico completo, código por camada, validações e handoff MF1.

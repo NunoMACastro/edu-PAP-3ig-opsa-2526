@@ -10,18 +10,18 @@
 - `prioridade`: `P0`
 - `estado`: `TODO`
 - `esforco`: `M`
-- `dependencias`: `-`
+- `dependencias`: `BK-MF0-03`
 - `rf_rnf`: `RF13`
 - `fase_documental`: `Fase 1`
 - `sprint`: `S03-S04`
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF1-02`
 - `guia_path`: `docs/planificacao/guias-bk/MF1/BK-MF1-01-configurar-tabelas-de-iva-taxas-isencoes-codigos.md`
-- `last_updated`: `2026-05-31`
+- `last_updated`: `2026-06-01`
 
 ## Objetivo
 
-Executar RF13 para iva, seguindo os documentos canónicos e a stack contratada: React + Vite + TypeScript no frontend, Node.js + Express em ES Modules no backend, PostgreSQL e Prisma/equivalente na persistência.
+Executar RF13 para IVA, seguindo os documentos canónicos e a stack contratada: React + Vite + TypeScript no frontend, Node.js + Express em ES Modules no backend, PostgreSQL e Prisma/equivalente na persistência.
 
 ## Importância funcional e pedagógica
 
@@ -53,7 +53,7 @@ A empresa consegue criar, listar e desativar taxas/códigos de IVA por empresa, 
 
 - Ler `docs/RF.md`, `docs/RNF.md`, `docs/planificacao/backlogs/BACKLOG-MVP.md`, `docs/planificacao/backlogs/MATRIZ-CANONICA-BK.md`, `docs/planificacao/backlogs/CONTRATO-CAMPOS-BK.md` e `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md`.
 - Confirmar que autenticação, contexto de empresa, roles/permissões e erros HTTP da MF0 estão disponíveis.
-- Confirmar dependências canónicas: `-`.
+- Confirmar dependências canónicas: `BK-MF0-03`.
 - Nunca receber `companyId` do corpo do pedido; usar sempre o contexto autenticado.
 
 ## Fundamentação documental
@@ -72,13 +72,13 @@ A empresa consegue criar, listar e desativar taxas/códigos de IVA por empresa, 
 
 ## Conceitos teóricos essenciais
 
-- **Tabela de IVA:** e o conjunto de codigos, taxas e motivos de isencao que a empresa usa em artigos, vendas, compras e mapas fiscais; vem do RF13 e prepara BK-MF1-02, BK-MF1-07 e BK-MF3-01.
-- **Basis points:** guardam a taxa como inteiro: 2300 representa 23%; isto evita erros de arredondamento com numeros decimais em JavaScript.
-- **Motivo de isencao:** explica porque uma taxa a 0% e aceite; evita documentos fiscais sem justificação quando o tipo e `EXEMPT`.
-- **Service backend:** valida codigo, descricao, taxa, tipo e isencao antes de gravar; recebe dados do controller e grava sempre com `companyId` da sessao.
-- **Route protegida:** exige utilizador autenticado, empresa ativa e role autorizada; evita que a UI seja a unica barreira de seguranca.
-- **Componente React:** mostra lista, formulario e feedback de erro/sucesso; envia cookies com `credentials: "include"` atraves do `apiClient`.
-- **Multiempresa:** obriga cada query a filtrar por empresa; evita que uma taxa de IVA de uma empresa apareca noutra.
+- **Tabela de IVA:** é o conjunto de códigos, taxas e motivos de isenção que a empresa usa em artigos, vendas, compras e mapas fiscais; vem do RF13 e prepara BK-MF1-02, BK-MF1-07 e BK-MF3-01.
+- **Basis points:** guardam a taxa como inteiro: 2300 representa 23%; isto evita erros de arredondamento com números decimais em JavaScript.
+- **Motivo de isenção:** explica porque uma taxa a 0% é aceite; evita documentos fiscais sem justificação quando o tipo é `EXEMPT`.
+- **Service backend:** valida código, descrição, taxa, tipo e isenção antes de gravar; recebe dados do controller e grava sempre com `companyId` da sessão.
+- **Route protegida:** exige utilizador autenticado, empresa ativa e role autorizada; evita que a UI seja a única barreira de segurança.
+- **Componente React:** mostra lista, formulário e feedback de erro/sucesso; envia cookies com `credentials: "include"` através do `apiClient`.
+- **Multiempresa:** obriga cada query a filtrar por empresa; evita que uma taxa de IVA de uma empresa apareça noutra.
 - **Handoff:** os documentos de venda e compra passam a referenciar `vatRateId` em vez de aceitar taxas soltas enviadas pelo browser.
 
 ## Arquitetura do BK
@@ -130,7 +130,7 @@ Garantir que BK-MF1-01 implementa apenas RF13, com dependências, owner, priorid
 
 3. Instruções do que fazer.
 
-Confirmar que o BK é `BK-MF1-01`, requisito `RF13`, dependências `-`, sprint `S03-S04` e próximo BK `BK-MF1-02`. Se o código real tiver caminhos diferentes, manter contratos de negócio e registar a decisão na evidência.
+Confirmar que o BK é `BK-MF1-01`, requisito `RF13`, dependências `BK-MF0-03`, sprint `S03-S04` e próximo BK `BK-MF1-02`. Se o código real tiver caminhos diferentes, manter contratos de negócio e registar a decisão na evidência.
 
 4. Código completo, correto e integrado com a app final.
 
@@ -139,7 +139,7 @@ bk=BK-MF1-01
 macro=MF1
 rf=RF13
 endpoint=/api/vat-rates
-deps=-
+deps=BK-MF0-03
 ```
 
 5. Explicação do código.
@@ -158,7 +158,7 @@ Se surgir uma regra sem fonte documental, não a transformar em requisito; regis
 
 1. Objetivo funcional do passo no ERP.
 
-Criar a persistência e as regras backend para iva, com validação, transações e isolamento por empresa.
+Criar a persistência e as regras backend para IVA, com validação, transações e isolamento por empresa.
 
 2. Ficheiros envolvidos:
 - CRIAR: `apps/api/src/modules/vat-rates/` com service e routes.
@@ -246,11 +246,11 @@ export function validateVatRateInput(input) {
     const exemptionReason = normalizeText(input.exemptionReason) || null;
     const rateBps = Number(input.rateBps);
 
-    if (!code || code.length > 20) throw httpError(400, "INVALID_CODE", "Codigo de IVA invalido");
-    if (!description || description.length > 120) throw httpError(400, "INVALID_DESCRIPTION", "Descricao de IVA invalida");
-    if (!vatTypes.has(type)) throw httpError(400, "INVALID_TYPE", "Tipo de IVA invalido");
-    if (!Number.isInteger(rateBps) || rateBps < 0 || rateBps > 10000) throw httpError(400, "INVALID_RATE", "Taxa de IVA invalida");
-    if (type === "EXEMPT" && !exemptionReason) throw httpError(400, "MISSING_EXEMPTION_REASON", "Motivo de isencao obrigatorio");
+    if (!code || code.length > 20) throw httpError(400, "INVALID_CODE", "Código de IVA inválido");
+    if (!description || description.length > 120) throw httpError(400, "INVALID_DESCRIPTION", "Descrição de IVA inválida");
+    if (!vatTypes.has(type)) throw httpError(400, "INVALID_TYPE", "Tipo de IVA inválido");
+    if (!Number.isInteger(rateBps) || rateBps < 0 || rateBps > 10000) throw httpError(400, "INVALID_RATE", "Taxa de IVA inválida");
+    if (type === "EXEMPT" && !exemptionReason) throw httpError(400, "MISSING_EXEMPTION_REASON", "Motivo de isenção obrigatório");
 
     return { code, description, type, exemptionReason, rateBps };
 }
@@ -264,14 +264,14 @@ export async function createVatRate(prisma, companyId, input) {
     try {
         return await prisma.vatRate.create({ data: { ...data, companyId } });
     } catch (error) {
-        if (error.code === "P2002") throw httpError(409, "VAT_RATE_EXISTS", "Codigo de IVA ja existe nesta empresa");
+        if (error.code === "P2002") throw httpError(409, "VAT_RATE_EXISTS", "Código de IVA já existe nesta empresa");
         throw error;
     }
 }
 
 export async function setVatRateActive(prisma, companyId, id, isActive) {
     const found = await prisma.vatRate.findFirst({ where: { id, companyId } });
-    if (!found) throw httpError(404, "VAT_RATE_NOT_FOUND", "Taxa de IVA nao encontrada");
+    if (!found) throw httpError(404, "VAT_RATE_NOT_FOUND", "Taxa de IVA não encontrada");
     if (typeof isActive !== "boolean") {
         throw httpError(400, "INVALID_ACTIVE_FLAG", "isActive deve ser booleano");
     }
@@ -446,7 +446,7 @@ export function VatRatesPage() {
         try {
             setRates(await fetchVatRates());
         } catch (err) {
-            setError(err instanceof Error ? err.message : "Nao foi possivel carregar as taxas de IVA.");
+            setError(err instanceof Error ? err.message : "Não foi possível carregar as taxas de IVA.");
         } finally {
             setLoading(false);
         }
@@ -459,11 +459,11 @@ export function VatRatesPage() {
         setError(null);
         setSuccess(null);
         if (!form.code.trim() || !form.description.trim()) {
-            setError("Preenche o codigo e a descricao da taxa de IVA.");
+            setError("Preenche o código e a descrição da taxa de IVA.");
             return;
         }
         if (form.type === "EXEMPT" && !form.exemptionReason.trim()) {
-            setError("Uma taxa isenta precisa de motivo de isencao.");
+            setError("Uma taxa isenta precisa de motivo de isenção.");
             return;
         }
 
@@ -474,7 +474,7 @@ export function VatRatesPage() {
             setSuccess("Taxa de IVA criada com sucesso.");
             await loadRates();
         } catch (err) {
-            setError(err instanceof Error ? err.message : "Nao foi possivel criar a taxa de IVA.");
+            setError(err instanceof Error ? err.message : "Não foi possível criar a taxa de IVA.");
         } finally {
             setSaving(false);
         }
@@ -489,7 +489,7 @@ export function VatRatesPage() {
             setSuccess(rate.isActive ? "Taxa de IVA desativada." : "Taxa de IVA ativada.");
             await loadRates();
         } catch (err) {
-            setError(err instanceof Error ? err.message : "Nao foi possivel alterar o estado da taxa de IVA.");
+            setError(err instanceof Error ? err.message : "Não foi possível alterar o estado da taxa de IVA.");
         } finally {
             setUpdatingId(null);
         }
@@ -499,8 +499,8 @@ export function VatRatesPage() {
         <main>
             <h1>Tabelas de IVA</h1>
             <form onSubmit={handleSubmit} aria-label="Criar taxa de IVA">
-                <input value={form.code} onChange={(event) => setForm({ ...form, code: event.target.value })} placeholder="Codigo" />
-                <input value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} placeholder="Descricao" />
+                <input value={form.code} onChange={(event) => setForm({ ...form, code: event.target.value })} placeholder="Código" />
+                <input value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} placeholder="Descrição" />
                 <input type="number" value={form.rateBps} onChange={(event) => setForm({ ...form, rateBps: Number(event.target.value) })} />
                 <select value={form.type} onChange={(event) => setForm({ ...form, type: event.target.value })}>
                     <option value="NORMAL">Normal</option>
@@ -509,12 +509,12 @@ export function VatRatesPage() {
                     <option value="EXEMPT">Isenta</option>
                     <option value="OTHER">Outra</option>
                 </select>
-                <input value={form.exemptionReason} onChange={(event) => setForm({ ...form, exemptionReason: event.target.value })} placeholder="Motivo de isencao" />
+                <input value={form.exemptionReason} onChange={(event) => setForm({ ...form, exemptionReason: event.target.value })} placeholder="Motivo de isenção" />
                 <button type="submit" disabled={saving}>{saving ? "A guardar..." : "Guardar taxa"}</button>
             </form>
             {error && <p role="alert">{error}</p>}
             {success && <p role="status">{success}</p>}
-            {loading ? <p>A carregar taxas...</p> : rates.length === 0 ? <p>Ainda nao existem taxas de IVA.</p> : (
+            {loading ? <p>A carregar taxas...</p> : rates.length === 0 ? <p>Ainda não existem taxas de IVA.</p> : (
                 <ul>
                     {rates.map((rate) => (
                         <li key={rate.id}>
@@ -545,7 +545,7 @@ test("rejeita taxa isenta sem motivo", () => {
     );
 });
 
-test("rejeita ativacao quando isActive nao e booleano", async () => {
+test("rejeita ativação quando isActive não é booleano", async () => {
     const calls = [];
     const prisma = {
         vatRate: {
@@ -569,7 +569,7 @@ test("rejeita ativacao quando isActive nao e booleano", async () => {
 
 5. Explicação do código.
 
-A pagina `VatRatesPage.tsx` fecha a parte visual deste BK: tem estado local, validacao minima, mensagens de erro/sucesso e chama endpoints reais atraves do cliente API. A UI ajuda o utilizador, mas as regras de seguranca, multiempresa e fiscalidade continuam no backend.
+A página `VatRatesPage.tsx` fecha a parte visual deste BK: tem estado local, validação mínima, mensagens de erro/sucesso e chama endpoints reais através do cliente API. A UI ajuda o utilizador, mas as regras de segurança, multiempresa e fiscalidade continuam no backend.
 
 `apiClient.ts` fica como ponto único para chamadas HTTP do frontend. O uso de `credentials: "include"` é obrigatório porque a autenticação da MF0 usa cookie HttpOnly; sem isto, o browser não envia a sessão e a API responde `401`.
 
@@ -790,5 +790,6 @@ O `BK-MF1-02` deve usar `VatRate` ativo para calcular linhas de venda e guardar 
 
 ## Changelog
 
+- `2026-06-01`: Dependências técnicas canónicas alinhadas com a matriz, backlog e risco de PR da MF1.
 - `2026-05-31`: Corrigida fundamentação documental, relação inversa de `VatRate`, validação booleana estrita e teste autocontido.
 - `2026-05-31`: Guia consolidado com contrato técnico completo, código por camada, validações e handoff MF1.

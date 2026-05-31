@@ -10,14 +10,14 @@
 - `prioridade`: `P1`
 - `estado`: `TODO`
 - `esforco`: `S`
-- `dependencias`: `-`
+- `dependencias`: `BK-MF0-03, BK-MF1-02, BK-MF1-03`
 - `rf_rnf`: `RF17`
 - `fase_documental`: `Fase 1`
 - `sprint`: `S03-S04`
 - `core_or_reforco`: `Core`
 - `proximo_bk`: `BK-MF1-06`
 - `guia_path`: `docs/planificacao/guias-bk/MF1/BK-MF1-05-consultar-titulos-em-aberto-e-antiguidade-de-saldos.md`
-- `last_updated`: `2026-05-31`
+- `last_updated`: `2026-06-01`
 
 ## Objetivo
 
@@ -51,7 +51,7 @@ A API devolve documentos de venda com saldo em aberto, dias de atraso e bucket d
 
 - Ler `docs/RF.md`, `docs/RNF.md`, `docs/planificacao/backlogs/BACKLOG-MVP.md`, `docs/planificacao/backlogs/MATRIZ-CANONICA-BK.md`, `docs/planificacao/backlogs/CONTRATO-CAMPOS-BK.md` e `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md`.
 - Confirmar que autenticação, contexto de empresa, roles/permissões e erros HTTP da MF0 estão disponíveis.
-- Confirmar dependências canónicas: `-`.
+- Confirmar dependências canónicas: `BK-MF0-03, BK-MF1-02, BK-MF1-03`.
 - Confirmar reutilização técnica do `BK-MF1-02` e `BK-MF1-03`: a listagem usa documentos emitidos e montantes recebidos.
 - Nunca receber `companyId` do corpo do pedido; usar sempre o contexto autenticado.
 
@@ -71,14 +71,14 @@ A API devolve documentos de venda com saldo em aberto, dias de atraso e bucket d
 
 ## Conceitos teóricos essenciais
 
-- **Titulo em aberto:** e um documento de venda emitido com saldo por receber; vem do RF17 e ajuda gestor e operacional a acompanhar cobrancas.
-- **Antiguidade de saldos:** agrupa dividas por dias de atraso: nao vencido, 1-30, 31-60, 61-90 e mais de 90 dias.
-- **Data de referencia:** permite calcular ageing numa data especifica sem alterar os documentos.
+- **Título em aberto:** é um documento de venda emitido com saldo por receber; vem do RF17 e ajuda gestor e operacional a acompanhar cobranças.
+- **Antiguidade de saldos:** agrupa dívidas por dias de atraso: não vencido, 1-30, 31-60, 61-90 e mais de 90 dias.
+- **Data de referência:** permite calcular ageing numa data específica sem alterar os documentos.
 - **Saldo aberto:** usa totais e recebimentos anteriores; evita mostrar documentos liquidados.
-- **Service de consulta:** nao cria dados, apenas le documentos da empresa ativa e calcula buckets.
+- **Service de consulta:** não cria dados, apenas le documentos da empresa ativa e calcula buckets.
 - **Componente React:** mostra filtro por data, loading, empty, erro e tabela de resultados.
-- **Seguranca:** auditor pode consultar, mas nao escrever; roles sao verificadas no backend.
-- **Handoff:** a previsao de tesouraria usa estes saldos como entradas futuras esperadas.
+- **Segurança:** auditor pode consultar, mas não escrever; roles são verificadas no backend.
+- **Handoff:** a previsão de tesouraria usa estes saldos como entradas futuras esperadas.
 
 ## Arquitetura do BK
 
@@ -130,7 +130,7 @@ Garantir que BK-MF1-05 implementa apenas RF17, com dependências, owner, priorid
 
 3. Instruções do que fazer.
 
-Confirmar que o BK é `BK-MF1-05`, requisito `RF17`, dependências `-`, sprint `S03-S04` e próximo BK `BK-MF1-06`. Se o código real tiver caminhos diferentes, manter contratos de negócio e registar a decisão na evidência.
+Confirmar que o BK é `BK-MF1-05`, requisito `RF17`, dependências `BK-MF0-03, BK-MF1-02, BK-MF1-03`, sprint `S03-S04` e próximo BK `BK-MF1-06`. Se o código real tiver caminhos diferentes, manter contratos de negócio e registar a decisão na evidência.
 
 4. Código completo, correto e integrado com a app final.
 
@@ -139,7 +139,7 @@ bk=BK-MF1-05
 macro=MF1
 rf=RF17
 endpoint=/api/sales/open-items
-deps=-
+deps=BK-MF0-03, BK-MF1-02, BK-MF1-03
 ```
 
 5. Explicação do código.
@@ -183,7 +183,7 @@ import { httpError } from "../../lib/httpErrors.js";
 
 function parseAsOfDate(value) {
     const date = value ? new Date(value) : new Date();
-    if (Number.isNaN(date.getTime())) throw httpError(400, "INVALID_DATE", "Data de referencia invalida");
+    if (Number.isNaN(date.getTime())) throw httpError(400, "INVALID_DATE", "Data de referência inválida");
     return date;
 }
 
@@ -314,7 +314,7 @@ export function SalesOpenItemsPage() {
             const response = await fetchSalesOpenItems(date);
             setItems(response.data);
         } catch (err) {
-            setError(err instanceof Error ? err.message : "Nao foi possivel carregar titulos em aberto.");
+            setError(err instanceof Error ? err.message : "Não foi possível carregar títulos em aberto.");
         } finally {
             setLoading(false);
         }
@@ -330,12 +330,12 @@ export function SalesOpenItemsPage() {
     return (
         <main>
             <h1>Titulos em aberto</h1>
-            <form onSubmit={handleSubmit} aria-label="Filtrar titulos em aberto">
+            <form onSubmit={handleSubmit} aria-label="Filtrar títulos em aberto">
                 <input type="date" value={asOfDate} onChange={(event) => setAsOfDate(event.target.value)} />
                 <button type="submit">Atualizar</button>
             </form>
             {error && <p role="alert">{error}</p>}
-            {loading ? <p>A carregar titulos...</p> : items.length === 0 ? <p>Nao existem valores em aberto.</p> : (
+            {loading ? <p>A carregar títulos...</p> : items.length === 0 ? <p>Não existem valores em aberto.</p> : (
                 <table>
                     <thead><tr><th>Documento</th><th>Cliente</th><th>Valor em aberto</th><th>Atraso</th><th>Bucket</th></tr></thead>
                     <tbody>{items.map((item) => <tr key={item.id}><td>{item.number}</td><td>{item.customerName}</td><td>{item.openAmountCents / 100} EUR</td><td>{item.daysOverdue} dias</td><td>{item.bucket}</td></tr>)}</tbody>
@@ -382,7 +382,7 @@ test("coloca documento vencido ha 45 dias no bucket correto", async () => {
 
 5. Explicação do código.
 
-A pagina `SalesOpenItemsPage.tsx` fecha a parte visual deste BK: tem estado local, validacao minima, mensagens de erro/sucesso e chama endpoints reais atraves do cliente API. A UI ajuda o utilizador, mas as regras de seguranca, multiempresa e fiscalidade continuam no backend.
+A página `SalesOpenItemsPage.tsx` fecha a parte visual deste BK: tem estado local, validação mínima, mensagens de erro/sucesso e chama endpoints reais através do cliente API. A UI ajuda o utilizador, mas as regras de segurança, multiempresa e fiscalidade continuam no backend.
 
 O cliente API mantém o contrato entre UI e backend num ponto único. Os testes focam o comportamento que protege a contabilidade: validação, transação, estado e isolamento por empresa.
 
@@ -497,5 +497,6 @@ O `BK-MF1-06` não altera a leitura de saldos; apenas impede emissão final ante
 
 ## Changelog
 
+- `2026-06-01`: Dependências técnicas canónicas alinhadas com a matriz, backlog e risco de PR da MF1.
 - `2026-05-31`: Corrigida fundamentação documental dos buckets e teste autocontido de antiguidade.
 - `2026-05-31`: Guia consolidado com contrato técnico completo, código por camada, validações e handoff MF1.

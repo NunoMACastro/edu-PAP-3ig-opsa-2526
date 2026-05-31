@@ -10,14 +10,14 @@
 - `prioridade`: `P1`
 - `estado`: `TODO`
 - `esforco`: `S`
-- `dependencias`: `BK-MF1-02`
+- `dependencias`: `BK-MF0-03, BK-MF1-02`
 - `rf_rnf`: `RF18`
 - `fase_documental`: `Fase 1`
 - `sprint`: `S03-S04`
 - `core_or_reforco`: `Core`
 - `proximo_bk`: `BK-MF1-07`
 - `guia_path`: `docs/planificacao/guias-bk/MF1/BK-MF1-06-submeter-documentos-de-venda-para-aprovacao-antes-de-emissao-definitiva.md`
-- `last_updated`: `2026-05-31`
+- `last_updated`: `2026-06-01`
 
 ## Objetivo
 
@@ -51,7 +51,7 @@ O documento pode circular entre rascunho, submetido, aprovado e rejeitado, com u
 
 - Ler `docs/RF.md`, `docs/RNF.md`, `docs/planificacao/backlogs/BACKLOG-MVP.md`, `docs/planificacao/backlogs/MATRIZ-CANONICA-BK.md`, `docs/planificacao/backlogs/CONTRATO-CAMPOS-BK.md` e `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md`.
 - Confirmar que autenticação, contexto de empresa, roles/permissões e erros HTTP da MF0 estão disponíveis.
-- Confirmar dependências canónicas: `BK-MF1-02`.
+- Confirmar dependências canónicas: `BK-MF0-03, BK-MF1-02`.
 - Nunca receber `companyId` do corpo do pedido; usar sempre o contexto autenticado.
 
 ## Fundamentação documental
@@ -70,14 +70,14 @@ O documento pode circular entre rascunho, submetido, aprovado e rejeitado, com u
 
 ## Conceitos teóricos essenciais
 
-- **Workflow de aprovacao:** controla o caminho `DRAFT -> SUBMITTED -> APPROVED/REJECTED`; vem do RF18 e evita emissao sem revisao.
-- **Segregacao de funcoes:** separa quem prepara o documento de quem aprova; reduz risco de erro ou abuso.
-- **Auditoria:** regista utilizador, acao, entidade e data em `AuditLog`; prepara RF47/RNF17.
-- **Motivo de rejeicao:** explica porque o documento voltou ao estado anterior; ajuda defesa e rastreabilidade.
-- **Emissao apos aprovacao:** a funcao `issueSaleDocument` passa a exigir `APPROVED`; isto aperta a regra criada no BK-MF1-02.
-- **Routes protegidas:** roles diferentes submetem e aprovam; o backend bloqueia mesmo que a UI mostre botao por engano.
-- **Frontend:** exibe acoes de submeter, aprovar e rejeitar com motivo e feedback claro.
-- **Handoff:** BK-MF2-01 pode expandir historico e justificacoes com base no audit log.
+- **Workflow de aprovação:** controla o caminho `DRAFT -> SUBMITTED -> APPROVED/REJECTED`; vem do RF18 e evita emissão sem revisão.
+- **Segregação de funções:** separa quem prepara o documento de quem aprova; reduz risco de erro ou abuso.
+- **Auditoria:** regista utilizador, ação, entidade e data em `AuditLog`; prepara RF47/RNF17.
+- **Motivo de rejeição:** explica porque o documento voltou ao estado anterior; ajuda defesa e rastreabilidade.
+- **Emissão após aprovação:** a função `issueSaleDocument` passa a exigir `APPROVED`; isto aperta a regra criada no BK-MF1-02.
+- **Routes protegidas:** roles diferentes submetem e aprovam; o backend bloqueia mesmo que a UI mostre botão por engano.
+- **Frontend:** exibe ações de submeter, aprovar e rejeitar com motivo e feedback claro.
+- **Handoff:** BK-MF2-01 pode expandir histórico e justificações com base no audit log.
 
 ## Arquitetura do BK
 
@@ -128,7 +128,7 @@ Garantir que BK-MF1-06 implementa apenas RF18, com dependências, owner, priorid
 
 3. Instruções do que fazer.
 
-Confirmar que o BK é `BK-MF1-06`, requisito `RF18`, dependências `BK-MF1-02`, sprint `S03-S04` e próximo BK `BK-MF1-07`. Se o código real tiver caminhos diferentes, manter contratos de negócio e registar a decisão na evidência.
+Confirmar que o BK é `BK-MF1-06`, requisito `RF18`, dependências `BK-MF0-03, BK-MF1-02`, sprint `S03-S04` e próximo BK `BK-MF1-07`. Se o código real tiver caminhos diferentes, manter contratos de negócio e registar a decisão na evidência.
 
 4. Código completo, correto e integrado com a app final.
 
@@ -137,7 +137,7 @@ bk=BK-MF1-06
 macro=MF1
 rf=RF18
 endpoint=/api/sales/documents/:id/approval
-deps=BK-MF1-02
+deps=BK-MF0-03, BK-MF1-02
 ```
 
 5. Explicação do código.
@@ -226,10 +226,10 @@ Localização: `apps/api/src/modules/sales/saleDocumentService.js`.
 export async function issueSaleDocument(prisma, companyId, userId, id) {
     return prisma.$transaction(async (tx) => {
         const document = await tx.saleDocument.findFirst({ where: { id, companyId }, include: { lines: true } });
-        if (!document) throw httpError(404, "SALE_DOCUMENT_NOT_FOUND", "Documento de venda nao encontrado");
+        if (!document) throw httpError(404, "SALE_DOCUMENT_NOT_FOUND", "Documento de venda não encontrado");
         // A partir deste BK, a emissão definitiva exige aprovação para garantir segregação de funções.
         if (document.status !== "APPROVED") throw httpError(409, "INVALID_STATUS", "Apenas documentos aprovados podem ser emitidos");
-        if (document.number) throw httpError(409, "DOCUMENT_ALREADY_ISSUED", "Documento ja emitido");
+        if (document.number) throw httpError(409, "DOCUMENT_ALREADY_ISSUED", "Documento já emitido");
         await assertOpenFiscalPeriod(tx, { companyId, documentDate: document.issuedAt });
 
         const number = await nextSaleNumber(tx, companyId, document.kind, document.issuedAt);
@@ -268,7 +268,7 @@ import { httpError } from "../../lib/httpErrors.js";
 
 async function findSaleDocument(prisma, companyId, id) {
     const document = await prisma.saleDocument.findFirst({ where: { id, companyId } });
-    if (!document) throw httpError(404, "SALE_DOCUMENT_NOT_FOUND", "Documento de venda nao encontrado");
+    if (!document) throw httpError(404, "SALE_DOCUMENT_NOT_FOUND", "Documento de venda não encontrado");
     return document;
 }
 
@@ -301,7 +301,7 @@ export async function approveSaleDocument(prisma, companyId, userId, id) {
 
 export async function rejectSaleDocument(prisma, companyId, userId, id, input) {
     const reason = String(input?.reason ?? "").trim();
-    if (reason.length < 3) throw httpError(400, "INVALID_REASON", "Motivo de rejeicao obrigatorio");
+    if (reason.length < 3) throw httpError(400, "INVALID_REASON", "Motivo de rejeição obrigatório");
     const document = await findSaleDocument(prisma, companyId, id);
     if (document.status !== "SUBMITTED") throw httpError(409, "INVALID_STATUS", "Apenas documentos submetidos podem ser rejeitados");
     if (document.submittedById === userId) throw httpError(403, "SEGREGATION_REQUIRED", "Outro utilizador deve rejeitar o documento");
@@ -434,7 +434,7 @@ export function SaleApprovalPage() {
             return;
         }
         if (action === "reject" && !reason.trim()) {
-            setError("Indica o motivo da rejeicao.");
+            setError("Indica o motivo da rejeição.");
             return;
         }
         setLoadingAction(action);
@@ -444,7 +444,7 @@ export function SaleApprovalPage() {
             if (action === "reject") await rejectSaleDocument(saleDocumentId.trim(), reason.trim());
             setSuccess("Estado do documento atualizado com sucesso.");
         } catch (err) {
-            setError(err instanceof Error ? err.message : "Nao foi possivel atualizar o documento.");
+            setError(err instanceof Error ? err.message : "Não foi possível atualizar o documento.");
         } finally {
             setLoadingAction(null);
         }
@@ -457,12 +457,12 @@ export function SaleApprovalPage() {
 
     return (
         <main>
-            <h1>Aprovacao de vendas</h1>
+            <h1>Aprovação de vendas</h1>
             <input value={saleDocumentId} onChange={(event) => setSaleDocumentId(event.target.value)} placeholder="ID do documento de venda" />
             <button type="button" disabled={loadingAction !== null} onClick={() => void runAction("submit")}>Submeter</button>
             <button type="button" disabled={loadingAction !== null} onClick={() => void runAction("approve")}>Aprovar</button>
             <form onSubmit={handleReject} aria-label="Rejeitar documento de venda">
-                <input value={reason} onChange={(event) => setReason(event.target.value)} placeholder="Motivo de rejeicao" />
+                <input value={reason} onChange={(event) => setReason(event.target.value)} placeholder="Motivo de rejeição" />
                 <button type="submit" disabled={loadingAction !== null}>Rejeitar</button>
             </form>
             {loadingAction && <p>A processar...</p>}
@@ -490,7 +490,7 @@ test("obriga motivo ao rejeitar venda", async () => {
 test("impede que o mesmo utilizador aprove o documento que submeteu", async () => {
     const prisma = {
         saleDocument: { findFirst: async () => ({ id: "sale-1", companyId: "company-1", status: "SUBMITTED", submittedById: "user-1" }) },
-        $transaction: async () => assert.fail("Nao deve abrir transacao quando a segregacao falha"),
+        $transaction: async () => assert.fail("Não deve abrir transação quando a segregação falha"),
     };
 
     await assert.rejects(
@@ -502,7 +502,7 @@ test("impede que o mesmo utilizador aprove o documento que submeteu", async () =
 
 5. Explicação do código.
 
-A pagina `SaleApprovalPage.tsx` fecha a parte visual deste BK: tem estado local, validacao minima, mensagens de erro/sucesso e chama endpoints reais atraves do cliente API. A UI ajuda o utilizador, mas as regras de seguranca, multiempresa e fiscalidade continuam no backend.
+A página `SaleApprovalPage.tsx` fecha a parte visual deste BK: tem estado local, validação mínima, mensagens de erro/sucesso e chama endpoints reais através do cliente API. A UI ajuda o utilizador, mas as regras de segurança, multiempresa e fiscalidade continuam no backend.
 
 O cliente API mantém o contrato entre UI e backend num ponto único. Os testes focam o comportamento que protege a contabilidade: validação, transação, estado e isolamento por empresa.
 
@@ -617,5 +617,6 @@ O `BK-MF1-07` inicia o fluxo de compras; o histórico comum de aprovações fica
 
 ## Changelog
 
+- `2026-06-01`: Dependências técnicas canónicas alinhadas com a matriz, backlog e risco de PR da MF1.
 - `2026-05-31`: Corrigida fundamentação documental, segregação de submissão/aprovação, schema acumulado e testes autocontidos.
 - `2026-05-31`: Guia consolidado com contrato técnico completo, código por camada, validações e handoff MF1.

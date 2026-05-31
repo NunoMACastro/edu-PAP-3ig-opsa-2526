@@ -10,14 +10,14 @@
 - `prioridade`: `P0`
 - `estado`: `TODO`
 - `esforco`: `M`
-- `dependencias`: `BK-MF0-09, BK-MF0-11, BK-MF1-01`
+- `dependencias`: `BK-MF0-03, BK-MF0-08, BK-MF0-09, BK-MF0-11, BK-MF1-01`
 - `rf_rnf`: `RF14`
 - `fase_documental`: `Fase 1`
 - `sprint`: `S03-S04`
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF1-03`
 - `guia_path`: `docs/planificacao/guias-bk/MF1/BK-MF1-02-emitir-fatura-fatura-recibo-nota-de-credito-com-numeracao-sequencial.md`
-- `last_updated`: `2026-05-31`
+- `last_updated`: `2026-06-01`
 
 ## Objetivo
 
@@ -53,7 +53,7 @@ A aplicação emite documentos de venda por empresa, com sequência atómica, li
 
 - Ler `docs/RF.md`, `docs/RNF.md`, `docs/planificacao/backlogs/BACKLOG-MVP.md`, `docs/planificacao/backlogs/MATRIZ-CANONICA-BK.md`, `docs/planificacao/backlogs/CONTRATO-CAMPOS-BK.md` e `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md`.
 - Confirmar que autenticação, contexto de empresa, roles/permissões e erros HTTP da MF0 estão disponíveis.
-- Confirmar dependências canónicas: `BK-MF0-09, BK-MF0-11, BK-MF1-01`.
+- Confirmar dependências canónicas: `BK-MF0-03, BK-MF0-08, BK-MF0-09, BK-MF0-11, BK-MF1-01`.
 - Nunca receber `companyId` do corpo do pedido; usar sempre o contexto autenticado.
 
 ## Fundamentação documental
@@ -73,14 +73,14 @@ A aplicação emite documentos de venda por empresa, com sequência atómica, li
 
 ## Conceitos teóricos essenciais
 
-- **Documento de venda:** representa fatura, fatura-recibo ou nota de credito; vem do RF14 e usa clientes, artigos e IVA criados em BKs anteriores.
-- **Numeracao sequencial:** atribui numeros por empresa, ano e tipo de documento numa transacao; evita duplicados e buracos por concorrencia.
-- **Linha de documento:** liga artigo, quantidade, preco e taxa de IVA; o backend calcula subtotal, IVA e total para nao confiar no browser.
-- **Estado `DRAFT` e emissao:** o documento nasce como rascunho e so ganha numero definitivo ao emitir; no BK-MF1-06 esta regra passa a exigir aprovacao.
-- **Transacao:** protege criacao de linhas, totais e numeracao num bloco unico; se algo falhar, nada fica gravado parcialmente.
-- **Formulario React:** recolhe dados minimos e mostra listagem; a validacao local melhora UX mas nao substitui o backend.
-- **Seguranca:** o `companyId` vem da sessao e as permissoes sao verificadas na route; isto evita emissao noutra empresa.
-- **Handoff:** recebimentos, lancamentos contabilisticos, aprovacao e relatorios dependem do documento emitido neste BK.
+- **Documento de venda:** representa fatura, fatura-recibo ou nota de crédito; vem do RF14 e usa clientes, artigos e IVA criados em BKs anteriores.
+- **Numeração sequencial:** atribui números por empresa, ano e tipo de documento numa transação; evita duplicados e buracos por concorrência.
+- **Linha de documento:** liga artigo, quantidade, preço e taxa de IVA; o backend calcula subtotal, IVA e total para não confiar no browser.
+- **Estado `DRAFT` e emissão:** o documento nasce como rascunho e só ganha número definitivo ao emitir; no BK-MF1-06 esta regra passa a exigir aprovação.
+- **Transação:** protege criação de linhas, totais e numeração num bloco único; se algo falhar, nada fica gravado parcialmente.
+- **Formulário React:** recolhe dados mínimos e mostra listagem; a validação local melhora UX mas não substitui o backend.
+- **Segurança:** o `companyId` vem da sessão e as permissões são verificadas na route; isto evita emissão noutra empresa.
+- **Handoff:** recebimentos, lançamentos contabilísticos, aprovação e relatórios dependem do documento emitido neste BK.
 
 ## Arquitetura do BK
 
@@ -131,7 +131,7 @@ Garantir que BK-MF1-02 implementa apenas RF14, com dependências, owner, priorid
 
 3. Instruções do que fazer.
 
-Confirmar que o BK é `BK-MF1-02`, requisito `RF14`, dependências `BK-MF0-09, BK-MF0-11, BK-MF1-01`, sprint `S03-S04` e próximo BK `BK-MF1-03`. Se o código real tiver caminhos diferentes, manter contratos de negócio e registar a decisão na evidência.
+Confirmar que o BK é `BK-MF1-02`, requisito `RF14`, dependências `BK-MF0-03, BK-MF0-08, BK-MF0-09, BK-MF0-11, BK-MF1-01`, sprint `S03-S04` e próximo BK `BK-MF1-03`. Se o código real tiver caminhos diferentes, manter contratos de negócio e registar a decisão na evidência.
 
 4. Código completo, correto e integrado com a app final.
 
@@ -140,7 +140,7 @@ bk=BK-MF1-02
 macro=MF1
 rf=RF14
 endpoint=/api/sales/documents
-deps=BK-MF0-09, BK-MF0-11, BK-MF1-01
+deps=BK-MF0-03, BK-MF0-08, BK-MF0-09, BK-MF0-11, BK-MF1-01
 ```
 
 5. Explicação do código.
@@ -376,17 +376,17 @@ const saleKinds = new Set(["INVOICE", "INVOICE_RECEIPT", "CREDIT_NOTE"]);
 
 function toDate(value, field) {
     const date = new Date(value);
-    if (Number.isNaN(date.getTime())) throw httpError(400, "INVALID_DATE", field + " invalida");
+    if (Number.isNaN(date.getTime())) throw httpError(400, "INVALID_DATE", field + " inválida");
     return date;
 }
 
 function parseLine(line) {
     const quantity = Number(line.quantity);
     const unitPriceCents = Number(line.unitPriceCents);
-    if (!line.itemId) throw httpError(400, "INVALID_ITEM", "Artigo obrigatorio");
-    if (!line.vatRateId) throw httpError(400, "INVALID_VAT", "Taxa de IVA obrigatoria");
-    if (!Number.isInteger(quantity) || quantity <= 0) throw httpError(400, "INVALID_QUANTITY", "Quantidade invalida");
-    if (!Number.isInteger(unitPriceCents) || unitPriceCents < 0) throw httpError(400, "INVALID_PRICE", "Preco invalido");
+    if (!line.itemId) throw httpError(400, "INVALID_ITEM", "Artigo obrigatório");
+    if (!line.vatRateId) throw httpError(400, "INVALID_VAT", "Taxa de IVA obrigatória");
+    if (!Number.isInteger(quantity) || quantity <= 0) throw httpError(400, "INVALID_QUANTITY", "Quantidade inválida");
+    if (!Number.isInteger(unitPriceCents) || unitPriceCents < 0) throw httpError(400, "INVALID_PRICE", "Preço inválido");
     return { itemId: line.itemId, vatRateId: line.vatRateId, description: String(line.description ?? "").trim(), quantity, unitPriceCents };
 }
 
@@ -409,8 +409,8 @@ async function nextSaleNumber(tx, companyId, kind, issuedAt) {
 export async function createSaleDocument(prisma, companyId, userId, input) {
     if (!input || typeof input !== "object") throw httpError(400, "INVALID_BODY", "O corpo do pedido deve ser JSON");
     const kind = String(input.kind ?? "").toUpperCase();
-    if (!saleKinds.has(kind)) throw httpError(400, "INVALID_KIND", "Tipo de documento invalido");
-    if (!input.customerId) throw httpError(400, "INVALID_CUSTOMER", "Cliente obrigatorio");
+    if (!saleKinds.has(kind)) throw httpError(400, "INVALID_KIND", "Tipo de documento inválido");
+    if (!input.customerId) throw httpError(400, "INVALID_CUSTOMER", "Cliente obrigatório");
     const issuedAt = toDate(input.issuedAt, "issuedAt");
     const dueDate = input.dueDate ? toDate(input.dueDate, "dueDate") : null;
     const lines = Array.isArray(input.lines) ? input.lines.map(parseLine) : [];
@@ -420,7 +420,7 @@ export async function createSaleDocument(prisma, companyId, userId, input) {
 
     return prisma.$transaction(async (tx) => {
         const customer = await tx.customer.findFirst({ where: { id: input.customerId, companyId, isActive: true } });
-        if (!customer) throw httpError(404, "CUSTOMER_NOT_FOUND", "Cliente nao encontrado");
+        if (!customer) throw httpError(404, "CUSTOMER_NOT_FOUND", "Cliente não encontrado");
 
         const itemIds = [...new Set(lines.map((line) => line.itemId))];
         const vatRateIds = [...new Set(lines.map((line) => line.vatRateId))];
@@ -431,8 +431,8 @@ export async function createSaleDocument(prisma, companyId, userId, input) {
         const computedLines = lines.map((line) => {
             const item = itemById.get(line.itemId);
             const vatRate = vatById.get(line.vatRateId);
-            if (!item) throw httpError(400, "ITEM_NOT_FOUND", "Artigo invalido para esta empresa");
-            if (!vatRate) throw httpError(400, "VAT_RATE_NOT_FOUND", "Taxa de IVA invalida");
+            if (!item) throw httpError(400, "ITEM_NOT_FOUND", "Artigo inválido para esta empresa");
+            if (!vatRate) throw httpError(400, "VAT_RATE_NOT_FOUND", "Taxa de IVA inválida");
             const subtotalCents = line.quantity * line.unitPriceCents;
             const vatCents = Math.round(subtotalCents * vatRate.rateBps / 10000);
             return { ...line, subtotalCents, vatCents, totalCents: subtotalCents + vatCents };
@@ -461,10 +461,10 @@ export async function createSaleDocument(prisma, companyId, userId, input) {
 export async function issueSaleDocument(prisma, companyId, userId, id) {
     return prisma.$transaction(async (tx) => {
         const document = await tx.saleDocument.findFirst({ where: { id, companyId }, include: { lines: true } });
-        if (!document) throw httpError(404, "SALE_DOCUMENT_NOT_FOUND", "Documento de venda nao encontrado");
+        if (!document) throw httpError(404, "SALE_DOCUMENT_NOT_FOUND", "Documento de venda não encontrado");
         // Neste BK, a emissão parte de rascunho. O BK-MF1-06 acrescenta o fluxo de aprovação e aperta esta regra para APPROVED.
         if (document.status !== "DRAFT") throw httpError(409, "INVALID_STATUS", "Apenas rascunhos podem ser emitidos neste fluxo");
-        if (document.number) throw httpError(409, "DOCUMENT_ALREADY_ISSUED", "Documento ja emitido");
+        if (document.number) throw httpError(409, "DOCUMENT_ALREADY_ISSUED", "Documento já emitido");
         await assertOpenFiscalPeriod(tx, { companyId, documentDate: document.issuedAt });
 
         const number = await nextSaleNumber(tx, companyId, document.kind, document.issuedAt);
@@ -631,7 +631,7 @@ export function SaleDocumentsPage() {
             const response = await fetchSaleDocuments() as { data: SaleDocumentRow[] };
             setDocuments(response.data);
         } catch (err) {
-            setError(err instanceof Error ? err.message : "Nao foi possivel carregar documentos de venda.");
+            setError(err instanceof Error ? err.message : "Não foi possível carregar documentos de venda.");
         } finally {
             setLoading(false);
         }
@@ -645,7 +645,7 @@ export function SaleDocumentsPage() {
         setSuccess(null);
         const line = form.lines[0];
         if (!form.customerId || !line.itemId || !line.vatRateId || line.quantity <= 0 || line.unitPriceCents <= 0) {
-            setError("Preenche cliente, artigo, IVA, quantidade e preco antes de guardar.");
+            setError("Preenche cliente, artigo, IVA, quantidade e preço antes de guardar.");
             return;
         }
         setSaving(true);
@@ -655,7 +655,7 @@ export function SaleDocumentsPage() {
             setSuccess("Documento de venda criado em rascunho.");
             await loadDocuments();
         } catch (err) {
-            setError(err instanceof Error ? err.message : "Nao foi possivel criar o documento.");
+            setError(err instanceof Error ? err.message : "Não foi possível criar o documento.");
         } finally {
             setSaving(false);
         }
@@ -666,10 +666,10 @@ export function SaleDocumentsPage() {
         setSuccess(null);
         try {
             await issueSaleDocument(id);
-            setSuccess("Documento emitido com numeracao definitiva.");
+            setSuccess("Documento emitido com numeração definitiva.");
             await loadDocuments();
         } catch (err) {
-            setError(err instanceof Error ? err.message : "Nao foi possivel emitir o documento.");
+            setError(err instanceof Error ? err.message : "Não foi possível emitir o documento.");
         }
     }
 
@@ -680,7 +680,7 @@ export function SaleDocumentsPage() {
                 <select value={form.kind} onChange={(event) => setForm({ ...form, kind: event.target.value as SaleDocumentInput["kind"] })}>
                     <option value="INVOICE">Fatura</option>
                     <option value="INVOICE_RECEIPT">Fatura-recibo</option>
-                    <option value="CREDIT_NOTE">Nota de credito</option>
+                    <option value="CREDIT_NOTE">Nota de crédito</option>
                 </select>
                 <input value={form.customerId} onChange={(event) => setForm({ ...form, customerId: event.target.value })} placeholder="ID do cliente" />
                 <input type="date" value={form.issuedAt} onChange={(event) => setForm({ ...form, issuedAt: event.target.value })} />
@@ -691,7 +691,7 @@ export function SaleDocumentsPage() {
             </form>
             {error && <p role="alert">{error}</p>}
             {success && <p role="status">{success}</p>}
-            {loading ? <p>A carregar documentos...</p> : documents.length === 0 ? <p>Ainda nao existem documentos.</p> : (
+            {loading ? <p>A carregar documentos...</p> : documents.length === 0 ? <p>Ainda não existem documentos.</p> : (
                 <ul>{documents.map((document) => <li key={document.id}>{document.number ?? "Rascunho"} - {document.status} - {document.totalCents / 100} EUR <button type="button" onClick={() => void handleIssue(document.id)}>Emitir</button></li>)}</ul>
             )}
         </main>
@@ -713,7 +713,7 @@ function prismaForItemValidation() {
         vatRate: { findMany: async () => [{ id: "vat-1", rateBps: 2300 }] },
         saleDocument: {
             create: async () => {
-                throw new Error("Nao deve criar documento quando o artigo nao pertence a empresa");
+                throw new Error("Não deve criar documento quando o artigo não pertence à empresa");
             },
         },
     };
@@ -723,14 +723,14 @@ function prismaForItemValidation() {
     };
 }
 
-test("rejeita linha com artigo que nao pertence a empresa ativa", async () => {
+test("rejeita linha com artigo que não pertence à empresa ativa", async () => {
     const prisma = prismaForItemValidation();
     const input = {
         kind: "INVOICE",
         customerId: "customer-1",
         issuedAt: "2026-05-31",
         lines: [
-            { itemId: "item-outra-empresa", vatRateId: "vat-1", description: "Servico", quantity: 1, unitPriceCents: 10000 },
+            { itemId: "item-outra-empresa", vatRateId: "vat-1", description: "Serviço", quantity: 1, unitPriceCents: 10000 },
         ],
     };
 
@@ -743,7 +743,7 @@ test("rejeita linha com artigo que nao pertence a empresa ativa", async () => {
 
 5. Explicação do código.
 
-A pagina `SaleDocumentsPage.tsx` fecha a parte visual deste BK: tem estado local, validacao minima, mensagens de erro/sucesso e chama endpoints reais atraves do cliente API. A UI ajuda o utilizador, mas as regras de seguranca, multiempresa e fiscalidade continuam no backend.
+A página `SaleDocumentsPage.tsx` fecha a parte visual deste BK: tem estado local, validação mínima, mensagens de erro/sucesso e chama endpoints reais através do cliente API. A UI ajuda o utilizador, mas as regras de segurança, multiempresa e fiscalidade continuam no backend.
 
 O cliente API mantém o contrato entre UI e backend num ponto único. Os testes focam o comportamento que protege a contabilidade: validação, transação, estado e isolamento por empresa.
 
@@ -962,5 +962,6 @@ O `BK-MF1-03` usa `SaleDocument.totalCents`, `amountPaidCents` e `status` para r
 
 ## Changelog
 
+- `2026-06-01`: Dependências técnicas canónicas alinhadas com a matriz, backlog e risco de PR da MF1.
 - `2026-05-31`: Corrigida fundamentação documental, validação multiempresa de artigos, auditoria de criação/emissão e teste autocontido.
 - `2026-05-31`: Guia consolidado com contrato técnico completo, código por camada, validações e handoff MF1.

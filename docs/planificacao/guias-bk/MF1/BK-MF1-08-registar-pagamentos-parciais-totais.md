@@ -10,14 +10,14 @@
 - `prioridade`: `P0`
 - `estado`: `TODO`
 - `esforco`: `M`
-- `dependencias`: `BK-MF1-07`
+- `dependencias`: `BK-MF0-03, BK-MF0-08, BK-MF1-07`
 - `rf_rnf`: `RF20`
 - `fase_documental`: `Fase 1`
 - `sprint`: `S03-S04`
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF1-09`
 - `guia_path`: `docs/planificacao/guias-bk/MF1/BK-MF1-08-registar-pagamentos-parciais-totais.md`
-- `last_updated`: `2026-05-31`
+- `last_updated`: `2026-06-01`
 
 ## Objetivo
 
@@ -51,7 +51,7 @@ Cada pagamento a fornecedor fica registado, atualiza saldo pago e fecha a compra
 
 - Ler `docs/RF.md`, `docs/RNF.md`, `docs/planificacao/backlogs/BACKLOG-MVP.md`, `docs/planificacao/backlogs/MATRIZ-CANONICA-BK.md`, `docs/planificacao/backlogs/CONTRATO-CAMPOS-BK.md` e `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md`.
 - Confirmar que autenticação, contexto de empresa, roles/permissões e erros HTTP da MF0 estão disponíveis.
-- Confirmar dependências canónicas: `BK-MF1-07`.
+- Confirmar dependências canónicas: `BK-MF0-03, BK-MF0-08, BK-MF1-07`.
 - Nunca receber `companyId` do corpo do pedido; usar sempre o contexto autenticado.
 
 ## Fundamentação documental
@@ -70,14 +70,14 @@ Cada pagamento a fornecedor fica registado, atualiza saldo pago e fecha a compra
 
 ## Conceitos teóricos essenciais
 
-- **Pagamento:** e o valor pago a fornecedor para liquidar uma compra; vem do RF20 e e diferente de recebimento de cliente.
+- **Pagamento:** é o valor pago a fornecedor para liquidar uma compra; vem do RF20 e é diferente de recebimento de cliente.
 - **Saldo a pagar:** e `totalCents - amountPaidCents`; evita pagar acima do valor em aberto.
-- **Pagamento parcial:** reduz a divida sem fechar totalmente o documento.
+- **Pagamento parcial:** reduz a dívida sem fechar totalmente o documento.
 - **Pagamento total:** fecha a compra quando o valor pago iguala o total.
-- **Nota de credito:** nao deve receber pagamento neste fluxo porque reduz divida em vez de criar uma saida normal.
-- **Periodo fiscal:** bloqueia pagamentos em datas fechadas para manter rastreabilidade contabilistica.
-- **Formulario React:** pede compra, valor, data, metodo e referencia; mostra erro recuperavel.
-- **Handoff:** a previsao de tesouraria usa pagamentos como saidas futuras/realizadas.
+- **Nota de crédito:** não deve receber pagamento neste fluxo porque reduz dívida em vez de criar uma saída normal.
+- **Período fiscal:** bloqueia pagamentos em datas fechadas para manter rastreabilidade contabilística.
+- **Formulário React:** pede compra, valor, data, método e referência; mostra erro recuperável.
+- **Handoff:** a previsão de tesouraria usa pagamentos como saídas futuras/realizadas.
 
 ## Arquitetura do BK
 
@@ -128,7 +128,7 @@ Garantir que BK-MF1-08 implementa apenas RF20, com dependências, owner, priorid
 
 3. Instruções do que fazer.
 
-Confirmar que o BK é `BK-MF1-08`, requisito `RF20`, dependências `BK-MF1-07`, sprint `S03-S04` e próximo BK `BK-MF1-09`. Se o código real tiver caminhos diferentes, manter contratos de negócio e registar a decisão na evidência.
+Confirmar que o BK é `BK-MF1-08`, requisito `RF20`, dependências `BK-MF0-03, BK-MF0-08, BK-MF1-07`, sprint `S03-S04` e próximo BK `BK-MF1-09`. Se o código real tiver caminhos diferentes, manter contratos de negócio e registar a decisão na evidência.
 
 4. Código completo, correto e integrado com a app final.
 
@@ -137,7 +137,7 @@ bk=BK-MF1-08
 macro=MF1
 rf=RF20
 endpoint=/api/purchases/documents/:id/payments
-deps=BK-MF1-07
+deps=BK-MF0-03, BK-MF0-08, BK-MF1-07
 ```
 
 5. Explicação do código.
@@ -268,9 +268,9 @@ function parsePaymentInput(input) {
     const amountCents = Number(input.amountCents);
     const paidAt = new Date(input.paidAt);
     const method = String(input.method ?? "").toUpperCase();
-    if (!Number.isInteger(amountCents) || amountCents <= 0) throw httpError(400, "INVALID_AMOUNT", "Valor pago invalido");
-    if (Number.isNaN(paidAt.getTime())) throw httpError(400, "INVALID_DATE", "Data de pagamento invalida");
-    if (!methods.has(method)) throw httpError(400, "INVALID_METHOD", "Metodo de pagamento invalido");
+    if (!Number.isInteger(amountCents) || amountCents <= 0) throw httpError(400, "INVALID_AMOUNT", "Valor pago inválido");
+    if (Number.isNaN(paidAt.getTime())) throw httpError(400, "INVALID_DATE", "Data de pagamento inválida");
+    if (!methods.has(method)) throw httpError(400, "INVALID_METHOD", "Método de pagamento inválido");
     return { amountCents, paidAt, method, reference: String(input.reference ?? "").trim() || null, notes: String(input.notes ?? "").trim() || null };
 }
 
@@ -280,11 +280,11 @@ export async function registerPayment(prisma, companyId, userId, purchaseDocumen
 
     return prisma.$transaction(async (tx) => {
         const document = await tx.purchaseDocument.findFirst({ where: { id: purchaseDocumentId, companyId } });
-        if (!document) throw httpError(404, "PURCHASE_DOCUMENT_NOT_FOUND", "Documento de compra nao encontrado");
-        if (document.kind === "SUPPLIER_CREDIT_NOTE") throw httpError(409, "CREDIT_NOTE_NOT_PAYABLE", "Notas de credito nao recebem pagamentos");
-        if (!["APPROVED", "POSTED", "PAID"].includes(document.status)) throw httpError(409, "INVALID_STATUS", "Apenas compras aprovadas ou lancadas podem receber pagamentos");
+        if (!document) throw httpError(404, "PURCHASE_DOCUMENT_NOT_FOUND", "Documento de compra não encontrado");
+        if (document.kind === "SUPPLIER_CREDIT_NOTE") throw httpError(409, "CREDIT_NOTE_NOT_PAYABLE", "Notas de crédito não recebem pagamentos");
+        if (!["APPROVED", "POSTED", "PAID"].includes(document.status)) throw httpError(409, "INVALID_STATUS", "Apenas compras aprovadas ou lançadas podem receber pagamentos");
         const openAmount = document.totalCents - document.amountPaidCents;
-        if (openAmount <= 0) throw httpError(409, "DOCUMENT_ALREADY_PAID", "Documento ja pago");
+        if (openAmount <= 0) throw httpError(409, "DOCUMENT_ALREADY_PAID", "Documento já pago");
         if (data.amountCents > openAmount) throw httpError(400, "AMOUNT_EXCEEDS_OPEN", "Valor excede o montante em aberto");
 
         const payment = await tx.payment.create({ data: { ...data, companyId, purchaseDocumentId, createdById: userId } });
@@ -421,7 +421,7 @@ export function PaymentsPage() {
             setForm(emptyForm);
             setSuccess("Pagamento registado com sucesso.");
         } catch (err) {
-            setError(err instanceof Error ? err.message : "Nao foi possivel registar o pagamento.");
+            setError(err instanceof Error ? err.message : "Não foi possível registar o pagamento.");
         } finally {
             setSaving(false);
         }
@@ -435,12 +435,12 @@ export function PaymentsPage() {
                 <input type="number" value={form.amountCents} onChange={(event) => setForm({ ...form, amountCents: Number(event.target.value) })} />
                 <input type="date" value={form.paidAt} onChange={(event) => setForm({ ...form, paidAt: event.target.value })} />
                 <select value={form.method} onChange={(event) => setForm({ ...form, method: event.target.value as PaymentInput["method"] })}>
-                    <option value="CASH">Numerario</option>
-                    <option value="BANK_TRANSFER">Transferencia bancaria</option>
-                    <option value="CARD">Cartao</option>
+                    <option value="CASH">Numerário</option>
+                    <option value="BANK_TRANSFER">Transferência bancária</option>
+                    <option value="CARD">Cartão</option>
                     <option value="OTHER">Outro</option>
                 </select>
-                <input value={form.reference ?? ""} onChange={(event) => setForm({ ...form, reference: event.target.value })} placeholder="Referencia" />
+                <input value={form.reference ?? ""} onChange={(event) => setForm({ ...form, reference: event.target.value })} placeholder="Referência" />
                 <button type="submit" disabled={saving}>{saving ? "A guardar..." : "Registar pagamento"}</button>
             </form>
             {error && <p role="alert">{error}</p>}
@@ -463,10 +463,10 @@ test("bloqueia pagamento superior ao valor em aberto", async () => {
         $transaction: async (callback) => callback({
             purchaseDocument: {
                 findFirst: async () => ({ id: "purchase-1", companyId: "company-1", kind: "SUPPLIER_INVOICE", status: "APPROVED", totalCents: 10000, amountPaidCents: 2500 }),
-                update: async () => assert.fail("Nao deve atualizar compra quando o valor excede o aberto"),
+                update: async () => assert.fail("Não deve atualizar compra quando o valor excede o aberto"),
             },
-            payment: { create: async () => assert.fail("Nao deve criar pagamento invalido") },
-            auditLog: { create: async () => assert.fail("Nao deve auditar pagamento recusado") },
+            payment: { create: async () => assert.fail("Não deve criar pagamento inválido") },
+            auditLog: { create: async () => assert.fail("Não deve auditar pagamento recusado") },
         }),
     };
 
@@ -479,7 +479,7 @@ test("bloqueia pagamento superior ao valor em aberto", async () => {
 
 5. Explicação do código.
 
-A pagina `PaymentsPage.tsx` fecha a parte visual deste BK: tem estado local, validacao minima, mensagens de erro/sucesso e chama endpoints reais atraves do cliente API. A UI ajuda o utilizador, mas as regras de seguranca, multiempresa e fiscalidade continuam no backend.
+A página `PaymentsPage.tsx` fecha a parte visual deste BK: tem estado local, validação mínima, mensagens de erro/sucesso e chama endpoints reais através do cliente API. A UI ajuda o utilizador, mas as regras de segurança, multiempresa e fiscalidade continuam no backend.
 
 O cliente API mantém o contrato entre UI e backend num ponto único. Os testes focam o comportamento que protege a contabilidade: validação, transação, estado e isolamento por empresa.
 
@@ -638,5 +638,6 @@ O `BK-MF1-09` contabiliza a compra; `BK-MF3-04` usa pagamentos para saídas real
 
 ## Changelog
 
+- `2026-06-01`: Dependências técnicas canónicas alinhadas com a matriz, backlog e risco de PR da MF1.
 - `2026-05-31`: Corrigida fundamentação documental, relações inversas de pagamentos, auditoria do pagamento e teste autocontido.
 - `2026-05-31`: Guia consolidado com contrato técnico completo, código por camada, validações e handoff MF1.

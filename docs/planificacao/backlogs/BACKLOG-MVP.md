@@ -6,7 +6,7 @@
 - `area`: `project`
 - `owner`: `Nuno`
 - `status`: `ativo`
-- `last_updated`: `2026-04-19`
+- `last_updated`: `2026-06-01`
 
 ## Objetivo
 Backlog atomico oficial do MVP com rastreabilidade canónica e contrato pedagógico comum entre as 4 PAPs.
@@ -57,16 +57,16 @@ Campos obrigatorios: `bk_id`, `owner`, `prioridade`, `estado`, `esforco`, `depen
 | BK-MF0-10 | MF0 | Criar e gerir fornecedores. | Pedro | Oleksii | P0 | TODO | M | - | RF10 | Fase 1 | BK-MF0-11 | [guia](../guias-bk/MF0/BK-MF0-10-criar-e-gerir-fornecedores.md) |
 | BK-MF0-11 | MF0 | Criar artigos/serviços (SKU, custo, preço, IVA). | Andre | Oleksii | P0 | TODO | M | - | RF11 | Fase 1 | BK-MF0-12 | [guia](../guias-bk/MF0/BK-MF0-11-criar-artigos-servicos-sku-custo-preco-iva.md) |
 | BK-MF0-12 | MF0 | Criar armazéns e localizações. | Sofia | Oleksii | P1 | TODO | S | - | RF12 | Fase 1 | BK-MF1-01 | [guia](../guias-bk/MF0/BK-MF0-12-criar-armazens-e-localizacoes.md) |
-| BK-MF1-01 | MF1 | Configurar tabelas de IVA (taxas, isenções, códigos). | Oleksii | Andre | P0 | TODO | M | - | RF13 | Fase 1 | BK-MF1-02 | [guia](../guias-bk/MF1/BK-MF1-01-configurar-tabelas-de-iva-taxas-isencoes-codigos.md) |
-| BK-MF1-02 | MF1 | Emitir Fatura, Fatura-Recibo, Nota de Crédito, com numeração sequencial. | Oleksii | Andre | P0 | TODO | M | BK-MF0-09, BK-MF0-11, BK-MF1-01 | RF14 | Fase 1 | BK-MF1-03 | [guia](../guias-bk/MF1/BK-MF1-02-emitir-fatura-fatura-recibo-nota-de-credito-com-numeracao-sequencial.md) |
-| BK-MF1-03 | MF1 | Registar recebimentos (parciais/totais). | Pedro | Andre | P0 | TODO | M | - | RF15 | Fase 1 | BK-MF1-04 | [guia](../guias-bk/MF1/BK-MF1-03-registar-recebimentos-parciais-totais.md) |
-| BK-MF1-04 | MF1 | Gerar lançamentos contabilísticos automáticos por venda. | Oleksii | Andre | P0 | TODO | M | BK-MF1-02 | RF16 | Fase 1 | BK-MF1-05 | [guia](../guias-bk/MF1/BK-MF1-04-gerar-lancamentos-contabilisticos-automaticos-por-venda.md) |
-| BK-MF1-05 | MF1 | Consultar títulos em aberto e antiguidade de saldos. | Oleksii | Pedro | P1 | TODO | S | - | RF17 | Fase 1 | BK-MF1-06 | [guia](../guias-bk/MF1/BK-MF1-05-consultar-titulos-em-aberto-e-antiguidade-de-saldos.md) |
-| BK-MF1-06 | MF1 | Submeter documentos de venda para aprovação antes de emissão definitiva. | Andre | Oleksii | P1 | TODO | S | BK-MF1-02 | RF18 | Fase 1 | BK-MF1-07 | [guia](../guias-bk/MF1/BK-MF1-06-submeter-documentos-de-venda-para-aprovacao-antes-de-emissao-definitiva.md) |
-| BK-MF1-07 | MF1 | Registar Fatura de Fornecedor e Nota de Crédito. | Oleksii | Andre | P0 | TODO | M | BK-MF0-10, BK-MF0-11, BK-MF1-01 | RF19 | Fase 1 | BK-MF1-08 | [guia](../guias-bk/MF1/BK-MF1-07-registar-fatura-de-fornecedor-e-nota-de-credito.md) |
-| BK-MF1-08 | MF1 | Registar pagamentos (parciais/totais). | Pedro | Andre | P0 | TODO | M | BK-MF1-07 | RF20 | Fase 1 | BK-MF1-09 | [guia](../guias-bk/MF1/BK-MF1-08-registar-pagamentos-parciais-totais.md) |
-| BK-MF1-09 | MF1 | Gerar lançamentos contabilísticos automáticos de compras. | Oleksii | Andre | P0 | TODO | M | BK-MF1-07 | RF21 | Fase 1 | BK-MF1-10 | [guia](../guias-bk/MF1/BK-MF1-09-gerar-lancamentos-contabilisticos-automaticos-de-compras.md) |
-| BK-MF1-10 | MF1 | Aprovação de compras com estados “Rascunho → Aprovado → Lançado”. | Andre | Oleksii | P1 | TODO | S | - | RF22 | Fase 1 | BK-MF2-01 | [guia](../guias-bk/MF1/BK-MF1-10-aprovacao-de-compras-com-estados-rascunho-aprovado-lancado.md) |
+| BK-MF1-01 | MF1 | Configurar tabelas de IVA (taxas, isenções, códigos). | Oleksii | Andre | P0 | TODO | M | BK-MF0-03 | RF13 | Fase 1 | BK-MF1-02 | [guia](../guias-bk/MF1/BK-MF1-01-configurar-tabelas-de-iva-taxas-isencoes-codigos.md) |
+| BK-MF1-02 | MF1 | Emitir Fatura, Fatura-Recibo, Nota de Crédito, com numeração sequencial. | Oleksii | Andre | P0 | TODO | M | BK-MF0-03, BK-MF0-08, BK-MF0-09, BK-MF0-11, BK-MF1-01 | RF14 | Fase 1 | BK-MF1-03 | [guia](../guias-bk/MF1/BK-MF1-02-emitir-fatura-fatura-recibo-nota-de-credito-com-numeracao-sequencial.md) |
+| BK-MF1-03 | MF1 | Registar recebimentos (parciais/totais). | Pedro | Andre | P0 | TODO | M | BK-MF0-03, BK-MF0-08, BK-MF1-02 | RF15 | Fase 1 | BK-MF1-04 | [guia](../guias-bk/MF1/BK-MF1-03-registar-recebimentos-parciais-totais.md) |
+| BK-MF1-04 | MF1 | Gerar lançamentos contabilísticos automáticos por venda. | Oleksii | Andre | P0 | TODO | M | BK-MF0-03, BK-MF0-08, BK-MF1-02 | RF16 | Fase 1 | BK-MF1-05 | [guia](../guias-bk/MF1/BK-MF1-04-gerar-lancamentos-contabilisticos-automaticos-por-venda.md) |
+| BK-MF1-05 | MF1 | Consultar títulos em aberto e antiguidade de saldos. | Oleksii | Pedro | P1 | TODO | S | BK-MF0-03, BK-MF1-02, BK-MF1-03 | RF17 | Fase 1 | BK-MF1-06 | [guia](../guias-bk/MF1/BK-MF1-05-consultar-titulos-em-aberto-e-antiguidade-de-saldos.md) |
+| BK-MF1-06 | MF1 | Submeter documentos de venda para aprovação antes de emissão definitiva. | Andre | Oleksii | P1 | TODO | S | BK-MF0-03, BK-MF1-02 | RF18 | Fase 1 | BK-MF1-07 | [guia](../guias-bk/MF1/BK-MF1-06-submeter-documentos-de-venda-para-aprovacao-antes-de-emissao-definitiva.md) |
+| BK-MF1-07 | MF1 | Registar Fatura de Fornecedor e Nota de Crédito. | Oleksii | Andre | P0 | TODO | M | BK-MF0-03, BK-MF0-08, BK-MF0-10, BK-MF0-11, BK-MF1-01 | RF19 | Fase 1 | BK-MF1-08 | [guia](../guias-bk/MF1/BK-MF1-07-registar-fatura-de-fornecedor-e-nota-de-credito.md) |
+| BK-MF1-08 | MF1 | Registar pagamentos (parciais/totais). | Pedro | Andre | P0 | TODO | M | BK-MF0-03, BK-MF0-08, BK-MF1-07 | RF20 | Fase 1 | BK-MF1-09 | [guia](../guias-bk/MF1/BK-MF1-08-registar-pagamentos-parciais-totais.md) |
+| BK-MF1-09 | MF1 | Gerar lançamentos contabilísticos automáticos de compras. | Oleksii | Andre | P0 | TODO | M | BK-MF0-03, BK-MF0-08, BK-MF1-04, BK-MF1-07 | RF21 | Fase 1 | BK-MF1-10 | [guia](../guias-bk/MF1/BK-MF1-09-gerar-lancamentos-contabilisticos-automaticos-de-compras.md) |
+| BK-MF1-10 | MF1 | Aprovação de compras com estados “Rascunho → Aprovado → Lançado”. | Andre | Oleksii | P1 | TODO | S | BK-MF0-03, BK-MF0-08, BK-MF1-07, BK-MF1-09 | RF22 | Fase 1 | BK-MF2-01 | [guia](../guias-bk/MF1/BK-MF1-10-aprovacao-de-compras-com-estados-rascunho-aprovado-lancado.md) |
 | BK-MF2-01 | MF2 | Histórico e justificações para aprovações/reprovações. | Sofia | Oleksii | P1 | TODO | S | BK-MF1-10 | RF23 | Fase 1 | BK-MF2-02 | [guia](../guias-bk/MF2/BK-MF2-01-historico-e-justificacoes-para-aprovacoes-reprovacoes.md) |
 | BK-MF2-02 | MF2 | Movimentos de stock: entradas, saídas, transferências, devoluções. | Oleksii | Andre | P0 | TODO | M | BK-MF0-11, BK-MF0-12 | RF24 | Fase 1 | BK-MF2-03 | [guia](../guias-bk/MF2/BK-MF2-02-movimentos-de-stock-entradas-saidas-transferencias-devolucoes.md) |
 | BK-MF2-03 | MF2 | Cálculo de custo (FIFO). | Oleksii | Pedro | P0 | TODO | M | BK-MF2-02 | RF25 | Fase 1 | BK-MF2-04 | [guia](../guias-bk/MF2/BK-MF2-03-calculo-de-custo-fifo.md) |
@@ -149,17 +149,16 @@ Campos obrigatorios: `bk_id`, `owner`, `prioridade`, `estado`, `esforco`, `depen
 ## MF1 - Nucleo funcional I
 | bk_id | titulo | owner | apoio | prioridade | estado | esforco | dependencias | rf_rnf | proximo_bk |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| BK-MF1-01 | Configurar tabelas de IVA (taxas, isenções, códigos). | Oleksii | Andre | P0 | TODO | M | - | RF13 | BK-MF1-02 |
-| BK-MF1-02 | Emitir Fatura, Fatura-Recibo, Nota de Crédito, com numeração sequencial. | Oleksii | Andre | P0 | TODO | M | BK-MF0-09, BK-MF0-11, BK-MF1-01 | RF14 | BK-MF1-03 |
-| BK-MF1-03 | Registar recebimentos (parciais/totais). | Pedro | Andre | P0 | TODO | M | - | RF15 | BK-MF1-04 |
-| BK-MF1-04 | Gerar lançamentos contabilísticos automáticos por venda. | Oleksii | Andre | P0 | TODO | M | BK-MF1-02 | RF16 | BK-MF1-05 |
-| BK-MF1-05 | Consultar títulos em aberto e antiguidade de saldos. | Oleksii | Pedro | P1 | TODO | S | - | RF17 | BK-MF1-06 |
-| BK-MF1-06 | Submeter documentos de venda para aprovação antes de emissão definitiva. | Andre | Oleksii | P1 | TODO | S | BK-MF1-02 | RF18 | BK-MF1-07 |
-| BK-MF1-07 | Registar Fatura de Fornecedor e Nota de Crédito. | Oleksii | Andre | P0 | TODO | M | BK-MF0-10, BK-MF0-11, BK-MF1-01 | RF19 | BK-MF1-08 |
-| BK-MF1-08 | Registar pagamentos (parciais/totais). | Pedro | Andre | P0 | TODO | M | BK-MF1-07 | RF20 | BK-MF1-09 |
-| BK-MF1-09 | Gerar lançamentos contabilísticos automáticos de compras. | Oleksii | Andre | P0 | TODO | M | BK-MF1-07 | RF21 | BK-MF1-10 |
-| BK-MF1-10 | Aprovação de compras com estados “Rascunho → Aprovado → Lançado”. | Andre | Oleksii | P1 | TODO | S | - | RF22 | BK-MF2-01 |
-
+| BK-MF1-01 | Configurar tabelas de IVA (taxas, isenções, códigos). | Oleksii | Andre | P0 | TODO | M | BK-MF0-03 | RF13 | BK-MF1-02 |
+| BK-MF1-02 | Emitir Fatura, Fatura-Recibo, Nota de Crédito, com numeração sequencial. | Oleksii | Andre | P0 | TODO | M | BK-MF0-03, BK-MF0-08, BK-MF0-09, BK-MF0-11, BK-MF1-01 | RF14 | BK-MF1-03 |
+| BK-MF1-03 | Registar recebimentos (parciais/totais). | Pedro | Andre | P0 | TODO | M | BK-MF0-03, BK-MF0-08, BK-MF1-02 | RF15 | BK-MF1-04 |
+| BK-MF1-04 | Gerar lançamentos contabilísticos automáticos por venda. | Oleksii | Andre | P0 | TODO | M | BK-MF0-03, BK-MF0-08, BK-MF1-02 | RF16 | BK-MF1-05 |
+| BK-MF1-05 | Consultar títulos em aberto e antiguidade de saldos. | Oleksii | Pedro | P1 | TODO | S | BK-MF0-03, BK-MF1-02, BK-MF1-03 | RF17 | BK-MF1-06 |
+| BK-MF1-06 | Submeter documentos de venda para aprovação antes de emissão definitiva. | Andre | Oleksii | P1 | TODO | S | BK-MF0-03, BK-MF1-02 | RF18 | BK-MF1-07 |
+| BK-MF1-07 | Registar Fatura de Fornecedor e Nota de Crédito. | Oleksii | Andre | P0 | TODO | M | BK-MF0-03, BK-MF0-08, BK-MF0-10, BK-MF0-11, BK-MF1-01 | RF19 | BK-MF1-08 |
+| BK-MF1-08 | Registar pagamentos (parciais/totais). | Pedro | Andre | P0 | TODO | M | BK-MF0-03, BK-MF0-08, BK-MF1-07 | RF20 | BK-MF1-09 |
+| BK-MF1-09 | Gerar lançamentos contabilísticos automáticos de compras. | Oleksii | Andre | P0 | TODO | M | BK-MF0-03, BK-MF0-08, BK-MF1-04, BK-MF1-07 | RF21 | BK-MF1-10 |
+| BK-MF1-10 | Aprovação de compras com estados “Rascunho → Aprovado → Lançado”. | Andre | Oleksii | P1 | TODO | S | BK-MF0-03, BK-MF0-08, BK-MF1-07, BK-MF1-09 | RF22 | BK-MF2-01 |
 ## MF2 - Nucleo funcional II
 | bk_id | titulo | owner | apoio | prioridade | estado | esforco | dependencias | rf_rnf | proximo_bk |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -249,3 +248,6 @@ Campos obrigatorios: `bk_id`, `owner`, `prioridade`, `estado`, `esforco`, `depen
 | BK-MF8-07 | IA deve evitar enviesamentos e sugerir ações baseadas em dados reais. | Pedro | Andre | P1 | TODO | S | - | RNF34 | BK-MF8-08 |
 | BK-MF8-08 | Interface em português de Portugal. | Sofia | Pedro | P0 | TODO | M | - | RNF35 | BK-MF8-09 |
 | BK-MF8-09 | Datas, moedas e separadores no padrão europeu. | Sofia | Pedro | P1 | TODO | S | - | RNF36 | - |
+
+## Changelog
+- `2026-06-01`: Dependências da MF1 atualizadas para refletir dependências técnicas bloqueantes e reduzir conflitos de PR.

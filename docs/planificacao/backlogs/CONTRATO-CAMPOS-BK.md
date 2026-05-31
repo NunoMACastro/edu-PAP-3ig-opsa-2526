@@ -6,7 +6,7 @@
 - `area`: `project`
 - `owner`: `Nuno`
 - `status`: `ativo`
-- `last_updated`: `2026-04-19`
+- `last_updated`: `2026-06-01`
 
 ## Objetivo
 Formalizar os campos obrigatorios por BK para manter coerencia entre `MATRIZ-CANONICA-BK`, `BACKLOG-MVP`, `PLANO-SPRINTS` e `guias-bk`.
@@ -27,6 +27,7 @@ Formalizar os campos obrigatorios por BK para manter coerencia entre `MATRIZ-CAN
 3. `guia_path` deve apontar para um ficheiro existente.
 4. `core_or_reforco` e derivado da prioridade (`P0=Reforco`; `P1/P2=Core`).
 5. Alteracoes em RF/RNF ou BK obrigam regeneracao dos anexos no mesmo commit.
+6. Quando um BK usa diretamente modelo, helper, service, middleware ou endpoint criado por outro BK, essa relação entra em `deps[]`, mesmo que o RF não declare dependência funcional explícita.
 
 ## Matriz canónica de campos BK
 | bk_id | mf | sprint | owner | rf_rnf[] | deps[] | guia_path | core_or_reforco |
@@ -43,16 +44,16 @@ Formalizar os campos obrigatorios por BK para manter coerencia entre `MATRIZ-CAN
 | BK-MF0-10 | MF0 | S01-S02 | Pedro | RF10 | - | docs/planificacao/guias-bk/MF0/BK-MF0-10-criar-e-gerir-fornecedores.md | Reforco |
 | BK-MF0-11 | MF0 | S01-S02 | Andre | RF11 | - | docs/planificacao/guias-bk/MF0/BK-MF0-11-criar-artigos-servicos-sku-custo-preco-iva.md | Reforco |
 | BK-MF0-12 | MF0 | S01-S02 | Sofia | RF12 | - | docs/planificacao/guias-bk/MF0/BK-MF0-12-criar-armazens-e-localizacoes.md | Core |
-| BK-MF1-01 | MF1 | S03-S04 | Oleksii | RF13 | - | docs/planificacao/guias-bk/MF1/BK-MF1-01-configurar-tabelas-de-iva-taxas-isencoes-codigos.md | Reforco |
-| BK-MF1-02 | MF1 | S03-S04 | Oleksii | RF14 | BK-MF0-09, BK-MF0-11, BK-MF1-01 | docs/planificacao/guias-bk/MF1/BK-MF1-02-emitir-fatura-fatura-recibo-nota-de-credito-com-numeracao-sequencial.md | Reforco |
-| BK-MF1-03 | MF1 | S03-S04 | Pedro | RF15 | - | docs/planificacao/guias-bk/MF1/BK-MF1-03-registar-recebimentos-parciais-totais.md | Reforco |
-| BK-MF1-04 | MF1 | S03-S04 | Oleksii | RF16 | BK-MF1-02 | docs/planificacao/guias-bk/MF1/BK-MF1-04-gerar-lancamentos-contabilisticos-automaticos-por-venda.md | Reforco |
-| BK-MF1-05 | MF1 | S03-S04 | Oleksii | RF17 | - | docs/planificacao/guias-bk/MF1/BK-MF1-05-consultar-titulos-em-aberto-e-antiguidade-de-saldos.md | Core |
-| BK-MF1-06 | MF1 | S03-S04 | Andre | RF18 | BK-MF1-02 | docs/planificacao/guias-bk/MF1/BK-MF1-06-submeter-documentos-de-venda-para-aprovacao-antes-de-emissao-definitiva.md | Core |
-| BK-MF1-07 | MF1 | S03-S04 | Oleksii | RF19 | BK-MF0-10, BK-MF0-11, BK-MF1-01 | docs/planificacao/guias-bk/MF1/BK-MF1-07-registar-fatura-de-fornecedor-e-nota-de-credito.md | Reforco |
-| BK-MF1-08 | MF1 | S03-S04 | Pedro | RF20 | BK-MF1-07 | docs/planificacao/guias-bk/MF1/BK-MF1-08-registar-pagamentos-parciais-totais.md | Reforco |
-| BK-MF1-09 | MF1 | S03-S04 | Oleksii | RF21 | BK-MF1-07 | docs/planificacao/guias-bk/MF1/BK-MF1-09-gerar-lancamentos-contabilisticos-automaticos-de-compras.md | Reforco |
-| BK-MF1-10 | MF1 | S03-S04 | Andre | RF22 | - | docs/planificacao/guias-bk/MF1/BK-MF1-10-aprovacao-de-compras-com-estados-rascunho-aprovado-lancado.md | Core |
+| BK-MF1-01 | MF1 | S03-S04 | Oleksii | RF13 | BK-MF0-03 | docs/planificacao/guias-bk/MF1/BK-MF1-01-configurar-tabelas-de-iva-taxas-isencoes-codigos.md | Reforco |
+| BK-MF1-02 | MF1 | S03-S04 | Oleksii | RF14 | BK-MF0-03, BK-MF0-08, BK-MF0-09, BK-MF0-11, BK-MF1-01 | docs/planificacao/guias-bk/MF1/BK-MF1-02-emitir-fatura-fatura-recibo-nota-de-credito-com-numeracao-sequencial.md | Reforco |
+| BK-MF1-03 | MF1 | S03-S04 | Pedro | RF15 | BK-MF0-03, BK-MF0-08, BK-MF1-02 | docs/planificacao/guias-bk/MF1/BK-MF1-03-registar-recebimentos-parciais-totais.md | Reforco |
+| BK-MF1-04 | MF1 | S03-S04 | Oleksii | RF16 | BK-MF0-03, BK-MF0-08, BK-MF1-02 | docs/planificacao/guias-bk/MF1/BK-MF1-04-gerar-lancamentos-contabilisticos-automaticos-por-venda.md | Reforco |
+| BK-MF1-05 | MF1 | S03-S04 | Oleksii | RF17 | BK-MF0-03, BK-MF1-02, BK-MF1-03 | docs/planificacao/guias-bk/MF1/BK-MF1-05-consultar-titulos-em-aberto-e-antiguidade-de-saldos.md | Core |
+| BK-MF1-06 | MF1 | S03-S04 | Andre | RF18 | BK-MF0-03, BK-MF1-02 | docs/planificacao/guias-bk/MF1/BK-MF1-06-submeter-documentos-de-venda-para-aprovacao-antes-de-emissao-definitiva.md | Core |
+| BK-MF1-07 | MF1 | S03-S04 | Oleksii | RF19 | BK-MF0-03, BK-MF0-08, BK-MF0-10, BK-MF0-11, BK-MF1-01 | docs/planificacao/guias-bk/MF1/BK-MF1-07-registar-fatura-de-fornecedor-e-nota-de-credito.md | Reforco |
+| BK-MF1-08 | MF1 | S03-S04 | Pedro | RF20 | BK-MF0-03, BK-MF0-08, BK-MF1-07 | docs/planificacao/guias-bk/MF1/BK-MF1-08-registar-pagamentos-parciais-totais.md | Reforco |
+| BK-MF1-09 | MF1 | S03-S04 | Oleksii | RF21 | BK-MF0-03, BK-MF0-08, BK-MF1-04, BK-MF1-07 | docs/planificacao/guias-bk/MF1/BK-MF1-09-gerar-lancamentos-contabilisticos-automaticos-de-compras.md | Reforco |
+| BK-MF1-10 | MF1 | S03-S04 | Andre | RF22 | BK-MF0-03, BK-MF0-08, BK-MF1-07, BK-MF1-09 | docs/planificacao/guias-bk/MF1/BK-MF1-10-aprovacao-de-compras-com-estados-rascunho-aprovado-lancado.md | Core |
 | BK-MF2-01 | MF2 | S05-S06 | Sofia | RF23 | BK-MF1-10 | docs/planificacao/guias-bk/MF2/BK-MF2-01-historico-e-justificacoes-para-aprovacoes-reprovacoes.md | Core |
 | BK-MF2-02 | MF2 | S05-S06 | Oleksii | RF24 | BK-MF0-11, BK-MF0-12 | docs/planificacao/guias-bk/MF2/BK-MF2-02-movimentos-de-stock-entradas-saidas-transferencias-devolucoes.md | Reforco |
 | BK-MF2-03 | MF2 | S05-S06 | Oleksii | RF25 | BK-MF2-02 | docs/planificacao/guias-bk/MF2/BK-MF2-03-calculo-de-custo-fifo.md | Reforco |
@@ -118,3 +119,4 @@ Formalizar os campos obrigatorios por BK para manter coerencia entre `MATRIZ-CAN
 
 ## Changelog
 - `2026-04-13`: Contrato de campos BK formalizado com regra de derivacao Core/Reforco.
+- `2026-06-01`: Regra de dependências técnicas explícitas adicionada e MF1 alinhada com a ordem real de implementação.

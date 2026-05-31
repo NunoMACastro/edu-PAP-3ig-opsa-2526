@@ -4,14 +4,14 @@
 
 - `doc_id`: `AUDITORIA-HIDRATACAO-MF1`
 - `macro`: `MF1`
-- `data`: `2026-05-31`
+- `data`: `2026-06-01`
 - `modo`: `corrigir_apenas`
-- `estado`: `correcao_concluida_validacao_com_bloqueio_infra`
+- `estado`: `correcao_concluida_dependencias_prs`
 - `escopo`: `docs/planificacao/guias-bk/MF1/`
 
 ## Objetivo
 
-Usar a auditoria anterior da `MF1` como ponto de partida e corrigir apenas os BKs classificados como `PARCIAL` ou `CRITICO`, sem alterar IDs, RF/RNF, owners, prioridades, sprints, dependencias canonicas ou codigo real da aplicacao.
+Usar a auditoria anterior da `MF1` como ponto de partida e corrigir apenas os BKs classificados como `PARCIAL` ou `CRITICO`, sem alterar IDs, RF/RNF, owners, prioridades, sprints ou codigo real da aplicacao. A revisao posterior de `2026-06-01` atualizou apenas metadados de dependencias e orientacao de PRs, mantendo a correcao limitada a documentacao e planificacao.
 
 A intervencao fechou lacunas de executabilidade e coerencia entre MF0 e MF1: assinatura de `assertOpenFiscalPeriod`, revalidacao de periodo fiscal em emissoes definitivas, auditoria de emissoes, tratamento de notas de credito, UI/API de ativacao de IVA e codigo completo para a alteracao de compras em `BK-MF1-10`.
 
@@ -34,6 +34,21 @@ BKs analisados: 10.
 BKs editados: 10.
 
 Codigo real da aplicacao editado: 0. As alteracoes foram feitas apenas nos guias de planificacao da MF1 e neste relatorio.
+
+## Correção pós-análise de dependências e PRs
+
+Em `2026-06-01`, a MF1 foi revista do ponto de vista de ordem de dependencias, integracao com MF0 e risco de conflitos em Pull Requests. A classificacao tecnica dos 10 BKs continua `OK`; a correcao necessaria era de metadados e planificacao.
+
+Alteracoes documentais aplicadas:
+- `dependencias` passou a representar dependencias tecnicas bloqueantes, incluindo uso direto de modelos, helpers, services, middleware ou endpoints de outro BK.
+- `BK-MF0-03` passou a baseline explicito da MF1 por garantir autenticacao, contexto multiempresa e roles de forma transitiva.
+- `BK-MF0-08` passou a dependencia explicita dos BKs MF1 que criam, alteram ou contabilizam documentos financeiros/contabilisticos por causa de `assertOpenFiscalPeriod`.
+- A ordem por dependencias passou a ser a fonte oficial para os alunos abrirem PRs.
+- Foi criado `docs/planificacao/guias-bk/MF1/ORDEM-DEPENDENCIAS-E-PRS-MF1.md` para concentrar ordem topologica, ficheiros de alto risco e pares que exigem coordenacao.
+
+Riscos de PR identificados:
+- `apps/api/prisma/schema.prisma` e `apps/api/src/server.js` devem ser tratados como ficheiros partilhados de alto risco.
+- `MF1-02/MF1-06`, `MF1-04/MF1-09` e `MF1-07/MF1-10` exigem coordenacao explicita antes de abrir ou atualizar PRs concorrentes.
 
 ## Classificacao depois da correcao
 
@@ -113,30 +128,26 @@ Codigo real da aplicacao editado: 0. As alteracoes foram feitas apenas nos guias
 ## Drift documental
 
 - A auditoria anterior contradizia um estado documental antigo que dava a MF1 como totalmente corrigida. Esta execucao resolveu os pontos concretos que ainda estavam presentes nos BKs.
-- O validador de planificacao existe em `scripts/validate-planificacao.sh`, mas referencia um ficheiro Python fora deste checkout: `../scripts/validate_planificacao_canonica.py`.
-- A normalizacao transversal dos scripts `npm run test:unit`, `npm run test:contracts` e `npm run test:integration` continua a depender do contrato global de stack; nao foi alterada aqui porque o modo era `corrigir_apenas` para BKs MF1 classificados como `PARCIAL` ou `CRITICO`.
+- O wrapper `scripts/validate-planificacao.sh` foi corrigido para chamar o validador local `docs/planificacao/scripts/auditar_planificacao.py`, deixando de apontar para `../scripts/validate_planificacao_canonica.py`, que nao existe neste checkout.
+- O validador local ainda reporta problemas transversais fora desta correcao, sobretudo documentos antigos por `last_updated` e checks de qualidade de guias herdados. Estes pontos nao introduzem dependencias invalidas nem ciclos na MF1.
 
 ## Verificacoes executadas
 
 | Comando | Resultado | Interpretacao |
 | --- | --- | --- |
-| `rg -n "assertOpenFiscalPeriod\\([^,]+,\\s*(companyId\|req\\.companyId)\|assertOpenFiscalPeriod\\([^,]+,\\s*companyId" docs/planificacao/guias-bk/MF1` | exit `1`, sem output | OK: nao restam chamadas MF1 com a assinatura antiga. |
-| `rg -n "hidrata\|pos-auditoria\|scaffold\|roteiro generico\|conversa interna\|este guia deixa de ser\|codigo ainda nao corrigido\|snippet\|exemplo simplificado\|implementar depois\|quando aplicavel\|helpers chamados\|substitu(ir\|i)r? mocks\|pseudo-codigo\|solucao parcial\|payload: unknown\|as any" docs/planificacao/guias-bk/MF1/*.md` | exit `1`, sem output | OK: nao ha termos internos proibidos nos BKs dos alunos. |
-| Verificacao sintatica dos blocos `js` dos BKs MF1 com `node --check` | 42 blocos analisados; 0 falhas | OK: o bloco solto de `BK-MF1-10` foi corrigido e todos os blocos JS passam sintaxe. |
-| `git diff --check` | exit `0`, sem output | OK: sem whitespace problematico no diff. |
-| `bash scripts/validate-planificacao.sh` | exit `2` | Bloqueio de infraestrutura local: ficheiro Python referenciado pelo script nao existe neste checkout. |
-
-Erro exato do validador:
-
-```text
-/opt/homebrew/Cellar/python@3.14/3.14.5/Frameworks/Python.framework/Versions/3.14/Resources/Python.app/Contents/MacOS/Python: can't open file '/Users/nuno/Developer/EPMS/Terceiro Ano/2025.2026/PAP/opsa/../scripts/validate_planificacao_canonica.py': [Errno 2] No such file or directory
-```
+| `rg -n 'BK-MF1-03 .* \| - \|BK-MF1-05 .* \| - \|BK-MF1-10 .* \| - \|' docs/planificacao/backlogs` | exit `1`, sem output | OK: os BKs MF1 que antes podiam aparecer como `-` ja nao surgem sem dependencias nos backlogs. |
+| <code>rg -n '^- `dependencias`: `-`' docs/planificacao/guias-bk/MF1</code> | exit `1`, sem output | OK: nenhum guia MF1 mantem `dependencias` como `-`. |
+| Verificacao especifica de alinhamento MF1 entre matriz, backlog, contrato de campos e headers | exit `0` | OK: os 10 BKs MF1 têm dependencias iguais nas quatro fontes documentais. |
+| `python3 docs/planificacao/scripts/auditar_planificacao.py` | exit `0` | OK para cobertura, matriz/backlog, referencias, dependencias invalidas e ciclos. O `overall_pass` continua `false` por checks transversais antigos de `outdated_docs` e qualidade de guias. |
+| `bash scripts/validate-planificacao.sh` | exit `0` | OK: o wrapper ja nao falha por ficheiro inexistente e chama o validador local. |
 
 ## Bloqueios e TODOs restantes
 
-- `TODO (INFRA)`: repor ou corrigir o caminho de `../scripts/validate_planificacao_canonica.py` para permitir correr o validador canonico.
-- `TODO (TRANSVERSAL)`: se o contrato global de stack ainda nao o fizer, documentar onde vivem os scripts `npm run test:unit`, `npm run test:contracts` e `npm run test:integration`.
+- `TODO (TRANSVERSAL)`: decidir se `docs/planificacao/scripts/auditar_planificacao.py` deve continuar a aplicar checks antigos de estrutura pedagogica aos guias atuais antes de ser tratado como gate global.
+- `TODO (TRANSVERSAL)`: atualizar `last_updated` dos documentos de planificacao antigos se o `overall_pass` do validador passar a ser requisito de merge.
 
 ## Resultado final
 
-A MF1 foi processada em modo `corrigir_apenas`. Foram analisados 10 BKs e editados os 10 que a auditoria anterior marcava como `PARCIAL` ou `CRITICO`. Depois da correcao, a classificacao documental da MF1 fica em `10 OK`, `0 PARCIAL` e `0 CRITICO`, com validacao local positiva nos BKs e bloqueio apenas no validador externo ausente neste checkout.
+A MF1 foi processada em modo `corrigir_apenas`. Foram analisados 10 BKs e editados os 10 que a auditoria anterior marcava como `PARCIAL` ou `CRITICO`. Depois da correcao, a classificacao documental da MF1 fica em `10 OK`, `0 PARCIAL` e `0 CRITICO`.
+
+Na revisao de dependencias e PRs de `2026-06-01`, a MF1 manteve-se tecnicamente OK, mas os metadados foram corrigidos para que a ordem por `dependencias` seja segura para os alunos e consistente com a integracao MF0.

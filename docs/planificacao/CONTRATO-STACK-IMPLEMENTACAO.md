@@ -6,7 +6,7 @@
 - `area`: `project`
 - `owner`: `Nuno`
 - `status`: `ativo`
-- `last_updated`: `2026-05-25`
+- `last_updated`: `2026-06-01`
 
 ## Objetivo
 Centralizar a stack técnica assumida para os guias BK enquanto a aplicação real ainda não tem scaffold definitivo. Este ficheiro evita que cada guia repita decisões de estrutura e reduz o risco de drift entre documentação, implementação futura e defesa PAP.
@@ -64,13 +64,15 @@ Alterar stack, pastas ou ferramentas não pode alterar:
 
 Qualquer mudança que afete comportamento funcional, dados canónicos, roles, permissões, endpoints públicos ou critérios de aceite deve ser tratada como drift e revista com o orientador antes de ser aplicada.
 
-## Dependências técnicas opcionais
-Alguns BKs têm dependência canónica `-` porque os RF não declaram dependência formal. Mesmo assim, durante a implementação real, podem reutilizar contratos técnicos criados por BKs anteriores da mesma macro, por exemplo:
-- sessão autenticada de `BK-MF0-01`;
-- roles e guards de `BK-MF0-02`;
-- contexto multiempresa de `BK-MF0-03`.
+## Dependências técnicas bloqueantes
+As dependências canónicas dos BKs representam dependências técnicas bloqueantes, não apenas dependências formais dos RF/RNF. Quando um BK usa diretamente modelo, helper, service, middleware ou endpoint criado por outro BK, essa relação deve entrar em `dependencias` na matriz, no backlog, no contrato de campos e no header do guia.
 
-Isto deve ser documentado nos guias como **reutilização técnica opcional**, sem alterar a dependência canónica do backlog ou da matriz.
+Reutilizações meramente estruturais da stack, como Express, Prisma, cliente HTTP, layout de pastas ou convenções de testes, não criam dependência entre BKs. Já o uso direto de um contrato funcional entregue por outro BK cria dependência canónica.
+
+Na `MF1`, `BK-MF0-03` é baseline explícito porque fornece autenticação aplicada ao contexto multiempresa e roles de forma transitiva. `BK-MF0-08` deve aparecer nos BKs que criam, alteram ou contabilizam documentos financeiros/contabilísticos, porque esses fluxos dependem de `assertOpenFiscalPeriod`.
+
+Quando a implementação real adaptar caminhos ou nomes, a equipa deve preservar a relação técnica. Se o BK continuar a usar o contrato funcional de outro BK, a dependência mantém-se.
 
 ## Changelog
+- `2026-06-01`: dependências técnicas diretas passam a ser bloqueantes e devem constar em `dependencias`.
 - `2026-05-25`: contrato criado para centralizar a stack assumida dos guias MF0 e reduzir drift com a implementação futura.

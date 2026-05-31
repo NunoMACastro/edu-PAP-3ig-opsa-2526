@@ -10,14 +10,14 @@
 - `prioridade`: `P0`
 - `estado`: `TODO`
 - `esforco`: `M`
-- `dependencias`: `-`
+- `dependencias`: `BK-MF0-03, BK-MF0-08, BK-MF1-02`
 - `rf_rnf`: `RF15`
 - `fase_documental`: `Fase 1`
 - `sprint`: `S03-S04`
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF1-04`
 - `guia_path`: `docs/planificacao/guias-bk/MF1/BK-MF1-03-registar-recebimentos-parciais-totais.md`
-- `last_updated`: `2026-05-31`
+- `last_updated`: `2026-06-01`
 
 ## Objetivo
 
@@ -51,7 +51,7 @@ Cada recebimento fica ligado ao documento de venda, atualiza o montante recebido
 
 - Ler `docs/RF.md`, `docs/RNF.md`, `docs/planificacao/backlogs/BACKLOG-MVP.md`, `docs/planificacao/backlogs/MATRIZ-CANONICA-BK.md`, `docs/planificacao/backlogs/CONTRATO-CAMPOS-BK.md` e `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md`.
 - Confirmar que autenticação, contexto de empresa, roles/permissões e erros HTTP da MF0 estão disponíveis.
-- Confirmar dependências canónicas: `-`.
+- Confirmar dependências canónicas: `BK-MF0-03, BK-MF0-08, BK-MF1-02`.
 - Confirmar reutilização técnica do `BK-MF1-02`: o documento de venda deve estar emitido por `/api/sales/documents/:id/issue` antes de receber valores.
 - Nunca receber `companyId` do corpo do pedido; usar sempre o contexto autenticado.
 
@@ -71,14 +71,14 @@ Cada recebimento fica ligado ao documento de venda, atualiza o montante recebido
 
 ## Conceitos teóricos essenciais
 
-- **Recebimento:** e o valor recebido de um cliente para liquidar uma venda; vem do RF15 e alimenta saldos e previsao de tesouraria.
+- **Recebimento:** é o valor recebido de um cliente para liquidar uma venda; vem do RF15 e alimenta saldos e previsão de tesouraria.
 - **Parcial e total:** um recebimento parcial reduz o saldo em aberto; um recebimento total muda o documento para liquidado.
 - **Saldo em aberto:** e `totalCents - amountPaidCents`; evita receber mais do que o cliente deve.
-- **Periodo fiscal:** deve estar aberto na data do recebimento para impedir alteracoes financeiras em periodo fechado.
-- **Transacao:** cria o recibo e atualiza o documento de venda no mesmo bloco para evitar saldos incoerentes.
-- **Formulario React:** pede documento, valor, data, metodo e referencia; valida o minimo antes de chamar o backend.
-- **Seguranca:** o backend filtra por empresa e rejeita documento de outra empresa como `404` ou `403`.
-- **Handoff:** BK-MF1-05 e BK-MF3-04 usam estes saldos para titulos em aberto e previsao de tesouraria.
+- **Período fiscal:** deve estar aberto na data do recebimento para impedir alterações financeiras em período fechado.
+- **Transação:** cria o recibo e atualiza o documento de venda no mesmo bloco para evitar saldos incoerentes.
+- **Formulário React:** pede documento, valor, data, método e referência; valida o mínimo antes de chamar o backend.
+- **Segurança:** o backend filtra por empresa e rejeita documento de outra empresa como `404` ou `403`.
+- **Handoff:** BK-MF1-05 e BK-MF3-04 usam estes saldos para títulos em aberto e previsão de tesouraria.
 
 ## Arquitetura do BK
 
@@ -130,7 +130,7 @@ Garantir que BK-MF1-03 implementa apenas RF15, com dependências, owner, priorid
 
 3. Instruções do que fazer.
 
-Confirmar que o BK é `BK-MF1-03`, requisito `RF15`, dependências `-`, sprint `S03-S04` e próximo BK `BK-MF1-04`. Se o código real tiver caminhos diferentes, manter contratos de negócio e registar a decisão na evidência.
+Confirmar que o BK é `BK-MF1-03`, requisito `RF15`, dependências `BK-MF0-03, BK-MF0-08, BK-MF1-02`, sprint `S03-S04` e próximo BK `BK-MF1-04`. Se o código real tiver caminhos diferentes, manter contratos de negócio e registar a decisão na evidência.
 
 4. Código completo, correto e integrado com a app final.
 
@@ -139,7 +139,7 @@ bk=BK-MF1-03
 macro=MF1
 rf=RF15
 endpoint=/api/sales/documents/:id/receipts
-deps=-
+deps=BK-MF0-03, BK-MF0-08, BK-MF1-02
 ```
 
 5. Explicação do código.
@@ -286,9 +286,9 @@ function parseReceiptInput(input) {
     const amountCents = Number(input.amountCents);
     const receivedAt = new Date(input.receivedAt);
     const method = String(input.method ?? "").toUpperCase();
-    if (!Number.isInteger(amountCents) || amountCents <= 0) throw httpError(400, "INVALID_AMOUNT", "Valor recebido invalido");
-    if (Number.isNaN(receivedAt.getTime())) throw httpError(400, "INVALID_DATE", "Data de recebimento invalida");
-    if (!methods.has(method)) throw httpError(400, "INVALID_METHOD", "Metodo de recebimento invalido");
+    if (!Number.isInteger(amountCents) || amountCents <= 0) throw httpError(400, "INVALID_AMOUNT", "Valor recebido inválido");
+    if (Number.isNaN(receivedAt.getTime())) throw httpError(400, "INVALID_DATE", "Data de recebimento inválida");
+    if (!methods.has(method)) throw httpError(400, "INVALID_METHOD", "Método de recebimento inválido");
     return { amountCents, receivedAt, method, reference: String(input.reference ?? "").trim() || null, notes: String(input.notes ?? "").trim() || null };
 }
 
@@ -298,11 +298,11 @@ export async function registerReceipt(prisma, companyId, userId, saleDocumentId,
 
     return prisma.$transaction(async (tx) => {
         const document = await tx.saleDocument.findFirst({ where: { id: saleDocumentId, companyId } });
-        if (!document) throw httpError(404, "SALE_DOCUMENT_NOT_FOUND", "Documento de venda nao encontrado");
-        if (document.kind === "CREDIT_NOTE") throw httpError(409, "CREDIT_NOTE_NOT_RECEIVABLE", "Notas de credito nao recebem recebimentos");
+        if (!document) throw httpError(404, "SALE_DOCUMENT_NOT_FOUND", "Documento de venda não encontrado");
+        if (document.kind === "CREDIT_NOTE") throw httpError(409, "CREDIT_NOTE_NOT_RECEIVABLE", "Notas de crédito não recebem recebimentos");
         if (document.status !== "ISSUED" && document.status !== "SETTLED") throw httpError(409, "INVALID_STATUS", "Apenas documentos emitidos podem receber valores");
         const openAmount = document.totalCents - document.amountPaidCents;
-        if (openAmount <= 0) throw httpError(409, "DOCUMENT_ALREADY_SETTLED", "Documento ja liquidado");
+        if (openAmount <= 0) throw httpError(409, "DOCUMENT_ALREADY_SETTLED", "Documento já liquidado");
         if (data.amountCents > openAmount) throw httpError(400, "AMOUNT_EXCEEDS_OPEN", "Valor excede o montante em aberto");
 
         const receipt = await tx.receipt.create({ data: { ...data, companyId, saleDocumentId, createdById: userId } });
@@ -441,7 +441,7 @@ export function ReceiptsPage() {
             setForm(emptyForm);
             setSuccess("Recebimento registado com sucesso.");
         } catch (err) {
-            setError(err instanceof Error ? err.message : "Nao foi possivel registar o recebimento.");
+            setError(err instanceof Error ? err.message : "Não foi possível registar o recebimento.");
         } finally {
             setSaving(false);
         }
@@ -455,12 +455,12 @@ export function ReceiptsPage() {
                 <input type="number" value={form.amountCents} onChange={(event) => setForm({ ...form, amountCents: Number(event.target.value) })} />
                 <input type="date" value={form.receivedAt} onChange={(event) => setForm({ ...form, receivedAt: event.target.value })} />
                 <select value={form.method} onChange={(event) => setForm({ ...form, method: event.target.value as ReceiptInput["method"] })}>
-                    <option value="CASH">Numerario</option>
-                    <option value="BANK_TRANSFER">Transferencia bancaria</option>
-                    <option value="CARD">Cartao</option>
+                    <option value="CASH">Numerário</option>
+                    <option value="BANK_TRANSFER">Transferência bancária</option>
+                    <option value="CARD">Cartão</option>
                     <option value="OTHER">Outro</option>
                 </select>
-                <input value={form.reference ?? ""} onChange={(event) => setForm({ ...form, reference: event.target.value })} placeholder="Referencia" />
+                <input value={form.reference ?? ""} onChange={(event) => setForm({ ...form, reference: event.target.value })} placeholder="Referência" />
                 <button type="submit" disabled={saving}>{saving ? "A guardar..." : "Registar recebimento"}</button>
             </form>
             {error && <p role="alert">{error}</p>}
@@ -483,10 +483,10 @@ test("bloqueia recebimento superior ao valor em aberto", async () => {
         $transaction: async (callback) => callback({
             saleDocument: {
                 findFirst: async () => ({ id: "sale-1", companyId: "company-1", status: "ISSUED", totalCents: 10000, amountPaidCents: 2500 }),
-                update: async () => assert.fail("Nao deve atualizar documento quando o valor excede o aberto"),
+                update: async () => assert.fail("Não deve atualizar documento quando o valor excede o aberto"),
             },
-            receipt: { create: async () => assert.fail("Nao deve criar recebimento invalido") },
-            auditLog: { create: async () => assert.fail("Nao deve auditar recebimento recusado") },
+            receipt: { create: async () => assert.fail("Não deve criar recebimento inválido") },
+            auditLog: { create: async () => assert.fail("Não deve auditar recebimento recusado") },
         }),
     };
 
@@ -499,7 +499,7 @@ test("bloqueia recebimento superior ao valor em aberto", async () => {
 
 5. Explicação do código.
 
-A pagina `ReceiptsPage.tsx` fecha a parte visual deste BK: tem estado local, validacao minima, mensagens de erro/sucesso e chama endpoints reais atraves do cliente API. A UI ajuda o utilizador, mas as regras de seguranca, multiempresa e fiscalidade continuam no backend.
+A página `ReceiptsPage.tsx` fecha a parte visual deste BK: tem estado local, validação mínima, mensagens de erro/sucesso e chama endpoints reais através do cliente API. A UI ajuda o utilizador, mas as regras de segurança, multiempresa e fiscalidade continuam no backend.
 
 O cliente API mantém o contrato entre UI e backend num ponto único. Os testes focam o comportamento que protege a contabilidade: validação, transação, estado e isolamento por empresa.
 
@@ -658,5 +658,6 @@ O `BK-MF1-04` pode contabilizar vendas já emitidas; `BK-MF3-04` deve usar receb
 
 ## Changelog
 
+- `2026-06-01`: Dependências técnicas canónicas alinhadas com a matriz, backlog e risco de PR da MF1.
 - `2026-05-31`: Corrigida fundamentação documental, reutilização de `AuditLog`, auditoria do recebimento e teste autocontido.
 - `2026-05-31`: Guia consolidado com contrato técnico completo, código por camada, validações e handoff MF1.
