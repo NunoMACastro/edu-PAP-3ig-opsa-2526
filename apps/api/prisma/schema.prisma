@@ -22,6 +22,16 @@ enum InvitationStatus {
   EXPIRED
 }
 
+enum FiscalPeriodStatus {
+  OPEN
+  CLOSED
+}
+
+enum ItemType {
+  PRODUCT
+  SERVICE
+}
+
 model CompanyInvitation {
   id        String           @id @default(uuid())
   companyId String
