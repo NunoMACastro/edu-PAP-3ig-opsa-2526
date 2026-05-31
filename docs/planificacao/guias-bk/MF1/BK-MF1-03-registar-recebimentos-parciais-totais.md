@@ -52,6 +52,7 @@ Cada recebimento fica ligado ao documento de venda, atualiza o montante recebido
 - Ler `docs/RF.md`, `docs/RNF.md`, `docs/planificacao/backlogs/BACKLOG-MVP.md`, `docs/planificacao/backlogs/MATRIZ-CANONICA-BK.md`, `docs/planificacao/backlogs/CONTRATO-CAMPOS-BK.md` e `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md`.
 - Confirmar que autenticação, contexto de empresa, roles/permissões e erros HTTP da MF0 estão disponíveis.
 - Confirmar dependências canónicas: `-`.
+- Confirmar reutilização técnica do `BK-MF1-02`: o documento de venda deve estar emitido por `/api/sales/documents/:id/issue` antes de receber valores.
 - Nunca receber `companyId` do corpo do pedido; usar sempre o contexto autenticado.
 
 ## Glossário
@@ -77,6 +78,7 @@ Cada recebimento fica ligado ao documento de venda, atualiza o montante recebido
 - Cliente frontend: `apps/web/src/lib/receiptApi.ts`
 - Rotas protegidas por `requireAuth(prisma)` e `requireCompanyContext(prisma)`.
 - Respostas de erro normalizadas por `toHttpError`.
+- Entrada funcional esperada: `SaleDocument.status` em `ISSUED` ou `SETTLED`, produzido pelo `BK-MF1-02`.
 
 ## Ficheiros a criar/editar/rever
 

@@ -216,7 +216,8 @@ export async function registerPayment(prisma, companyId, userId, purchaseDocumen
     return prisma.$transaction(async (tx) => {
         const document = await tx.purchaseDocument.findFirst({ where: { id: purchaseDocumentId, companyId } });
         if (!document) throw httpError(404, "PURCHASE_DOCUMENT_NOT_FOUND", "Documento de compra nao encontrado");
-        if (document.status !== "POSTED" && document.status !== "PAID") throw httpError(409, "INVALID_STATUS", "Apenas compras lancadas podem receber pagamentos");
+        if (document.kind === "SUPPLIER_CREDIT_NOTE") throw httpError(409, "CREDIT_NOTE_NOT_PAYABLE", "Notas de credito nao recebem pagamentos");
+        if (!["APPROVED", "POSTED", "PAID"].includes(document.status)) throw httpError(409, "INVALID_STATUS", "Apenas compras aprovadas ou lancadas podem receber pagamentos");
         const openAmount = document.totalCents - document.amountPaidCents;
         if (openAmount <= 0) throw httpError(409, "DOCUMENT_ALREADY_PAID", "Documento ja pago");
         if (data.amountCents > openAmount) throw httpError(400, "AMOUNT_EXCEEDS_OPEN", "Valor excede o montante em aberto");
@@ -330,7 +331,7 @@ Se o backend devolver `400`, `401`, `403`, `404` ou `409`, a UI deve mostrar err
 ### Passo 4 - Validar regras unitárias
 
 1. Objetivo funcional do passo no ERP.
-Confirmar que o service só paga compras lançadas e bloqueia valores acima do saldo.
+Confirmar que o service só paga compras aprovadas ou lançadas, rejeita notas de crédito e bloqueia valores acima do saldo.
 2. Ficheiros envolvidos:
 - CRIAR: testes unitários do módulo.
 - EDITAR: service apenas se o teste revelar falha.
@@ -369,7 +370,7 @@ O comando confirma que o frontend recebe erros consistentes e seguros.
 6. Validação do passo.
 Nenhum erro devolve stack trace.
 7. Cenário negativo/erro esperado.
-Compra não lançada deve devolver `INVALID_STATUS`.
+Compra em `DRAFT` deve devolver `INVALID_STATUS`; nota de crédito deve devolver `CREDIT_NOTE_NOT_PAYABLE`.
 
 ### Passo 6 - Validar fluxo integrado
 
@@ -381,7 +382,7 @@ Confirmar que o pagamento atualiza `amountPaidCents` e `status`.
 - REVER: estado visual de sucesso e erro.
 - LOCALIZAÇÃO: testes de integração.
 3. Instruções do que fazer.
-Executar o fluxo com compra `POSTED` e saldo em aberto.
+Executar o fluxo com compra `APPROVED` ou `POSTED` e saldo em aberto.
 4. Código completo, correto e integrado com a app final.
 ```bash
 npm run test:integration

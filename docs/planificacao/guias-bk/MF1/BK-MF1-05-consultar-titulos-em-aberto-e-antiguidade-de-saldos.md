@@ -52,6 +52,7 @@ A API devolve documentos de venda com saldo em aberto, dias de atraso e bucket d
 - Ler `docs/RF.md`, `docs/RNF.md`, `docs/planificacao/backlogs/BACKLOG-MVP.md`, `docs/planificacao/backlogs/MATRIZ-CANONICA-BK.md`, `docs/planificacao/backlogs/CONTRATO-CAMPOS-BK.md` e `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md`.
 - Confirmar que autenticação, contexto de empresa, roles/permissões e erros HTTP da MF0 estão disponíveis.
 - Confirmar dependências canónicas: `-`.
+- Confirmar reutilização técnica do `BK-MF1-02` e `BK-MF1-03`: a listagem usa documentos emitidos e montantes recebidos.
 - Nunca receber `companyId` do corpo do pedido; usar sempre o contexto autenticado.
 
 ## Glossário
@@ -77,6 +78,7 @@ A API devolve documentos de venda com saldo em aberto, dias de atraso e bucket d
 - Cliente frontend: `apps/web/src/lib/salesOpenItemsApi.ts`
 - Rotas protegidas por `requireAuth(prisma)` e `requireCompanyContext(prisma)`.
 - Respostas de erro normalizadas por `toHttpError`.
+- Dados de origem: `SaleDocument` emitido no `BK-MF1-02` e `amountPaidCents` atualizado no `BK-MF1-03`.
 
 ## Ficheiros a criar/editar/rever
 

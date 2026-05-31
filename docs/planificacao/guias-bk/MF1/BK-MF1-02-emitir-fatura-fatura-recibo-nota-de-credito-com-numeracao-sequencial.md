@@ -318,7 +318,8 @@ export async function issueSaleDocument(prisma, companyId, userId, id) {
     return prisma.$transaction(async (tx) => {
         const document = await tx.saleDocument.findFirst({ where: { id, companyId }, include: { lines: true } });
         if (!document) throw httpError(404, "SALE_DOCUMENT_NOT_FOUND", "Documento de venda nao encontrado");
-        if (document.status !== "APPROVED") throw httpError(409, "INVALID_STATUS", "Apenas documentos aprovados podem ser emitidos");
+        // Neste BK, a emissão parte de rascunho. O BK-MF1-06 acrescenta o fluxo de aprovação e aperta esta regra para APPROVED.
+        if (document.status !== "DRAFT") throw httpError(409, "INVALID_STATUS", "Apenas rascunhos podem ser emitidos neste fluxo");
         if (document.number) throw httpError(409, "DOCUMENT_ALREADY_ISSUED", "Documento ja emitido");
 
         const number = await nextSaleNumber(tx, companyId, document.kind, document.issuedAt);
@@ -347,7 +348,7 @@ import { requireAuth } from "../auth/authMiddleware.js";
 import { requireCompanyContext } from "../companies/companyContext.js";
 import { requireRole } from "../permissions/permissionMiddleware.js";
 import { toHttpError } from "../../lib/httpErrors.js";
-import { createSaleDocument } from "./saleDocumentService.js";
+import { createSaleDocument, issueSaleDocument } from "./saleDocumentService.js";
 
 function sendError(res, error) {
     const response = toHttpError(error);
@@ -370,6 +371,13 @@ export function buildSaleDocumentRoutes({ prisma }) {
         } catch (error) { return sendError(res, error); }
     });
 
+    router.post("/:id/issue", guards, async (req, res) => {
+        try {
+            const data = await issueSaleDocument(prisma, req.companyId, req.user.id, req.params.id);
+            return res.status(200).json({ data });
+        } catch (error) { return sendError(res, error); }
+    });
+
     return router;
 }
 ```
@@ -384,11 +392,11 @@ app.use("/api/sales/documents", buildSaleDocumentRoutes({ prisma }));
 
 5. Explicação do código.
 
-O schema define as invariantes persistentes. O service concentra validação, cálculo, transações e regras de estado. A route só trata transporte HTTP, autenticação, contexto de empresa e resposta. Esta separação facilita testes e reduz regressões entre MF1 e MF3.
+O schema define as invariantes persistentes. O service concentra validação, cálculo, transações e regras de estado. A função `createSaleDocument` guarda o documento em `DRAFT`, sem número definitivo. A função `issueSaleDocument` atribui número dentro da transação, muda o estado para `ISSUED` ou `SETTLED` e evita buracos na sequência. A route só trata transporte HTTP, autenticação, contexto de empresa e resposta. Esta separação facilita testes e reduz regressões entre MF1 e MF3.
 
 6. Validação do passo.
 
-Executar teste unitário do service, teste de contrato do endpoint `/api/sales/documents` e confirmar que todos os registos criados pertencem a `req.companyId`.
+Executar teste unitário do service, teste de contrato dos endpoints `/api/sales/documents` e `/api/sales/documents/:id/issue`, e confirmar que todos os registos criados pertencem a `req.companyId`.
 
 7. Cenário negativo/erro esperado.
 
@@ -426,6 +434,10 @@ export async function createSaleDocument(input: SaleDocumentInput) {
 export async function fetchSaleDocuments() {
     return apiClient.get("/api/sales/documents");
 }
+
+export async function issueSaleDocument(id: string) {
+    return apiClient.post("/api/sales/documents/" + id + "/issue", {});
+}
 ```
 
 Localização: teste unitário ou de contrato do service.
@@ -434,7 +446,9 @@ Localização: teste unitário ou de contrato do service.
 it("gera numeros diferentes em duas faturas da mesma empresa", async () => {
     const first = await createSaleDocument(prisma, companyId, userId, validInvoiceInput);
     const second = await createSaleDocument(prisma, companyId, userId, validInvoiceInput);
-    expect(first.number).not.toBe(second.number);
+    const issuedFirst = await issueSaleDocument(prisma, companyId, userId, first.id);
+    const issuedSecond = await issueSaleDocument(prisma, companyId, userId, second.id);
+    expect(issuedFirst.number).not.toBe(issuedSecond.number);
 });
 ```
 

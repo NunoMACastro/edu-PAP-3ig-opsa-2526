@@ -192,22 +192,31 @@ export async function postPurchaseDocument(prisma, companyId, userId, purchaseDo
     return prisma.$transaction(async (tx) => {
         const document = await tx.purchaseDocument.findFirst({ where: { id: purchaseDocumentId, companyId }, include: { lines: true } });
         if (!document) throw httpError(404, "PURCHASE_DOCUMENT_NOT_FOUND", "Documento de compra nao encontrado");
-        if (document.status !== "APPROVED") throw httpError(409, "INVALID_STATUS", "Apenas compras aprovadas podem ser contabilizadas");
+        if (document.status !== "APPROVED" && document.status !== "PAID") throw httpError(409, "INVALID_STATUS", "Apenas compras aprovadas ou pagas podem ser contabilizadas");
         await assertOpenFiscalPeriod(tx, companyId, document.issuedAt);
 
         const expenseAccount = await accountByCode(tx, companyId, "62");
         const vatAccount = await accountByCode(tx, companyId, "2432");
         const supplierAccount = await accountByCode(tx, companyId, "221");
-        const lines = [
-            { accountId: expenseAccount.id, debitCents: document.subtotalCents, creditCents: 0, memo: "Compra" },
-            { accountId: vatAccount.id, debitCents: document.vatCents, creditCents: 0, memo: "IVA dedutivel" },
-            { accountId: supplierAccount.id, debitCents: 0, creditCents: document.totalCents, memo: "Fornecedor" },
-        ].filter((line) => line.debitCents > 0 || line.creditCents > 0);
-        assertBalanced(lines);
+        const isCreditNote = document.kind === "SUPPLIER_CREDIT_NOTE";
+        const lines = isCreditNote
+            ? [
+                // A nota de crédito reduz a dívida ao fornecedor e reverte gasto e IVA dedutível.
+                { accountId: supplierAccount.id, debitCents: document.totalCents, creditCents: 0, memo: "Credito de fornecedor" },
+                { accountId: expenseAccount.id, debitCents: 0, creditCents: document.subtotalCents, memo: "Reversao de gasto" },
+                { accountId: vatAccount.id, debitCents: 0, creditCents: document.vatCents, memo: "Reversao de IVA dedutivel" },
+            ]
+            : [
+                { accountId: expenseAccount.id, debitCents: document.subtotalCents, creditCents: 0, memo: "Compra" },
+                { accountId: vatAccount.id, debitCents: document.vatCents, creditCents: 0, memo: "IVA dedutivel" },
+                { accountId: supplierAccount.id, debitCents: 0, creditCents: document.totalCents, memo: "Fornecedor" },
+            ];
+        const nonZeroLines = lines.filter((line) => line.debitCents > 0 || line.creditCents > 0);
+        assertBalanced(nonZeroLines);
 
         try {
-            const entry = await tx.journalEntry.create({ data: { companyId, source: "PURCHASE", sourceId: document.id, entryDate: document.issuedAt, description: "Compra " + document.supplierNumber, createdById: userId, lines: { create: lines } }, include: { lines: true } });
-            await tx.purchaseDocument.update({ where: { id: document.id }, data: { status: "POSTED" } });
+            const entry = await tx.journalEntry.create({ data: { companyId, source: "PURCHASE", sourceId: document.id, entryDate: document.issuedAt, description: "Compra " + document.supplierNumber, createdById: userId, lines: { create: nonZeroLines } }, include: { lines: true } });
+            await tx.purchaseDocument.update({ where: { id: document.id }, data: { status: document.status === "PAID" ? "PAID" : "POSTED" } });
             return entry;
         } catch (error) {
             if (error.code === "P2002") throw httpError(409, "PURCHASE_ALREADY_POSTED", "Compra ja contabilizada");
@@ -252,7 +261,7 @@ app.use("/api/accounting/purchase-postings", buildPurchasePostingRoutes({ prisma
 
 5. Explicação do código.
 
-O schema define as invariantes persistentes. O service concentra validação, cálculo, transações e regras de estado. A route só trata transporte HTTP, autenticação, contexto de empresa e resposta. Esta separação facilita testes e reduz regressões entre MF1 e MF3.
+O schema define as invariantes persistentes. O service concentra validação, cálculo, transações e regras de estado. Para faturas de fornecedor, o lançamento debita gasto e IVA dedutível e credita fornecedor. Para notas de crédito, faz o inverso para reduzir a dívida e reverter gasto/IVA. A compra já paga também pode ser contabilizada porque o pagamento e o lançamento são responsabilidades diferentes. A route só trata transporte HTTP, autenticação, contexto de empresa e resposta.
 
 6. Validação do passo.
 
@@ -317,7 +326,7 @@ Se o backend devolver `400`, `401`, `403`, `404` ou `409`, a UI deve mostrar err
 ### Passo 4 - Validar regras unitárias
 
 1. Objetivo funcional do passo no ERP.
-Confirmar que o service só contabiliza compras aprovadas e equilibradas.
+Confirmar que o service só contabiliza compras aprovadas ou pagas, e que o lançamento fica equilibrado.
 2. Ficheiros envolvidos:
 - CRIAR: testes unitários do módulo.
 - EDITAR: service apenas se o teste revelar falha.
@@ -334,7 +343,7 @@ O comando valida a regra de negócio no ponto onde o lançamento é criado.
 6. Validação do passo.
 O débito total é igual ao crédito total.
 7. Cenário negativo/erro esperado.
-Compra não aprovada deve devolver `INVALID_STATUS`.
+Compra em `DRAFT` deve devolver `INVALID_STATUS`.
 
 ### Passo 5 - Validar contrato HTTP
 
@@ -368,7 +377,7 @@ Confirmar que a compra aprovada gera lançamento contabilístico automático.
 - REVER: estado visual de sucesso e erro.
 - LOCALIZAÇÃO: testes de integração.
 3. Instruções do que fazer.
-Executar o fluxo com compra `APPROVED`, contas ativas e período fiscal aberto.
+Executar o fluxo com compra `APPROVED` ou `PAID`, contas ativas e período fiscal aberto.
 4. Código completo, correto e integrado com a app final.
 ```bash
 npm run test:integration

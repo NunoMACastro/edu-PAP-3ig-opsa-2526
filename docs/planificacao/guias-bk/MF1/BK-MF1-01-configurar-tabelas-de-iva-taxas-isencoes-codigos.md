@@ -309,20 +309,54 @@ Entrada inválida deve falhar antes do Prisma; estado inválido deve devolver `4
 Disponibilizar a operação ao utilizador, com cliente API tipado, estados de carregamento/erro/sucesso e evidência que permita revisão técnica.
 
 2. Ficheiros envolvidos:
-- CRIAR: `apps/web/src/lib/vatRateApi.ts` e página/componente do domínio.
+- CRIAR: `apps/web/src/lib/apiClient.ts`, `apps/web/src/lib/vatRateApi.ts` e página/componente do domínio.
 - EDITAR: rotas frontend existentes, se a app já tiver router.
 - REVER: `apps/web/src/lib/apiClient.ts` e componentes de formulário/listagem já usados na MF0.
 - LOCALIZAÇÃO: módulo visual correspondente à operação da MF1.
 
 3. Instruções do que fazer.
 
-Criar funções de API tipadas, consumir erros normalizados do backend e mostrar mensagens claras. Não recalcular no frontend valores que o backend já calcula como fonte de verdade.
+Criar o cliente HTTP base da aplicação, criar funções de API tipadas, consumir erros normalizados do backend e mostrar mensagens claras. Não recalcular no frontend valores que o backend já calcula como fonte de verdade.
 
 4. Código completo, correto e integrado com a app final.
+
+Localização: `apps/web/src/lib/apiClient.ts`.
+
+```ts
+// apps/web/src/lib/apiClient.ts
+type ApiClientOptions = {
+    method?: "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
+    body?: object;
+};
+
+async function request<TResponse>(path: string, options: ApiClientOptions = {}): Promise<TResponse> {
+    const response = await fetch(path, {
+        method: options.method ?? "GET",
+        headers: options.body ? { "Content-Type": "application/json" } : undefined,
+        // O cookie HttpOnly da MF0 só segue para a API se o browser enviar credenciais.
+        credentials: "include",
+        body: options.body ? JSON.stringify(options.body) : undefined,
+    });
+
+    if (!response.ok) {
+        const errorBody = await response.json().catch(() => null);
+        throw new Error(errorBody?.message ?? "Não foi possível concluir o pedido");
+    }
+
+    return response.json() as Promise<TResponse>;
+}
+
+export const apiClient = {
+    get: <TResponse>(path: string) => request<TResponse>(path),
+    post: <TResponse>(path: string, body: object) => request<TResponse>(path, { method: "POST", body }),
+    patch: <TResponse>(path: string, body: object) => request<TResponse>(path, { method: "PATCH", body }),
+};
+```
 
 Localização: `apps/web/src/lib/vatRateApi.ts`.
 
 ```ts
+// apps/web/src/lib/vatRateApi.ts
 import { apiClient } from "./apiClient";
 
 export type VatRate = { id: string; code: string; description: string; rateBps: number; type: string; exemptionReason: string | null; isActive: boolean };
@@ -348,7 +382,9 @@ it("rejeita taxa isenta sem motivo", async () => {
 
 5. Explicação do código.
 
-O cliente API mantém o contrato entre UI e backend num ponto único. Os testes focam o comportamento que protege a contabilidade: validação, transação, estado e isolamento por empresa.
+`apiClient.ts` fica como ponto único para chamadas HTTP do frontend. O uso de `credentials: "include"` é obrigatório porque a autenticação da MF0 usa cookie HttpOnly; sem isto, o browser não envia a sessão e a API responde `401`.
+
+`vatRateApi.ts` usa esse cliente base para expor funções específicas de IVA. A UI não conhece detalhes de `fetch`, cookies ou JSON; apenas chama funções tipadas. Os testes focam o comportamento que protege a contabilidade: validação, transação, estado e isolamento por empresa.
 
 6. Validação do passo.
 

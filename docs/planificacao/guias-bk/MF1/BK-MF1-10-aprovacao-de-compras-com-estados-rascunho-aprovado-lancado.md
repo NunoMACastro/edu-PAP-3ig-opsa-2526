@@ -150,8 +150,8 @@ Criar a persistência e as regras backend para aprovação de compras, com valid
 
 2. Ficheiros envolvidos:
 - CRIAR: `apps/api/src/modules/purchase-approval/` com service e routes.
-- EDITAR: `apps/api/prisma/schema.prisma` e `apps/api/src/server.js`.
-- REVER: BKs dependentes da MF0/MF1 indicados no header.
+- EDITAR: `apps/api/prisma/schema.prisma`, `apps/api/src/modules/purchases/purchaseDocumentService.js` e `apps/api/src/server.js`.
+- REVER: `AuditLog` criado no `BK-MF1-06` e `postPurchaseDocument` criado no `BK-MF1-09`.
 - LOCALIZAÇÃO: modelos Prisma no domínio correspondente e rota montada em `/api/purchases/documents/:id/state`.
 
 3. Instruções do que fazer.
@@ -200,10 +200,35 @@ model PurchaseDocument {
 }
 ```
 
+Localização: `apps/api/src/modules/purchases/purchaseDocumentService.js`.
+
+```js
+// Dentro de createPurchaseDocument, substituir o estado inicial usado no BK-MF1-07.
+return tx.purchaseDocument.create({
+    data: {
+        companyId,
+        supplierId: supplier.id,
+        kind,
+        // A partir deste BK, compras entram como rascunho e precisam de aprovação explícita.
+        status: "DRAFT",
+        supplierNumber,
+        issuedAt,
+        dueDate: input.dueDate ? new Date(input.dueDate) : null,
+        subtotalCents,
+        vatCents,
+        totalCents: subtotalCents + vatCents,
+        createdById: userId,
+        lines: { create: computedLines },
+    },
+    include: { supplier: true, lines: true },
+});
+```
+
 Localização: `apps/api/src/modules/purchase-approval/purchaseApprovalService.js`.
 
 ```js
 import { httpError } from "../../lib/httpErrors.js";
+import { postPurchaseDocument } from "../accounting/purchasePostingService.js";
 
 async function findPurchaseDocument(prisma, companyId, id) {
     const document = await prisma.purchaseDocument.findFirst({ where: { id, companyId } });
@@ -230,11 +255,13 @@ export async function approvePurchaseDocument(prisma, companyId, userId, id) {
 export async function markPurchaseDocumentPosted(prisma, companyId, userId, id) {
     const document = await findPurchaseDocument(prisma, companyId, id);
     if (document.status !== "APPROVED") throw httpError(409, "INVALID_STATUS", "Apenas compras aprovadas podem ser lancadas");
-    return prisma.$transaction(async (tx) => {
-        const updated = await tx.purchaseDocument.update({ where: { id }, data: { status: "POSTED", postedAt: new Date(), postedById: userId } });
+    const entry = await postPurchaseDocument(prisma, companyId, userId, id);
+    await prisma.$transaction(async (tx) => {
+        // O estado POSTED só fica registado depois de existir diário contabilístico.
+        await tx.purchaseDocument.update({ where: { id }, data: { postedAt: new Date(), postedById: userId } });
         await recordPurchaseApprovalAudit(tx, companyId, userId, id, "PURCHASE_DOCUMENT_POSTED");
-        return updated;
     });
+    return entry;
 }
 ```
 
@@ -275,11 +302,11 @@ app.use("/api/purchases/documents", buildPurchaseApprovalRoutes({ prisma }));
 
 5. Explicação do código.
 
-O schema define as invariantes persistentes. O service concentra validação, cálculo, transações e regras de estado. A route só trata transporte HTTP, autenticação, contexto de empresa e resposta. Esta separação facilita testes e reduz regressões entre MF1 e MF3.
+O schema define as invariantes persistentes. A partir deste BK, o service de compras criado no `BK-MF1-07` deve passar a criar compras em `DRAFT`, porque a aprovação formal já existe. O service de aprovação só muda `DRAFT` para `APPROVED`. Para lançar, reutiliza `postPurchaseDocument` do `BK-MF1-09`; assim `POSTED` nunca aparece sem diário contabilístico. A route só trata transporte HTTP, autenticação, contexto de empresa e resposta.
 
 6. Validação do passo.
 
-Executar teste unitário do service, teste de contrato do endpoint `/api/purchases/documents/:id/state` e confirmar que todos os registos criados pertencem a `req.companyId`.
+Executar teste unitário do service, teste de contrato dos endpoints `/approve` e `/post-state`, e confirmar que `/post-state` cria `JournalEntry` antes de marcar metadados de lançamento.
 
 7. Cenário negativo/erro esperado.
 

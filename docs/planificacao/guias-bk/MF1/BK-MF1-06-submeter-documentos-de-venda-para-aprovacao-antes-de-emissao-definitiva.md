@@ -150,8 +150,8 @@ Criar a persistência e as regras backend para aprovação de vendas, com valida
 
 2. Ficheiros envolvidos:
 - CRIAR: `apps/api/src/modules/sales-approval/` com service e routes.
-- EDITAR: `apps/api/prisma/schema.prisma` e `apps/api/src/server.js`.
-- REVER: BKs dependentes da MF0/MF1 indicados no header.
+- EDITAR: `apps/api/prisma/schema.prisma`, `apps/api/src/modules/sales/saleDocumentService.js` e `apps/api/src/server.js`.
+- REVER: `BK-MF1-02` porque criou `issueSaleDocument` e a rota `/api/sales/documents/:id/issue`.
 - LOCALIZAÇÃO: modelos Prisma no domínio correspondente e rota montada em `/api/sales/documents/:id/approval`.
 
 3. Instruções do que fazer.
@@ -203,6 +203,52 @@ model SaleDocument {
 
   @@unique([companyId, number])
   @@index([companyId, status, issuedAt])
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  companyId String
+  userId    String
+  action    String
+  entity    String
+  entityId  String
+  details   Json?
+  createdAt DateTime @default(now())
+
+  company Company @relation(fields: [companyId], references: [id])
+  user    User    @relation(fields: [userId], references: [id])
+
+  @@index([companyId, entity, entityId])
+  @@index([companyId, createdAt])
+}
+```
+
+Localização: `apps/api/src/modules/sales/saleDocumentService.js`.
+
+```js
+export async function issueSaleDocument(prisma, companyId, userId, id) {
+    return prisma.$transaction(async (tx) => {
+        const document = await tx.saleDocument.findFirst({ where: { id, companyId }, include: { lines: true } });
+        if (!document) throw httpError(404, "SALE_DOCUMENT_NOT_FOUND", "Documento de venda nao encontrado");
+        // A partir deste BK, a emissão definitiva exige aprovação para garantir segregação de funções.
+        if (document.status !== "APPROVED") throw httpError(409, "INVALID_STATUS", "Apenas documentos aprovados podem ser emitidos");
+        if (document.number) throw httpError(409, "DOCUMENT_ALREADY_ISSUED", "Documento ja emitido");
+
+        const number = await nextSaleNumber(tx, companyId, document.kind, document.issuedAt);
+        const settled = document.kind === "INVOICE_RECEIPT";
+
+        return tx.saleDocument.update({
+            where: { id: document.id },
+            data: {
+                number,
+                status: settled ? "SETTLED" : "ISSUED",
+                amountPaidCents: settled ? document.totalCents : document.amountPaidCents,
+                issuedById: userId,
+                issuedDefinitiveAt: new Date(),
+            },
+            include: { lines: true, customer: true },
+        });
+    });
 }
 ```
 
@@ -265,7 +311,6 @@ import { requireCompanyContext } from "../companies/companyContext.js";
 import { requireRole } from "../permissions/permissionMiddleware.js";
 import { toHttpError } from "../../lib/httpErrors.js";
 import { approveSaleDocument, rejectSaleDocument, submitSaleDocument } from "./saleApprovalService.js";
-import { issueSaleDocument } from "../sales/saleDocumentService.js";
 
 function sendError(res, error) {
     const response = toHttpError(error);
@@ -283,9 +328,6 @@ export function buildSaleApprovalRoutes({ prisma }) {
     router.post("/:id/reject", requireAuth(prisma), requireCompanyContext(prisma), requireRole("ADMIN", "GESTOR"), async (req, res) => {
         try { return res.status(200).json({ data: await rejectSaleDocument(prisma, req.companyId, req.user.id, req.params.id, req.body) }); } catch (error) { return sendError(res, error); }
     });
-    router.post("/:id/issue", requireAuth(prisma), requireCompanyContext(prisma), requireRole("ADMIN", "GESTOR", "CONTABILISTA"), async (req, res) => {
-        try { return res.status(200).json({ data: await issueSaleDocument(prisma, req.companyId, req.user.id, req.params.id) }); } catch (error) { return sendError(res, error); }
-    });
     return router;
 }
 ```
@@ -300,11 +342,11 @@ app.use("/api/sales/documents", buildSaleApprovalRoutes({ prisma }));
 
 5. Explicação do código.
 
-O schema define as invariantes persistentes. O service concentra validação, cálculo, transações e regras de estado. A route só trata transporte HTTP, autenticação, contexto de empresa e resposta. Esta separação facilita testes e reduz regressões entre MF1 e MF3.
+O schema acrescenta campos de decisão e o `AuditLog`, que regista quem submeteu, aprovou ou rejeitou. O service concentra validação, transações, regras de estado e auditoria. A rota de emissão criada no `BK-MF1-02` continua a existir, mas a função `issueSaleDocument` passa a exigir `APPROVED`. Assim não existem dois endpoints para emitir; existe uma regra mais restritiva no service partilhado.
 
 6. Validação do passo.
 
-Executar teste unitário do service, teste de contrato do endpoint `/api/sales/documents/:id/approval` e confirmar que todos os registos criados pertencem a `req.companyId`.
+Executar teste unitário do service, teste de contrato dos endpoints `/submit`, `/approve` e `/reject`, teste de emissão por `/api/sales/documents/:id/issue` com documento aprovado, e confirmar que todos os registos criados pertencem a `req.companyId`.
 
 7. Cenário negativo/erro esperado.
 

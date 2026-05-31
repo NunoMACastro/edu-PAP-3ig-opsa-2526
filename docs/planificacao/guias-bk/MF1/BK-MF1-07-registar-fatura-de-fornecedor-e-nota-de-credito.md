@@ -32,7 +32,8 @@ Este BK transforma o requisito RF19 num caminho de implementação rastreável. 
 - Fatura de fornecedor e nota de crédito.
 - Validação de fornecedor, artigos e IVA.
 - Número do fornecedor único por fornecedor e empresa.
-- Estado inicial registado.
+- Estado inicial `APPROVED` para permitir pagamentos e contabilização antes do workflow formal de `BK-MF1-10`.
+- Notas de crédito guardadas com valores positivos e interpretadas pelo tipo documental.
 
 ## Scope-out
 
@@ -45,7 +46,7 @@ Existem fornecedores, artigos e IVA, mas ainda não há documento de compra com 
 
 ## Estado depois
 
-A aplicação regista faturas e notas de crédito de fornecedor por empresa, com número do fornecedor único e totais calculados no backend.
+A aplicação regista faturas e notas de crédito de fornecedor por empresa, com número do fornecedor único, totais calculados no backend e estado suficiente para os BKs seguintes executarem pagamentos e contabilização.
 
 ## Pré-requisitos
 
@@ -180,7 +181,7 @@ model PurchaseDocument {
   companyId       String
   supplierId      String
   kind            PurchaseDocumentKind
-  status          PurchaseDocumentStatus @default(DRAFT)
+  status          PurchaseDocumentStatus @default(APPROVED)
   supplierNumber  String
   issuedAt        DateTime
   dueDate         DateTime?
@@ -262,7 +263,8 @@ export async function createPurchaseDocument(prisma, companyId, userId, input) {
         });
         const subtotalCents = computedLines.reduce((sum, line) => sum + line.subtotalCents, 0);
         const vatCents = computedLines.reduce((sum, line) => sum + line.vatCents, 0);
-        return tx.purchaseDocument.create({ data: { companyId, supplierId: supplier.id, kind, status: "DRAFT", supplierNumber, issuedAt, dueDate: input.dueDate ? new Date(input.dueDate) : null, subtotalCents, vatCents, totalCents: subtotalCents + vatCents, createdById: userId, lines: { create: computedLines } }, include: { supplier: true, lines: true } });
+        // Os valores ficam positivos; o tipo SUPPLIER_CREDIT_NOTE diz aos BKs seguintes para inverter o efeito contabilístico.
+        return tx.purchaseDocument.create({ data: { companyId, supplierId: supplier.id, kind, status: "APPROVED", supplierNumber, issuedAt, dueDate: input.dueDate ? new Date(input.dueDate) : null, subtotalCents, vatCents, totalCents: subtotalCents + vatCents, createdById: userId, lines: { create: computedLines } }, include: { supplier: true, lines: true } });
     });
 }
 ```
@@ -305,7 +307,7 @@ app.use("/api/purchases/documents", buildPurchaseDocumentRoutes({ prisma }));
 
 5. Explicação do código.
 
-O schema define as invariantes persistentes. O service concentra validação, cálculo, transações e regras de estado. A route só trata transporte HTTP, autenticação, contexto de empresa e resposta. Esta separação facilita testes e reduz regressões entre MF1 e MF3.
+O schema define as invariantes persistentes. O service concentra validação, cálculo, transações e regras de estado. O estado `APPROVED` é uma decisão `DERIVADO` para manter a sequência MF1 executável até o workflow formal de compras ser introduzido. A route só trata transporte HTTP, autenticação, contexto de empresa e resposta. Esta separação facilita testes e reduz regressões entre MF1 e MF3.
 
 6. Validação do passo.
 
@@ -372,7 +374,7 @@ Se o backend devolver `400`, `401`, `403`, `404` ou `409`, a UI deve mostrar err
 ### Passo 4 - Validar regras unitárias
 
 1. Objetivo funcional do passo no ERP.
-Confirmar que o service cria compras em `DRAFT`, calcula totais e bloqueia duplicados por fornecedor.
+Confirmar que o service cria compras em `APPROVED`, calcula totais e bloqueia duplicados por fornecedor.
 2. Ficheiros envolvidos:
 - CRIAR: testes unitários do módulo.
 - EDITAR: service apenas se o teste revelar falha.
@@ -387,7 +389,7 @@ npm run test:unit
 5. Explicação do código.
 O comando valida a regra de negócio no ponto onde a compra é criada.
 6. Validação do passo.
-O documento nasce em `DRAFT` para seguir para aprovação.
+O documento nasce em `APPROVED` para permitir os pagamentos e lançamentos automáticos da sequência MF1.
 7. Cenário negativo/erro esperado.
 Documento duplicado para o mesmo fornecedor deve falhar com conflito.
 
