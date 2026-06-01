@@ -1,0 +1,13 @@
+{
+  "name": "@opsa/web",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Cliente HTTP frontend para consumir a API OPSA definida nos BKs MF0.",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}
