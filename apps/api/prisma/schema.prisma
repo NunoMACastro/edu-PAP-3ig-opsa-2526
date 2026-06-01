@@ -203,7 +203,7 @@ model Supplier {
   id          String   @id @default(uuid())
   companyId   String
   name        String
-  nif         String?
+  nif         String
   email       String?
   phone       String?
   addressLine String?
@@ -251,6 +251,7 @@ model Warehouse {
   company Company @relation(fields: [companyId], references: [id])
 
   @@unique([companyId, code])
+  @@unique([companyId, name])
   @@index([companyId])
 }
 
@@ -266,5 +267,6 @@ model WarehouseLocation {
   warehouse Warehouse @relation(fields: [warehouseId], references: [id])
 
   @@unique([warehouseId, code])
+  @@unique([warehouseId, name])
   @@index([warehouseId])
 }

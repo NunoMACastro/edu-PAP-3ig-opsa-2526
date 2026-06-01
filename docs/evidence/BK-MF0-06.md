@@ -161,3 +161,8 @@ Validação final:
 - INVALID_NIF => 400.
 - INVALID_CURRENCY => 400.
 - INVALID_FISCAL_PERIOD => 400.
+
+Correção de findings - 2026-06-01:
+- validateCompanyProfilePayload passou a aceitar currency omitida e assumir EUR.
+- upsertCompanyProfile passou a mapear conflito único de nif para NIF_ALREADY_EXISTS.
+- Validações executadas: npm --prefix apps/api run test:unit e npm --prefix apps/api run test:contracts.

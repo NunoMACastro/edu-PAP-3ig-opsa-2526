@@ -201,3 +201,8 @@ Validação final:
 - INVALID_CUSTOMER_NAME => 400.
 - INVALID_NIF => 400.
 - INVALID_EMAIL => 400.
+
+Correção de findings - 2026-06-01:
+- GET /api/customers passou a aceitar search opcional para pesquisa por nome ou NIF, mantendo listagem sem filtro quando search é omitido.
+- apps/web passou a incluir UI mínima de listagem, pesquisa, criação, atualização e remoção lógica de clientes.
+- Validações executadas: npm --prefix apps/api run test:contracts, npm --prefix apps/web run typecheck, npm --prefix apps/web run build.

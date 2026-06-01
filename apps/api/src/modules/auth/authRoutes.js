@@ -19,6 +19,7 @@ export function buildAuthRoutes({ prisma, isProduction, appBaseUrl }) {
     const passwordResetController = buildPasswordResetController({
         prisma,
         emailAdapter: buildPasswordResetEmailAdapter({ appBaseUrl }),
+        isProduction,
     });
 
     router.post("/register", controller.register);

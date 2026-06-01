@@ -18,7 +18,21 @@ const attempts = new Map();
  * @param {number} [now] - Timestamp atual em milissegundos, injetável em testes.
  * @returns {void}
  */
-export function assertPasswordResetRateLimit(key, now = Date.now()) {
+export function assertPasswordResetRateLimit(
+    key,
+    { now = Date.now(), isProduction = false } = {},
+) {
+    if (
+        isProduction &&
+        process.env.ALLOW_IN_MEMORY_PASSWORD_RESET_RATE_LIMIT !== "true"
+    ) {
+        throw httpError(
+            503,
+            "RATE_LIMIT_STORE_REQUIRED",
+            "Rate limit de recuperação de password requer armazenamento partilhado em produção",
+        );
+    }
+
     const entry = attempts.get(key);
 
     if (!entry || entry.resetAt <= now) {

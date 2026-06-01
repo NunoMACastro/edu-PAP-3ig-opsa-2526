@@ -39,14 +39,16 @@ function optionalString(value) {
 }
 
 /**
- * Valida NIF opcional quando preenchido.
+ * Valida NIF obrigatório do fornecedor.
  *
  * @param {unknown} value - Valor recebido.
- * @returns {string | null} NIF validado ou `null`.
+ * @returns {string} NIF validado.
  */
-function optionalNif(value) {
-    const nif = optionalString(value);
-    if (!nif) return null;
+function requiredNif(value) {
+    if (typeof value !== "string" || value.trim().length === 0) {
+        throw httpError(400, "INVALID_NIF", "NIF português inválido");
+    }
+    const nif = value.trim();
     if (!isValidPortugueseNif(nif)) {
         throw httpError(400, "INVALID_NIF", "NIF português inválido");
     }
@@ -81,7 +83,7 @@ export function validateSupplierPayload(body) {
 
     return {
         name: requiredName(body.name),
-        nif: optionalNif(body.nif),
+        nif: requiredNif(body.nif),
         email: optionalEmail(body.email),
         phone: optionalString(body.phone),
         addressLine: optionalString(body.addressLine),

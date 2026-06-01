@@ -68,6 +68,24 @@ function validatePassword(password) {
 }
 
 /**
+ * Valida apenas a presença da password no login.
+ *
+ * A política de força aplica-se ao registo e ao reset. No login, uma password
+ * curta pode simplesmente estar errada; devolver `WEAK_PASSWORD` revelaria uma
+ * validação que o contrato do BK-MF0-01 reserva para criação/alteração.
+ *
+ * @param {unknown} password - Password recebida no payload.
+ * @returns {string} Password recebida para comparação segura no service.
+ */
+function validateLoginPassword(password) {
+    if (typeof password !== "string" || password.length === 0) {
+        throw httpError(401, "INVALID_CREDENTIALS", "Credenciais inválidas");
+    }
+
+    return password;
+}
+
+/**
  * Valida e normaliza o payload de registo.
  *
  * @param {unknown} body - Corpo JSON do pedido `POST /api/auth/register`.
@@ -97,6 +115,6 @@ export function validateLoginPayload(body) {
 
     return {
         email: normalizeEmail(payload.email),
-        password: validatePassword(payload.password),
+        password: validateLoginPassword(payload.password),
     };
 }

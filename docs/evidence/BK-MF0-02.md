@@ -104,3 +104,9 @@ Validação final:
 - permissionMiddleware.js criado e validado.
 - GET /api/permissions/me sem sessão => 401 SESSION_REQUIRED.
 - hasPermission("AUDITOR", Permission.CUSTOMERS_WRITE) => false.
+
+Correção de findings - 2026-06-01:
+- Matriz de permissões ajustada para remover escrita de suppliers/items/warehouses da role GESTOR, mantendo ADMIN com acesso total.
+- CONTABILISTA mantém SUPPLIERS_WRITE; OPERACIONAL mantém CUSTOMERS_WRITE, SUPPLIERS_WRITE, ITEMS_WRITE e WAREHOUSES_WRITE.
+- GET /api/auth/me foi enriquecido com role e permissions no contexto da empresa ativa, mantendo /api/permissions/me.
+- Validação executada: npm --prefix apps/api run test:unit confirmou a matriz de permissões.

@@ -58,14 +58,25 @@ export async function listWarehouses(prisma, companyId) {
  * @returns {Promise<object>} Armazém criado.
  */
 export async function createWarehouse(prisma, companyId, input) {
-    const existing = await prisma.warehouse.findUnique({
+    const existingCode = await prisma.warehouse.findUnique({
         where: { companyId_code: { companyId, code: input.code } },
     });
-    if (existing) {
+    if (existingCode) {
         throw httpError(
             409,
             "WAREHOUSE_CODE_EXISTS",
             "Código de armazém já existe",
+        );
+    }
+
+    const existingName = await prisma.warehouse.findFirst({
+        where: { companyId, name: input.name },
+    });
+    if (existingName) {
+        throw httpError(
+            409,
+            "WAREHOUSE_NAME_EXISTS",
+            "Nome de armazém já existe",
         );
     }
 
@@ -97,14 +108,25 @@ export async function createWarehouseLocation(
         throw httpError(404, "WAREHOUSE_NOT_FOUND", "Armazém não encontrado");
     }
 
-    const existing = await prisma.warehouseLocation.findUnique({
+    const existingCode = await prisma.warehouseLocation.findUnique({
         where: { warehouseId_code: { warehouseId, code: input.code } },
     });
-    if (existing) {
+    if (existingCode) {
         throw httpError(
             409,
             "LOCATION_CODE_EXISTS",
             "Código de localização já existe neste armazém",
+        );
+    }
+
+    const existingName = await prisma.warehouseLocation.findFirst({
+        where: { warehouseId, name: input.name },
+    });
+    if (existingName) {
+        throw httpError(
+            409,
+            "WAREHOUSE_LOCATION_NAME_EXISTS",
+            "Nome de localização já existe neste armazém",
         );
     }
 

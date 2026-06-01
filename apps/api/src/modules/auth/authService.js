@@ -36,6 +36,23 @@ function publicUser(user) {
 }
 
 /**
+ * Remove relações e campos que não devem circular fora do service.
+ *
+ * @param {{ id: string, userId: string, activeCompanyId: string | null, expiresAt: Date, revokedAt: Date | null, createdAt: Date }} session - Sessão Prisma.
+ * @returns {{ id: string, userId: string, activeCompanyId: string | null, expiresAt: Date, revokedAt: Date | null, createdAt: Date }} Sessão segura.
+ */
+function publicSession(session) {
+    return {
+        id: session.id,
+        userId: session.userId,
+        activeCompanyId: session.activeCompanyId,
+        expiresAt: session.expiresAt,
+        revokedAt: session.revokedAt,
+        createdAt: session.createdAt,
+    };
+}
+
+/**
  * Cria uma sessão server-side para o utilizador autenticado.
  *
  * @param {import("@prisma/client").PrismaClient} prisma - Cliente Prisma.
@@ -150,7 +167,7 @@ export async function resolveSession(prisma, sessionId, now = new Date()) {
         throw httpError(401, "INVALID_SESSION", "Sessão inválida ou expirada");
     }
 
-    return { session, user: publicUser(session.user) };
+    return { session: publicSession(session), user: publicUser(session.user) };
 }
 
 /**

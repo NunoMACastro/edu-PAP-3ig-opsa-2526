@@ -27,10 +27,14 @@ function sendError(res, error) {
 /**
  * Constrói handlers de recuperação de password.
  *
- * @param {{ prisma: import("@prisma/client").PrismaClient, emailAdapter: object }} deps - Dependências.
+ * @param {{ prisma: import("@prisma/client").PrismaClient, emailAdapter: object, isProduction?: boolean }} deps - Dependências.
  * @returns {{ forgot: Function, reset: Function }} Handlers Express.
  */
-export function buildPasswordResetController({ prisma, emailAdapter }) {
+export function buildPasswordResetController({
+    prisma,
+    emailAdapter,
+    isProduction = false,
+}) {
     return {
         /**
          * Pede recuperação de password com resposta anti-enumeration.
@@ -42,7 +46,9 @@ export function buildPasswordResetController({ prisma, emailAdapter }) {
         async forgot(req, res) {
             try {
                 const input = validateForgotPasswordPayload(req.body);
-                assertPasswordResetRateLimit(`${req.ip}:${input.email}`);
+                assertPasswordResetRateLimit(`${req.ip}:${input.email}`, {
+                    isProduction,
+                });
                 const result = await requestPasswordReset(
                     prisma,
                     emailAdapter,

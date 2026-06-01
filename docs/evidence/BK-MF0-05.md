@@ -176,3 +176,8 @@ Validação final:
 - INVALID_TOKEN => 400.
 - WEAK_PASSWORD => 400.
 - RATE_LIMITED => 429.
+
+Correção de findings - 2026-06-01:
+- passwordResetEmailAdapter deixou de registar token bruto, URL secreta ou email completo.
+- Rate limit em memória passou a falhar explicitamente em produção sem opt-in ALLOW_IN_MEMORY_PASSWORD_RESET_RATE_LIMIT=true.
+- Validação executada: npm --prefix apps/api run test:contracts confirmou ausência de token/URL nos logs e bloqueio explícito em produção.

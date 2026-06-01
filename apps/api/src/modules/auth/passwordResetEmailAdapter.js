@@ -23,13 +23,18 @@ export function buildPasswordResetEmailAdapter({
          * @returns {Promise<void>}
          */
         async sendPasswordReset({ email, token }) {
-            const resetUrl = `${appBaseUrl}/recuperar-password/${token}`;
+            void token;
+            const emailDomain =
+                typeof email === "string" && email.includes("@")
+                    ? email.split("@").at(-1)
+                    : null;
 
-            // Em desenvolvimento, isto dá evidence sem depender de provider real.
+            // Evidence segura: não regista token bruto nem URL de recuperação.
             logger.info({
                 event: "password_reset_requested",
-                email,
-                resetUrl,
+                emailDomain,
+                delivery: "mock",
+                appBaseUrl,
             });
         },
     };

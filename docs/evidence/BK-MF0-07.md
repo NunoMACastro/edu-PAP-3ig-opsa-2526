@@ -178,3 +178,7 @@ Validação final:
 - INVALID_ACCOUNT_NAME => 400.
 - INVALID_IMPORT => 400.
 - DUPLICATED_IMPORT_CODE => 409.
+
+Correção de findings - 2026-06-01:
+- validateImportPayload passou a rejeitar rows vazio com INVALID_IMPORT.
+- Validação executada: npm --prefix apps/api run test:unit.

@@ -17,6 +17,36 @@ export interface RequestOptions {
 
 const DEFAULT_BASE_URL = "/api";
 
+export class ApiError extends Error {
+  readonly status: number;
+  readonly code: string;
+
+  constructor(status: number, code: string, message: string) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+    this.code = code;
+  }
+}
+
+/**
+ * Constrói uma query string simples sem aceitar valores vazios.
+ *
+ * @param params - Parâmetros opcionais.
+ * @returns Query string com `?` inicial ou string vazia.
+ */
+function queryString(params: Record<string, string | undefined>): string {
+  const searchParams = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value?.trim()) {
+      searchParams.set(key, value.trim());
+    }
+  }
+
+  const serialized = searchParams.toString();
+  return serialized ? `?${serialized}` : "";
+}
+
 /**
  * Constrói um cliente HTTP simples para a API OPSA.
  *
@@ -56,9 +86,16 @@ export function createApiClient(options: ApiClientOptions = {}) {
       return undefined as TResponse;
     }
 
-    const data = await response.json();
+    const contentType = response.headers.get("content-type") ?? "";
+    const data = contentType.includes("application/json")
+      ? await response.json()
+      : {};
     if (!response.ok) {
-      throw new Error(data.message ?? "Erro inesperado na API");
+      throw new ApiError(
+        response.status,
+        data.error ?? "API_ERROR",
+        data.message ?? "Erro inesperado na API",
+      );
     }
 
     return data as TResponse;
@@ -234,7 +271,8 @@ export function createApiClient(options: ApiClientOptions = {}) {
        *
        * @returns Clientes da empresa ativa.
        */
-      list: () => request("GET", "/customers"),
+      list: (search?: string) =>
+        request("GET", `/customers${queryString({ search })}`),
       /**
        * Cria cliente.
        *
@@ -265,7 +303,8 @@ export function createApiClient(options: ApiClientOptions = {}) {
        *
        * @returns Fornecedores da empresa ativa.
        */
-      list: () => request("GET", "/suppliers"),
+      list: (search?: string) =>
+        request("GET", `/suppliers${queryString({ search })}`),
       /**
        * Cria fornecedor.
        *

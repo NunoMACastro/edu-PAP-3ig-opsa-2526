@@ -20,6 +20,36 @@ import {
     readSessionCookie,
     setSessionCookie,
 } from "./sessionCookie.js";
+import { getPermissionsForRole } from "../permissions/permissions.js";
+
+/**
+ * Obtém contexto opcional de empresa ativa para `GET /auth/me`.
+ *
+ * @param {import("@prisma/client").PrismaClient} prisma - Cliente Prisma.
+ * @param {{ userId: string, activeCompanyId: string | null }} session - Sessão segura.
+ * @returns {Promise<{ companyId: string, companyName: string, role: string, permissions: string[] } | null>} Contexto ativo ou `null`.
+ */
+async function getOptionalCompanyContext(prisma, session) {
+    if (!session.activeCompanyId) return null;
+
+    const membership = await prisma.companyMembership.findFirst({
+        where: {
+            userId: session.userId,
+            companyId: session.activeCompanyId,
+            isActive: true,
+        },
+        include: { company: true },
+    });
+
+    if (!membership) return null;
+
+    return {
+        companyId: membership.companyId,
+        companyName: membership.company.name,
+        role: membership.role,
+        permissions: getPermissionsForRole(membership.role),
+    };
+}
 
 /**
  * Envia uma resposta de erro JSON no formato canónico da API.
@@ -94,7 +124,23 @@ export function buildAuthController({ prisma, isProduction }) {
             try {
                 const sessionId = readSessionCookie(req);
                 const result = await resolveSession(prisma, sessionId);
-                return res.status(200).json({ user: result.user });
+                const context = await getOptionalCompanyContext(
+                    prisma,
+                    result.session,
+                );
+
+                return res.status(200).json({
+                    user: result.user,
+                    activeCompanyId: context?.companyId ?? null,
+                    role: context?.role ?? null,
+                    permissions: context?.permissions ?? [],
+                    company: context
+                        ? {
+                              id: context.companyId,
+                              name: context.companyName,
+                          }
+                        : null,
+                });
             } catch (error) {
                 return sendError(res, error);
             }

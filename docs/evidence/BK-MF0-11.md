@@ -202,3 +202,8 @@ Validação final:
 - INVALID_VAT_RATE => 400.
 - ITEM_SKU_EXISTS => 409.
 - ITEM_NOT_FOUND => 404.
+
+Correção de findings - 2026-06-01:
+- Permissões revistas: escrita de artigos/serviços fica suportada por ADMIN e OPERACIONAL, sem concessão a GESTOR fora dos atores documentados.
+- apps/web passou a incluir UI mínima para listagem, criação, atualização e remoção lógica de artigos/serviços.
+- Validações executadas: npm --prefix apps/api run test:unit, npm --prefix apps/web run typecheck, npm --prefix apps/web run build.

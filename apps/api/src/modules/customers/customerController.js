@@ -8,6 +8,7 @@ import {
     createCustomer,
     deactivateCustomer,
     listCustomers,
+    searchCustomers,
     updateCustomer,
 } from "./customerService.js";
 
@@ -23,6 +24,18 @@ function sendError(res, error) {
     return res
         .status(httpError.status)
         .json({ error: httpError.code, message: httpError.message });
+}
+
+/**
+ * Normaliza query string opcional de pesquisa.
+ *
+ * @param {unknown} value - Valor de `req.query.search`.
+ * @returns {string | undefined} Pesquisa normalizada.
+ */
+function normalizeSearch(value) {
+    if (typeof value !== "string") return undefined;
+    const search = value.trim();
+    return search.length > 0 ? search : undefined;
 }
 
 /**
@@ -42,8 +55,11 @@ export function buildCustomerController({ prisma }) {
          */
         async list(req, res) {
             try {
+                const search = normalizeSearch(req.query.search);
                 return res.status(200).json({
-                    customers: await listCustomers(prisma, req.companyId),
+                    customers: await (search
+                        ? searchCustomers(prisma, req.companyId, search)
+                        : listCustomers(prisma, req.companyId)),
                 });
             } catch (error) {
                 return sendError(res, error);

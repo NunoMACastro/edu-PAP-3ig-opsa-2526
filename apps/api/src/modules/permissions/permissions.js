@@ -29,9 +29,6 @@ const rolePermissions = {
         Permission.FISCAL_PERIODS_READ,
         Permission.FISCAL_PERIODS_MANAGE,
         Permission.CUSTOMERS_WRITE,
-        Permission.SUPPLIERS_WRITE,
-        Permission.ITEMS_WRITE,
-        Permission.WAREHOUSES_WRITE,
     ],
     CONTABILISTA: [
         Permission.COMPANY_READ,

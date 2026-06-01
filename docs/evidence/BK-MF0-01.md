@@ -88,3 +88,10 @@ Reutilizar:
 
 Próximo BK:
 - BK-MF0-02 Papéis e permissões
+
+Correção de findings - 2026-06-01:
+- validateLoginPayload deixou de aplicar política de password forte ao login; password curta em login é encaminhada para autenticação e falha como credenciais inválidas quando não corresponder.
+- resolveSession passou a propagar uma sessão sem relação user/passwordHash.
+- GET /api/auth/me passou a incluir activeCompanyId, role e permissions quando existir empresa ativa.
+- Validações executadas nesta correção: npm --prefix apps/api run test:unit, npm --prefix apps/api run test:contracts, npm --prefix apps/api run syntax:check.
+- Prisma validate executado com DATABASE_URL sintético e passou; prisma generate foi tentado, mas ficou bloqueado por permissões em apps/api/node_modules root-owned.

@@ -57,8 +57,29 @@ async function assertUniqueNif(prisma, companyId, nif, ignoreId = undefined) {
  * @returns {Promise<object[]>} Fornecedores ativos.
  */
 export async function listSuppliers(prisma, companyId) {
+    return searchSuppliers(prisma, companyId);
+}
+
+/**
+ * Lista fornecedores ativos, com pesquisa opcional por nome ou NIF.
+ *
+ * @param {import("@prisma/client").PrismaClient} prisma - Cliente Prisma.
+ * @param {string} companyId - Empresa ativa.
+ * @param {string | undefined} [search] - Texto de pesquisa opcional.
+ * @returns {Promise<object[]>} Fornecedores ativos.
+ */
+export async function searchSuppliers(prisma, companyId, search = undefined) {
+    const searchFilter = search
+        ? {
+              OR: [
+                  { name: { contains: search, mode: "insensitive" } },
+                  { nif: { contains: search, mode: "insensitive" } },
+              ],
+          }
+        : {};
+
     const suppliers = await prisma.supplier.findMany({
-        where: { companyId, isActive: true },
+        where: { companyId, isActive: true, ...searchFilter },
         orderBy: { name: "asc" },
     });
     return suppliers.map(serialize);

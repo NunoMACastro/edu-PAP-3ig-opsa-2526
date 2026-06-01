@@ -188,3 +188,8 @@ Validação final:
 - INVALID_DATE => 400.
 - INVALID_PERIOD_NAME => 400.
 - INVALID_PERIOD_RANGE => 400.
+
+Correção de findings - 2026-06-01:
+- apps/web passou a incluir UI mínima para listar, abrir e fechar períodos fiscais existentes.
+- Não foi adicionada reabertura de períodos, mantendo a decisão documental de não implementar reabertura sem regra legal explícita.
+- Validações executadas: npm --prefix apps/web run typecheck, npm --prefix apps/web run build.

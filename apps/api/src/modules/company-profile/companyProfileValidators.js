@@ -66,7 +66,7 @@ export function validateCompanyProfilePayload(body) {
         throw httpError(400, "INVALID_NIF", "NIF português inválido");
     }
 
-    if (body.currency !== "EUR") {
+    if (body.currency !== undefined && body.currency !== "EUR") {
         throw httpError(
             400,
             "INVALID_CURRENCY",

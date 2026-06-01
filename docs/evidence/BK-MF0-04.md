@@ -149,3 +149,7 @@ Validação final:
 - INVALID_EMAIL => 400.
 - INVALID_ROLE => 400.
 - INVALID_BODY => 400.
+
+Correção de findings - 2026-06-01:
+- invitationEmailAdapter deixou de registar token bruto, URL secreta ou email completo; regista apenas metadados de envio mock.
+- Validação executada: npm --prefix apps/api run test:contracts confirmou que logs do adapter não incluem token nem URL de convite.

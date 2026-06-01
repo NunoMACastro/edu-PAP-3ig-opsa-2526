@@ -119,3 +119,8 @@ Validação final:
 - GET /api/session/context sem sessão => 401 SESSION_REQUIRED.
 - validateSwitchCompanyPayload sem companyId => 400 INVALID_COMPANY_ID.
 - getCompanyContext sem companyId => 403 COMPANY_CONTEXT_REQUIRED.
+
+Correção de findings - 2026-06-01:
+- GET /api/auth/me passou a expor activeCompanyId, role e permissions quando a sessão tem empresa ativa válida.
+- apps/web passou a incluir UI mínima para listar empresas acessíveis, selecionar empresa ativa e consultar contexto.
+- Validações executadas: npm --prefix apps/api run test:contracts, npm --prefix apps/web run typecheck, npm --prefix apps/web run build.

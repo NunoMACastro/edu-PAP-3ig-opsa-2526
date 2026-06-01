@@ -8,6 +8,7 @@ import {
     createSupplier,
     deactivateSupplier,
     listSuppliers,
+    searchSuppliers,
     updateSupplier,
 } from "./supplierService.js";
 
@@ -23,6 +24,18 @@ function sendError(res, error) {
     return res
         .status(httpError.status)
         .json({ error: httpError.code, message: httpError.message });
+}
+
+/**
+ * Normaliza query string opcional de pesquisa.
+ *
+ * @param {unknown} value - Valor de `req.query.search`.
+ * @returns {string | undefined} Pesquisa normalizada.
+ */
+function normalizeSearch(value) {
+    if (typeof value !== "string") return undefined;
+    const search = value.trim();
+    return search.length > 0 ? search : undefined;
 }
 
 /**
@@ -42,8 +55,11 @@ export function buildSupplierController({ prisma }) {
          */
         async list(req, res) {
             try {
+                const search = normalizeSearch(req.query.search);
                 return res.status(200).json({
-                    suppliers: await listSuppliers(prisma, req.companyId),
+                    suppliers: await (search
+                        ? searchSuppliers(prisma, req.companyId, search)
+                        : listSuppliers(prisma, req.companyId)),
                 });
             } catch (error) {
                 return sendError(res, error);

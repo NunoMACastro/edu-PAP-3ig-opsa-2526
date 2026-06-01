@@ -17,14 +17,19 @@ export function buildInvitationEmailAdapter({ appBaseUrl, logger = console }) {
          * @returns {Promise<void>}
          */
         async sendInvitation({ email, companyName, token }) {
-            const inviteUrl = `${appBaseUrl}/convites/${token}`;
+            void token;
+            const emailDomain =
+                typeof email === "string" && email.includes("@")
+                    ? email.split("@").at(-1)
+                    : null;
 
-            // Adapter pedagógico: em desenvolvimento regista o link sem provider real.
+            // Adapter pedagógico: evita registar tokens brutos ou URLs secretas.
             logger.info({
                 event: "company_invitation_created",
-                email,
+                emailDomain,
                 companyName,
-                inviteUrl,
+                delivery: "mock",
+                appBaseUrl,
             });
         },
     };

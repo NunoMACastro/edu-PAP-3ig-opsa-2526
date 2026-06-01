@@ -88,5 +88,13 @@ export function validateImportPayload(body) {
         );
     }
 
+    if (body.rows.length === 0) {
+        throw httpError(
+            400,
+            "INVALID_IMPORT",
+            "Importação deve conter pelo menos uma linha",
+        );
+    }
+
     return body.rows.map(validateAccountPayload);
 }
