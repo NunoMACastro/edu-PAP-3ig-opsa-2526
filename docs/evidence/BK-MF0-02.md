@@ -86,7 +86,7 @@ Motivo:
 Passo 7:
 
 Decisões em falta:
-- A matriz de permissões implementada em permissions.js foi criada com base em RF02 e no guia BK-MF0-02.
+- A matriz de permissões implementada em permissions.js foi criada com base em RF02 e em docs/RF.md como fonte final dos atores da MF0.
 - Se existir uma matriz oficial de permissões noutro documento canónico, este ficheiro deverá ser revisto para garantir alinhamento.
 - requireCompanyContext foi implementado temporariamente como stub porque a implementação real pertence ao BK-MF0-03.
 
@@ -110,3 +110,8 @@ Correção de findings - 2026-06-01:
 - CONTABILISTA mantém SUPPLIERS_WRITE; OPERACIONAL mantém CUSTOMERS_WRITE, SUPPLIERS_WRITE, ITEMS_WRITE e WAREHOUSES_WRITE.
 - GET /api/auth/me foi enriquecido com role e permissions no contexto da empresa ativa, mantendo /api/permissions/me.
 - Validação executada: npm --prefix apps/api run test:unit confirmou a matriz de permissões.
+
+Correção de findings - 2026-06-02:
+- Guia BK-MF0-02 alinhado com docs/RF.md: GESTOR não recebe SUPPLIERS_WRITE, ITEMS_WRITE nem WAREHOUSES_WRITE.
+- Código de permissions.js preservado, porque já seguia a decisão de least privilege baseada nos atores de RF.md.
+- Validação executada: npm run test:unit confirmou que GESTOR continua sem permissões de fornecedores, artigos/serviços e armazéns.

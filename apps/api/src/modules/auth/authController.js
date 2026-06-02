@@ -20,6 +20,7 @@ import {
     readSessionCookie,
     setSessionCookie,
 } from "./sessionCookie.js";
+import { assertAuthRateLimit } from "./authRateLimit.js";
 import { getPermissionsForRole } from "../permissions/permissions.js";
 
 /**
@@ -83,6 +84,7 @@ export function buildAuthController({ prisma, isProduction }) {
         async register(req, res) {
             try {
                 const input = validateRegisterPayload(req.body);
+                assertAuthRateLimit(`register:${req.ip}`, { isProduction });
                 const result = await registerUser(prisma, input);
                 setSessionCookie(res, result.sessionId, isProduction);
                 return res
@@ -103,6 +105,9 @@ export function buildAuthController({ prisma, isProduction }) {
         async login(req, res) {
             try {
                 const input = validateLoginPayload(req.body);
+                assertAuthRateLimit(`login:${req.ip}:${input.email}`, {
+                    isProduction,
+                });
                 const result = await loginUser(prisma, input);
                 setSessionCookie(res, result.sessionId, isProduction);
                 return res

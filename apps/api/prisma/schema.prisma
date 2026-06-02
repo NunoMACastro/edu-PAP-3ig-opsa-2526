@@ -203,7 +203,7 @@ model Supplier {
   id          String   @id @default(uuid())
   companyId   String
   name        String
-  nif         String
+  nif         String?
   email       String?
   phone       String?
   addressLine String?

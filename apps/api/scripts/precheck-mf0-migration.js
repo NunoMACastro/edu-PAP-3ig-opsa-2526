@@ -1,8 +1,8 @@
 /**
  * @file Pré-validação não destrutiva para alterações de dados da MF0.
  *
- * Este script deve correr antes de aplicar migrações que tornem Supplier.nif
- * obrigatório e adicionem unicidade por nome em armazéns/localizações.
+ * Este script deve correr antes de aplicar migrações que adicionem unicidade
+ * por nome em armazéns/localizações.
  */
 
 import { PrismaClient } from "@prisma/client";
@@ -25,12 +25,6 @@ function toCount(value) {
  * @returns {Promise<void>}
  */
 async function main() {
-    const [suppliersWithoutNif] = await prisma.$queryRaw`
-        SELECT COUNT(*)::int AS count
-        FROM "Supplier"
-        WHERE "nif" IS NULL OR TRIM("nif") = ''
-    `;
-
     const [duplicateWarehouseNames] = await prisma.$queryRaw`
         SELECT COUNT(*)::int AS count
         FROM (
@@ -52,11 +46,6 @@ async function main() {
     `;
 
     const failures = [
-        [
-            "SUPPLIERS_WITHOUT_NIF",
-            toCount(suppliersWithoutNif?.count),
-            "fornecedores sem NIF",
-        ],
         [
             "DUPLICATE_WAREHOUSE_NAMES",
             toCount(duplicateWarehouseNames?.count),

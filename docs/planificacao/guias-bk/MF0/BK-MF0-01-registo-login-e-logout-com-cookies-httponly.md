@@ -797,10 +797,13 @@ Erros esperados:
 - `400 WEAK_PASSWORD`: password com menos de 10 caracteres.
 - `401 INVALID_CREDENTIALS`: login com email/password errados.
 - `401 INVALID_SESSION`: cookie inexistente, expirado ou revogado.
+- `429 RATE_LIMITED`: demasiadas tentativas de registo ou login na janela configurada.
 - `409 EMAIL_ALREADY_EXISTS`: tentativa de registo com email já existente.
+- `503 RATE_LIMIT_STORE_REQUIRED`: em produção, rate limit de autenticação sem armazenamento partilhado configurado.
 
 - Registo com email repetido deve devolver `409`.
 - Login com password errada deve devolver `401` e não indicar se o email existe.
+- Excesso de tentativas de login/registo deve devolver `429`.
 - `GET /api/auth/me` sem cookie deve devolver `401`.
 
 - Smoke manual: registar utilizador, confirmar `Set-Cookie` HttpOnly, chamar `GET /api/auth/me`, fazer logout e confirmar que `GET /api/auth/me` passa a `401`.

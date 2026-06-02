@@ -6,8 +6,8 @@ BK seguinte:
 - BK-MF0-11 (Criar artigos/serviços)
 
 Correção de findings - 2026-06-01:
-- Supplier.nif passou a ser obrigatório no schema Prisma.
-- validateSupplierPayload passou a rejeitar fornecedor sem NIF com INVALID_NIF.
+- Supplier.nif tinha sido tornado obrigatório no schema Prisma.
+- validateSupplierPayload tinha passado a rejeitar fornecedor sem NIF com INVALID_NIF.
 - GET /api/suppliers passou a aceitar search opcional para pesquisa por nome ou NIF.
 - apps/web passou a incluir UI mínima de listagem, pesquisa, criação, atualização e remoção lógica de fornecedores.
 - Permissões revistas: escrita de fornecedores fica suportada por ADMIN, CONTABILISTA e OPERACIONAL.
@@ -28,3 +28,11 @@ Pendentes:
 
 Notas de scope:
 - Não foram adicionados pagamentos, faturas de fornecedor, importação CSV nem scoring, porque pertencem a MFs futuras ou estão fora do BK-MF0-10.
+
+Correção de findings - 2026-06-02:
+- Revertido o drift documental: Supplier.nif voltou a ser opcional no schema Prisma, conforme guia BK-MF0-10.
+- validateSupplierPayload aceita NIF vazio/null e valida formato apenas quando o NIF é preenchido.
+- UI de fornecedores deixou de marcar NIF como obrigatório.
+- migration precheck deixou de bloquear fornecedores sem NIF.
+- Validações executadas: npm run test:unit, npm run test:contracts, npm run syntax:check, prisma validate com DATABASE_URL sintético e npm run typecheck em apps/web.
+- Prisma generate tentou correr, mas está bloqueado por apps/api/node_modules root-owned neste ambiente local.

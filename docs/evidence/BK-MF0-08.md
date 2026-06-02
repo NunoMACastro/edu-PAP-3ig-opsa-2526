@@ -193,3 +193,8 @@ Correção de findings - 2026-06-01:
 - apps/web passou a incluir UI mínima para listar, abrir e fechar períodos fiscais existentes.
 - Não foi adicionada reabertura de períodos, mantendo a decisão documental de não implementar reabertura sem regra legal explícita.
 - Validações executadas: npm --prefix apps/web run typecheck, npm --prefix apps/web run build.
+
+Correção de findings - 2026-06-02:
+- parseDateOnly passou a validar datas YYYY-MM-DD de forma estrita, rejeitando normalizações automáticas do JavaScript.
+- Datas impossíveis, como 2026-02-31, passam a devolver INVALID_DATE.
+- Validação executada: npm run test:unit incluiu negativo para data normalizada pelo JavaScript.

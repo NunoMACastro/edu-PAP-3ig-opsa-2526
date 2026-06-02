@@ -166,3 +166,8 @@ Correção de findings - 2026-06-01:
 - validateCompanyProfilePayload passou a aceitar currency omitida e assumir EUR.
 - upsertCompanyProfile passou a mapear conflito único de nif para NIF_ALREADY_EXISTS.
 - Validações executadas: npm --prefix apps/api run test:unit e npm --prefix apps/api run test:contracts.
+
+Correção de findings - 2026-06-02:
+- validateFiscalDate passou a validar mês/dia como data real de calendário usando ano fixo não-bissexto.
+- Combinações impossíveis, como 31/02, passam a devolver INVALID_FISCAL_PERIOD.
+- Validação executada: npm run test:unit incluiu negativo para dia fiscal impossível.

@@ -44,7 +44,11 @@ function validateFiscalDate(month, day) {
     if (!Number.isInteger(month) || month < 1 || month > 12) {
         throw httpError(400, "INVALID_FISCAL_PERIOD", "Mês fiscal inválido");
     }
-    if (!Number.isInteger(day) || day < 1 || day > 31) {
+    if (!Number.isInteger(day) || day < 1) {
+        throw httpError(400, "INVALID_FISCAL_PERIOD", "Dia fiscal inválido");
+    }
+    const date = new Date(Date.UTC(2025, month - 1, day));
+    if (date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) {
         throw httpError(400, "INVALID_FISCAL_PERIOD", "Dia fiscal inválido");
     }
     return { month, day };

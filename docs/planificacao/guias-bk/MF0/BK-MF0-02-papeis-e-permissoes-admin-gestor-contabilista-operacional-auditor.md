@@ -264,9 +264,6 @@ const rolePermissions = {
         Permission.FISCAL_PERIODS_READ,
         Permission.FISCAL_PERIODS_MANAGE,
         Permission.CUSTOMERS_WRITE,
-        Permission.SUPPLIERS_WRITE,
-        Permission.ITEMS_WRITE,
-        Permission.WAREHOUSES_WRITE,
     ],
     CONTABILISTA: [
         Permission.COMPANY_READ,
@@ -583,6 +580,7 @@ Se falta fonte documental ou decisão de arquitetura, não inventes. Regista exa
 Decisões em falta a manter visíveis durante a implementação:
 
 - O mapeamento acima é o mínimo derivado de RF02 e dos BKs MF0. Se a matriz oficial de permissões for criada noutro documento, este ficheiro deve ser revisto para ficar canónico.
+- A fonte final para os atores de MF0 é `docs/RF.md`: por isso, `GESTOR` gere utilizadores, empresa, períodos fiscais e clientes, mas não escreve fornecedores, artigos/serviços ou armazéns.
 
 5. Explicação do código.
 

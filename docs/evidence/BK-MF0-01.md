@@ -95,3 +95,10 @@ Correção de findings - 2026-06-01:
 - GET /api/auth/me passou a incluir activeCompanyId, role e permissions quando existir empresa ativa.
 - Validações executadas nesta correção: npm --prefix apps/api run test:unit, npm --prefix apps/api run test:contracts, npm --prefix apps/api run syntax:check.
 - Prisma validate executado com DATABASE_URL sintético e passou; prisma generate foi tentado, mas ficou bloqueado por permissões em apps/api/node_modules root-owned.
+
+Correção de findings - 2026-06-02:
+- Adicionado rate limit em memória para POST /api/auth/register e POST /api/auth/login.
+- Em produção, o rate limit de autenticação falha com RATE_LIMIT_STORE_REQUIRED se não existir opt-in explícito para armazenamento em memória.
+- Mantido 409 EMAIL_ALREADY_EXISTS no registo porque está documentado no BK-MF0-01; o login continua a devolver INVALID_CREDENTIALS sem indicar se o email existe.
+- Validações executadas: npm run test:unit, npm run test:contracts, npm run syntax:check.
+- Prisma generate voltou a falhar por permissões locais em apps/api/node_modules root-owned, mesmo com HOME temporário.

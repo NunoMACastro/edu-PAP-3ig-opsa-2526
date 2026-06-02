@@ -558,7 +558,7 @@ export function App() {
         searchable: true,
         load: async (search) =>
           pickArray(await apiClient.suppliers.list(search), "suppliers"),
-        operations: personOperations("fornecedor", apiClient.suppliers, true),
+        operations: personOperations("fornecedor", apiClient.suppliers),
       },
       {
         id: "items",
