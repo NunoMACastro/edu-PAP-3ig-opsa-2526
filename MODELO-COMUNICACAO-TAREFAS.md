@@ -1,414 +1,370 @@
-# Modelo Universal de Comunicação de Tarefas - PAPs
+# Plano de Execucao - MF1 OPSA
 
-## 0) Identificação rápida
+Snapshot do backlog: `2026-06-01` (`opsa/docs/planificacao/backlogs/BACKLOG-MVP.md`).
 
-PAP: `{{PAP_NOME}}`
+Guias MF1 refinados/reauditados: `2026-06-01` (`opsa/docs/planificacao/guias-bk/MF1/`).
 
-Repositório: `{{REPO_URL_OU_NOME}}`
+Contrato tecnico: `2026-06-01` (`opsa/docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md`).
 
-Base branch: `main`
+Ordem de PRs MF1: `2026-06-01` (`opsa/docs/planificacao/guias-bk/MF1/ORDEM-DEPENDENCIAS-E-PRS-MF1.md`).
 
-Modo de trabalho:
+Data de conclusão: `05-Junho-2026 às 13:00`.
 
-- `MF completa`: `{{MF_ID}} - {{MF_TITULO}}`
-- `Conjunto de BKs`: `{{BK_INICIAL}}..{{BK_FINAL}}` ou `{{LISTA_BKS}}`
+## 1) Contexto principal
 
-Snapshot dos documentos: `{{DATA_SNAPSHOT}}`
+A `MF1` da OPSA e a macrofase de nucleo funcional real depois dos fundamentos da `MF0`.
 
-Documentos principais:
+Esta macro junta dois eixos de produto:
 
-- `{{PATH_PLANO_IMPLEMENTACAO}}`
-- `{{PATH_BACKLOG}}`
-- `{{PATH_MF_VIEWS}}`
-- `{{PATH_GUIAS_BK}}`
-- `{{PATH_RF}}`
-- `{{PATH_RNF}}`
+- ciclo comercial de vendas, recebimentos, titulos em aberto e aprovacao de documentos de venda;
+- ciclo comercial de compras, pagamentos, contabilizacao automatica e aprovacao de compras.
 
----
+Ao contrario da `MF0`, que cria a base de autenticacao, multiempresa, roles, plano de contas, periodos fiscais, clientes, fornecedores, artigos e armazens, a `MF1` transforma essa base em operacoes financeiras e contabilisticas reais. A regra principal e reutilizar o que ja existe na `MF0`, sem criar estruturas paralelas nem contratos novos de autenticacao, empresa ativa ou autorizacao.
 
-## 1) Branches a usar
+A `MF1` depende diretamente de contratos da `MF0`:
 
-Antes de começar, criar sempre uma branch nova a partir de `main`.
+- autenticacao e sessao;
+- contexto multiempresa;
+- roles/permissoes;
+- plano de contas;
+- periodos fiscais;
+- clientes;
+- fornecedores;
+- artigos/servicos.
 
-### Regra de nomes
+Regra obrigatoria: nenhum BK da `MF1` deve receber `companyId` pelo corpo do pedido. A empresa ativa vem sempre do contexto autenticado.
 
-Usar sempre nomes curtos, previsíveis e em minúsculas:
+Stack/contrato tecnico previsto:
 
-```text
-feat/{{pap-slug}}-{{mf-id}}-{{bk-num}}-{{bk-slug}}-{{owner-slug}}
-```
-
-Para uma MF completa:
-
-```text
-feat/{{pap-slug}}-{{mf-id}}-{{mf-slug}}-{{grupo-ou-owner}}
-```
-
-Para um conjunto de BKs:
-
-```text
-feat/{{pap-slug}}-{{mf-id}}-{{bk-inicial}}-{{bk-final}}-{{tema}}-{{owner-slug}}
-```
-
-Para correções:
-
-```text
-fix/{{pap-slug}}-{{mf-id}}-{{bk-num}}-{{problema}}
-```
-
-### Branches desta comunicação
-
-Preencher esta tabela antes de enviar a tarefa ao grupo/agente.
-
-| Unidade                           | Owner          | Branch                                                              |
-| --------------------------------- | -------------- | ------------------------------------------------------------------- |
-| `{{BK_ID_01}}` - {{BK_TITULO_01}} | `{{OWNER_01}}` | `feat/{{pap-slug}}-{{mf-id}}-{{bk-num}}-{{bk-slug}}-{{owner-slug}}` |
-| `{{BK_ID_02}}` - {{BK_TITULO_02}} | `{{OWNER_02}}` | `feat/{{pap-slug}}-{{mf-id}}-{{bk-num}}-{{bk-slug}}-{{owner-slug}}` |
-| `{{BK_ID_03}}` - {{BK_TITULO_03}} | `{{OWNER_03}}` | `feat/{{pap-slug}}-{{mf-id}}-{{bk-num}}-{{bk-slug}}-{{owner-slug}}` |
-
-Exemplo:
-
-| Unidade                        | Owner       | Branch                                   |
-| ------------------------------ | ----------- | ---------------------------------------- |
-| `BK-MF0-01` - Registo do aluno | `Natalia`   | `feat/studyflow-mf0-01-registo-natalia`  |
-| `BK-MF0-02` - Login seguro     | `Natalia`   | `feat/studyflow-mf0-02-login-natalia`    |
-| `BK-MF0-03` - Perfil editável  | `Guilherme` | `feat/studyflow-mf0-03-perfil-guilherme` |
+- Node.js LTS + Express com ES Modules;
+- React + Vite + TypeScript;
+- PostgreSQL;
+- Prisma ORM ou equivalente justificado;
+- sessao por cookie `HttpOnly`, `Secure` em producao e `SameSite` configurado;
+- frontend com chamadas autenticadas atraves do cliente HTTP existente;
+- separacao por camadas: `routes -> controller -> service -> validator/model`;
+- backend em `apps/api`;
+- frontend em `apps/web`;
+- evidence obrigatoria por BK.
 
 ---
 
-## 2) Guia rápido: trabalhar no VS Code
+## 2) Tutorial Git/GitHub por BK (VS Code ou Codespaces)
 
-### 2.1 Abrir o projeto
+Esta e a rotina obrigatoria para cada BK da `MF1`. O objetivo e garantir que cada aluno trabalha sempre sobre codigo atualizado, numa branch isolada, com commits pequenos e PR para `main`.
 
-1. Abrir o VS Code.
-2. Escolher `File > Open Folder`.
-3. Abrir a pasta raiz da PAP/repositório.
-4. Abrir o terminal integrado com `Terminal > New Terminal`.
+Podes fazer isto no VS Code local ou no GitHub Codespaces. Em ambos os casos, usa o terminal integrado:
 
-Confirmar que estás na pasta certa:
+- VS Code: `Terminal > New Terminal`;
+- Codespaces: abrir o repositorio da PAP no GitHub, escolher `Code > Codespaces`, entrar no codespace e usar o terminal integrado.
+
+### Passo 1 - Pull antes de trabalhar
+
+Antes de tocar no codigo, confirmar que estas na `main` e que tens a versao mais recente.
 
 ```bash
 git status
 ```
 
-### 2.2 Atualizar a branch principal
+Se aparecerem alteracoes tuas por guardar, nao fazer pull ainda. Primeiro confirmar se sao para commit, se sao temporarias ou se pertencem a outro BK.
 
-Antes de criar uma branch nova:
+Depois, ir para a `main` e atualizar:
 
 ```bash
-git checkout main
+git switch main
 git pull origin main
 ```
 
-Se o projeto usar outra branch base, substituir `main` por `{{BASE_BRANCH}}`.
+Regra: a branch do BK deve nascer depois deste pull. Assim evita-se trabalhar em cima de codigo antigo.
 
-### 2.3 Criar a branch da tarefa
+### Passo 2 - Escolher o BK e criar a branch
+
+Escolher o BK que vai ser implementado e criar a branch correspondente:
+
+- `BK-MF1-01`: `feat/bk-mf1-01-iva-oleksii`
+- `BK-MF1-02`: `feat/bk-mf1-02-documentos-venda-oleksii`
+- `BK-MF1-03`: `feat/bk-mf1-03-recebimentos-pedro`
+- `BK-MF1-04`: `feat/bk-mf1-04-lancamentos-venda-oleksii`
+- `BK-MF1-05`: `feat/bk-mf1-05-titulos-aberto-oleksii`
+- `BK-MF1-06`: `feat/bk-mf1-06-aprovacao-vendas-andre`
+- `BK-MF1-07`: `feat/bk-mf1-07-documentos-compra-oleksii`
+- `BK-MF1-08`: `feat/bk-mf1-08-pagamentos-pedro`
+- `BK-MF1-09`: `feat/bk-mf1-09-lancamentos-compras-oleksii`
+- `BK-MF1-10`: `feat/bk-mf1-10-aprovacao-compras-andre`
+
+Exemplo para o `BK-MF1-01`:
 
 ```bash
-git checkout -b {{BRANCH_DA_TAREFA}}
+git switch -c feat/bk-mf1-01-iva-oleksii
 ```
 
-Exemplo:
+Confirmar que a branch ativa e a correta:
 
 ```bash
-git checkout -b feat/studyflow-mf0-01-registo-natalia
+git branch --show-current
 ```
 
-### 2.4 Implementar em ciclos curtos
+### Passo 3 - Implementar em ciclos pequenos
 
-Durante o trabalho:
+Antes de escrever codigo:
+
+1. Ler o guia do BK em `docs/planificacao/guias-bk/MF1/`.
+2. Confirmar dependencias e scope-out.
+3. Confirmar se ha PR ativo a mexer em `apps/api/prisma/schema.prisma` ou `apps/api/src/server.js`.
+4. Adaptar paths dos guias para a estrutura real quando necessario:
+    - backend/API: `apps/api/src/...`;
+    - frontend: `apps/web/src/...`;
+    - Prisma: `apps/api/prisma/schema.prisma`;
+    - testes API: `apps/api/tests/...`;
+    - evidence: `docs/evidence/...`.
+5. Implementar uma parte pequena.
+6. Verificar o que mudou.
+
+Comandos uteis:
+
+```bash
+git status
+git diff
+```
+
+Regra: nao misturar varios BKs na mesma branch. Uma branch, um BK.
+
+### Passo 4 - Testar antes de commit
+
+Correr os testes relevantes ao tipo de alteracao.
+
+Para backend/API:
+
+```bash
+npm --prefix apps/api run test:unit
+npm --prefix apps/api run test:contracts
+npm --prefix apps/api run syntax:check
+npm --prefix apps/api run prisma:validate
+```
+
+Se o BK tiver UI:
+
+```bash
+npm --prefix apps/web run typecheck
+npm --prefix apps/web run build
+```
+
+Se houver interface alterada, validar tambem o fluxo no frontend e guardar evidence sanitizada, sem cookies, passwords, dados financeiros reais ou dados pessoais.
+
+Se um teste falhar, corrigir antes de fazer commit. Se a falha for de infraestrutura externa, registar isso nas notas/evidence.
+
+### Passo 5 - Fazer commits claros
+
+Ver primeiro os ficheiros alterados:
 
 ```bash
 git status
 ```
 
-Ver alterações:
+Adicionar apenas ficheiros do BK:
 
 ```bash
-git diff
+git add apps/api/src/modules/vat-rates
+git add apps/api/tests/unit/mf1-vat-rates.test.js
+git add docs/evidence/BK-MF1-XX.md
 ```
 
-Validar o que vai ser incluído:
+Ou, se todas as alteracoes pertencerem mesmo ao BK:
 
 ```bash
-git diff --staged
+git add .
 ```
 
-### 2.5 Adicionar ficheiros ao commit
-
-Adicionar apenas ficheiros relacionados com a tarefa:
+Antes do commit, confirmar que nao entrou nada sensivel:
 
 ```bash
-git add {{ficheiro_ou_pasta}}
+git diff --cached
 ```
 
-Exemplo:
+Criar commit com mensagem curta e ligada ao BK:
 
 ```bash
-git add apps/api/src/auth
-git add apps/web/src/pages/Login.tsx
+git commit -m "feat(mf1-01): add vat rates"
 ```
 
-Evitar `git add .` quando houver alterações que não pertencem à tarefa.
+Boas regras para commits:
 
-### 2.6 Criar commit
+- um commit deve representar uma unidade logica;
+- nao juntar formatter, refactor grande e feature no mesmo commit sem necessidade;
+- nao commitar `.env`, cookies, tokens, screenshots sensiveis ou evidence com dados reais;
+- se houver mais trabalho no mesmo BK, repetir ciclo: alterar, testar, `git add`, `git commit`.
 
-Usar uma mensagem curta e objetiva:
+### Passo 6 - Push da branch
+
+Quando o BK estiver pronto localmente:
 
 ```bash
-git commit -m "{{tipo}}: {{resumo_da_tarefa}}"
+git push -u origin feat/bk-mf1-01-iva-oleksii
 ```
 
-Exemplos:
-
-```bash
-git commit -m "feat: add student registration"
-git commit -m "fix: validate login cookie session"
-git commit -m "test: cover study area ownership checks"
-```
-
-Tipos recomendados:
-
-- `feat`: nova funcionalidade;
-- `fix`: correção;
-- `test`: testes;
-- `docs`: documentação;
-- `refactor`: refatoração sem mudança de comportamento;
-- `chore`: manutenção sem impacto funcional.
-
-### 2.7 Enviar branch para o GitHub
-
-Na primeira vez:
-
-```bash
-git push -u origin {{BRANCH_DA_TAREFA}}
-```
-
-Nas vezes seguintes:
+Nos pushes seguintes da mesma branch, basta:
 
 ```bash
 git push
 ```
 
-### 2.8 Abrir Pull Request
+### Passo 7 - Abrir PR para `main`
 
-1. Abrir o repositório no GitHub.
-2. Clicar em `Compare & pull request`.
+No GitHub:
+
+1. Abrir o repositorio.
+2. Clicar em `Compare & pull request`, ou ir a `Pull requests > New pull request`.
 3. Confirmar:
     - base: `main`;
-    - compare: `{{BRANCH_DA_TAREFA}}`.
-4. Preencher título, descrição, testes e evidence.
-5. Criar o PR.
-6. Nunca fazer merge sem validação/revisão.
+    - compare: branch do BK.
+4. Titulo recomendado:
 
----
-
-## 3) Guia rápido: trabalhar em GitHub Codespaces
-
-### 3.1 Criar ou abrir Codespace
-
-1. Abrir o repositório no GitHub.
-2. Clicar em `Code`.
-3. Abrir o separador `Codespaces`.
-4. Criar um novo Codespace ou abrir um existente.
-
-### 3.2 Confirmar estado inicial
-
-No terminal do Codespace:
-
-```bash
-git status
-git branch
+```text
+BK-MF1-01 - Configurar tabelas de IVA
 ```
 
-Atualizar a branch base:
+5. Na descricao do PR, preencher:
+    - BK implementado;
+    - RF/RNF;
+    - resumo tecnico;
+    - ficheiros principais;
+    - smoke test;
+    - negativos;
+    - comandos executados;
+    - screenshots, se houver UI;
+    - notas de seguranca/privacidade.
+6. Criar Pull Request.
+
+Regra: o PR e sempre para `main`, nunca diretamente para outra branch sem combinacao previa.
+
+### Passo 8 - Rever checks e responder a feedback
+
+Depois de abrir o PR:
+
+1. Esperar pelos checks.
+2. Se falharem, abrir logs e corrigir na mesma branch.
+3. Fazer novo commit.
+4. Fazer `git push`.
+
+O PR atualiza automaticamente.
+
+### Passo 9 - Depois do merge
+
+Quando o PR for aprovado e merged:
 
 ```bash
-git checkout main
+git switch main
 git pull origin main
 ```
 
-### 3.3 Criar branch da tarefa
+Se a branch local ja nao for necessaria:
 
 ```bash
-git checkout -b {{BRANCH_DA_TAREFA}}
+git branch -d feat/bk-mf1-01-iva-oleksii
 ```
 
-### 3.4 Instalar dependências, se necessário
-
-Usar apenas o comando previsto no projeto.
-
-Exemplos possíveis:
-
-```bash
-npm install
-npm ci
-```
-
-Não instalar dependências novas sem autorização ou sem justificar a necessidade.
-
-### 3.5 Trabalhar, validar e commitar
-
-Ver alterações:
-
-```bash
-git status
-git diff
-```
-
-Executar validações previstas:
-
-```bash
-npm test
-npm run lint
-```
-
-Adicionar ficheiros:
-
-```bash
-git add {{ficheiro_ou_pasta}}
-```
-
-Criar commit:
-
-```bash
-git commit -m "{{tipo}}: {{resumo_da_tarefa}}"
-```
-
-Enviar branch:
-
-```bash
-git push -u origin {{BRANCH_DA_TAREFA}}
-```
-
-### 3.6 Abrir PR no Codespaces
-
-Opção A: pelo GitHub no browser.
-
-Opção B: pelo painel `Source Control` do VS Code/Codespaces, quando disponível.
-
-O PR deve apontar sempre para `main` ou para a branch base definida pela equipa.
-
-### 3.7 Fechar ou parar Codespace
-
-Depois de terminar:
-
-1. Confirmar que o código foi enviado com `git push`.
-2. Confirmar que o PR existe.
-3. Parar o Codespace no GitHub se já não for necessário.
+No proximo BK, repetir o processo desde o Passo 1.
 
 ---
 
-## 4) Contexto principal
+## 3) BKs da MF1
 
-A `{{MF_ID}}` da `{{PAP_NOME}}` corresponde a:
+Owner stream P0 da MF1: `Oleksii`
 
-```text
-{{DESCRICAO_CURTA_DA_MF_OU_CONJUNTO_DE_BKS}}
-```
+Equipa envolvida na MF1: `Oleksii`, `Andre` e `Pedro`
 
-Nesta tarefa entram:
+Todos estao planeados para `S03-S04`.
 
-- `{{ITEM_IN_SCOPE_01}}`;
-- `{{ITEM_IN_SCOPE_02}}`;
-- `{{ITEM_IN_SCOPE_03}}`.
-
-Fica fora desta tarefa:
-
-- `{{ITEM_OUT_OF_SCOPE_01}}`;
-- `{{ITEM_OUT_OF_SCOPE_02}}`;
-- `{{ITEM_OUT_OF_SCOPE_03}}`.
-
-Stack/contrato técnico previsto:
-
-- frontend: `{{FRONTEND_STACK}}`;
-- backend: `{{BACKEND_STACK}}`;
-- base de dados: `{{DATABASE_STACK}}`;
-- autenticação/autorização: `{{AUTH_STACK}}`;
-- integrações externas: `{{INTEGRACOES}}`;
-- estrutura esperada: `{{ESTRUTURA_ESPERADA}}`;
-- evidence obrigatória por BK: `sim`.
+| BK          | Titulo                                                                   | Owner   | Apoio   | Pri | Esforco | Dependencias                                                    | RF   |
+| ----------- | ------------------------------------------------------------------------ | ------- | ------- | --- | ------- | --------------------------------------------------------------- | ---- |
+| `BK-MF1-01` | Configurar tabelas de IVA (taxas, isencoes, codigos).                    | Oleksii | Andre   | P0  | M       | `BK-MF0-03`                                                     | RF13 |
+| `BK-MF1-02` | Emitir Fatura, Fatura-Recibo, Nota de Credito, com numeracao sequencial. | Oleksii | Andre   | P0  | M       | `BK-MF0-03`, `BK-MF0-08`, `BK-MF0-09`, `BK-MF0-11`, `BK-MF1-01` | RF14 |
+| `BK-MF1-03` | Registar recebimentos (parciais/totais).                                 | Pedro   | Andre   | P0  | M       | `BK-MF0-03`, `BK-MF0-08`, `BK-MF1-02`                           | RF15 |
+| `BK-MF1-04` | Gerar lancamentos contabilisticos automaticos por venda.                 | Oleksii | Andre   | P0  | M       | `BK-MF0-03`, `BK-MF0-08`, `BK-MF1-02`                           | RF16 |
+| `BK-MF1-05` | Consultar titulos em aberto e antiguidade de saldos.                     | Oleksii | Pedro   | P1  | S       | `BK-MF0-03`, `BK-MF1-02`, `BK-MF1-03`                           | RF17 |
+| `BK-MF1-06` | Submeter documentos de venda para aprovacao antes de emissao definitiva. | Andre   | Oleksii | P1  | S       | `BK-MF0-03`, `BK-MF1-02`                                        | RF18 |
+| `BK-MF1-07` | Registar Fatura de Fornecedor e Nota de Credito.                         | Oleksii | Andre   | P0  | M       | `BK-MF0-03`, `BK-MF0-08`, `BK-MF0-10`, `BK-MF0-11`, `BK-MF1-01` | RF19 |
+| `BK-MF1-08` | Registar pagamentos (parciais/totais).                                   | Pedro   | Andre   | P0  | M       | `BK-MF0-03`, `BK-MF0-08`, `BK-MF1-07`                           | RF20 |
+| `BK-MF1-09` | Gerar lancamentos contabilisticos automaticos de compras.                | Oleksii | Andre   | P0  | M       | `BK-MF0-03`, `BK-MF0-08`, `BK-MF1-04`, `BK-MF1-07`              | RF21 |
+| `BK-MF1-10` | Aprovacao de compras com estados `Rascunho -> Aprovado -> Lancado`.      | Andre   | Oleksii | P1  | S       | `BK-MF0-03`, `BK-MF0-08`, `BK-MF1-07`, `BK-MF1-09`              | RF22 |
 
 ---
 
-## 5) BKs abrangidos
+## 4) Regra principal obrigatoria
 
-Se for uma MF completa, listar todos os BKs da MF.
-
-Se for um conjunto de BKs, listar apenas os BKs atribuídos nesta comunicação.
-
-Macro: `{{MF_ID}} - {{MF_TITULO}}`
-
-Janela planeada: `{{SPRINTS_OU_DATAS}}`
-
-| BK             | Título           | Owner        | Apoio        | Prioridade | Esforço        | Dependências        | RF/RNF        | Sprint        | Branch          |
-| -------------- | ---------------- | ------------ | ------------ | ---------- | -------------- | ------------------- | ------------- | ------------- | --------------- |
-| `{{BK_ID_01}}` | {{BK_TITULO_01}} | {{OWNER_01}} | {{APOIO_01}} | {{PRI_01}} | {{ESFORCO_01}} | {{DEPENDENCIAS_01}} | {{RF_RNF_01}} | {{SPRINT_01}} | `{{BRANCH_01}}` |
-| `{{BK_ID_02}}` | {{BK_TITULO_02}} | {{OWNER_02}} | {{APOIO_02}} | {{PRI_02}} | {{ESFORCO_02}} | {{DEPENDENCIAS_02}} | {{RF_RNF_02}} | {{SPRINT_02}} | `{{BRANCH_02}}` |
-| `{{BK_ID_03}}` | {{BK_TITULO_03}} | {{OWNER_03}} | {{APOIO_03}} | {{PRI_03}} | {{ESFORCO_03}} | {{DEPENDENCIAS_03}} | {{RF_RNF_03}} | {{SPRINT_03}} | `{{BRANCH_03}}` |
-
-Usar sempre os nomes canónicos do backlog:
-
-- `{{NOME_CANONICO_01}}`;
-- `{{NOME_CANONICO_02}}`;
-- `{{NOME_CANONICO_03}}`.
-
----
-
-## 6) Regra principal obrigatória
-
-Antes de começar qualquer BK:
+Antes de comecar qualquer BK:
 
 1. Ler o guia completo do BK.
-2. Confirmar `owner`, `apoio`, `prioridade`, `dependências`, `rf_rnf`, `sprint` e `proximo_bk`.
-3. Perceber o que entra e o que fica fora.
-4. Confirmar se existem dependências ainda não concluídas.
-5. Conseguir explicar o plano de implementação em 2-3 frases.
-6. Confirmar com o professor/responsável antes de implementar ou fechar o BK, quando isso estiver definido como obrigatório.
+2. Confirmar `owner`, `apoio`, `prioridade`, `dependencias`, `rf_rnf`, `sprint`, `estado`, `esforco` e `proximo_bk`.
+3. Confirmar se o BK pertence ao eixo de vendas/recebimentos ou ao eixo de compras/pagamentos.
+4. Perceber o que entra e o que fica fora.
+5. Conseguir explicar o plano de implementacao em 2-3 frases.
+6. Confirmar comigo antes de implementar ou fechar o BK.
 
 Nenhum BK pode ficar `DONE` sem:
 
-- smoke test;
-- testes negativos;
-- validação técnica;
+- smoke;
+- negativos;
+- validacao tecnica;
 - evidence `pr`, `proof`, `neg`;
-- validação da planificação sem drift;
-- PR criado e revisto.
+- validacao de seguranca e isolamento por empresa;
+- validacao de periodo fiscal quando aplicavel;
+- validacao da planificacao sem drift.
 
 ---
 
-## 7) Estrutura técnica
+## 5) Atencao obrigatoria a paths e estrutura
 
-Estrutura esperada do projeto:
+A estrutura real da OPSA e:
 
-- `{{PATH_FRONTEND}}` para frontend;
-- `{{PATH_BACKEND}}` para backend;
-- `{{PATH_DOCS}}` para documentação;
-- `{{PATH_TESTS}}` para testes;
-- `{{PATH_SCRIPTS}}` para scripts de validação.
+- backend/API: `apps/api/src/...`;
+- frontend: `apps/web/src/...`;
+- schema Prisma: `apps/api/prisma/schema.prisma`;
+- testes API: `apps/api/tests/...`;
+- evidence: `docs/evidence/...`;
+- planificacao: `docs/planificacao/...`.
 
-Regras:
+Regra:
 
-1. Reutilizar a estrutura existente.
-2. Não criar pastas paralelas como `server/`, `client/`, `frontend/` ou `backend/` se o projeto já tiver outra organização.
-3. Não misturar frameworks sem decisão explícita.
-4. Não alterar contratos públicos sem confirmar impacto nos BKs dependentes.
-5. Não refatorar código não relacionado com a tarefa.
-6. Manter responsabilidades separadas por domínio/módulo.
+1. A estrutura real da app tem prioridade.
+2. Nao criar duas apps paralelas.
+3. Nao criar pastas novas como `server/`, `client/`, `backend/` ou `frontend/`.
+4. Se um guia mencionar um ficheiro equivalente ja existente, editar o existente.
+5. Se for necessario adaptar um path do guia, documentar no PR:
+    - path indicado no guia;
+    - path real usado;
+    - motivo da adaptacao;
+    - confirmacao de que o contrato funcional se manteve.
+6. Se houver duvida de arquitetura, parar e perguntar.
+
+Isto e blocker de arquitetura. Nao e detalhe cosmetico.
 
 ---
 
-## 8) Dados, segurança e variáveis de ambiente
+## 6) Dados, seguranca e variaveis de ambiente
 
-Nunca colocar segredos no repositório.
+Nunca meter segredos no repositorio.
 
 Usar apenas `.env` local para:
 
-- `{{ENV_VAR_01}}`;
-- `{{ENV_VAR_02}}`;
-- `{{ENV_VAR_03}}`.
+- `DATABASE_URL`;
+- `SESSION_SECRET` ou segredo equivalente da sessao;
+- configuracoes locais de PostgreSQL/Prisma;
+- chaves externas futuras apenas quando forem explicitamente aprovadas.
 
-Antes de commit:
+Na `MF1`, os riscos principais sao:
+
+- dados financeiros e contabilisticos;
+- documentos de venda e compra;
+- numeros sequenciais;
+- recebimentos e pagamentos;
+- saldos em aberto;
+- lancamentos contabilisticos;
+- autorizacao por role;
+- isolamento multiempresa;
+- periodos fiscais fechados.
+
+Antes de qualquer commit:
 
 ```bash
 git status
@@ -416,169 +372,380 @@ git status
 
 Confirmar:
 
-- `.env` não está staged;
-- não há tokens, API keys, cookies reais ou URIs privadas;
-- evidence está sanitizada;
-- logs não expõem prompts internos, chaves ou dados pessoais;
-- ficheiros de teste não incluem dados reais sensíveis;
-- uploads ou anexos de teste são fictícios/sanitizados;
-- permissões e ownership foram validados quando há dados de utilizadores.
+- `.env` nao esta staged;
+- nao ha passwords, tokens, URIs privadas ou cookies reais em commits;
+- evidence esta sanitizada;
+- screenshots/logs nao expoem dados sensiveis;
+- dados financeiros reais nao entram no repositorio;
+- `companyId` nunca vem do body/query como fonte de verdade;
+- respostas publicas nao expoem campos administrativos, hashes, tokens ou dados internos.
 
 ---
 
-## 9) Ordem de execução
+## 7) Ordem de execucao
 
 0. Fazer refresh de tabs GitHub/IDE abertas.
-1. Confirmar a branch base:
+1. Ler `opsa/docs/planificacao/README.md`.
+2. Confirmar hierarquia de verdade:
+    - `MATRIZ-CANONICA-BK`;
+    - `BACKLOG-MVP`;
+    - `PLANO-SPRINTS`;
+    - `SCORECARD-SPRINTS`;
+    - `GUIAO-DOCENTE-SEMANAL`;
+    - `GATES-S4-S8-S12`;
+    - `guias-bk/*`.
+3. Ler `opsa/docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md`.
+4. Ler `opsa/docs/planificacao/guias-bk/MF1/ORDEM-DEPENDENCIAS-E-PRS-MF1.md`.
+5. Abrir `opsa/docs/planificacao/PLANO-IMPLEMENTACAO-TOTAL.md`.
+6. Confirmar `MF1 - Nucleo funcional I`.
+7. Abrir `opsa/docs/planificacao/backlogs/MF-VIEWS.md`.
+8. Confirmar sequencia:
+    - `BK-MF1-01`;
+    - `BK-MF1-02`;
+    - `BK-MF1-03`;
+    - `BK-MF1-04`;
+    - `BK-MF1-05`;
+    - `BK-MF1-06`;
+    - `BK-MF1-07`;
+    - `BK-MF1-08`;
+    - `BK-MF1-09`;
+    - `BK-MF1-10`.
+9. Abrir `opsa/docs/planificacao/backlogs/BACKLOG-MVP.md`.
+10. Confirmar estado, dependencias, owner, apoio, prioridade, esforco e RF.
+11. Abrir o guia especifico do BK em `opsa/docs/planificacao/guias-bk/MF1/`.
+12. Validar o scope-out antes de escrever codigo.
+13. Implementar em ciclos curtos, mantendo PR pequeno.
+14. Validar smoke + negativos + evidence.
+15. Correr validacao documental:
 
 ```bash
-git checkout main
-git pull origin main
+bash scripts/validate-planificacao.sh
 ```
 
-2. Criar a branch da tarefa:
+16. Correr testes/checks relevantes:
 
 ```bash
-git checkout -b {{BRANCH_DA_TAREFA}}
+npm --prefix apps/api run test:unit
+npm --prefix apps/api run test:contracts
+npm --prefix apps/api run syntax:check
+npm --prefix apps/api run prisma:validate
+npm --prefix apps/web run typecheck
+npm --prefix apps/web run build
 ```
 
-3. Ler `{{PATH_README_PLANIFICACAO}}`.
-4. Confirmar hierarquia canónica e regra de precedência.
-5. Abrir `{{PATH_PLANO_IMPLEMENTACAO}}`.
-6. Confirmar `{{MF_ID}} - {{MF_TITULO}}`.
-7. Abrir `{{PATH_MF_VIEWS}}`.
-8. Confirmar sequência dos BKs abrangidos.
-9. Abrir `{{PATH_BACKLOG}}`.
-10. Confirmar estado, dependências, owner, apoio, prioridade, esforço, RF/RNF e sprint.
-11. Abrir o guia específico de cada BK em `{{PATH_GUIAS_BK}}`.
-12. Validar o scope-out antes de escrever código.
-13. Implementar em ciclos curtos.
-14. Manter o PR pequeno e focado.
-15. Validar smoke + negativos + evidence.
-16. Correr validação documental/técnica:
-
-```bash
-{{COMANDO_VALIDACAO_DOCUMENTAL}}
-```
-
-17. Correr testes:
-
-```bash
-{{COMANDO_TESTES}}
-{{COMANDO_LINT}}
-```
-
-18. Fazer commit e push.
-19. Criar PR para `main`.
+Nota operacional: se `bash scripts/validate-planificacao.sh` falhar por issues documentais ja existentes e nao relacionadas com o BK, registar como blocker/risco documental na evidence. Nao marcar o BK como `DONE` sem evidence real.
 
 ---
 
-## 10) SSOT mínimo
+## 8) SSOT minimo da MF1
 
-Ler apenas as partes relevantes.
+Ler apenas as partes relevantes:
 
-Documentos funcionais:
+- `opsa/docs/RF.md`
+    - `RF13..RF22`;
+    - `RF03`, quando houver isolamento multiempresa;
+    - `RF08`, quando houver periodo fiscal ou lancamento contabilistico;
+    - `RF47`, quando houver auditoria de operacoes sensiveis.
 
-- `{{PATH_RF}}`
-    - `{{RF_RELEVANTES}}`.
+- `opsa/docs/RNF.md`
+    - RNFs de validacao de formularios e mensagens de erro;
+    - RNFs de sessao/autenticacao;
+    - RNFs de seguranca contra ataques comuns;
+    - RNFs de credenciais apenas em variaveis de ambiente;
+    - RNFs de modularidade backend/frontend;
+    - RNFs de auditoria e logs quando aplicavel.
 
-Documentos não funcionais:
+- `opsa/docs/planificacao/README.md`
+    - hierarquia canonica;
+    - validacao oficial;
+    - contrato pedagogico por prioridade.
 
-- `{{PATH_RNF}}`
-    - `{{RNF_RELEVANTES}}`.
+- `opsa/docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md`
+    - stack assumida;
+    - estrutura indicativa;
+    - regra de adaptacao quando existir scaffold real;
+    - dependencias tecnicas bloqueantes.
 
-Planificação:
+- `opsa/docs/planificacao/PLANO-IMPLEMENTACAO-TOTAL.md`
+    - `## Tabela MF0..MF8`;
+    - `## Regras transversais por macro`;
+    - `## Gates S4/S8/S12`.
 
-- `{{PATH_PLANO_IMPLEMENTACAO}}`
-    - calendário macro;
-    - gates;
-    - dependências entre fases.
+- `opsa/docs/planificacao/backlogs/BACKLOG-MVP.md`
+    - linhas `BK-MF1-01..BK-MF1-10`;
+    - contrato pedagogico comum;
+    - matriz minima de negativos por prioridade.
 
-- `{{PATH_BACKLOG}}`
-    - linhas `{{LISTA_BKS}}`;
-    - snapshot por macro;
-    - prioridades e owners.
+- `opsa/docs/planificacao/backlogs/MATRIZ-CANONICA-BK.md`
+    - linhas `BK-MF1-01..BK-MF1-10`;
+    - dependencias e proximo BK.
 
-- `{{PATH_MF_VIEWS}}`
-    - secção `{{MF_ID}} - {{MF_TITULO}}`.
+- `opsa/docs/planificacao/backlogs/CONTRATO-CAMPOS-BK.md`
+    - linhas `BK-MF1-01..BK-MF1-10`;
+    - alinhamento de `dependencias`, `rf_rnf` e `guia_path`.
 
-- `{{PATH_PLANO_SPRINTS}}`
-    - sprints `{{SPRINTS_RELEVANTES}}`;
-    - matriz mínima de testes por prioridade.
+- `opsa/docs/planificacao/backlogs/MF-VIEWS.md`
+    - `## MF1 - Nucleo funcional I`.
 
-Guias específicos:
+- `opsa/docs/planificacao/sprints/PLANO-SPRINTS.md`
+    - `S03` e `S04`;
+    - matriz minima de testes por prioridade;
+    - gate em `S04`.
 
-- `{{GUIA_BK_01}}`;
-- `{{GUIA_BK_02}}`;
-- `{{GUIA_BK_03}}`.
+- `opsa/docs/planificacao/guias-bk/AUDITORIA-HIDRATACAO-MF1.md`
+    - decisoes tecnicas confirmadas;
+    - drift documental corrigido;
+    - riscos restantes.
+
+- Guias especificos:
+    - `BK-MF1-01-configurar-tabelas-de-iva-taxas-isencoes-codigos.md`;
+    - `BK-MF1-02-emitir-fatura-fatura-recibo-nota-de-credito-com-numeracao-sequencial.md`;
+    - `BK-MF1-03-registar-recebimentos-parciais-totais.md`;
+    - `BK-MF1-04-gerar-lancamentos-contabilisticos-automaticos-por-venda.md`;
+    - `BK-MF1-05-consultar-titulos-em-aberto-e-antiguidade-de-saldos.md`;
+    - `BK-MF1-06-submeter-documentos-de-venda-para-aprovacao-antes-de-emissao-definitiva.md`;
+    - `BK-MF1-07-registar-fatura-de-fornecedor-e-nota-de-credito.md`;
+    - `BK-MF1-08-registar-pagamentos-parciais-totais.md`;
+    - `BK-MF1-09-gerar-lancamentos-contabilisticos-automaticos-de-compras.md`;
+    - `BK-MF1-10-aprovacao-de-compras-com-estados-rascunho-aprovado-lancado.md`.
 
 ---
 
-## 11) Validação por BK
+## 9) Validacao por BK
 
-Duplicar este bloco para cada BK da comunicação.
-
-### `{{BK_ID}}` - {{BK_TITULO}}
-
-Owner: `{{OWNER}}`
-
-Apoio: `{{APOIO}}`
-
-Prioridade: `{{PRIORIDADE}}`
-
-Branch: `{{BRANCH}}`
-
-Dependências:
-
-- `{{DEPENDENCIA_01}}`;
-- `{{DEPENDENCIA_02}}`.
-
-Scope:
-
-- `{{SCOPE_01}}`;
-- `{{SCOPE_02}}`;
-- `{{SCOPE_03}}`.
-
-Fora de scope:
-
-- `{{OUT_OF_SCOPE_01}}`;
-- `{{OUT_OF_SCOPE_02}}`.
+### `BK-MF1-01` - Configurar tabelas de IVA
 
 Smoke:
 
-- `{{SMOKE_01}}`;
-- `{{SMOKE_02}}`;
-- `{{SMOKE_03}}`.
+- listar taxas em `GET /api/vat-rates`;
+- criar taxa/codigo valido em `POST /api/vat-rates`;
+- confirmar que a taxa fica associada a empresa ativa;
+- UI administrativa permite listar, criar e ativar/desativar taxas.
 
 Negativos:
 
-- `{{NEG_01}}`;
-- `{{NEG_02}}`;
-- `{{NEG_03}}`.
+- pedido sem sessao => `401`;
+- pedido sem empresa ativa => `403` ou erro definido na `MF0`;
+- codigo duplicado na mesma empresa => `409`;
+- taxa isenta sem motivo de isencao => erro validado no backend.
 
-Validação técnica:
+Bloqueios:
 
-- `{{VALIDACAO_TECNICA_01}}`;
-- `{{VALIDACAO_TECNICA_02}}`;
-- `{{VALIDACAO_TECNICA_03}}`.
+- `VatRate` pertence a `companyId`;
+- taxa guardada como inteiro em basis points;
+- vendas e compras futuras usam `vatRateId`, nao taxa solta enviada pelo browser;
+- nao implementar mapas de IVA nem SAF-T neste BK.
 
-Bloqueios ou decisões pendentes:
+### `BK-MF1-02` - Emitir Fatura, Fatura-Recibo e Nota de Credito
 
-- `{{BLOQUEIO_OU_DECISAO_01}}`;
-- `{{BLOQUEIO_OU_DECISAO_02}}`.
+Smoke:
 
-Critério de conclusão:
+- criar documento de venda em `POST /api/sales/documents`;
+- emitir documento e atribuir numeracao sequencial por empresa, ano e tipo;
+- confirmar totais de linhas, IVA e total calculados no backend;
+- listar documentos da empresa ativa.
 
-- implementação concluída;
-- testes mínimos concluídos;
-- negativos validados;
-- evidence preenchida;
-- PR criado;
-- sem drift documental.
+Negativos:
+
+- cliente, artigo ou taxa de IVA de outra empresa => `404` ou `403`;
+- documento sem linhas validas => `400`;
+- emitir documento fora de periodo fiscal aberto => bloqueio controlado;
+- tentativa concorrente nao pode criar numero duplicado.
+
+Bloqueios:
+
+- `NumberSequence` e emissao ocorrem em transacao;
+- dinheiro guardado em centimos;
+- `companyId` vem da sessao;
+- contabilizacao automatica fica para `BK-MF1-04`.
+
+### `BK-MF1-03` - Registar recebimentos
+
+Smoke:
+
+- registar recebimento parcial em `POST /api/sales/documents/:id/receipts`;
+- registar recebimento total e liquidar documento quando aplicavel;
+- atualizar saldo em aberto de forma transacional;
+- guardar metodo, data e referencia.
+
+Negativos:
+
+- receber valor superior ao saldo em aberto => erro controlado;
+- receber sobre `CREDIT_NOTE` => bloqueado;
+- data em periodo fiscal fechado => bloqueada por `assertOpenFiscalPeriod`;
+- documento de outra empresa => `404` ou `403`.
+
+Bloqueios:
+
+- `Receipt` fica ligado ao documento de venda;
+- auditoria e filtros por empresa ficam no backend;
+- reconciliacao bancaria fica para `BK-MF3-03`;
+- previsao de tesouraria fica para `BK-MF3-04`.
+
+### `BK-MF1-04` - Gerar lancamentos contabilisticos automaticos por venda
+
+Smoke:
+
+- contabilizar venda emitida em `POST /api/accounting/sale-postings/:saleDocumentId`;
+- confirmar diario equilibrado entre debito e credito;
+- confirmar idempotencia numa segunda tentativa;
+- confirmar origem/referencia ao documento de venda.
+
+Negativos:
+
+- contabilizar documento nao emitido => erro controlado;
+- periodo fiscal fechado => bloqueado;
+- documento de outra empresa => `404` ou `403`;
+- tentativa de duplicar diario nao duplica proveitos nem IVA.
+
+Bloqueios:
+
+- usar contas SNC pedagogicas previstas no guia;
+- criar/reutilizar `JournalEntry` e linhas com `source`/`sourceId`;
+- coordenar nomes de `JournalEntry`, `JournalEntryLine`, `source` e helpers com `BK-MF1-09`;
+- lancamentos manuais ficam para `BK-MF2-06`.
+
+### `BK-MF1-05` - Consultar titulos em aberto e antiguidade de saldos
+
+Smoke:
+
+- consultar `GET /api/sales/open-items`;
+- devolver documentos emitidos com saldo por receber;
+- recalcular dias de atraso com filtro por data de referencia;
+- UI mostra estados `loading`, `empty`, `error` e `success`.
+
+Negativos:
+
+- pedido sem sessao => `401`;
+- documento liquidado nao aparece;
+- `CREDIT_NOTE` nao aparece como titulo em aberto;
+- documentos de outra empresa nunca aparecem.
+
+Bloqueios:
+
+- consulta e leitura pura, sem alterar dados;
+- buckets previstos: `NOT_DUE`, `DAYS_1_30`, `DAYS_31_60`, `DAYS_61_90`, `DAYS_90_PLUS`;
+- saldos usam `SaleDocument.totalCents` e `amountPaidCents`;
+- cobrancas automaticas ficam fora deste BK.
+
+### `BK-MF1-06` - Submeter documentos de venda para aprovacao
+
+Smoke:
+
+- operacional submete documento de venda para aprovacao;
+- gestor/administrador aprova documento submetido;
+- rejeicao exige motivo;
+- emissao definitiva passa a aceitar apenas documento aprovado, conforme guia.
+
+Negativos:
+
+- aprovar documento que nao esta submetido => erro de transicao;
+- rejeitar sem motivo => `400`;
+- mesmo utilizador tenta aprovar documento que submeteu, se a segregacao estiver ativa no service => bloqueio controlado;
+- recurso de outra empresa => `404` ou `403`.
+
+Bloqueios:
+
+- fluxo `DRAFT -> SUBMITTED -> APPROVED/REJECTED`;
+- auditoria de submissao, aprovacao e rejeicao;
+- nao criar historico detalhado alem do previsto para este BK;
+- coordenar com `BK-MF1-02` para nao duplicar logica divergente de emissao.
+
+### `BK-MF1-07` - Registar Fatura de Fornecedor e Nota de Credito
+
+Smoke:
+
+- registar fatura de fornecedor em `POST /api/purchases/documents`;
+- registar nota de credito de fornecedor com valores positivos e tipo documental proprio;
+- calcular totais no backend;
+- garantir numero do fornecedor unico por fornecedor e empresa.
+
+Negativos:
+
+- fornecedor, artigo ou taxa de IVA de outra empresa => `404` ou `403`;
+- numero de fornecedor duplicado para o mesmo fornecedor/empresa => `409`;
+- data fora de periodo fiscal aberto => bloqueada;
+- documento sem linhas validas => `400`.
+
+Bloqueios:
+
+- estado inicial `APPROVED` e temporario ate `BK-MF1-10`;
+- compras ficam filtradas por `companyId`;
+- pagamento fica para `BK-MF1-08`;
+- contabilizacao fica para `BK-MF1-09`.
+
+### `BK-MF1-08` - Registar pagamentos
+
+Smoke:
+
+- registar pagamento parcial em `POST /api/purchases/documents/:id/payments`;
+- registar pagamento total e fechar a compra quando aplicavel;
+- guardar metodo, data e referencia;
+- atualizar saldo pago de forma transacional.
+
+Negativos:
+
+- pagar valor superior ao saldo em aberto => erro controlado;
+- pagar nota de credito de fornecedor => bloqueado;
+- data em periodo fiscal fechado => bloqueada;
+- documento de outra empresa => `404` ou `403`.
+
+Bloqueios:
+
+- `Payment` fica ligado ao documento de compra;
+- atualizacao de saldo e movimento de pagamento sao transacionais;
+- diario contabilistico continua no `BK-MF1-09`;
+- gestao avancada de bancos e caixa fica fora deste BK.
+
+### `BK-MF1-09` - Gerar lancamentos contabilisticos automaticos de compras
+
+Smoke:
+
+- contabilizar compra registada/aprovada em `POST /api/accounting/purchase-postings/:purchaseDocumentId`;
+- confirmar diario equilibrado entre gasto, IVA dedutivel e fornecedor;
+- confirmar que nota de credito inverte o efeito contabilistico conforme tipo documental;
+- confirmar idempotencia.
+
+Negativos:
+
+- contabilizar compra inexistente ou de outra empresa => `404` ou `403`;
+- periodo fiscal fechado => bloqueado;
+- contabilizar duas vezes o mesmo documento => idempotente;
+- documento em estado invalido => erro controlado.
+
+Bloqueios:
+
+- reutilizar ou alinhar `JournalEntry`, `JournalEntryLine`, `source` e helpers do `BK-MF1-04`;
+- expor helper transacional para `BK-MF1-10`;
+- preservar auditoria;
+- mapa de IVA fica para `BK-MF3-01`.
+
+### `BK-MF1-10` - Aprovacao de compras
+
+Smoke:
+
+- novas compras passam a nascer `DRAFT`, conforme ajuste indicado no guia;
+- `POST /api/purchases/documents/:id/approve` muda compra para `APPROVED`;
+- `POST /api/purchases/documents/:id/post-state` contabiliza e muda compra para `POSTED`;
+- transicao para lancado cria ou reutiliza diario de compra sem duplicar.
+
+Negativos:
+
+- aprovar compra que nao esta em `DRAFT` => erro de transicao;
+- lancar compra que nao esta `APPROVED` => erro de transicao;
+- utilizador sem role adequada tenta aprovar ou lancar => `403`;
+- recurso de outra empresa => `404` ou `403`.
+
+Bloqueios:
+
+- fluxo `DRAFT -> APPROVED -> POSTED`;
+- `markPurchaseDocumentPosted` reutiliza `postPurchaseDocumentInTransaction`;
+- diario, estado e auditoria ficam na mesma transacao;
+- historico detalhado fica para `BK-MF2-01`.
 
 ---
 
-## 12) Evidence obrigatória
+## 10) Evidencia obrigatoria
 
 Cada BK deve preencher:
 
@@ -590,27 +757,22 @@ Cada BK deve preencher:
 - `screenshots`, quando houver UI;
 - `notes`.
 
-Mínimo por prioridade:
+Para prioridades:
 
-- `P0`: `unit + integration + e2e`, mínimo `3` negativos;
-- `P1`: `unit/integration`, mínimo `2` negativos;
-- `P2`: teste focal, mínimo `1` negativo.
+- `P0`: `unit + contracts/smoke` e minimo `3` negativos;
+- `P1`: `unit/contracts` relevantes e minimo `2` negativos;
+- `P2`: teste focal e minimo `1` negativo.
 
-Comandos esperados:
-
-```bash
-{{COMANDO_UNIT_TESTS}}
-{{COMANDO_INTEGRATION_TESTS}}
-{{COMANDO_E2E_TESTS}}
-{{COMANDO_LINT}}
-{{COMANDO_VALIDACAO_PLANIFICACAO}}
-```
-
-Quando o BK não pedir E2E, manter pelo menos:
+Comandos esperados no projeto atual:
 
 ```bash
-{{COMANDO_UNIT_TESTS}}
-{{COMANDO_LINT}}
+npm --prefix apps/api run test:unit
+npm --prefix apps/api run test:contracts
+npm --prefix apps/api run syntax:check
+npm --prefix apps/api run prisma:validate
+npm --prefix apps/web run typecheck
+npm --prefix apps/web run build
+bash scripts/validate-planificacao.sh
 ```
 
 Evidence nunca pode conter:
@@ -619,160 +781,67 @@ Evidence nunca pode conter:
 - tokens;
 - cookies reais;
 - URIs privadas;
-- API keys;
-- prompts internos sensíveis;
-- dados pessoais de alunos;
-- documentos escolares reais não sanitizados;
-- screenshots com dados reais sensíveis.
+- dados financeiros reais;
+- dados pessoais nao sanitizados;
+- screenshots com informacao sensivel;
+- outputs completos com stack traces sensiveis;
+- `companyId`/IDs reais usados para expor ownership indevido;
+- prompts internos sensiveis.
 
 ---
 
-## 13) Template de evidence por BK
+## 11) Decisoes tecnicas confirmadas para MF1
 
-````md
-## Evidence - {{BK_ID}} {{BK_TITULO}}
+- A empresa ativa vem da sessao/contexto autenticado, nao do body.
+- Documentos, taxas de IVA, recebimentos, pagamentos e lancamentos sao sempre filtrados por `companyId`.
+- Sessao autenticada usa cookie `HttpOnly`; o frontend nao deve depender de `Authorization: Bearer` se o contrato ativo for cookie.
+- Dinheiro deve ser guardado em centimos.
+- Taxas de IVA devem usar basis points quando aplicavel.
+- Numeracao sequencial deve ser por empresa, ano e tipo documental.
+- Emissao e numeracao devem ser transacionais.
+- Periodos fiscais fechados bloqueiam operacoes financeiras/contabilisticas quando o guia o exige.
+- Lancamentos contabilisticos automaticos devem ser equilibrados e idempotentes.
+- `BK-MF1-04` e `BK-MF1-09` devem alinhar nomes/modelos de diario contabilistico.
+- `BK-MF1-06` deve partir do contrato final de `BK-MF1-02`.
+- `BK-MF1-10` deve partir do contrato final de `BK-MF1-07` e reutilizar helper de contabilizacao do `BK-MF1-09`.
+- O historico detalhado de aprovacoes fica para `BK-MF2-01`.
+- Mapas de IVA ficam para `BK-MF3-01`.
+- SAF-T fica para `BK-MF3-06` e `BK-MF7-07`.
 
-### PR
+---
 
-- URL: {{PR_URL}}
-- Branch: {{BRANCH}}
-- Base: main
+## 12) Fecho da MF1
 
-### Proof
+A `MF1` so esta pronta quando:
 
-- {{PROOF_01}}
-- {{PROOF_02}}
-- {{PROOF_03}}
+- todos os BKs `BK-MF1-01..10` tem criterios de aceite cumpridos;
+- smoke, negativos e evidence estao completos;
+- nao ha drift entre matriz, backlog, contrato de campos, guias e sprints;
+- validacao documental passa ou o blocker externo fica registado;
+- vendas conseguem criar, emitir, aprovar, receber, consultar saldos e contabilizar;
+- compras conseguem criar, pagar, contabilizar, aprovar e marcar como lancadas;
+- `VatRate`, documentos, recebimentos, pagamentos e lancamentos estao filtrados por `companyId`;
+- lancamentos automaticos estao equilibrados e idempotentes;
+- periodos fiscais fechados bloqueiam operacoes financeiras/contabilisticas quando o guia exige;
+- `BK-MF2-01` fica desbloqueado para historico e justificacoes de aprovacoes/reprovacoes.
 
-### Negativos
-
-- {{NEG_01}}
-- {{NEG_02}}
-- {{NEG_03}}
-
-### Ficheiros alterados
-
-- {{FILE_01}}
-- {{FILE_02}}
-- {{FILE_03}}
-
-### Comandos executados
+Comando obrigatorio:
 
 ```bash
-{{COMMAND_01}}
-{{COMMAND_02}}
-{{COMMAND_03}}
-```
-
-### Screenshots
-
-- {{SCREENSHOT_01}}
-- {{SCREENSHOT_02}}
-
-### Notas
-
-- {{NOTA_01}}
-- {{NOTA_02}}
-````
-
----
-
-## 14) Template de PR
-
-```md
-## Objetivo
-
-Implementa `{{BK_ID}} - {{BK_TITULO}}` no âmbito de `{{MF_ID}} - {{MF_TITULO}}`.
-
-## Alterações
-
-- {{ALTERACAO_01}}
-- {{ALTERACAO_02}}
-- {{ALTERACAO_03}}
-
-## Validação
-
-- [ ] Smoke test concluído
-- [ ] Testes negativos concluídos
-- [ ] Testes unitários/integrados executados
-- [ ] Lint executado
-- [ ] Evidence preenchida
-- [ ] Sem segredos ou dados sensíveis no commit
-- [ ] Sem drift documental
-
-## Evidence
-
-- `pr`: {{PR_URL}}
-- `proof`: {{PROOF_RESUMO}}
-- `neg`: {{NEG_RESUMO}}
-- `files`: {{FILES_RESUMO}}
-- `commands`: {{COMMANDS_RESUMO}}
-- `screenshots`: {{SCREENSHOTS_RESUMO}}
-- `notes`: {{NOTES_RESUMO}}
-
-## Dependências e notas
-
-- Dependências confirmadas: {{DEPENDENCIAS_CONFIRMADAS}}
-- Bloqueios: {{BLOQUEIOS}}
-- Fora de scope: {{FORA_DE_SCOPE}}
+bash scripts/validate-planificacao.sh
 ```
 
 ---
 
-## 15) Instruções para agente adaptar este modelo
+## 13) Se bloquearem mais de 45 minutos
 
-Quando um agente receber este modelo, deve:
+Mandar-me:
 
-1. Identificar a PAP correta.
-2. Identificar se o pedido é para uma MF completa ou para um conjunto de BKs.
-3. Ler os documentos SSOT indicados.
-4. Preencher os placeholders com dados confirmados.
-5. Remover linhas que não se aplicam.
-6. Manter a ordem do topo:
-    - identificação;
-    - branches;
-    - VS Code;
-    - Codespaces;
-    - contexto;
-    - BKs;
-    - execução;
-    - validação;
-    - evidence.
-7. Não inventar RFs, RNFs, owners, dependências, endpoints, campos, regras de negócio ou estados.
-8. Se faltar informação crítica, escrever `TODO_CONFIRMAR` e listar a dúvida.
+1. 2-3 frases sobre o problema.
+2. BK e path do guia.
+3. Heading/seccao que causou duvida.
+4. Erro/log relevante sem dados sensiveis.
+5. O que ja tentaram.
+6. Se o bloqueio e tecnico, documental, de dependencia, fiscal, contabilistico, privacidade ou seguranca.
 
-### Pedido-tipo para adaptação
-
-```text
-Adapta o MODELO-COMUNICACAO-TAREFAS-GRUPOS.md para:
-
-- PAP: {{PAP_NOME}}
-- MF: {{MF_ID}} - {{MF_TITULO}}
-- BKs: {{LISTA_BKS}}
-- Grupo/owners: {{GRUPO_OU_OWNERS}}
-- Branch base: main
-
-Usa apenas os documentos da planificação da PAP.
-Coloca no topo os nomes das branches.
-Inclui guia de VS Code, Codespaces, validação, evidence e template de PR.
-Quando faltar informação, usa TODO_CONFIRMAR.
-```
-
----
-
-## 16) Checklist final antes de enviar ao grupo
-
-- [ ] PAP correta.
-- [ ] MF ou BKs corretos.
-- [ ] Branches preenchidas no topo.
-- [ ] Owners e apoios confirmados.
-- [ ] Dependências confirmadas.
-- [ ] RF/RNF relevantes confirmados.
-- [ ] Scope e fora de scope claros.
-- [ ] Guia VS Code incluído.
-- [ ] Guia Codespaces incluído.
-- [ ] Validação por BK incluída.
-- [ ] Evidence obrigatória incluída.
-- [ ] Template de PR incluído.
-- [ ] Não há dados inventados.
-- [ ] `TODO_CONFIRMAR` usado onde falta informação.
+Se o bloqueio envolver regras fiscais, periodos fiscais, numeracao sequencial, contas SNC, transicoes de estado, isolamento multiempresa ou autorizacao por role, nao inventar a decisao no PR. Marcar como `TODO/BLOCKER` e pedir validacao.
