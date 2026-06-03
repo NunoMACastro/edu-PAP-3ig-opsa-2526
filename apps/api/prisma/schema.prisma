@@ -7,6 +7,8 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+/* ===================== ENUMS ===================== */
+
 enum Role {
   ADMIN
   GESTOR
@@ -32,15 +34,19 @@ enum ItemType {
   SERVICE
 }
 
+/* ===================== CORE AUTH ===================== */
+
 model User {
   id                  String               @id @default(uuid())
   email               String               @unique
   name                String?
   passwordHash        String
   isActive            Boolean              @default(true)
+
   sessions            Session[]
   memberships         CompanyMembership[]
   passwordResetTokens PasswordResetToken[]
+
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
 }
@@ -49,7 +55,9 @@ model Session {
   id              String    @id
   userId          String
   activeCompanyId String?
+
   user            User      @relation(fields: [userId], references: [id])
+
   expiresAt       DateTime
   revokedAt       DateTime?
   createdAt       DateTime  @default(now())
@@ -60,12 +68,12 @@ model Session {
 }
 
 model PasswordResetToken {
-  id        String    @id @default(uuid())
+  id        String   @id @default(uuid())
   userId    String
-  tokenHash String    @unique
+  tokenHash String   @unique
   expiresAt DateTime
   usedAt    DateTime?
-  createdAt DateTime  @default(now())
+  createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id])
 
@@ -73,21 +81,30 @@ model PasswordResetToken {
   @@index([expiresAt])
 }
 
+/* ===================== COMPANY ===================== */
+
 model Company {
   id            String              @id @default(uuid())
   name          String
   nif           String?             @unique
+
   memberships   CompanyMembership[]
   invitations   CompanyInvitation[]
   profile       CompanyProfile?
+
   accounts      Account[]
   fiscalPeriods FiscalPeriod[]
   customers     Customer[]
   suppliers     Supplier[]
   items         Item[]
   warehouses    Warehouse[]
-  createdAt     DateTime            @default(now())
-  updatedAt     DateTime            @updatedAt
+
+  /* MF1 */
+  receipts      Receipt[]
+  payments      Payment[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 model CompanyMembership {
@@ -96,11 +113,12 @@ model CompanyMembership {
   companyId String
   role      Role
   isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 
   user    User    @relation(fields: [userId], references: [id])
   company Company @relation(fields: [companyId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([userId, companyId])
   @@index([companyId])
@@ -115,10 +133,11 @@ model CompanyInvitation {
   status    InvitationStatus @default(PENDING)
   expiresAt DateTime
   createdBy String
-  createdAt DateTime         @default(now())
-  updatedAt DateTime         @updatedAt
 
   company Company @relation(fields: [companyId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([companyId])
   @@index([email])
@@ -138,11 +157,14 @@ model CompanyProfile {
   logoUrl              String?
   fiscalYearStartMonth Int
   fiscalYearStartDay   Int
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
 
   company Company @relation(fields: [companyId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
+
+/* ===================== ACCOUNTING ===================== */
 
 model Account {
   id         String   @id @default(uuid())
@@ -152,10 +174,11 @@ model Account {
   parentCode String?
   level      Int
   isActive   Boolean  @default(true)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
 
   company Company @relation(fields: [companyId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([companyId, code])
   @@index([companyId])
@@ -170,14 +193,17 @@ model FiscalPeriod {
   status     FiscalPeriodStatus @default(OPEN)
   closedAt   DateTime?
   closedById String?
-  createdAt  DateTime           @default(now())
-  updatedAt  DateTime           @updatedAt
 
   company Company @relation(fields: [companyId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([companyId, name])
   @@index([companyId, startDate, endDate])
 }
+
+/* ===================== BUSINESS ===================== */
 
 model Customer {
   id          String   @id @default(uuid())
@@ -190,10 +216,11 @@ model Customer {
   postalCode  String?
   city        String?
   isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
 
   company Company @relation(fields: [companyId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([companyId, nif])
   @@index([companyId])
@@ -210,10 +237,11 @@ model Supplier {
   postalCode  String?
   city        String?
   isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
 
   company Company @relation(fields: [companyId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([companyId, nif])
   @@index([companyId])
@@ -229,26 +257,29 @@ model Item {
   priceCents Int
   vatRateBps Int
   isActive   Boolean  @default(true)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
 
   company Company @relation(fields: [companyId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([companyId, sku])
   @@index([companyId])
 }
 
 model Warehouse {
-  id        String              @id @default(uuid())
+  id        String   @id @default(uuid())
   companyId String
   code      String
   name      String
-  isActive  Boolean             @default(true)
+  isActive  Boolean  @default(true)
+
   locations WarehouseLocation[]
-  createdAt DateTime            @default(now())
-  updatedAt DateTime            @updatedAt
 
   company Company @relation(fields: [companyId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([companyId, code])
   @@unique([companyId, name])
@@ -261,12 +292,59 @@ model WarehouseLocation {
   code        String
   name        String
   isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
 
   warehouse Warehouse @relation(fields: [warehouseId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([warehouseId, code])
   @@unique([warehouseId, name])
   @@index([warehouseId])
+}
+
+/* ===================== MF1 - RECEIPTS ===================== */
+
+model Receipt {
+  id             String   @id @default(uuid())
+  companyId      String
+  saleDocumentId String
+
+  amountCents    Int
+  receivedAt     DateTime
+  method         String
+  reference      String?
+  notes          String?
+
+  createdById    String
+  createdAt      DateTime @default(now())
+
+  company      Company      @relation(fields: [companyId], references: [id])
+  saleDocument SaleDocument @relation(fields: [saleDocumentId], references: [id])
+
+  @@index([companyId, receivedAt])
+  @@index([saleDocumentId])
+}
+
+/* ===================== MF1 - PAYMENTS ===================== */
+
+model Payment {
+  id                 String   @id @default(uuid())
+  companyId          String
+  purchaseDocumentId String
+
+  amountCents       Int
+  paidAt            DateTime
+  method            String
+  reference         String?
+  notes             String?
+
+  createdById       String
+  createdAt         DateTime @default(now())
+
+  company          Company          @relation(fields: [companyId], references: [id])
+  purchaseDocument PurchaseDocument @relation(fields: [purchaseDocumentId], references: [id])
+
+  @@index([companyId, paidAt])
+  @@index([purchaseDocumentId])
 }
