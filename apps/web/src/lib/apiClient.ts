@@ -101,6 +101,7 @@ export function createApiClient(options: ApiClientOptions = {}) {
     return data as TResponse;
   }
 
+
   return {
     request,
     auth: {
@@ -219,6 +220,14 @@ export function createApiClient(options: ApiClientOptions = {}) {
       updateProfile: (body: JsonBody) =>
         request("PUT", "/company/profile", { body }),
     },
+
+    vatRates: {
+      list: () => request("GET", "/vat-rates"),
+      create: (body: JsonBody) => request("POST", "/vat-rates", { body }),
+      setActive: (id: string, body: JsonBody) =>
+        request("PATCH", `/vat-rates/${id}/active`, { body }),
+    },
+
     accounting: {
       /**
        * Lista contas SNC da empresa.
