@@ -114,6 +114,84 @@ Comandos executados
 npm --prefix apps/api run test:unit
 npm --prefix apps/api run test:contracts
 
+9) Validação Final BK-MF1-06
+Smoke
+    Operacional pode submeter documento de venda para aprovação.
+    Gestor ou administrador pode aprovar documento submetido.
+    Rejeição exige motivo obrigatório.
+    Aprovação altera o estado para APPROVED.
+    Rejeição altera o estado para REJECTED.
+    Submissão altera o estado para SUBMITTED.
+    Emissão definitiva passa a aceitar apenas documentos aprovados.
+    Integração final da página na navegação da aplicação por validar.
+
+Negativos
+    Aprovar documento que não está em SUBMITTED devolve erro de transição.
+    Rejeitar documento sem motivo devolve 400.
+    Mesmo utilizador que submeteu não pode aprovar o documento (SEGREGATION_REQUIRED).
+    Documento inexistente devolve 404.
+    Documento de outra empresa devolve 404 ou 403.
+    Tentativa de submissão em estado inválido devolve erro controlado.
+    Tentativa de aprovação em estado inválido devolve erro controlado.
+    Tentativa de rejeição em estado inválido devolve erro controlado.
+
+Bloqueios e limites do BK
+    Fluxo obrigatório: DRAFT -> SUBMITTED -> APPROVED/REJECTED.
+    Rejeição exige motivo obrigatório.
+    Auditoria de submissão, aprovação e rejeição através de AuditLog.
+    O companyId é obtido exclusivamente do contexto autenticado.
+    Não foi criado histórico detalhado adicional além do previsto neste BK.
+    A lógica de emissão definitiva permanece centralizada e alinhada com BK-MF1-02.
+    A segregação de funções é aplicada quando configurada no service.
+    O frontend não decide regras de workflow nem permissões.
+    Apenas o backend valida transições de estado.
+
+10) Evidência obrigatória - BK-MF1-06
+
+### pr
+PR: ainda não criado.
+
+### proof
+Foi implementado o fluxo de aprovação de documentos de venda.
+Foram implementadas as operações:
+* submissão de documento para aprovação;
+* aprovação de documento submetido;
+* rejeição de documento submetido com motivo obrigatório.
+
+Foram implementados os endpoints:
+```text
+POST /api/sales/documents/:id/submit
+POST /api/sales/documents/:id/approve
+POST /api/sales/documents/:id/reject
+```
+
+Foi implementada a matriz de estados:
+```text
+DRAFT -> SUBMITTED -> APPROVED
+                    -> REJECTED
+```
+
+Foi implementada segregação de funções para impedir que o mesmo utilizador aprove o documento que submeteu.
+Foi implementada auditoria para:
+* submissão;
+* aprovação;
+* rejeição.
+
+Foi criada integração frontend através de:
+* `saleApprovalApi.ts`
+* `SaleApprovalPage.tsx`
+
+### neg
+Cenários negativos previstos/validados:
+* Documento inexistente devolve `404`.
+* Documento de outra empresa devolve `404` ou `403`.
+* Rejeição sem motivo devolve `400`.
+* Mesmo utilizador não pode aprovar o documento que submeteu (`SEGREGATION_REQUIRED`).
+* Submissão em estado inválido devolve erro controlado.
+* Aprovação em estado inválido devolve erro controlado.
+* Rejeição em estado inválido devolve erro controlado.
+
+### files
 apps/api/src/server.js
 apps/api/src/modules/sales-approval/saleApprovalRoutes.js
 apps/api/src/modules/sales-approval/saleApprovalService.js
@@ -122,3 +200,25 @@ apps/api/prisma/schema.prisma
 apps/web/src/lib/saleApprovalApi.ts
 apps/web/src/pages/SaleApprovalPage.tsx
 apps/api/src/modules/sales-approval/saleApprovalService.test.js
+
+### commands
+```bash
+npm --prefix apps/api run test:unit
+npm --prefix apps/api run test:contracts
+```
+
+### screenshots
+Sem screenshots incluídos nesta revisão.
+
+### notes
+* O `companyId` é obtido exclusivamente da sessão autenticada.
+* O frontend não decide estados nem permissões.
+* As transições de estado são validadas apenas pelo backend.
+* Foi implementado o fluxo `DRAFT -> SUBMITTED -> APPROVED/REJECTED`.
+* A rejeição exige motivo obrigatório.
+* Foi implementada segregação de funções para evitar autoaprovação.
+* Foi implementada auditoria através de `AuditLog`.
+* Não foi criado histórico detalhado além do previsto para este BK.
+* A lógica de emissão definitiva continua alinhada com BK-MF1-02.
+* O BK-MF1-03 deverá respeitar o estado `APPROVED` antes da emissão definitiva.
+* O BK-MF1-04 deverá contabilizar apenas documentos emitidos.
