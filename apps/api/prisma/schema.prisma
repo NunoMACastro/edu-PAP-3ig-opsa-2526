@@ -52,6 +52,12 @@ enum PurchaseDocumentStatus {
   PAID
 }
 
+enum JournalSource {
+  SALE
+  PURCHASE
+  MANUAL
+}
+
 model User {
   id                  String               @id @default(uuid())
   email               String               @unique
@@ -95,27 +101,26 @@ model PasswordResetToken {
 }
 
 model Company {
-  id                String              @id @default(uuid())
-  name              String
-  nif               String?             @unique
-  memberships       CompanyMembership[]
-  invitations       CompanyInvitation[]
-  profile           CompanyProfile?
-  accounts          Account[]
-  fiscalPeriods     FiscalPeriod[]
-  customers         Customer[]
-  suppliers         Supplier[]
-  items             Item[]
-  warehouses        Warehouse[]
-  vatRates          VatRate[]
-  numberSequences   NumberSequence[]
-  saleDocuments     SaleDocument[]
-  receipts          Receipt[]
-  journalEntries    JournalEntry[]
-  purchaseDocuments PurchaseDocument[]
-  auditLogs         AuditLog[]
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
+  id              String              @id @default(uuid())
+  name            String
+  nif             String?             @unique
+  memberships     CompanyMembership[]
+  invitations     CompanyInvitation[]
+  profile         CompanyProfile?
+  accounts        Account[]
+  fiscalPeriods   FiscalPeriod[]
+  customers       Customer[]
+  suppliers       Supplier[]
+  items           Item[]
+  warehouses      Warehouse[]
+  vatRates        VatRate[]
+  numberSequences NumberSequence[]
+  saleDocuments   SaleDocument[]
+  receipts        Receipt[]
+  journalEntries  JournalEntry[]
+  auditLogs       AuditLog[]
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
 }
 
 model CompanyMembership {
@@ -173,15 +178,16 @@ model CompanyProfile {
 }
 
 model Account {
-  id         String   @id @default(uuid())
-  companyId  String
-  code       String
-  name       String
-  parentCode String?
-  level      Int
-  isActive   Boolean  @default(true)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id                String             @id @default(uuid())
+  companyId         String
+  code              String
+  name              String
+  parentCode        String?
+  level             Int
+  isActive          Boolean            @default(true)
+  journalEntryLines JournalEntryLine[]
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
 
   company Company @relation(fields: [companyId], references: [id])
 
@@ -363,4 +369,33 @@ model PurchaseDocumentLine {
   purchaseDocument PurchaseDocument @relation(fields: [purchaseDocumentId], references: [id])
   item             Item             @relation(fields: [itemId], references: [id])
   vatRate          VatRate          @relation(fields: [vatRateId], references: [id])
+}
+
+model JournalEntry {
+  id          String        @id @default(uuid())
+  companyId   String
+  source      JournalSource
+  sourceId    String
+  entryDate   DateTime
+  description String
+  createdById String
+  createdAt   DateTime      @default(now())
+
+  company Company            @relation(fields: [companyId], references: [id])
+  lines   JournalEntryLine[]
+
+  @@unique([companyId, source, sourceId])
+  @@index([companyId, entryDate])
+}
+
+model JournalEntryLine {
+  id             String @id @default(uuid())
+  journalEntryId String
+  accountId      String
+  debitCents     Int    @default(0)
+  creditCents    Int    @default(0)
+  memo           String?
+
+  journalEntry JournalEntry @relation(fields: [journalEntryId], references: [id])
+  account      Account      @relation(fields: [accountId], references: [id])
 }
