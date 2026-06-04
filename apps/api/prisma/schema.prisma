@@ -40,6 +40,7 @@ enum VatRateType {
   OTHER
 }
 
+<<<<<<< HEAD
 enum PurchaseDocumentKind {
   SUPPLIER_INVOICE
   SUPPLIER_CREDIT_NOTE
@@ -56,6 +57,12 @@ enum JournalSource {
   SALE
   PURCHASE
   MANUAL
+=======
+enum SaleDocumentKind {
+  INVOICE
+  INVOICE_RECEIPT
+  CREDIT_NOTE
+>>>>>>> 548e745 (update sales)
 }
 
 enum SaleDocumentStatus {
@@ -125,8 +132,11 @@ model Company {
   vatRates        VatRate[]
   numberSequences NumberSequence[]
   saleDocuments   SaleDocument[]
+<<<<<<< HEAD
   receipts        Receipt[]
   journalEntries  JournalEntry[]
+=======
+>>>>>>> 548e745 (update sales)
   auditLogs       AuditLog[]
   createdAt       DateTime            @default(now())
   updatedAt       DateTime            @updatedAt
@@ -265,6 +275,7 @@ model Supplier {
 }
 
 model Item {
+<<<<<<< HEAD
   id                    String                 @id @default(uuid())
   companyId             String
   sku                   String
@@ -278,6 +289,20 @@ model Item {
   purchaseDocumentLines PurchaseDocumentLine[]
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
+=======
+  id                String             @id @default(uuid())
+  companyId         String
+  sku               String
+  name              String
+  type              ItemType
+  costCents         Int
+  priceCents        Int
+  vatRateBps        Int
+  isActive          Boolean            @default(true)
+  saleDocumentLines SaleDocumentLine[]
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+>>>>>>> 548e745 (update sales)
 
   company Company @relation(fields: [companyId], references: [id])
 
@@ -319,6 +344,7 @@ model WarehouseLocation {
 }
 
 model VatRate {
+<<<<<<< HEAD
   id                    String                 @id @default(uuid())
   companyId             String
   code                  String
@@ -331,6 +357,19 @@ model VatRate {
   purchaseDocumentLines PurchaseDocumentLine[]
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
+=======
+  id                String             @id @default(uuid())
+  companyId         String
+  code              String
+  description       String
+  rateBps           Int
+  type              VatRateType
+  exemptionReason   String?
+  isActive          Boolean            @default(true)
+  saleDocumentLines SaleDocumentLine[]
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+>>>>>>> 548e745 (update sales)
 
   company Company @relation(fields: [companyId], references: [id])
 
@@ -338,6 +377,7 @@ model VatRate {
   @@index([companyId, isActive])
 }
 
+<<<<<<< HEAD
 model PurchaseDocument {
   id              String                 @id @default(uuid())
   companyId       String
@@ -407,6 +447,20 @@ model JournalEntryLine {
 
   journalEntry JournalEntry @relation(fields: [journalEntryId], references: [id])
   account      Account      @relation(fields: [accountId], references: [id])
+=======
+model NumberSequence {
+  id        String   @id @default(uuid())
+  companyId String
+  scope     String
+  year      Int
+  prefix    String
+  nextValue Int      @default(1)
+  updatedAt DateTime @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id])
+
+  @@unique([companyId, scope, year])
+>>>>>>> 548e745 (update sales)
 }
 
 model SaleDocument {
@@ -423,6 +477,7 @@ model SaleDocument {
   totalCents      Int
   amountPaidCents Int                @default(0)
   createdById     String
+<<<<<<< HEAD
   submittedAt     DateTime?
   submittedById   String?
   approvedAt      DateTime?
@@ -430,6 +485,8 @@ model SaleDocument {
   rejectedAt      DateTime?
   rejectedById    String?
   rejectionReason String?
+=======
+>>>>>>> 548e745 (update sales)
   issuedById      String?
   issuedDefinitiveAt DateTime?
   createdAt       DateTime           @default(now())
@@ -438,10 +495,16 @@ model SaleDocument {
   company  Company  @relation(fields: [companyId], references: [id])
   customer Customer @relation(fields: [customerId], references: [id])
   lines    SaleDocumentLine[]
+<<<<<<< HEAD
   receipts Receipt[]
 
   @@unique([companyId, number])
   @@index([companyId, status, issuedAt])
+=======
+
+  @@unique([companyId, number])
+  @@index([companyId, customerId, issuedAt])
+>>>>>>> 548e745 (update sales)
 }
 
 model SaleDocumentLine {

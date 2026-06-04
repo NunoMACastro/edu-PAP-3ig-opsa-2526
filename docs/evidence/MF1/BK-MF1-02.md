@@ -42,6 +42,7 @@ Prisma schema loaded from prisma\schema.prisma
 The schema at prisma\schema.prisma is valid 🚀
 
 ### Passo 3
+<<<<<<< HEAD
 Ficheiros alterados
 - `apps/web/src/lib/apiClient.ts`
 - `apps/web/src/lib/salesApi.ts`
@@ -263,3 +264,5 @@ npm --prefix apps/api run test:integration
 git diff --stat
 git diff --check
 git diff -- docs/planificacao/guias-bk/MF1
+=======
+>>>>>>> 548e745 (update sales)

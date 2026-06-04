@@ -1,0 +1,603 @@
+[33mcommit 73b9b7af2f35e4cfaabda39ca636bc8fe179f09c[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeat/bk-mf1-08-pagamentos[m[33m, [m[1;31morigin/mf1[m[33m, [m[1;32mmf1[m[33m)[m
+Author: Pedrop662 <peamaral23ig@epms.pt>
+Date:   Thu Jun 4 22:20:06 2026 +0000
+
+    update
+
+[33mcommit b185116e590219608823563539e1ded4796f15a7[m
+Author: Pedrop662 <peamaral23ig@epms.pt>
+Date:   Thu Jun 4 22:16:24 2026 +0000
+
+    update
+
+[33mcommit 5804cc56072129b127666bd7d420eaa6ccb4f086[m
+Author: Pedrop662 <peamaral23ig@epms.pt>
+Date:   Thu Jun 4 22:13:26 2026 +0000
+
+    update
+
+[33mcommit 0fe93e1b1d1ee83724e2df781bc42470e31f69a3[m
+Merge: d5e064d 63f3fab
+Author: Pedrop662 <peamaral23ig@epms.pt>
+Date:   Thu Jun 4 22:13:18 2026 +0000
+
+    Merge branch 'main' into mf1
+
+[33mcommit 63f3fab77d62a4b54f62514e28693064098c1f26[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m
+Author: Oleksii113 <olvelykyi23ig@epms.pt>
+Date:   Thu Jun 4 21:58:44 2026 +0100
+
+    BK-MF1-04 - Gerar lancamentos contabilisticos automaticos por venda - Oleksii (#22)
+
+[33mcommit 16000258c95b584245744c923ae851fbb98c31be[m
+Merge: 32cfe94 67e45cb
+Author: Nuno Castro <nunomacastro@gmail.com>
+Date:   Thu Jun 4 17:45:43 2026 +0100
+
+    Merge pull request #21 from NunoMACastro/feat/bk-mf1-07-documentos-compra-oleksii
+
+[33mcommit 67e45cbe349616f6ddc250e3893ea0845aa43b1e[m[33m ([m[1;31morigin/feat/bk-mf1-07-documentos-compra-oleksii[m[33m)[m
+Author: Oleksii113 <olvelykyi23ig@epms.pt>
+Date:   Thu Jun 4 17:34:12 2026 +0100
+
+    Potential fix for pull request finding
+    
+    Co-authored-by: Copilot Autofix powered by AI <175728472+Copilot@users.noreply.github.com>
+
+[33mcommit 7eb75ca6f74cc6600a5cebf0420d63c735c326d7[m
+Author: Oleksii113 <olvelykyi23ig@epms.pt>
+Date:   Thu Jun 4 17:33:35 2026 +0100
+
+    Potential fix for pull request finding
+    
+    Co-authored-by: Copilot Autofix powered by AI <175728472+Copilot@users.noreply.github.com>
+
+[33mcommit 1ce6beadd47c50297558857227cac4b3f1ea8edc[m
+Merge: dd11cba 32cfe94
+Author: Oleksii113 <olvelykyi23ig@epms.pt>
+Date:   Thu Jun 4 17:13:54 2026 +0100
+
+    Merge branch 'main' into feat/bk-mf1-07-documentos-compra-oleksii
+
+[33mcommit 32cfe942a2ce2b9e198fac081e1189529bbd5344[m
+Merge: 2a99e8d b51967e
+Author: Nuno Castro <nunomacastro@gmail.com>
+Date:   Thu Jun 4 17:11:23 2026 +0100
+
+    Merge pull request #20 from NunoMACastro/feat/bk-mf1-02-documentos-venda-oleksii
+
+[33mcommit dd11cbae2b03f25af91afbfbda66de72d70b9b0d[m
+Author: Oleksii113 <olvelykyi23ig@epms.pt>
+Date:   Thu Jun 4 15:58:40 2026 +0100
+
+    update evidencia
+
+[33mcommit 7087fa50e5aea7102854895ece7457172d7b65c9[m
+Author: Oleksii113 <olvelykyi23ig@epms.pt>
+Date:   Thu Jun 4 15:20:21 2026 +0100
+
+    update prisma
+
+[33mcommit b51967e6a8428b1895c8b3456dfb2524caf9b930[m[33m ([m[1;31morigin/feat/bk-mf1-02-documentos-venda-oleksii[m[33m)[m
+Author: Oleksii113 <olvelykyi23ig@epms.pt>
+Date:   Thu Jun 4 13:40:23 2026 +0100
+
+    update evidencia
+
+[33mcommit 85b10fec4f69c0c99e596b66dd13189289582b0d[m
+Author: Oleksii113 <olvelykyi23ig@epms.pt>
+Date:   Thu Jun 4 13:13:03 2026 +0100
+
+    update passo 7
+
+[33mcommit 548e7457d6022f0b9ea6f233d0f895cc2de48d1c[m
+Author: Oleksii113 <olvelykyi23ig@epms.pt>
+Date:   Thu Jun 4 12:37:23 2026 +0100
+
+    update sales
+
+[33mcommit 2a99e8d5b533c743dd3752f9655baadd8d8a0a7a[m
+Merge: eac4ff9 3c6d177
+Author: Nuno Castro <nunomacastro@gmail.com>
+Date:   Thu Jun 4 11:22:23 2026 +0100
+
+    Merge pull request #18 from NunoMACastro/feat/bk-mf1-01-iva-oleksii
+
+[33mcommit d5e064d24d90781609c2f4407c95b97976c6f79a[m[33m ([m[1;32mbackup-mf1[m[33m)[m
+Author: Pedrop662 <peamaral23ig@epms.pt>
+Date:   Thu Jun 4 07:49:53 2026 +0000
+
+    update
+
+[33mcommit 57e1e766b5e52f8a1081d0d64debd37fc9218f2d[m
+Author: Pedrop662 <peamaral23ig@epms.pt>
+Date:   Thu Jun 4 07:48:31 2026 +0000
+
+    update
+
+[33mcommit e7ee76e4b6a520bde8ba417a49111c52e4b8e263[m
+Author: Pedrop662 <peamaral23ig@epms.pt>
+Date:   Thu Jun 4 07:43:49 2026 +0000
+
+    update
+
+[33mcommit 5c3dd5ad3b6c2783972a904791cdd2587a1b3ff7[m
+Author: Pedrop662 <peamaral23ig@epms.pt>
+Date:   Thu Jun 4 07:39:55 2026 +0000
+
+    update
+
+[33mcommit a5f9ed7b8dfdd3ecfe47bab56d0611dfd6f7e54b[m
+Author: Pedrop662 <peamaral23ig@epms.pt>
+Date:   Thu Jun 4 07:36:54 2026 +0000
+
+    update
+
+[33mcommit 64e52fa18dfece2c9333b38a67bbb01a4af3c772[m
+Author: Pedrop662 <peamaral23ig@epms.pt>
+Date:   Thu Jun 4 07:33:28 2026 +0000
+
+    update
+
+[33mcommit 55b1f9895002db6154c14a94093c70d9eeeba0b1[m
+Author: Pedrop662 <peamaral23ig@epms.pt>
+Date:   Thu Jun 4 07:20:58 2026 +0000
+
+    update
+
+[33mcommit 1d5c2da06e27f55919ccec4f44821e0c9a5ea07e[m
+Author: Pedrop662 <peamaral23ig@epms.pt>
+Date:   Thu Jun 4 07:17:14 2026 +0000
+
+    update
+
+[33mcommit 3c6d1778046286df26707288b9f4a80cbdcb5475[m[33m ([m[1;31morigin/feat/bk-mf1-01-iva-oleksii[m[33m)[m
+Author: Oleksii113 <olvelykyi23ig@epms.pt>
+Date:   Wed Jun 3 23:48:26 2026 +0100
+
+    update evidencia
+
+[33mcommit 990ca760b15e9d8f4b81967926a0219b1b39af0b[m
+Author: Oleksii113 <olvelykyi23ig@epms.pt>
+Date:   Wed Jun 3 22:46:18 2026 +0100
+
+    update vatRate
+
+[33mcommit 8a91aa79dcca9c9f3911400a45e701f11bebae83[m
+Author: Pedrop662 <peamaral23ig@epms.pt>
+Date:   Wed Jun 3 20:29:18 2026 +0000
+
+    update
+
+[33mcommit 02279701d398a4cd007d15b685a9e77bbea31c9c[m
+Author: Pedrop662 <peamaral23ig@epms.pt>
+Date:   Wed Jun 3 20:17:16 2026 +0000
+
+    update
+
+[33mcommit 31f86fcd58b691d50cf1777fb5d14bd25bc20449[m
+Author: Pedrop662 <peamaral23ig@epms.pt>
+Date:   Wed Jun 3 19:59:23 2026 +0000
+
+    update
+
+[33mcommit b8d7980fad5fce2fd25454178235912591e8b2a7[m
+Author: Pedrop662 <peamaral23ig@epms.pt>
+Date:   Sun May 31 21:14:58 2026 +0000
+
+    update
+
+[33mcommit eac4ff9162d68507ca56bfbbc20629e48e4a5a52[m
+Author: Nuno Castro <nunomacastro@gmail.com>
+Date:   Wed Jun 3 09:10:26 2026 +0100
+
+    Update: Dev
+
+[33mcommit 0db74bfaaefe915a66340e1388abab6c6b222d4f[m
+Author: Nuno Castro <nunomacastro@gmail.com>
+Date:   Wed Jun 3 09:02:28 2026 +0100
+
+    Update: Dev
+
+[33mcommit f156d48da685362880a006875376c2ecc84526a2[m
+Author: Nuno Castro <nunomacastro@gmail.com>
+Date:   Tue Jun 2 16:13:26 2026 +0100
+
+    Update: Fixes
+
+[33mcommit 8f7fe43ebaf541772da6bef353c1a684ef9a78d2[m
+Author: Nuno Castro <nunomacastro@gmail.com>
+Date:   Tue Jun 2 16:07:32 2026 +0100
+
+    Update: Fixes
+
+[33mcommit cef023287f5c3ab6e774c07e2f8264f49777905c[m
+Author: Nuno Castro <nunomacastro@gmail.com>
+Date:   Mon Jun 1 20:35:46 2026 +0100
+
+    Update: Fixes
+
+[33mcommit add6ed82a2e8f75cc98648cff1876b0a7ccf99b1[m
+Author: Nuno Castro <nunomacastro@gmail.com>
+Date:   Mon Jun 1 19:29:59 2026 +0100
+
+    Update: Correção
+
+[33mcommit 9bc079d4904d960d9b040d57632b979fb18e090e[m
+Author: Nuno Castro <nunomacastro@gmail.com>
+Date:   Mon Jun 1 19:11:35 2026 +0100
+
+    Update: Reset
+
+[33mcommit 426c7956433a1bf835770d28a21a8b2061188789[m
+Author: Nuno Castro <nunomacastro@gmail.com>
+Date:   Mon Jun 1 19:11:03 2026 +0100
+
+    Update: Reset
+
+[33mcommit f1d86e5c68f02966a27d4fc85cc1b54eccd080f1[m
+Merge: e28c19e 68bb957
+Author: Nuno Castro <nunomacastro@gmail.com>
+Date:   Mon Jun 1 11:23:08 2026 +0100
+
+    Merge pull request #16 from NunoMACastro/feat/bk-mf0-10-fornecedores-pedro
+    
+    Feat/bk mf0 10 fornecedores pedro
+
+[33mcommit e28c19e2c8bdbe491f4108299d49219c9edf5661[m
+Author: Nuno Castro <nunomacastro@gmail.com>
+Date:   Mon Jun 1 00:51:21 2026 +0100
+
+    Update: Typos
+
+[33mcommit 6c5324bcd0bea70634011ee4f57c1796097bc103[m
+Author: Nuno Castro <nunomacastro@gmail.com>
+Date:   Sun May 31 23:58:30 2026 +0100
+
+    Update: MF1 v2.0
+
+[33mcommit 7c5575b551ac8bc50cd40b0205c756647c38bbbd[m
+Author: Nuno Castro <nunomacastro@gmail.com>
+Date:   Sun May 31 23:37:52 2026 +0100
+
+    Update: MF v1.2
+
+[33mcommit 79327ca00550db521b045e180b305dcf57fd21e6[m
+Author: Nuno Castro <nunomacastro@gmail.com>
+Date:   Sun May 31 23:01:50 2026 +0100
+
+    Update: MF1 v1.1
+
+[33mcommit 8b323013efcd71d2e83ee2451befbc3c9ffb2ef1[m
+Author: Nuno Castro <nunomacastro@gmail.com>
+Date:   Sun May 31 22:26:32 2026 +0100
+
+    Update: MF1 v1.0
+
+[33mcommit 68bb9573928c81af7bac6b3d98c2a6d0cd1f9d37[m[33m ([m[1;31morigin/feat/bk-mf0-10-fornecedores-pedro[m[33m, [m[1;32mfeat/bk-mf0-10-fornecedores-pedro[m[33m)[m
+Author: Pedrop662 <peamaral23ig@epms.pt>
+Date:   Sun May 31 21:05:49 2026 +0000
+
+    update
+
+[33mcommit 86059aa1e63dbb783b25b007aff11552da6d0946[m
+Merge: 4037320 def3519
+Author: Nuno Castro <nunomacastro@gmail.com>
+Date:   Sun May 31 22:01:38 2026 +0100
+
+    Merge pull request #10 from NunoMACastro/feat/bk-mf0-09-criar-e-gerir-clientes-oleksii
+    
+    BK-MF0-09 criar e gerir clientes oleksii
+
+[33mcommit def35193bd580eb428a26fd6e04d9d8fed18a82a[m[33m ([m[1;31morigin/feat/bk-mf0-09-criar-e-gerir-clientes-oleksii[m[33m)[m
+Merge: 8dc9a2c 4037320
+Author: Oleksii113 <olvelykyi23ig@epms.pt>
+Date:   Sun May 31 21:40:49 2026 +0100
+
+    Merge branch 'main' into feat/bk-mf0-09-criar-e-gerir-clientes-oleksii
+
+[33mcommit 61d828c6e50d04206386807b57a7184624ea4824[m
+Author: Pedrop662 <peamaral23ig@epms.pt>
+Date:   Sun May 31 20:25:51 2026 +0000
+
+    update
+
+[33mcommit cc46abb7460ac472eb800cd3fc92aa9fe3827b73[m
+Author: Pedrop662 <peamaral23ig@epms.pt>
+Date:   Sun May 31 20:25:01 2026 +0000
+
+    update
+
+[33mcommit dbc883900ebd4feb917dce10e13f49a9e818ad4b[m
+Author: Pedrop662 <peamaral23ig@epms.pt>
+Date:   Sun May 31 20:23:36 2026 +0000
+
+    update
+
+[33mcommit cc7f8c1e98f433c1333e5b69c6bb2fe7c09c413d[m
+Author: Pedrop662 <peamaral23ig@epms.pt>
+Date:   Sun May 31 20:22:52 2026 +0000
+
+    update
+
+[33mcommit 297c042855a4663d74a344b2ee4c9a6f383a3a83[m
+Author: Pedrop662 <peamaral23ig@epms.pt>
+Date:   Sun May 31 20:20:39 2026 +0000
+
+    update
+
+[33mcommit ac3077bcf5056ebe58cf0828c8be23a40b94e88c[m
+Author: Pedrop662 <peamaral23ig@epms.pt>
+Date:   Sun May 31 20:19:12 2026 +0000
+
+    update
+
+[33mcommit 3b0e13ac554c820389b78a270e7d92d4d3fd0a7a[m
+Author: Pedrop662 <peamaral23ig@epms.pt>
+Date:   Sun May 31 20:16:15 2026 +0000
+
+    update
+
+[33mcommit b16d5ab3a0d1a708d22f8f7643fb3bce8fe1de5e[m
+Author: Pedrop662 <peamaral23ig@epms.pt>
+Date:   Sun May 31 20:15:17 2026 +0000
+
+    update
+
+[33mcommit 4911a5b2b3d2868b41954155b3e550f0e50bfcd9[m
+Author: Pedrop662 <peamaral23ig@epms.pt>
+Date:   Sun May 31 20:13:56 2026 +0000
+
+    update
+
+[33mcommit 403732082cbc22b6e68b606c59ba72b943928d38[m[33m ([m[1;32mfeat/bk-mf0-10-warehouses-pedro[m[33m)[m
+Merge: ea7f202 871d22b
+Author: Nuno Castro <nunomacastro@gmail.com>
+Date:   Sun May 31 19:56:09 2026 +0100
+
+    Merge pull request #11 from NunoMACastro/feat/bk-mf0-11-artigos-oleksii
+
+[33mcommit 871d22bc97890ffd6fd3bc872a5225415b5f4b70[m[33m ([m[1;31morigin/feat/bk-mf0-11-artigos-oleksii[m[33m)[m
+Merge: c39087c ea7f202
+Author: Oleksii113 <olvelykyi23ig@epms.pt>
+Date:   Sun May 31 18:51:25 2026 +0100
+
+    Merge branch 'main' into feat/bk-mf0-11-artigos-oleksii
+
+[33mcommit c39087c58c1c2404ae128d7bf914b8a7917146df[m
+Author: Oleksii113 <olvelykyi23ig@epms.pt>
+Date:   Sun May 31 18:30:45 2026 +0100
+
+    update BK-MF0-11
+
+[33mcommit ea7f202b9c83c1d9aec47fe74fcbbed8a9f82a87[m
+Merge: 0ed420c e7f092f
+Author: Nuno Castro <nunomacastro@gmail.com>
+Date:   Sun May 31 17:37:27 2026 +0100
+
+    Merge pull request #9 from NunoMACastro/feat/bk-mf0-08-abrir-e-fechar-periodos-fiscais-oleksii
+
+[33mcommit 8dc9a2caf48d90d5781a767676132dfc19cc832a[m
+Author: Oleksii113 <olvelykyi23ig@epms.pt>
+Date:   Sun May 31 16:34:58 2026 +0100
+
+    update BK-MF0-09
+
+[33mcommit e7f092f1f58dc5a0d378bd73d345a5e15a42f74e[m[33m ([m[1;31morigin/feat/bk-mf0-08-abrir-e-fechar-periodos-fiscais-oleksii[m[33m)[m
+Author: Oleksii113 <olvelykyi23ig@epms.pt>
+Date:   Sun May 31 14:56:34 2026 +0100
+
+    update BK-MF0-08
+
+[33mcommit 0ed420c2d58c25aa90c4a4f07fdd84edd92b4e0d[m
+Author: Nuno Castro <nunomacastro@gmail.com>
+Date:   Sun May 31 13:41:42 2026 +0100
+
+    Update: MF1 v1.0
+
+[33mcommit 59065a361fea244a9ea05338a750f97042fb7026[m
+Author: Nuno Castro <nunomacastro@gmail.com>
+Date:   Sun May 31 13:15:04 2026 +0100
+
+    Update: Mf1 v0.1
+
+[33mcommit b659995f64d3b1bbf050471f95ae28262b976f40[m
+Author: Oleksii113 <olvelykyi23ig@epms.pt>
+Date:   Sun May 31 13:35:39 2026 +0100
+
+    update BK-MF0-07 oleksii (#8)
+    
+    Co-authored-by: Nuno Castro <nunomacastro@gmail.com>
+
+[33mcommit 5841ce159414a18db9d38e3fa087a13a038e57b3[m
+Author: Oleksii113 <olvelykyi23ig@epms.pt>
+Date:   Sun May 31 13:34:32 2026 +0100
+
+    update BK-MF0-06 (#7)
+    
+    Co-authored-by: Nuno Castro <nunomacastro@gmail.com>
+
+[33mcommit b7e463e6bcbc8463d274a1ab8d4c8ae479306d5d[m
+Author: Oleksii113 <olvelykyi23ig@epms.pt>
+Date:   Sun May 31 10:21:42 2026 +0100
+
+    add evidence
+
+[33mcommit ba99f2a791ba5002a8e7cc6eb30f22377012394b[m
+Author: Oleksii113 <olvelykyi23ig@epms.pt>
+Date:   Sun May 31 10:20:59 2026 +0100
+
+    BK-MF0-05 password reset
+
+[33mcommit 18b64379a33766774d44657b548060a4d883c75e[m
+Merge: 960c129 faa61b2
+Author: Nuno Castro <nunomacastro@gmail.com>
+Date:   Sun May 31 00:14:24 2026 +0100
+
+    Merge pull request #5 from NunoMACastro/feat/bk-mf0-04-gestao-de-utilizadores-oleksii
+    
+    BK-MF0-04 Gestao de utilizadores oleksii
+
+[33mcommit faa61b2ad186386ca46935a9487ee405c0d04571[m[33m ([m[1;31morigin/feat/bk-mf0-04-gestao-de-utilizadores-oleksii[m[33m)[m
+Author: Oleksii113 <olvelykyi23ig@epms.pt>
+Date:   Sat May 30 23:33:06 2026 +0100
+
+    update BK-MF0-04
+
+[33mcommit 960c1290eddc04f6316bff2cba99c55d9166fc63[m
+Merge: d5209f4 5941702
+Author: Nuno Castro <nunomacastro@gmail.com>
+Date:   Sat May 30 21:04:27 2026 +0100
+
+    Merge pull request #4 from NunoMACastro/feat/bk-mf0-03-multiempresa-oleksii
+
+[33mcommit 59417026ef3dc2804608f9d9a54f627271d9d85a[m[33m ([m[1;31morigin/feat/bk-mf0-03-multiempresa-oleksii[m[33m)[m
+Author: Oleksii113 <olvelykyi23ig@epms.pt>
+Date:   Sat May 30 20:22:42 2026 +0100
+
+    update BK-MF0-03
+
+[33mcommit d5209f4fa577fe03741a0c38e7d8c9f542f67411[m
+Merge: 418c32e 435a7a7
+Author: Nuno Castro <nunomacastro@gmail.com>
+Date:   Sat May 30 17:35:49 2026 +0100
+
+    Merge pull request #3 from NunoMACastro/feat/bk-mf0-02-papeis-e-permissoes-oleksii
+
+[33mcommit 435a7a7d431596ff930c1650d3935bbc2c9c9f87[m[33m ([m[1;31morigin/feat/bk-mf0-02-papeis-e-permissoes-oleksii[m[33m)[m
+Author: Oleksii113 <olvelykyi23ig@epms.pt>
+Date:   Sat May 30 16:38:56 2026 +0100
+
+    update papeis e permissoes
+
+[33mcommit 418c32e809477200fd04e54377f0f956d3113082[m
+Merge: c4c51e8 23749fd
+Author: Nuno Castro <nunomacastro@gmail.com>
+Date:   Sat May 30 14:41:22 2026 +0100
+
+    Merge pull request #2 from NunoMACastro/feat/bk-mf0-01-auth-httponly-oleksii-v2
+    
+    BK-MF0-01 auth httponly cookies
+
+[33mcommit 23749fd9e03d81c3dec0ec6b542a1cbbdacdeae2[m[33m ([m[1;31morigin/feat/bk-mf0-01-auth-httponly-oleksii-v2[m[33m)[m
+Author: Oleksii113 <olvelykyi23ig@epms.pt>
+Date:   Sat May 30 13:32:54 2026 +0100
+
+    BK-MF0-01 auth httponly cookies
+
+[33mcommit c4c51e8b7d2fe6db8988321535a825575dfcaa7e[m
+Author: Nuno Castro <nunomacastro@gmail.com>
+Date:   Sat May 30 00:30:49 2026 +0100
+
+    Update: Typos
+
+[33mcommit ca0a6b59acf1423b8641da8ba40e4b651783db88[m
+Author: Nuno Castro <nunomacastro@gmail.com>
+Date:   Sat May 30 00:10:07 2026 +0100
+
+    Update: Novos BKs
+
+[33mcommit 14443424fa6de52e4fcfaed9127985701c3a487f[m
+Author: Nuno Castro <nunomacastro@gmail.com>
+Date:   Wed May 27 09:59:36 2026 +0100
+
+    Update: Weee
+
+[33mcommit cbd7f2272fbc86619113d4c82ae818798bdc4611[m
+Merge: 9b63fea 2e10b94
+Author: Nuno Castro <nunomacastro@gmail.com>
+Date:   Fri May 29 19:25:29 2026 +0100
+
+    Merge pull request #1 from NunoMACastro/feat/bk-mf0-012-armazens-sofia
+    
+    feat: implementar armazens e localizacoes
+
+[33mcommit 2e10b94f25dcdba84d83b5fef69d83413e574090[m[33m ([m[1;31morigin/feat/bk-mf0-012-armazens-sofia[m[33m)[m
+Author: sofialramos <154330819+sofialramos@users.noreply.github.com>
+Date:   Fri May 29 17:22:24 2026 +0000
+
+    feat: implementar armazens e localizacoes
+
+[33mcommit 9b63fea1979c0466acdee8f7205393c75d859d98[m
+Author: Nuno Castro <nunomacastro@gmail.com>
+Date:   Wed May 27 09:36:53 2026 +0100
+
+    Update: Email
+
+[33mcommit a10a672fb54ac947f4b0a4e054521c7cd5cd79bf[m
+Author: Nuno Castro <nunomacastro@gmail.com>
+Date:   Tue May 26 15:30:50 2026 +0100
+
+    Update: Typo
+
+[33mcommit 3f293b135119b35d16bfb410e47106390686e189[m
+Author: Nuno Castro <nunomacastro@gmail.com>
+Date:   Mon May 25 10:24:39 2026 +0100
+
+    Update: MF0
+
+[33mcommit 5dc497afa1aef7360a38aac349affe956f661788[m
+Author: Nuno Castro <nunomacastro@gmail.com>
+Date:   Sun May 24 19:08:31 2026 +0100
+
+    Update: BK's e Mockup
+
+[33mcommit 5561b919005bebe3e8e39150646d0f7c7c3cbd19[m
+Author: Nuno Castro <nunomacastro@gmail.com>
+Date:   Sun Apr 19 01:25:00 2026 +0100
+
+    Update: Version 2
+
+[33mcommit 90d6364182c1d2d0add52bc0f9379a668e54ed1b[m
+Author: Nuno Castro <nunomacastro@gmail.com>
+Date:   Fri Apr 17 23:21:23 2026 +0100
+
+    Update: Version 1.2
+
+[33mcommit 86ad4ded85ee96267753013fe8194f65abce4a8d[m
+Author: Nuno Castro <nunomacastro@gmail.com>
+Date:   Wed Apr 15 09:35:22 2026 +0100
+
+    Update: Revisão final
+
+[33mcommit 0bc432d9d253fc33c13bcb1f6e32a0051a9db0ac[m
+Author: Nuno Castro <nunomacastro@gmail.com>
+Date:   Tue Apr 14 14:52:15 2026 +0100
+
+    Update: Documentation
+
+[33mcommit 66111f8753eaa346aa79fbc937dc14d10eced484[m
+Author: Nuno Castro <nunomacastro@gmail.com>
+Date:   Mon Apr 13 20:27:14 2026 +0100
+
+    Update: Nem version
+
+[33mcommit 389b5da13dbde8c317c9b6c0c313e9b6fba81c71[m
+Author: Nuno Castro <nunomacastro@gmail.com>
+Date:   Sun Apr 12 14:49:47 2026 +0100
+
+    Update: Planificação final
+
+[33mcommit 453ff507dcfd887d2a908786975a763a309cb702[m
+Author: Nuno Castro <nunomacastro@gmail.com>
+Date:   Wed Nov 19 09:05:30 2025 +0000
+
+    Update: Typo
+
+[33mcommit 4557e16f46aa642d4db9cae16f88053062d81776[m
+Author: Nuno Castro <nunomacastro@gmail.com>
+Date:   Wed Nov 19 00:50:23 2025 +0000
+
+    Update: Organização
+
+[33mcommit 8b044eaf14e84640d06fbd0190730aec0316ed0c[m
+Author: Nuno Castro <nunomacastro@gmail.com>
+Date:   Tue Nov 18 20:07:17 2025 +0000
+
+    Update: Readme
+
+[33mcommit 339825283a43110f8554873afb13bbdff9445fbf[m
+Author: Nuno Castro <nunomacastro@gmail.com>
+Date:   Tue Nov 18 19:33:43 2025 +0000
+
+    Update: Initial
