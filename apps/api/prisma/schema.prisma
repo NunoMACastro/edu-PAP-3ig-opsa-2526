@@ -76,8 +76,9 @@ model User {
   sessions            Session[]
   memberships         CompanyMembership[]
   passwordResetTokens PasswordResetToken[]
-  createdAt           DateTime             @default(now())
-  updatedAt           DateTime             @updatedAt
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Session {
@@ -89,7 +90,7 @@ model Session {
 
   expiresAt DateTime
   revokedAt DateTime?
-  createdAt DateTime  @default(now())
+  createdAt DateTime @default(now())
 
   @@index([userId])
   @@index([activeCompanyId])
@@ -97,12 +98,13 @@ model Session {
 }
 
 model PasswordResetToken {
-  id        String    @id @default(uuid())
+  id        String   @id @default(uuid())
   userId    String
-  tokenHash String    @unique
+  tokenHash String   @unique
   expiresAt DateTime
   usedAt    DateTime?
-  createdAt DateTime  @default(now())
+
+  createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id])
 
@@ -118,17 +120,20 @@ model Company {
   id            String              @id @default(uuid())
   name          String
   nif           String?             @unique
+
   memberships   CompanyMembership[]
   invitations   CompanyInvitation[]
   profile       CompanyProfile?
+
   accounts      Account[]
   fiscalPeriods FiscalPeriod[]
   customers     Customer[]
   suppliers     Supplier[]
   items         Item[]
   warehouses    Warehouse[]
-  createdAt     DateTime            @default(now())
-  updatedAt     DateTime            @updatedAt
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model CompanyMembership {
@@ -193,15 +198,13 @@ model CompanyProfile {
  */
 
 model Account {
-  id         String   @id @default(uuid())
+  id         String  @id @default(uuid())
   companyId  String
   code       String
   name       String
   parentCode String?
   level      Int
-  isActive   Boolean  @default(true)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  isActive   Boolean @default(true)
 
   company Company @relation(fields: [companyId], references: [id])
 
@@ -236,7 +239,7 @@ model FiscalPeriod {
  */
 
 model Customer {
-  id          String   @id @default(uuid())
+  id          String  @id @default(uuid())
   companyId   String
   name        String
   nif         String?
@@ -245,9 +248,7 @@ model Customer {
   addressLine String?
   postalCode  String?
   city        String?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  isActive    Boolean @default(true)
 
   company Company @relation(fields: [companyId], references: [id])
 
@@ -259,7 +260,7 @@ model Customer {
 }
 
 model Supplier {
-  id          String   @id @default(uuid())
+  id          String  @id @default(uuid())
   companyId   String
   name        String
   nif         String?
@@ -268,9 +269,7 @@ model Supplier {
   addressLine String?
   postalCode  String?
   city        String?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  isActive    Boolean @default(true)
 
   company Company @relation(fields: [companyId], references: [id])
 
@@ -282,7 +281,7 @@ model Supplier {
 }
 
 model Item {
-  id         String   @id @default(uuid())
+  id         String  @id @default(uuid())
   companyId  String
   sku        String
   name       String
@@ -290,9 +289,7 @@ model Item {
   costCents  Int
   priceCents Int
   vatRateBps Int
-  isActive   Boolean  @default(true)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  isActive   Boolean @default(true)
 
   company Company @relation(fields: [companyId], references: [id])
 
@@ -339,25 +336,32 @@ model WarehouseLocation {
   @@index([warehouseId])
 }
 
+/**
+ * ===================== VAT =====================
+ */
+
 model VatRate {
-  id                    String                 @id @default(uuid())
-  companyId             String
-  code                  String
-  description           String
-  rateBps               Int
-  type                  VatRateType
-  exemptionReason       String?
-  isActive              Boolean                @default(true)
-  saleDocumentLines     SaleDocumentLine[]
-  purchaseDocumentLines PurchaseDocumentLine[]
-  createdAt             DateTime               @default(now())
-  updatedAt             DateTime               @updatedAt
+  id              String      @id @default(uuid())
+  companyId       String
+  code            String
+  description     String
+  rateBps         Int
+  type            VatRateType
+  exemptionReason String?
+  isActive        Boolean     @default(true)
 
   company Company @relation(fields: [companyId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([companyId, code])
   @@index([companyId, isActive])
 }
+
+/**
+ * ===================== PURCHASES =====================
+ */
 
 model PurchaseDocument {
   id              String                 @id @default(uuid())
@@ -371,14 +375,16 @@ model PurchaseDocument {
   subtotalCents   Int
   vatCents        Int
   totalCents      Int
-  amountPaidCents Int                    @default(0)
+  amountPaidCents Int @default(0)
   createdById     String
-  createdAt       DateTime               @default(now())
-  updatedAt       DateTime               @updatedAt
 
   company  Company  @relation(fields: [companyId], references: [id])
   supplier Supplier @relation(fields: [supplierId], references: [id])
-  lines    PurchaseDocumentLine[]
+
+  lines PurchaseDocumentLine[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([companyId, supplierId, supplierNumber])
   @@index([companyId, supplierId, issuedAt])
@@ -401,6 +407,10 @@ model PurchaseDocumentLine {
   vatRate          VatRate          @relation(fields: [vatRateId], references: [id])
 }
 
+/**
+ * ===================== JOURNAL =====================
+ */
+
 model JournalEntry {
   id          String        @id @default(uuid())
   companyId   String
@@ -409,10 +419,12 @@ model JournalEntry {
   entryDate   DateTime
   description String
   createdById String
-  createdAt   DateTime      @default(now())
 
-  company Company            @relation(fields: [companyId], references: [id])
-  lines   JournalEntryLine[]
+  company Company @relation(fields: [companyId], references: [id])
+
+  lines JournalEntryLine[]
+
+  createdAt DateTime @default(now())
 
   @@unique([companyId, source, sourceId])
   @@index([companyId, entryDate])
@@ -422,8 +434,8 @@ model JournalEntryLine {
   id             String @id @default(uuid())
   journalEntryId String
   accountId      String
-  debitCents     Int    @default(0)
-  creditCents    Int    @default(0)
+  debitCents     Int @default(0)
+  creditCents    Int @default(0)
   memo           String?
 
   journalEntry JournalEntry @relation(fields: [journalEntryId], references: [id])
