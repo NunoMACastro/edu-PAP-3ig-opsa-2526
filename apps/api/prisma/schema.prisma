@@ -61,6 +61,7 @@ model User {
   sessions            Session[]
   memberships         CompanyMembership[]
   passwordResetTokens PasswordResetToken[]
+  auditLogs           AuditLog[]
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
 }
@@ -207,18 +208,19 @@ model FiscalPeriod {
 }
 
 model Customer {
-  id          String   @id @default(uuid())
-  companyId   String
-  name        String
-  nif         String?
-  email       String?
-  phone       String?
-  addressLine String?
-  postalCode  String?
-  city        String?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            String         @id @default(uuid())
+  companyId     String
+  name          String
+  nif           String?
+  email         String?
+  phone         String?
+  addressLine   String?
+  postalCode    String?
+  city          String?
+  isActive      Boolean        @default(true)
+  saleDocuments SaleDocument[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 
   company Company @relation(fields: [companyId], references: [id])
 
