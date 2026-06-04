@@ -133,3 +133,113 @@ npm --prefix apps/api run test:unit
 npm --prefix apps/api run test:contracts
 git diff --check
 git diff -- docs/planificacao/guias-bk/MF1
+
+9) BK-MF1-09
+
+Smoke
+    Endpoint `POST /api/accounting/purchase-postings/:purchaseDocumentId` implementado.
+    Contabilização de documentos de compra registados/aprovados suportada.
+    Criação automática de `JournalEntry`.
+    Criação automática de `JournalEntryLine`.
+    Diário contabilístico equilibrado entre gasto, IVA dedutível e fornecedor.
+    Associação do lançamento ao documento através de `source` e `sourceId`.
+    Nota de crédito de fornecedor inverte corretamente o efeito contabilístico.
+    Idempotência implementada através de restrição única por empresa, origem e documento.
+    Integração final da página na navegação da aplicação por validar.
+
+Negativos
+    Documento de compra inexistente devolve `404`.
+    Documento de outra empresa devolve `404` ou `403`.
+    Documento em estado inválido devolve erro controlado.
+    Período fiscal fechado bloqueia a contabilização.
+    Conta SNC obrigatória inexistente devolve `ACCOUNT_NOT_FOUND`.
+    Segunda tentativa de contabilização devolve `PURCHASE_ALREADY_POSTED`.
+    Tentativa de duplicação não cria novo gasto nem novo IVA dedutível.
+
+Bloqueios e limites do BK
+    Reutilização de `JournalEntry` e `JournalEntryLine` do BK-MF1-04.
+    Reutilização de `source` e `sourceId`.
+    Reutilização da estratégia de idempotência do BK-MF1-04.
+    Disponibilização de helper transacional para reutilização no BK-MF1-10.
+    Preservação de auditoria contabilística.
+    Mapas de IVA ficam fora do âmbito deste BK.
+    Mapas de IVA serão tratados em BK-MF3-01.
+    Lançamentos manuais continuam fora do âmbito deste BK.
+
+10) Evidência obrigatória - BK-MF1-09
+## pr
+PR: ainda não criado.
+
+### proof
+Foi implementado o domínio de contabilização automática de compras.
+Foi reutilizada a infraestrutura contabilística criada no BK-MF1-04 através dos modelos:
+- JournalEntry
+- JournalEntryLine
+Foi implementado o endpoint:
+POST /api/accounting/purchase-postings/:purchaseDocumentId
+
+A contabilização valida:
+    documento pertencente à empresa ativa;
+    documento em estado contabilizável (APPROVED ou PAID);
+    período fiscal aberto;
+    existência das contas SNC obrigatórias.
+
+Foi implementada geração automática de lançamentos equilibrados para:
+
+- faturas de fornecedor;
+- notas de crédito de fornecedor.
+
+Foi implementada idempotência para impedir contabilização duplicada da mesma compra.
+Foi criada integração frontend através de:
+- accountingApi.ts
+- PurchasePostingsPage.tsx
+
+Foi disponibilizado helper transacional para reutilização futura no BK-MF1-10.
+
+### neg
+
+Cenários negativos previstos/validados:
+- Pedido sem sessão devolve 401.
+- Pedido sem empresa ativa devolve erro definido pela MF0.
+- Documento inexistente devolve 404.
+- Documento de outra empresa devolve 404 ou 403.
+- Documento em estado inválido devolve erro controlado.
+- Período fiscal fechado bloqueia a contabilização.
+- Conta SNC obrigatória inexistente devolve ACCOUNT_NOT_FOUND.
+- Segunda tentativa de contabilização devolve PURCHASE_ALREADY_POSTED.
+- Não é possível duplicar gastos nem IVA dedutível através de múltiplas chamadas ao endpoint.
+
+### files
+- apps/api/prisma/schema.prisma
+- apps/api/src/modules/accounting/purchasePostingService.js
+- apps/api/src/modules/accounting/purchasePostingRoutes.js
+- apps/api/src/server.js
+- apps/web/src/lib/accountingApi.ts
+- apps/web/src/pages/PurchasePostingsPage.tsx
+- apps/api/src/modules/accounting/purchasePostingService.test.js
+
+### commands
+npm --prefix apps/api run prisma:generate
+npm --prefix apps/api run prisma:validate 
+npm --prefix apps/api run test:unit
+npm --prefix apps/api run test:contracts
+git diff --check
+git diff -- docs/planificacao/guias-bk/MF1
+
+### screenshots
+Sem screenshots incluídos nesta revisão.
+
+### notes
+- O companyId é obtido exclusivamente da sessão autenticada.
+- O frontend não calcula movimentos contabilísticos.
+- Débitos e créditos são determinados apenas pelo backend.
+- O lançamento contabilístico é associado ao documento através de source e sourceId.
+- A contabilização apenas é permitida para documentos em estado contabilizável.
+- O período fiscal deve estar aberto.
+- A idempotência impede lançamentos duplicados.
+- Foram utilizadas as contas SNC pedagógicas previstas no guia (221, 62, 2432).
+- Foi reutilizada a estrutura contabilística criada no BK-MF1-04.
+- Foi criado helper transacional para reutilização no BK-MF1-10.
+- A auditoria contabilística foi preservada.
+- Mapas de IVA permanecem fora do âmbito deste BK e serão tratados em BK-MF3-01.
+- Lançamentos manuais permanecem fora do âmbito deste BK.
