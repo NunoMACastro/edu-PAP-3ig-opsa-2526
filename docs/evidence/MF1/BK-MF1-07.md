@@ -88,7 +88,7 @@ npm --prefix apps/web run build
 ℹ todo 0
 ℹ duration_ms 2283.1
 
-### Passo 5 
+### Passo 5
 - PS D:\PAP\edu-PAP-3ig-opsa-2526> npm --prefix apps/api run test:contracts
 
 > @opsa/api@1.0.0 test:contracts
