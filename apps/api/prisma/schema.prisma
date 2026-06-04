@@ -32,6 +32,14 @@ enum ItemType {
   SERVICE
 }
 
+enum VatRateType {
+  NORMAL
+  INTERMEDIATE
+  REDUCED
+  EXEMPT
+  OTHER
+}
+
 model User {
   id                  String               @id @default(uuid())
   email               String               @unique
@@ -74,20 +82,21 @@ model PasswordResetToken {
 }
 
 model Company {
-  id            String              @id @default(uuid())
-  name          String
-  nif           String?             @unique
-  memberships   CompanyMembership[]
-  invitations   CompanyInvitation[]
-  profile       CompanyProfile?
-  accounts      Account[]
+  id          String              @id @default(uuid())
+  name        String
+  nif         String?             @unique
+  memberships CompanyMembership[]
+  invitations CompanyInvitation[]
+  profile     CompanyProfile?
+  accounts    Account[]
   fiscalPeriods FiscalPeriod[]
-  customers     Customer[]
-  suppliers     Supplier[]
-  items         Item[]
-  warehouses    Warehouse[]
-  createdAt     DateTime            @default(now())
-  updatedAt     DateTime            @updatedAt
+  customers   Customer[]
+  suppliers   Supplier[]
+  items       Item[]
+  warehouses  Warehouse[]
+  vatRates    VatRate[]
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
 }
 
 model CompanyMembership {
@@ -269,4 +278,22 @@ model WarehouseLocation {
   @@unique([warehouseId, code])
   @@unique([warehouseId, name])
   @@index([warehouseId])
+}
+
+model VatRate {
+  id              String      @id @default(uuid())
+  companyId       String
+  code            String
+  description     String
+  rateBps         Int
+  type            VatRateType
+  exemptionReason String?
+  isActive        Boolean     @default(true)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id])
+
+  @@unique([companyId, code])
+  @@index([companyId, isActive])
 }
