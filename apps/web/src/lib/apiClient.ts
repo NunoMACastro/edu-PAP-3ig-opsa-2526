@@ -248,6 +248,14 @@ export function createApiClient(options: ApiClientOptions = {}) {
         request("PATCH", `/vat-rates/${id}/active`, { body }),
     },
 
+    salesDocuments: {
+      list: () => request("GET", "/sales/documents"),
+      create: (body: JsonBody) =>
+        request("POST", "/sales/documents", { body }),
+      issue: (id: string) =>
+        request("POST", `/sales/documents/${id}/issue`),
+    },
+
     accounting: {
       /**
        * Lista contas SNC da empresa.
