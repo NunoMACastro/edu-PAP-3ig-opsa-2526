@@ -58,6 +58,15 @@ enum JournalSource {
   MANUAL
 }
 
+enum SaleDocumentStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  REJECTED
+  ISSUED
+  SETTLED
+}
+
 model User {
   id                  String               @id @default(uuid())
   email               String               @unique
@@ -398,4 +407,73 @@ model JournalEntryLine {
 
   journalEntry JournalEntry @relation(fields: [journalEntryId], references: [id])
   account      Account      @relation(fields: [accountId], references: [id])
+}
+
+model SaleDocument {
+  id              String             @id @default(uuid())
+  companyId       String
+  customerId      String
+  kind            SaleDocumentKind
+  status          SaleDocumentStatus @default(DRAFT)
+  number          String?
+  issuedAt        DateTime
+  dueDate         DateTime?
+  subtotalCents   Int
+  vatCents        Int
+  totalCents      Int
+  amountPaidCents Int                @default(0)
+  createdById     String
+  submittedAt     DateTime?
+  submittedById   String?
+  approvedAt      DateTime?
+  approvedById    String?
+  rejectedAt      DateTime?
+  rejectedById    String?
+  rejectionReason String?
+  issuedById      String?
+  issuedDefinitiveAt DateTime?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  company  Company  @relation(fields: [companyId], references: [id])
+  customer Customer @relation(fields: [customerId], references: [id])
+  lines    SaleDocumentLine[]
+  receipts Receipt[]
+
+  @@unique([companyId, number])
+  @@index([companyId, status, issuedAt])
+}
+
+model SaleDocumentLine {
+  id             String @id @default(uuid())
+  saleDocumentId String
+  itemId         String
+  vatRateId      String
+  description    String
+  quantity       Int
+  unitPriceCents Int
+  subtotalCents  Int
+  vatCents       Int
+  totalCents     Int
+
+  saleDocument SaleDocument @relation(fields: [saleDocumentId], references: [id])
+  item         Item         @relation(fields: [itemId], references: [id])
+  vatRate      VatRate      @relation(fields: [vatRateId], references: [id])
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  companyId String
+  userId    String
+  action    String
+  entity    String
+  entityId  String
+  details   Json?
+  createdAt DateTime @default(now())
+
+  company Company @relation(fields: [companyId], references: [id])
+  user    User    @relation(fields: [userId], references: [id])
+
+  @@index([companyId, entity, entityId])
+  @@index([companyId, createdAt])
 }
