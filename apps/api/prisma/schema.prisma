@@ -40,6 +40,18 @@ enum VatRateType {
   OTHER
 }
 
+enum PurchaseDocumentKind {
+  SUPPLIER_INVOICE
+  SUPPLIER_CREDIT_NOTE
+}
+
+enum PurchaseDocumentStatus {
+  DRAFT
+  APPROVED
+  POSTED
+  PAID
+}
+
 model User {
   id                  String               @id @default(uuid())
   email               String               @unique
@@ -82,21 +94,27 @@ model PasswordResetToken {
 }
 
 model Company {
-  id          String              @id @default(uuid())
-  name        String
-  nif         String?             @unique
-  memberships CompanyMembership[]
-  invitations CompanyInvitation[]
-  profile     CompanyProfile?
-  accounts    Account[]
-  fiscalPeriods FiscalPeriod[]
-  customers   Customer[]
-  suppliers   Supplier[]
-  items       Item[]
-  warehouses  Warehouse[]
-  vatRates    VatRate[]
-  createdAt   DateTime            @default(now())
-  updatedAt   DateTime            @updatedAt
+  id                String              @id @default(uuid())
+  name              String
+  nif               String?             @unique
+  memberships       CompanyMembership[]
+  invitations       CompanyInvitation[]
+  profile           CompanyProfile?
+  accounts          Account[]
+  fiscalPeriods     FiscalPeriod[]
+  customers         Customer[]
+  suppliers         Supplier[]
+  items             Item[]
+  warehouses        Warehouse[]
+  vatRates          VatRate[]
+  numberSequences   NumberSequence[]
+  saleDocuments     SaleDocument[]
+  receipts          Receipt[]
+  journalEntries    JournalEntry[]
+  purchaseDocuments PurchaseDocument[]
+  auditLogs         AuditLog[]
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
 }
 
 model CompanyMembership {
@@ -209,18 +227,19 @@ model Customer {
 }
 
 model Supplier {
-  id          String   @id @default(uuid())
-  companyId   String
-  name        String
-  nif         String?
-  email       String?
-  phone       String?
-  addressLine String?
-  postalCode  String?
-  city        String?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                String             @id @default(uuid())
+  companyId         String
+  name              String
+  nif               String?
+  email             String?
+  phone             String?
+  addressLine       String?
+  postalCode        String?
+  city              String?
+  isActive          Boolean            @default(true)
+  purchaseDocuments PurchaseDocument[]
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
 
   company Company @relation(fields: [companyId], references: [id])
 
@@ -229,17 +248,19 @@ model Supplier {
 }
 
 model Item {
-  id         String   @id @default(uuid())
-  companyId  String
-  sku        String
-  name       String
-  type       ItemType
-  costCents  Int
-  priceCents Int
-  vatRateBps Int
-  isActive   Boolean  @default(true)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id                    String                 @id @default(uuid())
+  companyId             String
+  sku                   String
+  name                  String
+  type                  ItemType
+  costCents             Int
+  priceCents            Int
+  vatRateBps            Int
+  isActive              Boolean                @default(true)
+  saleDocumentLines     SaleDocumentLine[]
+  purchaseDocumentLines PurchaseDocumentLine[]
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
 
   company Company @relation(fields: [companyId], references: [id])
 
@@ -281,19 +302,63 @@ model WarehouseLocation {
 }
 
 model VatRate {
-  id              String      @id @default(uuid())
-  companyId       String
-  code            String
-  description     String
-  rateBps         Int
-  type            VatRateType
-  exemptionReason String?
-  isActive        Boolean     @default(true)
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
+  id                    String                 @id @default(uuid())
+  companyId             String
+  code                  String
+  description           String
+  rateBps               Int
+  type                  VatRateType
+  exemptionReason       String?
+  isActive              Boolean                @default(true)
+  saleDocumentLines     SaleDocumentLine[]
+  purchaseDocumentLines PurchaseDocumentLine[]
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
 
   company Company @relation(fields: [companyId], references: [id])
 
   @@unique([companyId, code])
   @@index([companyId, isActive])
+}
+
+model PurchaseDocument {
+  id              String                 @id @default(uuid())
+  companyId       String
+  supplierId      String
+  kind            PurchaseDocumentKind
+  status          PurchaseDocumentStatus @default(APPROVED)
+  supplierNumber  String
+  issuedAt        DateTime
+  dueDate         DateTime?
+  subtotalCents   Int
+  vatCents        Int
+  totalCents      Int
+  amountPaidCents Int                    @default(0)
+  createdById     String
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+
+  company  Company  @relation(fields: [companyId], references: [id])
+  supplier Supplier @relation(fields: [supplierId], references: [id])
+  lines    PurchaseDocumentLine[]
+
+  @@unique([companyId, supplierId, supplierNumber])
+  @@index([companyId, supplierId, issuedAt])
+}
+
+model PurchaseDocumentLine {
+  id                 String @id @default(uuid())
+  purchaseDocumentId String
+  itemId             String
+  vatRateId          String
+  description        String
+  quantity           Int
+  unitCostCents      Int
+  subtotalCents      Int
+  vatCents           Int
+  totalCents         Int
+
+  purchaseDocument PurchaseDocument @relation(fields: [purchaseDocumentId], references: [id])
+  item             Item             @relation(fields: [itemId], references: [id])
+  vatRate          VatRate          @relation(fields: [vatRateId], references: [id])
 }

@@ -20,6 +20,7 @@ import { buildSupplierRoutes } from "./modules/suppliers/supplierRoutes.js";
 import { buildItemRoutes } from "./modules/items/itemRoutes.js";
 import { buildWarehouseRoutes } from "./modules/warehouses/warehouseRoutes.js";
 import { buildVatRateRoutes } from "./modules/vat-rates/vatRateRoutes.js";
+import { buildPurchaseDocumentRoutes } from "./modules/purchases/purchaseDocumentRoutes.js";
 
 const prisma = new PrismaClient();
 const app = express();
@@ -47,6 +48,7 @@ app.use("/api/suppliers", buildSupplierRoutes({ prisma }));
 app.use("/api/items", buildItemRoutes({ prisma }));
 app.use("/api/warehouses", buildWarehouseRoutes({ prisma }));
 app.use("/api/vat-rates", buildVatRateRoutes({ prisma }));
+app.use("/api/purchases/documents", buildPurchaseDocumentRoutes({ prisma }));
 
 /**
  * Arranca o servidor HTTP.
