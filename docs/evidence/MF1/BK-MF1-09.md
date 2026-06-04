@@ -54,3 +54,82 @@ npm --prefix apps/web run typecheck
 npm --prefix apps/web run build
 
 ### Passo 4
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> npm --prefix apps/api run test:unit
+
+> @opsa/api@1.0.0 test:unit
+> node --test tests/unit/*.test.js
+
+✔ BK01: login aceita password curta e deixa a autenticação decidir credenciais inválidas (12.8347ms)
+✔ BK01: registo mantém política de password forte (2.9886ms)
+✔ BK06: perfil da empresa assume EUR quando currency é omitida (1.8436ms)
+✔ BK06: perfil da empresa rejeita dia fiscal impossível (1.1088ms)
+✔ BK07: importação vazia é rejeitada (0.8289ms)
+✔ BK10: fornecedor aceita NIF vazio e valida quando preenchido (2.9515ms)
+✔ BK08: período fiscal rejeita datas normalizadas pelo JavaScript (1.7155ms)
+✔ BK01: rate limit de autenticação bloqueia excesso e exige store em produção (1.7499ms)
+✔ BK02: permissões de escrita seguem os atores documentados na MF0 (1.1699ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1185.8423
+
+### Passo 5
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> npm --prefix apps/api run test:contracts
+
+> @opsa/api@1.0.0 test:contracts
+> node --test tests/contracts/*.test.js
+
+✔ BK01: resolveSession não propaga passwordHash na sessão nem no utilizador público (14.7541ms)
+✔ BK04/BK05: adapters mock não registam tokens, URLs secretas ou email completo (7.7964ms)
+✔ BK05: rate limit em memória falha explicitamente em produção sem opt-in (3.5337ms)
+✔ BK06: conflito de NIF é mapeado para NIF_ALREADY_EXISTS (1.9577ms)
+✔ BK09/BK10: pesquisa usa nome ou NIF sem alterar listagem base (6.4325ms)
+✔ BK12: nome de armazém duplicado é rejeitado (1.4639ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2403.3482
+
+### Passo 7
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> git diff --check - não devolveu nada
+
+### Passo 8
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> git diff -- docs/planificacao/guias-bk/MF1 - também não devolveu nada
+
+Objetivo
+Fechar o BK-MF1-09
+
+Evidência preparada
+A evidência do BK regista:
+- ficheiros alterados;
+- comandos executados;
+- resultados obtidos
+
+Decisões registadas
+- Foi reutilizada a estrutura `JournalEntry` e `JournalEntryLine` criada no BK-MF1-04.
+- Foi confirmado o uso de `source: "PURCHASE"` para lançamentos de compras.
+- O lançamento usa `sourceId` igual ao identificador do documento de compra.
+- Faturas de fornecedor debitam gastos (`62`) e IVA dedutível (`2432`) e creditam fornecedores (`221`).
+- Notas de crédito de fornecedor invertem o efeito contabilístico.
+- O lançamento é validado como equilibrado antes de ser gravado.
+- O `companyId` vem sempre do contexto autenticado.
+- O período fiscal aberto é validado antes de criar o lançamento.
+- A função `postPurchaseDocumentInTransaction` fica preparada para reutilização no BK-MF1-10.
+- Mapas de IVA ficam fora do âmbito deste BK.
+
+Comandos executados
+```bash
+npm --prefix apps/api run prisma:generate
+npm --prefix apps/api run prisma:validate 
+npm --prefix apps/api run test:unit
+npm --prefix apps/api run test:contracts
+git diff --check
+git diff -- docs/planificacao/guias-bk/MF1
