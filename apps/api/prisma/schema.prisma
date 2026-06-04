@@ -7,7 +7,9 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-/* ===================== ENUMS ===================== */
+/**
+ * ===================== ENUMS =====================
+ */
 
 enum Role {
   ADMIN
@@ -34,33 +36,35 @@ enum ItemType {
   SERVICE
 }
 
-/* ===================== CORE AUTH ===================== */
+/**
+ * ===================== CORE AUTH =====================
+ */
 
 model User {
-  id                  String               @id @default(uuid())
-  email               String               @unique
-  name                String?
-  passwordHash        String
-  isActive            Boolean              @default(true)
+  id           String  @id @default(uuid())
+  email        String  @unique
+  name         String?
+  passwordHash String
+  isActive     Boolean @default(true)
 
   sessions            Session[]
   memberships         CompanyMembership[]
   passwordResetTokens PasswordResetToken[]
 
-  createdAt           DateTime             @default(now())
-  updatedAt           DateTime             @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Session {
-  id              String    @id
+  id              String  @id
   userId          String
   activeCompanyId String?
 
-  user            User      @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id])
 
-  expiresAt       DateTime
-  revokedAt       DateTime?
-  createdAt       DateTime  @default(now())
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
 
   @@index([userId])
   @@index([activeCompanyId])
@@ -68,12 +72,12 @@ model Session {
 }
 
 model PasswordResetToken {
-  id        String   @id @default(uuid())
+  id        String    @id @default(uuid())
   userId    String
-  tokenHash String   @unique
+  tokenHash String    @unique
   expiresAt DateTime
   usedAt    DateTime?
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
 
   user User @relation(fields: [userId], references: [id])
 
@@ -81,16 +85,18 @@ model PasswordResetToken {
   @@index([expiresAt])
 }
 
-/* ===================== COMPANY ===================== */
+/**
+ * ===================== COMPANY =====================
+ */
 
 model Company {
-  id            String              @id @default(uuid())
-  name          String
-  nif           String?             @unique
+  id   String  @id @default(uuid())
+  name String
+  nif  String? @unique
 
-  memberships   CompanyMembership[]
-  invitations   CompanyInvitation[]
-  profile       CompanyProfile?
+  memberships CompanyMembership[]
+  invitations CompanyInvitation[]
+  profile     CompanyProfile?
 
   accounts      Account[]
   fiscalPeriods FiscalPeriod[]
@@ -99,20 +105,22 @@ model Company {
   items         Item[]
   warehouses    Warehouse[]
 
-  receipts      Receipt[]
-  payments      Payment[]
-  saleDocuments SaleDocument[]
+  receipts          Receipt[]
+  payments          Payment[]
+  saleDocuments     SaleDocument[]
   purchaseDocuments PurchaseDocument[]
 
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
-/* ===================== MF1 ===================== */
+/**
+ * ===================== MF1 =====================
+ */
 
 model SaleDocument {
-  id         String   @id @default(uuid())
-  companyId  String
+  id        String @id @default(uuid())
+  companyId String
 
   number     String
   totalCents Int
@@ -129,8 +137,8 @@ model SaleDocument {
 }
 
 model PurchaseDocument {
-  id         String   @id @default(uuid())
-  companyId  String
+  id        String @id @default(uuid())
+  companyId String
 
   number     String
   totalCents Int
@@ -147,8 +155,8 @@ model PurchaseDocument {
 }
 
 model Receipt {
-  id          String   @id @default(uuid())
-  companyId   String
+  id             String @id @default(uuid())
+  companyId      String
   saleDocumentId String
 
   amountCents Int
@@ -160,7 +168,7 @@ model Receipt {
   createdById String
   createdAt   DateTime @default(now())
 
-  company Company @relation(fields: [companyId], references: [id])
+  company      Company      @relation(fields: [companyId], references: [id])
   saleDocument SaleDocument @relation(fields: [saleDocumentId], references: [id])
 
   @@index([companyId, receivedAt])
@@ -168,8 +176,8 @@ model Receipt {
 }
 
 model Payment {
-  id          String   @id @default(uuid())
-  companyId   String
+  id                 String @id @default(uuid())
+  companyId          String
   purchaseDocumentId String
 
   amountCents Int
@@ -181,21 +189,23 @@ model Payment {
   createdById String
   createdAt   DateTime @default(now())
 
-  company Company @relation(fields: [companyId], references: [id])
+  company          Company          @relation(fields: [companyId], references: [id])
   purchaseDocument PurchaseDocument @relation(fields: [purchaseDocumentId], references: [id])
 
   @@index([companyId, paidAt])
   @@index([purchaseDocumentId])
 }
 
-/* ===================== COMPANY STRUCTURE ===================== */
+/**
+ * ===================== COMPANY STRUCTURE =====================
+ */
 
 model CompanyMembership {
-  id        String   @id @default(uuid())
+  id        String  @id @default(uuid())
   userId    String
   companyId String
   role      Role
-  isActive  Boolean  @default(true)
+  isActive  Boolean @default(true)
 
   user    User    @relation(fields: [userId], references: [id])
   company Company @relation(fields: [companyId], references: [id])
@@ -227,16 +237,16 @@ model CompanyInvitation {
 }
 
 model CompanyProfile {
-  id                   String   @id @default(uuid())
-  companyId            String   @unique
+  id                   String  @id @default(uuid())
+  companyId            String  @unique
   legalName            String
-  nif                  String   @unique
+  nif                  String  @unique
   addressLine1         String
   addressLine2         String?
   postalCode           String
   city                 String
-  country              String   @default("PT")
-  currency             String   @default("EUR")
+  country              String  @default("PT")
+  currency             String  @default("EUR")
   logoUrl              String?
   fiscalYearStartMonth Int
   fiscalYearStartDay   Int
@@ -247,16 +257,18 @@ model CompanyProfile {
   updatedAt DateTime @updatedAt
 }
 
-/* ===================== ACCOUNTING ===================== */
+/**
+ * ===================== ACCOUNTING =====================
+ */
 
 model Account {
-  id         String   @id @default(uuid())
+  id         String  @id @default(uuid())
   companyId  String
   code       String
   name       String
   parentCode String?
   level      Int
-  isActive   Boolean  @default(true)
+  isActive   Boolean @default(true)
 
   company Company @relation(fields: [companyId], references: [id])
 
@@ -286,10 +298,12 @@ model FiscalPeriod {
   @@index([companyId, startDate, endDate])
 }
 
-/* ===================== BUSINESS ===================== */
+/**
+ * ===================== BUSINESS =====================
+ */
 
 model Customer {
-  id          String   @id @default(uuid())
+  id          String  @id @default(uuid())
   companyId   String
   name        String
   nif         String?
@@ -298,7 +312,7 @@ model Customer {
   addressLine String?
   postalCode  String?
   city        String?
-  isActive    Boolean  @default(true)
+  isActive    Boolean @default(true)
 
   company Company @relation(fields: [companyId], references: [id])
 
@@ -310,7 +324,7 @@ model Customer {
 }
 
 model Supplier {
-  id          String   @id @default(uuid())
+  id          String  @id @default(uuid())
   companyId   String
   name        String
   nif         String?
@@ -319,7 +333,7 @@ model Supplier {
   addressLine String?
   postalCode  String?
   city        String?
-  isActive    Boolean  @default(true)
+  isActive    Boolean @default(true)
 
   company Company @relation(fields: [companyId], references: [id])
 
@@ -351,11 +365,11 @@ model Item {
 }
 
 model Warehouse {
-  id        String   @id @default(uuid())
+  id        String  @id @default(uuid())
   companyId String
   code      String
   name      String
-  isActive  Boolean  @default(true)
+  isActive  Boolean @default(true)
 
   locations WarehouseLocation[]
 
@@ -370,11 +384,11 @@ model Warehouse {
 }
 
 model WarehouseLocation {
-  id          String   @id @default(uuid())
+  id          String  @id @default(uuid())
   warehouseId String
   code        String
   name        String
-  isActive    Boolean  @default(true)
+  isActive    Boolean @default(true)
 
   warehouse Warehouse @relation(fields: [warehouseId], references: [id])
 
