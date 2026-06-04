@@ -107,6 +107,50 @@ model Company {
   updatedAt     DateTime @updatedAt
 }
 
+/* ===================== MF1 ===================== */
+
+model Receipt {
+  id             String   @id @default(uuid())
+  companyId      String
+  saleDocumentId String
+
+  amountCents    Int
+  receivedAt     DateTime
+  method         String
+  reference      String?
+  notes          String?
+
+  createdById    String
+  createdAt      DateTime @default(now())
+
+  company Company @relation(fields: [companyId], references: [id])
+
+  @@index([companyId, receivedAt])
+  @@index([saleDocumentId])
+}
+
+model Payment {
+  id                 String   @id @default(uuid())
+  companyId          String
+  purchaseDocumentId String
+
+  amountCents       Int
+  paidAt            DateTime
+  method            String
+  reference         String?
+  notes             String?
+
+  createdById       String
+  createdAt         DateTime @default(now())
+
+  company Company @relation(fields: [companyId], references: [id])
+
+  @@index([companyId, paidAt])
+  @@index([purchaseDocumentId])
+}
+
+/* ===================== COMPANY STRUCTURE ===================== */
+
 model CompanyMembership {
   id        String   @id @default(uuid())
   userId    String
@@ -301,50 +345,4 @@ model WarehouseLocation {
   @@unique([warehouseId, code])
   @@unique([warehouseId, name])
   @@index([warehouseId])
-}
-
-/* ===================== MF1 - RECEIPTS ===================== */
-
-model Receipt {
-  id             String   @id @default(uuid())
-  companyId      String
-  saleDocumentId String
-
-  amountCents    Int
-  receivedAt     DateTime
-  method         String
-  reference      String?
-  notes          String?
-
-  createdById    String
-  createdAt      DateTime @default(now())
-
-  company      Company      @relation(fields: [companyId], references: [id])
-  saleDocument SaleDocument @relation(fields: [saleDocumentId], references: [id])
-
-  @@index([companyId, receivedAt])
-  @@index([saleDocumentId])
-}
-
-/* ===================== MF1 - PAYMENTS ===================== */
-
-model Payment {
-  id                 String   @id @default(uuid())
-  companyId          String
-  purchaseDocumentId String
-
-  amountCents       Int
-  paidAt            DateTime
-  method            String
-  reference         String?
-  notes             String?
-
-  createdById       String
-  createdAt         DateTime @default(now())
-
-  company          Company          @relation(fields: [companyId], references: [id])
-  purchaseDocument PurchaseDocument @relation(fields: [purchaseDocumentId], references: [id])
-
-  @@index([companyId, paidAt])
-  @@index([purchaseDocumentId])
 }
