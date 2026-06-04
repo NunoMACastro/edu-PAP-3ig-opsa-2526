@@ -46,7 +46,7 @@ export function PurchaseDocumentsPage() {
                     <option value="SUPPLIER_CREDIT_NOTE">Nota de crédito</option>
                 </select>
                 <input value={form.supplierId} onChange={(event) => setForm({ ...form, supplierId: event.target.value })} placeholder="ID do fornecedor" />
-                <input value={form.supplierNumber} onChange={(event) => setForm({ ...form, supplierNumber: event.target.value })} placeholder="Numero do fornecedor" />
+                <input value={form.supplierNumber} onChange={(event) => setForm({ ...form, supplierNumber: event.target.value })} placeholder="Número do fornecedor" />
                 <input type="date" value={form.issuedAt} onChange={(event) => setForm({ ...form, issuedAt: event.target.value })} />
                 <input value={form.lines[0].itemId} onChange={(event) => setForm({ ...form, lines: [{ ...form.lines[0], itemId: event.target.value }] })} placeholder="ID do artigo" />
                 <input value={form.lines[0].vatRateId} onChange={(event) => setForm({ ...form, lines: [{ ...form.lines[0], vatRateId: event.target.value }] })} placeholder="ID da taxa IVA" />
