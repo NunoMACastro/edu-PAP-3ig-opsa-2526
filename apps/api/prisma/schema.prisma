@@ -99,9 +99,10 @@ model Company {
   items         Item[]
   warehouses    Warehouse[]
 
-  /* MF1 */
   receipts      Receipt[]
   payments      Payment[]
+  saleDocuments SaleDocument[]
+  purchaseDocuments PurchaseDocument[]
 
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -109,11 +110,46 @@ model Company {
 
 /* ===================== MF1 ===================== */
 
+model SaleDocument {
+  id         String   @id @default(uuid())
+  companyId  String
+
+  number     String
+  totalCents Int
+  issuedAt   DateTime @default(now())
+
+  company Company @relation(fields: [companyId], references: [id])
+
+  receipts Receipt[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId])
+}
+
+model PurchaseDocument {
+  id         String   @id @default(uuid())
+  companyId  String
+
+  number     String
+  totalCents Int
+  issuedAt   DateTime @default(now())
+
+  company Company @relation(fields: [companyId], references: [id])
+
+  payments Payment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId])
+}
+
 model Receipt {
   id          String   @id @default(uuid())
   companyId   String
-
-  saleDocumentId String?
+  saleDocumentId String
 
   amountCents Int
   receivedAt  DateTime
@@ -125,6 +161,7 @@ model Receipt {
   createdAt   DateTime @default(now())
 
   company Company @relation(fields: [companyId], references: [id])
+  saleDocument SaleDocument @relation(fields: [saleDocumentId], references: [id])
 
   @@index([companyId, receivedAt])
   @@index([saleDocumentId])
@@ -133,8 +170,7 @@ model Receipt {
 model Payment {
   id          String   @id @default(uuid())
   companyId   String
-
-  purchaseDocumentId String?
+  purchaseDocumentId String
 
   amountCents Int
   paidAt      DateTime
@@ -146,6 +182,7 @@ model Payment {
   createdAt   DateTime @default(now())
 
   company Company @relation(fields: [companyId], references: [id])
+  purchaseDocument PurchaseDocument @relation(fields: [purchaseDocumentId], references: [id])
 
   @@index([companyId, paidAt])
   @@index([purchaseDocumentId])
