@@ -110,18 +110,19 @@ model Company {
 /* ===================== MF1 ===================== */
 
 model Receipt {
-  id             String   @id @default(uuid())
-  companyId      String
-  saleDocumentId String
+  id          String   @id @default(uuid())
+  companyId   String
 
-  amountCents    Int
-  receivedAt     DateTime
-  method         String
-  reference      String?
-  notes          String?
+  saleDocumentId String?
 
-  createdById    String
-  createdAt      DateTime @default(now())
+  amountCents Int
+  receivedAt  DateTime
+  method      String
+  reference   String?
+  notes       String?
+
+  createdById String
+  createdAt   DateTime @default(now())
 
   company Company @relation(fields: [companyId], references: [id])
 
@@ -130,18 +131,19 @@ model Receipt {
 }
 
 model Payment {
-  id                 String   @id @default(uuid())
-  companyId          String
-  purchaseDocumentId String
+  id          String   @id @default(uuid())
+  companyId   String
 
-  amountCents       Int
-  paidAt            DateTime
-  method            String
-  reference         String?
-  notes             String?
+  purchaseDocumentId String?
 
-  createdById       String
-  createdAt         DateTime @default(now())
+  amountCents Int
+  paidAt      DateTime
+  method      String
+  reference   String?
+  notes       String?
+
+  createdById String
+  createdAt   DateTime @default(now())
 
   company Company @relation(fields: [companyId], references: [id])
 
