@@ -254,6 +254,11 @@ export function createApiClient(options: ApiClientOptions = {}) {
         request("POST", "/purchases/documents", { body }),
     },
     
+    salePostings: {
+      create: (saleDocumentId: string) =>
+        request("POST", `/accounting/sale-postings/${saleDocumentId}`),
+    },
+
     accounting: {
       /**
        * Lista contas SNC da empresa.
@@ -300,6 +305,8 @@ export function createApiClient(options: ApiClientOptions = {}) {
       closeFiscalPeriod: (id: string) =>
         request("POST", `/fiscal-periods/${id}/close`),
     },
+
+
     customers: {
       /**
        * Lista clientes ativos.
