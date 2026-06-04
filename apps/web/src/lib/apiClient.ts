@@ -259,6 +259,11 @@ export function createApiClient(options: ApiClientOptions = {}) {
         request("POST", `/accounting/sale-postings/${saleDocumentId}`),
     },
 
+    purchasePostings: {
+      create: (purchaseDocumentId: string) =>
+        request("POST", `/accounting/purchase-postings/${purchaseDocumentId}`),
+    },
+
     accounting: {
       /**
        * Lista contas SNC da empresa.

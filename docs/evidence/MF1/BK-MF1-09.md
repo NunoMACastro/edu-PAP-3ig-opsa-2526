@@ -29,3 +29,28 @@ Prisma schema loaded from prisma\schema.prisma
 The schema at prisma\schema.prisma is valid 🚀
 
 ### Passo 3
+Objetivo
+Disponibilizar a operação de contabilização automática de compras ao utilizador através da camada frontend, mantendo chamadas tipadas e mensagens de erro controladas.
+
+Ficheiros alterados
+- `apps/web/src/lib/apiClient.ts`
+- `apps/web/src/lib/accountingApi.ts`
+- `apps/api/src/modules/accounting/purchasePostingService.test.js`
+- `apps/web/src/pages/PurchasePostingsPage.tsx`
+
+Implementação realizada
+- Foi criada a integração frontend para contabilização automática de compras.
+- O ficheiro `apiClient.ts` existente não foi substituído. Foi apenas estendido com o domínio `purchasePostings`, mantendo o cliente HTTP único da aplicação, a autenticação por cookie `HttpOnly` e o tratamento centralizado de erros.
+- O ficheiro `accountingApi.ts` existente foi reutilizado e estendido com a função `postPurchaseDocument`.
+- Foi criada a página `PurchasePostingsPage.tsx`, com formulário mínimo, estado de carregamento, sucesso e erro.
+
+Nota de integração
+A UI não calcula débitos, créditos, contas SNC ou totais contabilísticos. O frontend envia apenas o identificador do documento de compra e o backend gera o lançamento contabilístico automático.
+
+Comandos a executar
+```bash
+npm --prefix apps/api run test:unit
+npm --prefix apps/web run typecheck
+npm --prefix apps/web run build
+
+### Passo 4

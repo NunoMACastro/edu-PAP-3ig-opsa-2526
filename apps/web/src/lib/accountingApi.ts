@@ -27,3 +27,10 @@ export async function postSaleDocument(
   const response = await apiClient.salePostings.create(saleDocumentId) as JournalEntryResponse;
   return response.data;
 }
+
+export async function postPurchaseDocument(
+  purchaseDocumentId: string,
+): Promise<JournalEntry> {
+  const response = await apiClient.purchasePostings.create(purchaseDocumentId) as JournalEntryResponse;
+  return response.data;
+}
