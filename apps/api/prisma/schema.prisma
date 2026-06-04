@@ -36,6 +36,32 @@ enum ItemType {
   SERVICE
 }
 
+enum VatRateType {
+  NORMAL
+  INTERMEDIATE
+  REDUCED
+  EXEMPT
+  OTHER
+}
+
+enum PurchaseDocumentKind {
+  SUPPLIER_INVOICE
+  SUPPLIER_CREDIT_NOTE
+}
+
+enum PurchaseDocumentStatus {
+  DRAFT
+  APPROVED
+  POSTED
+  PAID
+}
+
+enum JournalSource {
+  SALE
+  PURCHASE
+  MANUAL
+}
+
 /**
  * ===================== CORE AUTH =====================
  */
@@ -50,9 +76,8 @@ model User {
   sessions            Session[]
   memberships         CompanyMembership[]
   passwordResetTokens PasswordResetToken[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
 }
 
 model Session {
@@ -90,115 +115,21 @@ model PasswordResetToken {
  */
 
 model Company {
-  id   String  @id @default(uuid())
-  name String
-  nif  String? @unique
-
-  memberships CompanyMembership[]
-  invitations CompanyInvitation[]
-  profile     CompanyProfile?
-
+  id            String              @id @default(uuid())
+  name          String
+  nif           String?             @unique
+  memberships   CompanyMembership[]
+  invitations   CompanyInvitation[]
+  profile       CompanyProfile?
   accounts      Account[]
   fiscalPeriods FiscalPeriod[]
   customers     Customer[]
   suppliers     Supplier[]
   items         Item[]
   warehouses    Warehouse[]
-
-  receipts          Receipt[]
-  payments          Payment[]
-  saleDocuments     SaleDocument[]
-  purchaseDocuments PurchaseDocument[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
 }
-
-/**
- * ===================== MF1 =====================
- */
-
-model SaleDocument {
-  id        String @id @default(uuid())
-  companyId String
-
-  number     String
-  totalCents Int
-  issuedAt   DateTime @default(now())
-
-  company Company @relation(fields: [companyId], references: [id])
-
-  receipts Receipt[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([companyId])
-}
-
-model PurchaseDocument {
-  id        String @id @default(uuid())
-  companyId String
-
-  number     String
-  totalCents Int
-  issuedAt   DateTime @default(now())
-
-  company Company @relation(fields: [companyId], references: [id])
-
-  payments Payment[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([companyId])
-}
-
-model Receipt {
-  id             String @id @default(uuid())
-  companyId      String
-  saleDocumentId String
-
-  amountCents Int
-  receivedAt  DateTime
-  method      String
-  reference   String?
-  notes       String?
-
-  createdById String
-  createdAt   DateTime @default(now())
-
-  company      Company      @relation(fields: [companyId], references: [id])
-  saleDocument SaleDocument @relation(fields: [saleDocumentId], references: [id])
-
-  @@index([companyId, receivedAt])
-  @@index([saleDocumentId])
-}
-
-model Payment {
-  id                 String @id @default(uuid())
-  companyId          String
-  purchaseDocumentId String
-
-  amountCents Int
-  paidAt      DateTime
-  method      String
-  reference   String?
-  notes       String?
-
-  createdById String
-  createdAt   DateTime @default(now())
-
-  company          Company          @relation(fields: [companyId], references: [id])
-  purchaseDocument PurchaseDocument @relation(fields: [purchaseDocumentId], references: [id])
-
-  @@index([companyId, paidAt])
-  @@index([purchaseDocumentId])
-}
-
-/**
- * ===================== COMPANY STRUCTURE =====================
- */
 
 model CompanyMembership {
   id        String  @id @default(uuid())
@@ -262,13 +193,15 @@ model CompanyProfile {
  */
 
 model Account {
-  id         String  @id @default(uuid())
+  id         String   @id @default(uuid())
   companyId  String
   code       String
   name       String
   parentCode String?
   level      Int
-  isActive   Boolean @default(true)
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   company Company @relation(fields: [companyId], references: [id])
 
@@ -303,7 +236,7 @@ model FiscalPeriod {
  */
 
 model Customer {
-  id          String  @id @default(uuid())
+  id          String   @id @default(uuid())
   companyId   String
   name        String
   nif         String?
@@ -312,7 +245,9 @@ model Customer {
   addressLine String?
   postalCode  String?
   city        String?
-  isActive    Boolean @default(true)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   company Company @relation(fields: [companyId], references: [id])
 
@@ -324,7 +259,7 @@ model Customer {
 }
 
 model Supplier {
-  id          String  @id @default(uuid())
+  id          String   @id @default(uuid())
   companyId   String
   name        String
   nif         String?
@@ -333,7 +268,9 @@ model Supplier {
   addressLine String?
   postalCode  String?
   city        String?
-  isActive    Boolean @default(true)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   company Company @relation(fields: [companyId], references: [id])
 
@@ -354,6 +291,8 @@ model Item {
   priceCents Int
   vatRateBps Int
   isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   company Company @relation(fields: [companyId], references: [id])
 
@@ -398,4 +337,95 @@ model WarehouseLocation {
   @@unique([warehouseId, code])
   @@unique([warehouseId, name])
   @@index([warehouseId])
+}
+
+model VatRate {
+  id                    String                 @id @default(uuid())
+  companyId             String
+  code                  String
+  description           String
+  rateBps               Int
+  type                  VatRateType
+  exemptionReason       String?
+  isActive              Boolean                @default(true)
+  saleDocumentLines     SaleDocumentLine[]
+  purchaseDocumentLines PurchaseDocumentLine[]
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id])
+
+  @@unique([companyId, code])
+  @@index([companyId, isActive])
+}
+
+model PurchaseDocument {
+  id              String                 @id @default(uuid())
+  companyId       String
+  supplierId      String
+  kind            PurchaseDocumentKind
+  status          PurchaseDocumentStatus @default(APPROVED)
+  supplierNumber  String
+  issuedAt        DateTime
+  dueDate         DateTime?
+  subtotalCents   Int
+  vatCents        Int
+  totalCents      Int
+  amountPaidCents Int                    @default(0)
+  createdById     String
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+
+  company  Company  @relation(fields: [companyId], references: [id])
+  supplier Supplier @relation(fields: [supplierId], references: [id])
+  lines    PurchaseDocumentLine[]
+
+  @@unique([companyId, supplierId, supplierNumber])
+  @@index([companyId, supplierId, issuedAt])
+}
+
+model PurchaseDocumentLine {
+  id                 String @id @default(uuid())
+  purchaseDocumentId String
+  itemId             String
+  vatRateId          String
+  description        String
+  quantity           Int
+  unitCostCents      Int
+  subtotalCents      Int
+  vatCents           Int
+  totalCents         Int
+
+  purchaseDocument PurchaseDocument @relation(fields: [purchaseDocumentId], references: [id])
+  item             Item             @relation(fields: [itemId], references: [id])
+  vatRate          VatRate          @relation(fields: [vatRateId], references: [id])
+}
+
+model JournalEntry {
+  id          String        @id @default(uuid())
+  companyId   String
+  source      JournalSource
+  sourceId    String
+  entryDate   DateTime
+  description String
+  createdById String
+  createdAt   DateTime      @default(now())
+
+  company Company            @relation(fields: [companyId], references: [id])
+  lines   JournalEntryLine[]
+
+  @@unique([companyId, source, sourceId])
+  @@index([companyId, entryDate])
+}
+
+model JournalEntryLine {
+  id             String @id @default(uuid())
+  journalEntryId String
+  accountId      String
+  debitCents     Int    @default(0)
+  creditCents    Int    @default(0)
+  memo           String?
+
+  journalEntry JournalEntry @relation(fields: [journalEntryId], references: [id])
+  account      Account      @relation(fields: [accountId], references: [id])
 }

@@ -101,6 +101,7 @@ export function createApiClient(options: ApiClientOptions = {}) {
     return data as TResponse;
   }
 
+
   return {
     request,
     auth: {
@@ -219,6 +220,45 @@ export function createApiClient(options: ApiClientOptions = {}) {
       updateProfile: (body: JsonBody) =>
         request("PUT", "/company/profile", { body }),
     },
+
+    vatRates: {
+      /**
+       * Lista taxas de IVA da empresa ativa.
+       *
+       * @returns Taxas de IVA filtradas pela empresa ativa.
+       */
+      list: () => request("GET", "/vat-rates"),
+
+      /**
+       * Cria uma taxa de IVA.
+       *
+       * @param body - Payload da taxa de IVA do BK-MF1-01.
+       * @returns Taxa de IVA criada.
+       */
+      create: (body: JsonBody) => request("POST", "/vat-rates", { body }),
+
+      /**
+       * Ativa ou desativa uma taxa de IVA.
+       *
+       * @param id - Identificador da taxa de IVA.
+       * @param body - Payload `{ isActive }`.
+       * @returns Taxa de IVA atualizada.
+       */
+      setActive: (id: string, body: JsonBody) =>
+        request("PATCH", `/vat-rates/${id}/active`, { body }),
+    },
+
+    purchaseDocuments: {
+      list: () => request("GET", "/purchases/documents"),
+      create: (body: JsonBody) =>
+        request("POST", "/purchases/documents", { body }),
+    },
+    
+    salePostings: {
+      create: (saleDocumentId: string) =>
+        request("POST", `/accounting/sale-postings/${saleDocumentId}`),
+    },
+
     accounting: {
       /**
        * Lista contas SNC da empresa.
@@ -265,6 +305,8 @@ export function createApiClient(options: ApiClientOptions = {}) {
       closeFiscalPeriod: (id: string) =>
         request("POST", `/fiscal-periods/${id}/close`),
     },
+
+
     customers: {
       /**
        * Lista clientes ativos.
