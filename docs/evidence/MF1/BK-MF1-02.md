@@ -131,3 +131,135 @@ docs/evidence/MF1/BK-MF1-02.md:71: trailing whitespace.
 - PS D:\PAP\edu-PAP-3ig-opsa-2526> git diff --stat                                  
  docs/evidence/MF1/BK-MF1-02.md | 85 ++++++++++++++++++++++++++++++++++++++++++
  1 file changed, 85 insertions(+)
+
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> git status                                                                        
+On branch feat/bk-mf1-02-documentos-venda-oleksii                                 
+nothing to commit, working tree clean
+
+Objetivo
+Garantir que a implementação do BK-MF1-02 não introduz alterações fora do âmbito e que o diff está tecnicamente limpo.
+
+Validação realizada
+Foi revisto o conjunto de ficheiros alterados no BK, com atenção a nomes, responsabilidades por camada, validações, mensagens de erro, transações, roles e filtros por `companyId`.
+
+Comandos executados
+```bash
+git diff --check
+git status
+git diff --stat
+
+### Passo 8 
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> git diff -- docs/planificacao/guias-bk/MF1 - não devolveu nada
+
+Objetivo
+Fechar o BK-MF1-02
+
+Evidência preparada
+
+A evidência do BK regista:
+- ficheiros alterados;
+- comandos executados;
+- resultados obtidos;
+
+
+Decisões registadas
+- Os documentos de venda são sempre associados à empresa ativa através de `companyId`.
+- O `companyId` nunca é recebido pelo body do pedido.
+- O documento nasce em estado `DRAFT`.
+- A numeração definitiva é atribuída apenas no momento da emissão.
+- A sequência é gerida por `NumberSequence`, separada por empresa, ano e tipo documental.
+- Os totais (`subtotalCents`, `vatCents`, `totalCents`) são calculados exclusivamente no backend.
+- O frontend não recalcula valores fiscais nem contabilísticos.
+- O dinheiro é armazenado em cêntimos.
+- Aprovação documental, contabilização automática e SAF-T ficam fora do âmbito deste BK.
+
+Comandos executados
+
+```bash
+cd apps/api npm run prisma:generate
+npm run prisma:validate
+npm --prefix apps/web run build
+npm --prefix apps/api run 
+git status
+npm --prefix apps/api run test:contracts
+npm --prefix apps/api run test:integration
+git diff --stat
+git diff --check
+git diff -- docs/planificacao/guias-bk/MF1
+
+
+9) Validacao por BK
+Smoke
+    Endpoint `POST /api/sales/documents` implementado.
+    Endpoint `GET /api/sales/documents` implementado.
+    Endpoint `POST /api/sales/documents/:id/issue` implementado.
+    Associação do documento à empresa ativa através de `companyId`.
+    Cálculo de `subtotalCents`, `vatCents` e `totalCents` realizado no backend.
+    Numeração sequencial por empresa, ano e tipo documental implementada através de `NumberSequence`.
+    ntegração final da página na navegação da aplicação por validar.
+Negativos
+    Documento sem linhas válidas devolve `400`.
+    Tipo documental inválido devolve `400`.
+    liente de outra empresa devolve erro controlado.
+    Artigo de outra empresa devolve erro controlado.
+    Taxa de IVA de outra empresa devolve erro controlado.
+    Documento inexistente devolve `404`.
+    ocumento fora do estado permitido devolve `409`.
+    Emissão fora de período fiscal aberto é bloqueada.
+Bloqueios e limites do BK
+    `NumberSequence` e emissão executam dentro de transação.
+    O dinheiro é armazenado em cêntimos.
+    O `companyId` vem sempre da sessão autenticada.
+    Aprovação documental pertence ao BK-MF1-06.
+    Contabilização automática pertence ao BK-MF1-04.
+    SAF-T fica fora do âmbito deste BK.
+
+10) Evidência obrigatória - BK-MF1-02
+
+### pr
+PR: ainda não criado.
+
+### proof
+Foi implementado o domínio de documentos de venda para suportar:
+- Fatura (`INVOICE`);
+- Fatura-recibo (`INVOICE_RECEIPT`);
+- Nota de crédito (`CREDIT_NOTE`).
+Foi criada persistência para documentos, linhas documentais, sequências numéricas e auditoria.
+Foi implementado cálculo backend de subtotal, IVA e total.
+Foi implementada emissão definitiva com numeração sequencial por empresa, ano e tipo documental.
+Foi criada integração frontend através de `salesApi.ts` e `SaleDocumentsPage.tsx`.
+
+### neg
+Cenários negativos previstos/validados:
+- Pedido sem sessão devolve `401`.
+- Pedido sem empresa ativa devolve erro definido pela MF0.
+- Documento sem linhas devolve `400`.
+- Tipo documental inválido devolve `400`.
+- Cliente de outra empresa devolve erro controlado.
+- Artigo de outra empresa devolve erro controlado.
+- Taxa de IVA de outra empresa devolve erro controlado.
+- Documento inexistente devolve `404`.
+- Documento fora do estado permitido devolve `409`.
+
+### files
+- `apps/api/prisma/schema.prisma`
+- `apps/api/src/modules/sales/saleDocumentService.js`
+- `apps/api/src/modules/sales/saleDocumentRoutes.js`
+- `apps/api/src/server.js`
+- `apps/web/src/lib/apiClient.ts`
+- `apps/web/src/lib/salesApi.ts`
+- `apps/web/src/pages/SaleDocumentsPage.tsx`
+- `docs/evidence/MF1/BK-MF1-02.md`
+
+### commands
+```bash
+cd apps/api npm run prisma:generate
+npm run prisma:validate
+npm --prefix apps/web run build
+npm --prefix apps/api run 
+git status
+npm --prefix apps/api run test:contracts
+npm --prefix apps/api run test:integration
+git diff --stat
+git diff --check
+git diff -- docs/planificacao/guias-bk/MF1
