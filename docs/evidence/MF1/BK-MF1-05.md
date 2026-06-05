@@ -131,3 +131,124 @@ npm --prefix apps/api run prisma:generate
 npm --prefix apps/api run prisma:validate
 npm --prefix apps/api run test:unit
 npm --prefix apps/api run test:contracts
+
+9) Validação Final BK-MF1-05
+Smoke
+    Endpoint GET /api/sales/open-items implementado.
+    Consulta devolve documentos emitidos com saldo por receber.
+    O saldo em aberto é calculado através de totalCents - amountPaidCents.
+    O filtro por data de referência recalcula corretamente os dias de atraso.
+    Os buckets de antiguidade são calculados corretamente.
+    A UI apresenta estados loading, empty, error e success.
+    Integração final da página na navegação da aplicação por validar.
+
+Negativos
+    Pedido sem sessão devolve 401.
+    Pedido sem empresa ativa devolve erro definido pela MF0.
+    Documento totalmente liquidado não aparece na listagem.
+    CREDIT_NOTE não aparece como título em aberto.
+    Documentos de outra empresa nunca aparecem na consulta.
+    Data de referência inválida devolve 400.
+    Erros do backend são apresentados de forma controlada na UI.
+
+Bloqueios e limites do BK
+    Consulta de leitura pura, sem alterar dados.
+    Utilização obrigatória do companyId proveniente da sessão autenticada.
+    O frontend não calcula saldos nem buckets.
+    Buckets suportados:
+        NOT_DUE
+        DAYS_1_30
+        DAYS_31_60
+        DAYS_61_90
+        DAYS_90_PLUS
+    Os saldos utilizam SaleDocument.totalCents e amountPaidCents.
+    Apenas documentos emitidos (ISSUED) entram na consulta.
+    Notas de crédito ficam excluídas da listagem.
+    Cobranças automáticas ficam fora do âmbito deste BK.
+    A previsão de tesouraria detalhada será tratada em BK-MF3-04
+
+10) Evidência obrigatória - BK-MF1-05
+
+### pr
+PR: ainda não criado.
+
+### proof
+Foi implementada a consulta de títulos em aberto e antiguidade de saldos.
+
+Foi implementado o endpoint:
+```text
+GET /api/sales/open-items
+```
+
+Foi criado o módulo `open-items` para consulta de documentos de venda emitidos com saldo por receber.
+A consulta utiliza exclusivamente o `companyId` proveniente da sessão autenticada.
+
+Foram implementados:
+* cálculo de saldo em aberto (`openAmountCents`);
+* cálculo de dias de atraso (`daysOverdue`);
+* classificação por bucket de antiguidade.
+
+Os buckets suportados são:
+* `NOT_DUE`
+* `DAYS_1_30`
+* `DAYS_31_60`
+* `DAYS_61_90`
+* `DAYS_90_PLUS`
+
+Foi criada integração frontend através de:
+* `salesOpenItemsApi.ts`
+* `SalesOpenItemsPage.tsx`
+
+Foi implementada visualização com estados:
+* loading;
+* empty;
+* error;
+* success.
+
+### neg
+Cenários negativos previstos/validados:
+* Pedido sem sessão devolve `401`.
+* Pedido sem empresa ativa devolve erro definido pela MF0.
+* Data de referência inválida devolve `400`.
+* Documento totalmente liquidado não aparece na consulta.
+* `CREDIT_NOTE` não aparece como título em aberto.
+* Documentos de outra empresa nunca aparecem na listagem.
+* Erros do backend são apresentados de forma controlada.
+
+### files
+* `apps/api/src/modules/open-items/salesOpenItemsService.js`
+* `apps/api/src/modules/open-items/salesOpenItemsRoutes.js`
+* `apps/api/src/server.js`
+* `apps/web/src/lib/salesOpenItemsApi.ts`
+* `apps/web/src/pages/SalesOpenItemsPage.tsx`
+* `apps/api/src/modules/open-items/salesOpenItemsService.test.js`
+* `docs/evidence/MF1/BK-MF1-05.md`
+
+### commands
+```bash
+git diff -- docs/planificacao/guias-bk/MF1
+git status
+git diff --stat
+git diff --check
+npm --prefix apps/api run prisma:generate
+npm --prefix apps/api run prisma:validate
+npm --prefix apps/api run test:unit
+npm --prefix apps/api run test:contracts
+```
+
+### screenshots
+Sem screenshots incluídos nesta revisão.
+
+### notes
+* O `companyId` é obtido exclusivamente da sessão autenticada.
+* A operação é apenas de leitura.
+* Nenhum dado é alterado pela consulta.
+* O frontend não calcula saldos nem buckets.
+* O backend calcula `openAmountCents`, `daysOverdue` e `bucket`.
+* Apenas documentos em estado `ISSUED` são considerados.
+* Documentos liquidados são excluídos da listagem.
+* Notas de crédito não são consideradas títulos em aberto.
+* Os buckets seguem a classificação definida no guia.
+* O BK prepara informação para relatórios de ageing e análise de cobranças.
+* Cobranças automáticas permanecem fora do âmbito deste BK.
+* A previsão de tesouraria detalhada será tratada em BK-MF3-04.
