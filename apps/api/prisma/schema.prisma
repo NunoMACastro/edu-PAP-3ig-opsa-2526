@@ -477,3 +477,40 @@ model AuditLog {
   @@index([companyId, entity, entityId])
   @@index([companyId, createdAt])
 }
+
+enum PurchaseDocumentStatus {
+  DRAFT
+  APPROVED
+  POSTED
+  PAID
+}
+
+model PurchaseDocument {
+  id              String                 @id @default(uuid())
+  companyId       String
+  supplierId      String
+  kind            PurchaseDocumentKind
+  status          PurchaseDocumentStatus @default(DRAFT)
+  supplierNumber  String
+  issuedAt        DateTime
+  dueDate         DateTime?
+  subtotalCents   Int
+  vatCents        Int
+  totalCents      Int
+  amountPaidCents Int                    @default(0)
+  createdById     String
+  approvedAt      DateTime?
+  approvedById    String?
+  postedAt        DateTime?
+  postedById      String?
+  payments        Payment[]
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+
+  company  Company  @relation(fields: [companyId], references: [id])
+  supplier Supplier @relation(fields: [supplierId], references: [id])
+  lines    PurchaseDocumentLine[]
+
+  @@unique([companyId, supplierId, supplierNumber])
+  @@index([companyId, status, issuedAt])
+}

@@ -23,6 +23,9 @@ import { buildVatRateRoutes } from "./modules/vat-rates/vatRateRoutes.js";
 import { buildPurchaseDocumentRoutes } from "./modules/purchases/purchaseDocumentRoutes.js";
 import { buildSalePostingRoutes } from "./modules/accounting/salePostingRoutes.js";
 import { buildSaleApprovalRoutes } from "./modules/sales-approval/saleApprovalRoutes.js";
+import { buildPurchaseApprovalRoutes } from "./modules/purchase-approval/purchaseApprovalRoutes.js";
+
+app.use("/api/purchases/documents", buildPurchaseApprovalRoutes({ prisma }));
 
 const prisma = new PrismaClient();
 const app = express();

@@ -47,9 +47,25 @@ export async function createPurchaseDocument(prisma, companyId, userId, input) {
         });
         const subtotalCents = computedLines.reduce((sum, line) => sum + line.subtotalCents, 0);
         const vatCents = computedLines.reduce((sum, line) => sum + line.vatCents, 0);
-        // Os valores ficam positivos; o tipo SUPPLIER_CREDIT_NOTE diz aos BKs seguintes para inverter o efeito contabilístico.
+
         try {
-            const document = await tx.purchaseDocument.create({ data: { companyId, supplierId: supplier.id, kind, status: "APPROVED", supplierNumber, issuedAt, dueDate, subtotalCents, vatCents, totalCents: subtotalCents + vatCents, createdById: userId, lines: { create: computedLines } }, include: { supplier: true, lines: true } });
+            const document = await tx.purchaseDocument.create({
+                data: {
+                    companyId,
+                    supplierId: supplier.id,
+                    kind,
+                    status: "DRAFT",
+                    supplierNumber,
+                    issuedAt,
+                    dueDate,
+                    subtotalCents,
+                    vatCents,
+                    totalCents: subtotalCents + vatCents,
+                    createdById: userId,
+                    lines: { create: computedLines },
+                },
+                include: { supplier: true, lines: true },
+            });
             await tx.auditLog.create({
                 data: {
                     companyId,
@@ -57,7 +73,7 @@ export async function createPurchaseDocument(prisma, companyId, userId, input) {
                     action: "PURCHASE_DOCUMENT_CREATED",
                     entity: "PurchaseDocument",
                     entityId: document.id,
-                    details: { supplierId: supplier.id, supplierNumber, totalCents: document.totalCents },
+                    details: { supplierId: supplier.id, supplierNumber, status: "DRAFT", totalCents: document.totalCents },
                 },
             });
             return document;
