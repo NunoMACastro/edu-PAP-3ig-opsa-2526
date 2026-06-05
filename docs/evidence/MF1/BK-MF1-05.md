@@ -55,3 +55,51 @@ npm --prefix apps/web run typecheck
 npm --prefix apps/web run build
 
 ### Passo 4
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> npm --prefix apps/api run test:unit
+
+> @opsa/api@1.0.0 test:unit
+> node --test tests/unit/*.test.js
+
+✔ BK01: login aceita password curta e deixa a autenticação decidir credenciais inválidas (8.7457ms)
+✔ BK01: registo mantém política de password forte (2.0468ms)
+✔ BK06: perfil da empresa assume EUR quando currency é omitida (1.8832ms)
+✔ BK06: perfil da empresa rejeita dia fiscal impossível (0.9894ms)
+✔ BK07: importação vazia é rejeitada (1.5416ms)
+✔ BK10: fornecedor aceita NIF vazio e valida quando preenchido (1.0038ms)
+✔ BK08: período fiscal rejeita datas normalizadas pelo JavaScript (1.0605ms)
+✔ BK01: rate limit de autenticação bloqueia excesso e exige store em produção (1.3716ms)
+✔ BK02: permissões de escrita seguem os atores documentados na MF0 (1.424ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 708.3466
+
+### Passo 5
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> npm --prefix apps/api run test:contracts
+
+> @opsa/api@1.0.0 test:contracts
+> node --test tests/contracts/*.test.js
+
+✔ BK01: resolveSession não propaga passwordHash na sessão nem no utilizador público (3.8741ms)
+✔ BK04/BK05: adapters mock não registam tokens, URLs secretas ou email completo (1.1182ms)
+✔ BK05: rate limit em memória falha explicitamente em produção sem opt-in (5.3004ms)
+✔ BK06: conflito de NIF é mapeado para NIF_ALREADY_EXISTS (1.4662ms)
+✔ BK09/BK10: pesquisa usa nome ou NIF sem alterar listagem base (2.8324ms)
+✔ BK12: nome de armazém duplicado é rejeitado (1.0476ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 809.9895
+
+### Passo 6
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> git diff -- docs/planificacao/guias-bk/MF1 - não devolveu nada
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> git diff -- check - não devolveu nada
+
