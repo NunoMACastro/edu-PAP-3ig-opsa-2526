@@ -103,3 +103,31 @@ npm --prefix apps/web run build
 - PS D:\PAP\edu-PAP-3ig-opsa-2526> git diff -- docs/planificacao/guias-bk/MF1 - não devolveu nada
 - PS D:\PAP\edu-PAP-3ig-opsa-2526> git diff -- check - não devolveu nada
 
+Evidência preparada
+A evidência do BK regista:
+- ficheiros alterados;
+- comandos executados;
+- resultados obtidos;
+- filtros aplicados.
+
+Filtros e regras registadas
+- A consulta usa sempre `companyId` vindo do contexto autenticado.
+- O `companyId` não é recebido no body nem na query.
+- São considerados apenas documentos de venda da empresa ativa.
+- São considerados apenas documentos em estado `ISSUED`.
+- Notas de crédito (`CREDIT_NOTE`) ficam fora da consulta.
+- Documentos com `openAmountCents <= 0` ficam fora da listagem.
+- A data de referência (`asOfDate`) é validada no backend.
+- O saldo em aberto é calculado por `totalCents - amountPaidCents`.
+- Os buckets de antiguidade são calculados no backend.
+
+Comandos executados
+```bash
+git diff -- docs/planificacao/guias-bk/MF1
+git status
+git diff --stat
+git diff --check
+npm --prefix apps/api run prisma:generate
+npm --prefix apps/api run prisma:validate
+npm --prefix apps/api run test:unit
+npm --prefix apps/api run test:contracts
