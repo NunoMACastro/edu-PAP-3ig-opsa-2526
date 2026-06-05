@@ -248,6 +248,7 @@ export function createApiClient(options: ApiClientOptions = {}) {
         request("PATCH", `/vat-rates/${id}/active`, { body }),
     },
 
+<<<<<<< HEAD
     purchaseDocuments: {
       list: () => request("GET", "/purchases/documents"),
       create: (body: JsonBody) =>
@@ -270,6 +271,16 @@ export function createApiClient(options: ApiClientOptions = {}) {
         request("POST", `/sales/documents/${id}/reject`, { body }),
     },
     
+=======
+    salesDocuments: {
+      list: () => request("GET", "/sales/documents"),
+      create: (body: JsonBody) =>
+        request("POST", "/sales/documents", { body }),
+      issue: (id: string) =>
+        request("POST", `/sales/documents/${id}/issue`),
+    },
+
+>>>>>>> 548e745 (update sales)
     accounting: {
       /**
        * Lista contas SNC da empresa.
