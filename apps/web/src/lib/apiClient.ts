@@ -270,6 +270,14 @@ export function createApiClient(options: ApiClientOptions = {}) {
         request("POST", `/sales/documents/${id}/reject`, { body }),
     },
     
+    salesOpenItems: {
+      list: (asOfDate: string) =>
+        request(
+          "GET",
+          `/sales/open-items?asOfDate=${encodeURIComponent(asOfDate)}`,
+        ),
+    },
+
     accounting: {
       /**
        * Lista contas SNC da empresa.
