@@ -13,7 +13,7 @@ export function SalesOpenItemsPage() {
         setError(null);
         try {
             const response = await fetchSalesOpenItems(date);
-            setItems(response.data);
+            setItems(await fetchSalesOpenItems(date));
         } catch (err) {
             setError(err instanceof Error ? err.message : "Não foi possível carregar títulos em aberto.");
         } finally {
