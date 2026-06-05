@@ -259,6 +259,17 @@ export function createApiClient(options: ApiClientOptions = {}) {
         request("POST", `/accounting/sale-postings/${saleDocumentId}`),
     },
 
+    saleApproval: {
+      submit: (id: string) =>
+        request("POST", `/sales/documents/${id}/submit`),
+
+      approve: (id: string) =>
+        request("POST", `/sales/documents/${id}/approve`),
+
+      reject: (id: string, body: JsonBody) =>
+        request("POST", `/sales/documents/${id}/reject`, { body }),
+    },
+    
     accounting: {
       /**
        * Lista contas SNC da empresa.
