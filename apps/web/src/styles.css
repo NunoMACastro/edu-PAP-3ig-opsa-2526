@@ -198,6 +198,14 @@ th {
   padding: 0.65rem;
 }
 
+.success {
+  margin: 0;
+  border-left: 3px solid #1f5f50;
+  background: #edf7f1;
+  color: #174538;
+  padding: 0.65rem;
+}
+
 .empty {
   margin: 0;
   border: 1px solid #d8dfd8;
@@ -205,6 +213,32 @@ th {
   background: #fff;
   padding: 1rem;
   color: #5c6a62;
+}
+
+.inlineActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.inlineActions button {
+  min-height: 2rem;
+  padding: 0.35rem 0.55rem;
+}
+
+.lineFields {
+  display: grid;
+  gap: 0.65rem;
+  margin: 0;
+  border: 1px solid #d8dfd8;
+  border-radius: 6px;
+  padding: 0.75rem;
+}
+
+.lineFields legend {
+  color: #4b5a50;
+  font-size: 0.86rem;
+  font-weight: 600;
 }
 
 @media (max-width: 860px) {

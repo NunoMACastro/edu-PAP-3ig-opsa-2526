@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "build": "vite build",
+    "test:mf1": "node scripts/check-mf1-pages.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

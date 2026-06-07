@@ -1,5 +1,15 @@
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, ReactNode, useEffect, useMemo, useState } from "react";
 import { ApiError, apiClient, JsonBody } from "./lib/apiClient";
+import { PaymentsPage } from "./pages/PaymentsPage";
+import { PurchaseApprovalPage } from "./pages/PurchaseApprovalPage";
+import { PurchaseDocumentsPage } from "./pages/PurchaseDocumentsPage";
+import { PurchasePostingsPage } from "./pages/PurchasePostingsPage";
+import { ReceiptsPage } from "./pages/ReceiptsPage";
+import { SaleApprovalPage } from "./pages/SaleApprovalPage";
+import { SaleDocumentsPage } from "./pages/SaleDocumentsPage";
+import { SalePostingsPage } from "./pages/SalePostingsPage";
+import { SalesOpenItemsPage } from "./pages/SalesOpenItemsPage";
+import { VatRatesPage } from "./pages/VatRatesPage";
 
 type ApiObject = Record<string, unknown>;
 type FieldKind = "text" | "email" | "password" | "number" | "textarea" | "select";
@@ -28,6 +38,12 @@ interface ResourceConfig {
   load: (search?: string) => Promise<ApiObject[]>;
   searchable?: boolean;
   operations: OperationConfig[];
+}
+
+interface PageConfig {
+  id: string;
+  title: string;
+  render: () => ReactNode;
 }
 
 function asObject(value: unknown): ApiObject {
@@ -620,164 +636,56 @@ export function App() {
           },
         ],
       },
-      {
-        id: "vat-rates",
-        title: "Tabelas de IVA",
-        load: async () => pickArray(await apiClient.vatRates.list(), "vatRates"),
-        operations: [
-          {
-            title: "Criar taxa de IVA",
-            submitLabel: "Criar",
-            fields: vatRateFields(),
-            run: (values) => apiClient.vatRates.create(values as JsonBody),
-          },
-          {
-            title: "Ativar/desativar taxa",
-            submitLabel: "Atualizar",
-            fields: [
-              { name: "id", label: "VatRate ID", required: true },
-              {
-                name: "isActive",
-                label: "Estado",
-                kind: "select",
-                required: true,
-                options: [
-                  { value: "true", label: "Ativa" },
-                  { value: "false", label: "Inativa" },
-                ],
-              },
-            ],
-            run: ({ id, isActive }) =>
-              apiClient.vatRates.setActive(String(id), {
-                isActive: isActive === "true",
-              }),
-          },
-        ],
-      },
+    ],
+    [],
+  );
+
+  const mf1Pages = useMemo<PageConfig[]>(
+    () => [
+      { id: "vat-rates", title: "Tabelas de IVA", render: () => <VatRatesPage /> },
       {
         id: "sales-documents",
         title: "Documentos de venda",
-        load: async () =>
-          pickArray(await apiClient.sales.listDocuments(), "saleDocuments"),
-        operations: [
-          {
-            title: "Criar rascunho de venda",
-            submitLabel: "Criar",
-            fields: saleDocumentFields(),
-            run: (values) => apiClient.sales.createDocument(values as JsonBody),
-          },
-          {
-            title: "Submeter venda",
-            submitLabel: "Submeter",
-            fields: [{ name: "id", label: "Documento ID", required: true }],
-            run: ({ id }) => apiClient.sales.submitDocument(String(id)),
-          },
-          {
-            title: "Aprovar venda",
-            submitLabel: "Aprovar",
-            fields: [{ name: "id", label: "Documento ID", required: true }],
-            run: ({ id }) => apiClient.sales.approveDocument(String(id)),
-          },
-          {
-            title: "Rejeitar venda",
-            submitLabel: "Rejeitar",
-            fields: [
-              { name: "id", label: "Documento ID", required: true },
-              { name: "reason", label: "Motivo", required: true },
-            ],
-            run: ({ id, ...body }) =>
-              apiClient.sales.rejectDocument(String(id), body as JsonBody),
-          },
-          {
-            title: "Emitir venda aprovada",
-            submitLabel: "Emitir",
-            fields: [{ name: "id", label: "Documento ID", required: true }],
-            run: ({ id }) => apiClient.sales.issueDocument(String(id)),
-          },
-          {
-            title: "Registar recebimento",
-            submitLabel: "Registar",
-            fields: paymentLikeFields("receivedAt"),
-            run: ({ id, ...body }) =>
-              apiClient.sales.registerReceipt(String(id), body as JsonBody),
-          },
-        ],
+        render: () => <SaleDocumentsPage />,
       },
+      { id: "receipts", title: "Recebimentos", render: () => <ReceiptsPage /> },
       {
         id: "sales-open-items",
         title: "Titulos em aberto",
-        load: async () =>
-          pickArray(await apiClient.sales.listOpenItems(), "openItems"),
-        operations: [],
+        render: () => <SalesOpenItemsPage />,
+      },
+      {
+        id: "sale-approval",
+        title: "Aprovacao de vendas",
+        render: () => <SaleApprovalPage />,
       },
       {
         id: "sale-postings",
         title: "Lancamentos de vendas",
-        load: async () =>
-          pickArray(await apiClient.sales.listDocuments(), "saleDocuments"),
-        operations: [
-          {
-            title: "Contabilizar venda",
-            submitLabel: "Contabilizar",
-            fields: [{ name: "id", label: "Documento ID", required: true }],
-            run: ({ id }) => apiClient.accounting.postSaleDocument(String(id)),
-          },
-        ],
+        render: () => <SalePostingsPage />,
       },
       {
         id: "purchase-documents",
         title: "Documentos de compra",
-        load: async () =>
-          pickArray(await apiClient.purchases.listDocuments(), "purchaseDocuments"),
-        operations: [
-          {
-            title: "Criar rascunho de compra",
-            submitLabel: "Criar",
-            fields: purchaseDocumentFields(),
-            run: (values) =>
-              apiClient.purchases.createDocument(values as JsonBody),
-          },
-          {
-            title: "Aprovar compra",
-            submitLabel: "Aprovar",
-            fields: [{ name: "id", label: "Documento ID", required: true }],
-            run: ({ id }) => apiClient.purchases.approveDocument(String(id)),
-          },
-          {
-            title: "Lancar compra aprovada",
-            submitLabel: "Lancar",
-            fields: [{ name: "id", label: "Documento ID", required: true }],
-            run: ({ id }) => apiClient.purchases.postState(String(id)),
-          },
-          {
-            title: "Registar pagamento",
-            submitLabel: "Registar",
-            fields: paymentLikeFields("paidAt"),
-            run: ({ id, ...body }) =>
-              apiClient.purchases.registerPayment(String(id), body as JsonBody),
-          },
-        ],
+        render: () => <PurchaseDocumentsPage />,
+      },
+      { id: "payments", title: "Pagamentos", render: () => <PaymentsPage /> },
+      {
+        id: "purchase-approval",
+        title: "Aprovacao de compras",
+        render: () => <PurchaseApprovalPage />,
       },
       {
         id: "purchase-postings",
         title: "Lancamentos de compras",
-        load: async () =>
-          pickArray(await apiClient.purchases.listDocuments(), "purchaseDocuments"),
-        operations: [
-          {
-            title: "Contabilizar compra",
-            submitLabel: "Contabilizar",
-            fields: [{ name: "id", label: "Documento ID", required: true }],
-            run: ({ id }) =>
-              apiClient.accounting.postPurchaseDocument(String(id)),
-          },
-        ],
+        render: () => <PurchasePostingsPage />,
       },
     ],
     [],
   );
 
   const activeResource = resources.find((resource) => resource.id === active);
+  const activePage = mf1Pages.find((page) => page.id === active);
 
   return (
     <main className="appShell">
@@ -804,6 +712,16 @@ export function App() {
               {resource.title}
             </button>
           ))}
+          {mf1Pages.map((page) => (
+            <button
+              key={page.id}
+              className={active === page.id ? "active" : ""}
+              type="button"
+              onClick={() => setActive(page.id)}
+            >
+              {page.title}
+            </button>
+          ))}
         </nav>
         <pre className="sessionBox">{JSON.stringify(authSnapshot, null, 2)}</pre>
       </aside>
@@ -812,6 +730,8 @@ export function App() {
           <AuthPanel onAuthChange={async (snapshot) => setAuthSnapshot(snapshot)} />
         ) : activeResource ? (
           <ResourcePanel key={activeResource.id} resource={activeResource} />
+        ) : activePage ? (
+          activePage.render()
         ) : null}
       </div>
     </main>
@@ -878,120 +798,5 @@ function itemFields(): FieldConfig[] {
     { name: "costCents", label: "Custo em centimos", kind: "number", required: true },
     { name: "priceCents", label: "Preco em centimos", kind: "number", required: true },
     { name: "vatRateBps", label: "IVA bps", kind: "number", required: true },
-  ];
-}
-
-function vatRateFields(): FieldConfig[] {
-  return [
-    { name: "code", label: "Codigo", required: true },
-    { name: "description", label: "Descricao", required: true },
-    { name: "rateBps", label: "Taxa bps", kind: "number", required: true },
-    {
-      name: "type",
-      label: "Tipo",
-      kind: "select",
-      required: true,
-      options: [
-        { value: "NORMAL", label: "Normal" },
-        { value: "INTERMEDIATE", label: "Intermedia" },
-        { value: "REDUCED", label: "Reduzida" },
-        { value: "EXEMPT", label: "Isenta" },
-        { value: "OTHER", label: "Outra" },
-      ],
-    },
-    { name: "exemptionReason", label: "Motivo de isencao" },
-  ];
-}
-
-function saleDocumentFields(): FieldConfig[] {
-  return [
-    {
-      name: "kind",
-      label: "Tipo",
-      kind: "select",
-      required: true,
-      options: [
-        { value: "INVOICE", label: "Fatura" },
-        { value: "INVOICE_RECEIPT", label: "Fatura-recibo" },
-        { value: "CREDIT_NOTE", label: "Nota de credito" },
-      ],
-    },
-    { name: "customerId", label: "Cliente ID", required: true },
-    {
-      name: "issuedAt",
-      label: "Data",
-      required: true,
-      defaultValue: new Date().toISOString().slice(0, 10),
-    },
-    { name: "dueDate", label: "Vencimento" },
-    {
-      name: "lines",
-      label: "Linhas JSON",
-      kind: "textarea",
-      json: true,
-      required: true,
-      defaultValue:
-        '[{"itemId":"","vatRateId":"","description":"","quantity":1,"unitPriceCents":1000}]',
-    },
-  ];
-}
-
-function purchaseDocumentFields(): FieldConfig[] {
-  return [
-    {
-      name: "kind",
-      label: "Tipo",
-      kind: "select",
-      required: true,
-      options: [
-        { value: "SUPPLIER_INVOICE", label: "Fatura fornecedor" },
-        { value: "SUPPLIER_CREDIT_NOTE", label: "Nota de credito" },
-      ],
-    },
-    { name: "supplierId", label: "Fornecedor ID", required: true },
-    { name: "supplierNumber", label: "Numero fornecedor", required: true },
-    {
-      name: "issuedAt",
-      label: "Data",
-      required: true,
-      defaultValue: new Date().toISOString().slice(0, 10),
-    },
-    { name: "dueDate", label: "Vencimento" },
-    {
-      name: "lines",
-      label: "Linhas JSON",
-      kind: "textarea",
-      json: true,
-      required: true,
-      defaultValue:
-        '[{"itemId":"","vatRateId":"","description":"","quantity":1,"unitCostCents":1000}]',
-    },
-  ];
-}
-
-function paymentLikeFields(dateField: "receivedAt" | "paidAt"): FieldConfig[] {
-  return [
-    { name: "id", label: "Documento ID", required: true },
-    { name: "amountCents", label: "Valor em centimos", kind: "number", required: true },
-    {
-      name: dateField,
-      label: "Data",
-      required: true,
-      defaultValue: new Date().toISOString().slice(0, 10),
-    },
-    {
-      name: "method",
-      label: "Metodo",
-      kind: "select",
-      required: true,
-      options: [
-        { value: "CASH", label: "Numerario" },
-        { value: "BANK_TRANSFER", label: "Transferencia" },
-        { value: "CARD", label: "Cartao" },
-        { value: "OTHER", label: "Outro" },
-      ],
-    },
-    { name: "reference", label: "Referencia" },
-    { name: "notes", label: "Notas" },
   ];
 }
