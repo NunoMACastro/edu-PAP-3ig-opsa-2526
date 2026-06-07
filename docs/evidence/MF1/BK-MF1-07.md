@@ -133,7 +133,7 @@ A evidência do BK regista:
 Decisões registadas
 - Os documentos de compra são sempre associados à empresa ativa através de `companyId`.
 - O `companyId` nunca é recebido pelo body do pedido.
-- O documento de compra nasce em estado `APPROVED`, conforme decisão temporária do guia.
+- O documento de compra nasce em estado `DRAFT`, alinhado com o workflow formal do BK-MF1-10.
 - O número do fornecedor é único por empresa, fornecedor e número externo.
 - Os totais (`subtotalCents`, `vatCents`, `totalCents`) são calculados exclusivamente no backend.
 - As notas de crédito de fornecedor são guardadas com valores positivos.
@@ -173,7 +173,7 @@ Negativos
     Data fora de período fiscal aberto é bloqueada.
 
 Bloqueios e limites do BK
-    O estado inicial `APPROVED` é temporário até ao BK-MF1-10.
+    O estado inicial é `DRAFT` para respeitar o workflow formal `DRAFT -> APPROVED -> POSTED`.
     Todas as compras são filtradas por `companyId`.
     O `companyId` é obtido exclusivamente da sessão autenticada.
     Pagamentos pertencem ao BK-MF1-08.
@@ -227,3 +227,10 @@ npm --prefix apps/api run prisma:validate
 npm --prefix apps/api run prisma:generate
 npm --prefix apps/api run test:contracts
 npm --prefix apps/api run test:unit
+```
+
+### Correcao de evidence - 2026-06-07
+
+Esta evidence foi atualizada para remover o drift antigo que descrevia compras a nascerem em `APPROVED`.
+O contrato correto da MF1, depois do BK-MF1-10, e que novas compras nascem em `DRAFT` e so seguem para `APPROVED` por aprovacao explicita.
+Os caminhos de ficheiros permanecem em `apps/`, porque essa e a arvore canonica usada pelos alunos.
