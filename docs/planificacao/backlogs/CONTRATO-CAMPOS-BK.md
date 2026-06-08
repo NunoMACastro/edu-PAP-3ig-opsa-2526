@@ -55,11 +55,11 @@ Formalizar os campos obrigatorios por BK para manter coerencia entre `MATRIZ-CAN
 | BK-MF1-09 | MF1 | S03-S04 | Oleksii | RF21 | BK-MF0-03, BK-MF0-08, BK-MF1-04, BK-MF1-07 | docs/planificacao/guias-bk/MF1/BK-MF1-09-gerar-lancamentos-contabilisticos-automaticos-de-compras.md | Reforco |
 | BK-MF1-10 | MF1 | S03-S04 | Andre | RF22 | BK-MF0-03, BK-MF0-08, BK-MF1-07, BK-MF1-09 | docs/planificacao/guias-bk/MF1/BK-MF1-10-aprovacao-de-compras-com-estados-rascunho-aprovado-lancado.md | Core |
 | BK-MF2-01 | MF2 | S05-S06 | Sofia | RF23 | BK-MF1-10 | docs/planificacao/guias-bk/MF2/BK-MF2-01-historico-e-justificacoes-para-aprovacoes-reprovacoes.md | Core |
-| BK-MF2-02 | MF2 | S05-S06 | Oleksii | RF24 | BK-MF0-11, BK-MF0-12 | docs/planificacao/guias-bk/MF2/BK-MF2-02-movimentos-de-stock-entradas-saidas-transferencias-devolucoes.md | Reforco |
+| BK-MF2-02 | MF2 | S05-S06 | Oleksii | RF24 | BK-MF0-03, BK-MF0-11, BK-MF0-12 | docs/planificacao/guias-bk/MF2/BK-MF2-02-movimentos-de-stock-entradas-saidas-transferencias-devolucoes.md | Reforco |
 | BK-MF2-03 | MF2 | S05-S06 | Oleksii | RF25 | BK-MF2-02 | docs/planificacao/guias-bk/MF2/BK-MF2-03-calculo-de-custo-fifo.md | Reforco |
-| BK-MF2-04 | MF2 | S05-S06 | Andre | RF26 | BK-MF2-02 | docs/planificacao/guias-bk/MF2/BK-MF2-04-contagem-fisica-e-ajustes.md | Core |
+| BK-MF2-04 | MF2 | S05-S06 | Andre | RF26 | BK-MF2-02, BK-MF2-03 | docs/planificacao/guias-bk/MF2/BK-MF2-04-contagem-fisica-e-ajustes.md | Core |
 | BK-MF2-05 | MF2 | S05-S06 | Pedro | RF27 | BK-MF2-02 | docs/planificacao/guias-bk/MF2/BK-MF2-05-alertas-de-stock-minimos-maximos-artigos-parados.md | Core |
-| BK-MF2-06 | MF2 | S05-S06 | Oleksii | RF28 | BK-MF0-07 | docs/planificacao/guias-bk/MF2/BK-MF2-06-criar-e-editar-lancamentos-manuais-com-anexos.md | Reforco |
+| BK-MF2-06 | MF2 | S05-S06 | Oleksii | RF28 | BK-MF0-03, BK-MF0-07, BK-MF0-08 | docs/planificacao/guias-bk/MF2/BK-MF2-06-criar-e-editar-lancamentos-manuais-com-anexos.md | Reforco |
 | BK-MF2-07 | MF2 | S05-S06 | Andre | RF29 | BK-MF2-06 | docs/planificacao/guias-bk/MF2/BK-MF2-07-consultar-balancete-e-razao-exportavel-pdf-excel.md | Reforco |
 | BK-MF2-08 | MF2 | S05-S06 | Pedro | RF30 | BK-MF2-07 | docs/planificacao/guias-bk/MF2/BK-MF2-08-gerar-demonstracao-de-resultados-e-balanco.md | Reforco |
 | BK-MF3-01 | MF3 | S07-S08 | Oleksii | RF31 | BK-MF1-04, BK-MF1-09 | docs/planificacao/guias-bk/MF3/BK-MF3-01-gerar-mapas-de-iva-liquidado-dedutivel.md | Reforco |

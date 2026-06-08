@@ -43,11 +43,11 @@ Quando um campo nao estiver explicito nesta tabela, e derivado dos anexos canón
 | BK-MF1-09 | MF1 | Gerar lançamentos contabilísticos automáticos de compras. | Oleksii | Andre | P0 | TODO | M | BK-MF0-03, BK-MF0-08, BK-MF1-04, BK-MF1-07 | RF21 | Fase 1 | BK-MF1-10 |
 | BK-MF1-10 | MF1 | Aprovação de compras com estados “Rascunho → Aprovado → Lançado”. | Andre | Oleksii | P1 | TODO | S | BK-MF0-03, BK-MF0-08, BK-MF1-07, BK-MF1-09 | RF22 | Fase 1 | BK-MF2-01 |
 | BK-MF2-01 | MF2 | Histórico e justificações para aprovações/reprovações. | Sofia | Oleksii | P1 | TODO | S | BK-MF1-10 | RF23 | Fase 1 | BK-MF2-02 |
-| BK-MF2-02 | MF2 | Movimentos de stock: entradas, saídas, transferências, devoluções. | Oleksii | Andre | P0 | TODO | M | BK-MF0-11, BK-MF0-12 | RF24 | Fase 1 | BK-MF2-03 |
+| BK-MF2-02 | MF2 | Movimentos de stock: entradas, saídas, transferências, devoluções. | Oleksii | Andre | P0 | TODO | M | BK-MF0-03, BK-MF0-11, BK-MF0-12 | RF24 | Fase 1 | BK-MF2-03 |
 | BK-MF2-03 | MF2 | Cálculo de custo (FIFO). | Oleksii | Pedro | P0 | TODO | M | BK-MF2-02 | RF25 | Fase 1 | BK-MF2-04 |
-| BK-MF2-04 | MF2 | Contagem física e ajustes. | Andre | Oleksii | P1 | TODO | S | BK-MF2-02 | RF26 | Fase 1 | BK-MF2-05 |
+| BK-MF2-04 | MF2 | Contagem física e ajustes. | Andre | Oleksii | P1 | TODO | S | BK-MF2-02, BK-MF2-03 | RF26 | Fase 1 | BK-MF2-05 |
 | BK-MF2-05 | MF2 | Alertas de stock (mínimos, máximos, artigos parados). | Pedro | Andre | P1 | TODO | S | BK-MF2-02 | RF27 | Fase 1 | BK-MF2-06 |
-| BK-MF2-06 | MF2 | Criar e editar lançamentos manuais (com anexos). | Oleksii | Pedro | P0 | TODO | M | BK-MF0-07 | RF28 | Fase 1 | BK-MF2-07 |
+| BK-MF2-06 | MF2 | Criar e editar lançamentos manuais (com anexos). | Oleksii | Pedro | P0 | TODO | M | BK-MF0-03, BK-MF0-07, BK-MF0-08 | RF28 | Fase 1 | BK-MF2-07 |
 | BK-MF2-07 | MF2 | Consultar balancete e razão exportável (PDF/Excel). | Andre | Oleksii | P0 | TODO | M | BK-MF2-06 | RF29 | Fase 1 | BK-MF2-08 |
 | BK-MF2-08 | MF2 | Gerar Demonstração de Resultados e Balanço. | Pedro | Andre | P0 | TODO | M | BK-MF2-07 | RF30 | Fase 1 | BK-MF3-01 |
 | BK-MF3-01 | MF3 | Gerar Mapas de IVA (liquidado/dedutível). | Oleksii | Andre | P0 | TODO | M | BK-MF1-04, BK-MF1-09 | RF31 | Fase 2 | BK-MF3-02 |

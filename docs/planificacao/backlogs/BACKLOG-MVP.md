@@ -68,11 +68,11 @@ Campos obrigatorios: `bk_id`, `owner`, `prioridade`, `estado`, `esforco`, `depen
 | BK-MF1-09 | MF1 | Gerar lançamentos contabilísticos automáticos de compras. | Oleksii | Andre | P0 | TODO | M | BK-MF0-03, BK-MF0-08, BK-MF1-04, BK-MF1-07 | RF21 | Fase 1 | BK-MF1-10 | [guia](../guias-bk/MF1/BK-MF1-09-gerar-lancamentos-contabilisticos-automaticos-de-compras.md) |
 | BK-MF1-10 | MF1 | Aprovação de compras com estados “Rascunho → Aprovado → Lançado”. | Andre | Oleksii | P1 | TODO | S | BK-MF0-03, BK-MF0-08, BK-MF1-07, BK-MF1-09 | RF22 | Fase 1 | BK-MF2-01 | [guia](../guias-bk/MF1/BK-MF1-10-aprovacao-de-compras-com-estados-rascunho-aprovado-lancado.md) |
 | BK-MF2-01 | MF2 | Histórico e justificações para aprovações/reprovações. | Sofia | Oleksii | P1 | TODO | S | BK-MF1-10 | RF23 | Fase 1 | BK-MF2-02 | [guia](../guias-bk/MF2/BK-MF2-01-historico-e-justificacoes-para-aprovacoes-reprovacoes.md) |
-| BK-MF2-02 | MF2 | Movimentos de stock: entradas, saídas, transferências, devoluções. | Oleksii | Andre | P0 | TODO | M | BK-MF0-11, BK-MF0-12 | RF24 | Fase 1 | BK-MF2-03 | [guia](../guias-bk/MF2/BK-MF2-02-movimentos-de-stock-entradas-saidas-transferencias-devolucoes.md) |
+| BK-MF2-02 | MF2 | Movimentos de stock: entradas, saídas, transferências, devoluções. | Oleksii | Andre | P0 | TODO | M | BK-MF0-03, BK-MF0-11, BK-MF0-12 | RF24 | Fase 1 | BK-MF2-03 | [guia](../guias-bk/MF2/BK-MF2-02-movimentos-de-stock-entradas-saidas-transferencias-devolucoes.md) |
 | BK-MF2-03 | MF2 | Cálculo de custo (FIFO). | Oleksii | Pedro | P0 | TODO | M | BK-MF2-02 | RF25 | Fase 1 | BK-MF2-04 | [guia](../guias-bk/MF2/BK-MF2-03-calculo-de-custo-fifo.md) |
-| BK-MF2-04 | MF2 | Contagem física e ajustes. | Andre | Oleksii | P1 | TODO | S | BK-MF2-02 | RF26 | Fase 1 | BK-MF2-05 | [guia](../guias-bk/MF2/BK-MF2-04-contagem-fisica-e-ajustes.md) |
+| BK-MF2-04 | MF2 | Contagem física e ajustes. | Andre | Oleksii | P1 | TODO | S | BK-MF2-02, BK-MF2-03 | RF26 | Fase 1 | BK-MF2-05 | [guia](../guias-bk/MF2/BK-MF2-04-contagem-fisica-e-ajustes.md) |
 | BK-MF2-05 | MF2 | Alertas de stock (mínimos, máximos, artigos parados). | Pedro | Andre | P1 | TODO | S | BK-MF2-02 | RF27 | Fase 1 | BK-MF2-06 | [guia](../guias-bk/MF2/BK-MF2-05-alertas-de-stock-minimos-maximos-artigos-parados.md) |
-| BK-MF2-06 | MF2 | Criar e editar lançamentos manuais (com anexos). | Oleksii | Pedro | P0 | TODO | M | BK-MF0-07 | RF28 | Fase 1 | BK-MF2-07 | [guia](../guias-bk/MF2/BK-MF2-06-criar-e-editar-lancamentos-manuais-com-anexos.md) |
+| BK-MF2-06 | MF2 | Criar e editar lançamentos manuais (com anexos). | Oleksii | Pedro | P0 | TODO | M | BK-MF0-03, BK-MF0-07, BK-MF0-08 | RF28 | Fase 1 | BK-MF2-07 | [guia](../guias-bk/MF2/BK-MF2-06-criar-e-editar-lancamentos-manuais-com-anexos.md) |
 | BK-MF2-07 | MF2 | Consultar balancete e razão exportável (PDF/Excel). | Andre | Oleksii | P0 | TODO | M | BK-MF2-06 | RF29 | Fase 1 | BK-MF2-08 | [guia](../guias-bk/MF2/BK-MF2-07-consultar-balancete-e-razao-exportavel-pdf-excel.md) |
 | BK-MF2-08 | MF2 | Gerar Demonstração de Resultados e Balanço. | Pedro | Andre | P0 | TODO | M | BK-MF2-07 | RF30 | Fase 1 | BK-MF3-01 | [guia](../guias-bk/MF2/BK-MF2-08-gerar-demonstracao-de-resultados-e-balanco.md) |
 | BK-MF3-01 | MF3 | Gerar Mapas de IVA (liquidado/dedutível). | Oleksii | Andre | P0 | TODO | M | BK-MF1-04, BK-MF1-09 | RF31 | Fase 2 | BK-MF3-02 | [guia](../guias-bk/MF3/BK-MF3-01-gerar-mapas-de-iva-liquidado-dedutivel.md) |
@@ -163,11 +163,11 @@ Campos obrigatorios: `bk_id`, `owner`, `prioridade`, `estado`, `esforco`, `depen
 | bk_id | titulo | owner | apoio | prioridade | estado | esforco | dependencias | rf_rnf | proximo_bk |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | BK-MF2-01 | Histórico e justificações para aprovações/reprovações. | Sofia | Oleksii | P1 | TODO | S | BK-MF1-10 | RF23 | BK-MF2-02 |
-| BK-MF2-02 | Movimentos de stock: entradas, saídas, transferências, devoluções. | Oleksii | Andre | P0 | TODO | M | BK-MF0-11, BK-MF0-12 | RF24 | BK-MF2-03 |
+| BK-MF2-02 | Movimentos de stock: entradas, saídas, transferências, devoluções. | Oleksii | Andre | P0 | TODO | M | BK-MF0-03, BK-MF0-11, BK-MF0-12 | RF24 | BK-MF2-03 |
 | BK-MF2-03 | Cálculo de custo (FIFO). | Oleksii | Pedro | P0 | TODO | M | BK-MF2-02 | RF25 | BK-MF2-04 |
-| BK-MF2-04 | Contagem física e ajustes. | Andre | Oleksii | P1 | TODO | S | BK-MF2-02 | RF26 | BK-MF2-05 |
+| BK-MF2-04 | Contagem física e ajustes. | Andre | Oleksii | P1 | TODO | S | BK-MF2-02, BK-MF2-03 | RF26 | BK-MF2-05 |
 | BK-MF2-05 | Alertas de stock (mínimos, máximos, artigos parados). | Pedro | Andre | P1 | TODO | S | BK-MF2-02 | RF27 | BK-MF2-06 |
-| BK-MF2-06 | Criar e editar lançamentos manuais (com anexos). | Oleksii | Pedro | P0 | TODO | M | BK-MF0-07 | RF28 | BK-MF2-07 |
+| BK-MF2-06 | Criar e editar lançamentos manuais (com anexos). | Oleksii | Pedro | P0 | TODO | M | BK-MF0-03, BK-MF0-07, BK-MF0-08 | RF28 | BK-MF2-07 |
 | BK-MF2-07 | Consultar balancete e razão exportável (PDF/Excel). | Andre | Oleksii | P0 | TODO | M | BK-MF2-06 | RF29 | BK-MF2-08 |
 | BK-MF2-08 | Gerar Demonstração de Resultados e Balanço. | Pedro | Andre | P0 | TODO | M | BK-MF2-07 | RF30 | BK-MF3-01 |
 

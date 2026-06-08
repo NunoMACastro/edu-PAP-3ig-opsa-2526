@@ -1,7 +1,5 @@
 # Requisitos Funcionais - Aplicação **OPSA**
 
-weee
-
 ## Índice
 
 1. [1 Identidade, Acesso e Perfis](#1-identidade-acesso-e-perfis)
