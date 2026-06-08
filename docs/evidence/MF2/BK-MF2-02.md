@@ -99,3 +99,25 @@ dist/assets/index-C5k3vmep.js   223.70 kB │ gzip: 66.74 kB
 
 ✓ built in 2.89s
 
+Passo 6
+Ficheiros criados/editados:
+- criado apps/web/src/pages/StockMovementsPage.tsx;
+- editado apps/web/src/App.tsx para expor a página no frontend.
+
+Regras implementadas:
+- formulário mínimo para criar movimentos de stock;
+- suporte aos tipos ENTRY, EXIT, TRANSFER e RETURN;
+- campos itemId, fromWarehouseId, toWarehouseId, quantity e reason;
+- chamada ao cliente createStockMovement;
+- estado loading durante submissão;
+- mensagem de sucesso após criação;
+- mensagem de erro quando a API rejeita o pedido;
+- a UI não envia companyId;
+- regras críticas continuam no backend.
+
+Cenários validados:
+- formulário visível e funcional;
+- submissão válida chama a API;
+- sucesso mostra “Movimento criado.”;
+- erro da API aparece no elemento com role="alert";
+- a página não assume sucesso quando o backend rejeita o pedido.
