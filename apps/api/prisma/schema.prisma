@@ -76,6 +76,7 @@ enum PurchaseDocumentKind {
 enum PurchaseDocumentStatus {
   DRAFT
   APPROVED
+  REJECTED
   POSTED
   PAID
 }
@@ -85,6 +86,11 @@ enum PaymentMethod {
   BANK_TRANSFER
   CARD
   OTHER
+}
+
+enum PurchaseDecisionAction {
+  APPROVED
+  REJECTED
 }
 
 model User {
@@ -99,6 +105,7 @@ model User {
   auditLogs           AuditLog[]
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
+  // purchaseApprovalDecisions PurchaseApprovalHistory[]
 }
 
 model Session {
@@ -152,7 +159,8 @@ model Company {
   auditLogs         AuditLog[]
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
-}
+ // purchaseApprovalHistories PurchaseApprovalHistory[]
+ }
 
 model CompanyMembership {
   id        String   @id @default(uuid())
@@ -471,6 +479,7 @@ model PurchaseDocument {
   @@unique([companyId, supplierId, supplierNumber])
   @@index([companyId, supplierId, issuedAt])
   @@index([companyId, status, issuedAt])
+  // approvalHistory PurchaseApprovalHistory[]
 }
 
 model PurchaseDocumentLine {
@@ -557,4 +566,19 @@ model WarehouseLocation {
   @@unique([warehouseId, code])
   @@unique([warehouseId, name])
   @@index([warehouseId])
+}
+
+model PurchaseApprovalHistory {
+  id                 String                 @id @default(uuid())
+  companyId          String
+  company            Company                @relation(fields: [companyId], references: [id])
+  purchaseDocumentId String
+  purchaseDocument   PurchaseDocument       @relation(fields: [purchaseDocumentId], references: [id])
+  action             PurchaseDecisionAction
+  reason             String
+  decidedById        String
+  decidedBy          User                   @relation(fields: [decidedById], references: [id])
+  decidedAt          DateTime               @default(now())
+
+  @@index([companyId, purchaseDocumentId, decidedAt])
 }
