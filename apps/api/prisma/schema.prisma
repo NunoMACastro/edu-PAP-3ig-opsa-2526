@@ -87,6 +87,14 @@ enum PaymentMethod {
   OTHER
 }
 
+enum StockMovementType {
+  ENTRY 
+  EXIT 
+  TRANSFER 
+  RETURN 
+  ADJUSTMENT 
+}
+
 model User {
   id                  String               @id @default(uuid())
   email               String               @unique
@@ -97,6 +105,7 @@ model User {
   memberships         CompanyMembership[]
   passwordResetTokens PasswordResetToken[]
   auditLogs           AuditLog[]
+  stockMovements      StockMovement[]
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
 }
@@ -150,6 +159,8 @@ model Company {
   purchaseDocuments PurchaseDocument[]
   payments          Payment[]
   auditLogs         AuditLog[]
+  stockBalances     StockBalance[]
+  stockMovements    StockMovement[]
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
 }
@@ -298,6 +309,8 @@ model Item {
   isActive              Boolean                @default(true)
   saleDocumentLines     SaleDocumentLine[]
   purchaseDocumentLines PurchaseDocumentLine[]
+  stockBalances         StockBalance[]
+  stockMovements        StockMovement[]
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
 
@@ -535,9 +548,10 @@ model Warehouse {
   locations WarehouseLocation[]
   createdAt DateTime            @default(now())
   updatedAt DateTime            @updatedAt
-
+  stockBalances StockBalance[]
   company Company @relation(fields: [companyId], references: [id])
-
+  outgoingStockMovements StockMovement[] @relation("StockMovementFromWarehouse")
+  incomingStockMovements StockMovement[] @relation("StockMovementToWarehouse")
   @@unique([companyId, code])
   @@unique([companyId, name])
   @@index([companyId])
@@ -557,4 +571,43 @@ model WarehouseLocation {
   @@unique([warehouseId, code])
   @@unique([warehouseId, name])
   @@index([warehouseId])
+}
+
+model StockBalance {
+  id          String    @id @default(uuid())
+  companyId   String
+  company     Company   @relation(fields: [companyId], references: [id])
+  itemId      String
+  item        Item      @relation(fields: [itemId], references: [id])
+  warehouseId String
+  warehouse   Warehouse @relation(fields: [warehouseId], references: [id])
+  quantity    Decimal   @default(0) @db.Decimal(18, 3)
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([companyId, itemId, warehouseId])
+  @@index([companyId, warehouseId])
+}
+
+model StockMovement {
+  id              String            @id @default(uuid())
+  companyId       String
+  company         Company           @relation(fields: [companyId], references: [id])
+  itemId          String
+  item            Item              @relation(fields: [itemId], references: [id])
+  type            StockMovementType
+  quantity        Decimal           @db.Decimal(18, 3)
+  fromWarehouseId String?
+  fromWarehouse   Warehouse?        @relation("StockMovementFromWarehouse", fields: [fromWarehouseId], references: [id])
+  toWarehouseId   String?
+  toWarehouse     Warehouse?        @relation("StockMovementToWarehouse", fields: [toWarehouseId], references: [id])
+  reason          String
+  sourceType      String?
+  sourceId        String?
+  createdById     String
+  createdBy       User              @relation(fields: [createdById], references: [id])
+  createdAt       DateTime          @default(now())
+
+  @@index([companyId, itemId, createdAt])
+  @@index([companyId, fromWarehouseId])
+  @@index([companyId, toWarehouseId])
 }
