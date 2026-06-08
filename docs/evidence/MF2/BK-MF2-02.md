@@ -62,6 +62,70 @@ Regras implementadas:
 - erros normalizados com toHttpError;
 - listagem limitada aos movimentos da empresa ativa.
 
+Validação executada:
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> npm --prefix apps/api run test:unit
+
+> @opsa/api@1.0.0 test:unit
+> node --test tests/unit/*.test.js
+
+✔ BK01: login aceita password curta e deixa a autenticação decidir credenciais inválidas (4.6001ms)
+✔ BK01: registo mantém política de password forte (1.7369ms)
+✔ BK06: perfil da empresa assume EUR quando currency é omitida (1.4727ms)
+✔ BK06: perfil da empresa rejeita dia fiscal impossível (0.7666ms)
+✔ BK07: importação vazia é rejeitada (0.7686ms)
+✔ BK10: fornecedor aceita NIF vazio e valida quando preenchido (0.9332ms)
+✔ BK08: período fiscal rejeita datas normalizadas pelo JavaScript (1.009ms)
+✔ BK01: rate limit de autenticação bloqueia excesso e exige store em produção (1.0567ms)
+✔ BK02: permissões de escrita seguem os atores documentados na MF0 (0.8317ms)
+✔ BK-MF1-01: IVA isento exige motivo de isenção (4.746ms)
+✔ BK-MF1-02: venda calcula totais no backend e usa companyId do contexto (4.8106ms)
+✔ BK-MF1-06: emissão definitiva exige venda aprovada (1.4239ms)
+✔ BK-MF1-02: emissão definitiva reserva número por upsert atómico (2.7748ms)
+✔ BK-MF1-02: emissão concorrente não reserva número sem claim do documento (1.2302ms)
+✔ BK-MF1-03: recebimento não pode exceder montante em aberto (1.5301ms)
+✔ BK-MF1-03: recebimento rejeita saldo alterado em concorrência (1.3737ms)
+✔ BK-MF1-05: títulos em aberto calculam antiguidade e ignoram liquidados (1.7586ms)
+✔ BK-MF1-07/BK-MF1-10: compra nasce em rascunho com totais backend (3.7865ms)
+✔ BK-MF1-08: pagamento rejeita compra ainda em rascunho (1.6961ms)
+✔ BK-MF1-08: pagamento rejeita saldo alterado em concorrência (1.3477ms)
+✔ BK-MF1-08: pagamento total não altera estado contabilístico da compra (1.1193ms)
+✔ BK-MF1-09: lançamento de compra fica balanceado (2.1232ms)
+✔ BK-MF1-10: compra paga pode ser lançada e termina em POSTED (1.3223ms)
+✔ BK-MF1-10: aprovação de compra só aceita rascunho (1.048ms)
+ℹ tests 25
+ℹ suites 0
+ℹ pass 25
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1125.7267
+
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> npm --prefix apps/api run test:contracts
+
+> @opsa/api@1.0.0 test:contracts
+> node --test tests/contracts/*.test.js
+
+✔ BK01: resolveSession não propaga passwordHash na sessão nem no utilizador público (20.0346ms)
+✔ BK04/BK05: adapters mock não registam tokens, URLs secretas ou email completo (1.6759ms)
+✔ BK05: rate limit em memória falha explicitamente em produção sem opt-in (3.0782ms)
+✔ BK06: conflito de NIF é mapeado para NIF_ALREADY_EXISTS (1.6405ms)
+✔ BK09/BK10: pesquisa usa nome ou NIF sem alterar listagem base (3.6392ms)
+✔ BK12: nome de armazém duplicado é rejeitado (2.8643ms)
+✔ MF1: permissões backend separam escrita operacional, aprovação e contabilidade (3.4638ms)
+✔ MF1: routers principais montam sem dependências inexistentes (12.9777ms)
+✔ MF1 HTTP: criar venda sem sessão devolve erro de autenticação (4.8516ms)
+✔ MF1 HTTP: operacional não pode aprovar venda (4.2812ms)
+✔ MF1 HTTP: pagamento em compra rascunho devolve regra de estado (7.1431ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2206.6245
+
 Passo 5
 Ficheiros criados:
 - apps/web/src/lib/stockMovementsApi.ts
