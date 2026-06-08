@@ -63,3 +63,39 @@ Regras implementadas:
 - listagem limitada aos movimentos da empresa ativa.
 
 Passo 5
+Ficheiros criados:
+- apps/web/src/lib/stockMovementsApi.ts
+
+Regras implementadas:
+- criado tipo StockMovementType;
+- criado tipo StockMovementInput;
+- criada função createStockMovement;
+- chamada POST para /api/inventory/stock-movements;
+- envio de JSON com Content-Type application/json;
+- credentials: "include" usado para manter sessão por cookie HttpOnly;
+- companyId não é enviado pelo frontend;
+- erros da API são convertidos em Error com mensagem clara.
+
+Cenário negativo validado:
+- se response.ok for false, createStockMovement lança Error com a mensagem devolvida pela API.
+
+Validação executada:
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> npm --prefix apps/web run typecheck
+
+> @opsa/web@1.0.0 typecheck
+> tsc --noEmit
+
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> npm --prefix apps/web run build
+
+> @opsa/web@1.0.0 build
+> vite build
+
+vite v8.0.16 building client environment for production...
+✓ 37 modules transformed.
+computing gzip size...
+dist/index.html                   0.40 kB │ gzip:  0.28 kB
+dist/assets/index-I1u2FZO0.css    2.81 kB │ gzip:  1.06 kB
+dist/assets/index-C5k3vmep.js   223.70 kB │ gzip: 66.74 kB
+
+✓ built in 2.89s
+
