@@ -1,78 +1,69 @@
-/**
- * @file Rotas de aprovação e lançamento de compras.
- */
-
+// apps/api/src/modules/purchase-approval/purchaseApprovalRoutes.js
 import { Router } from "express";
-import { toHttpError } from "../../lib/httpErrors.js";
 import { requireAuth } from "../auth/authMiddleware.js";
 import { requireCompanyContext } from "../companies/companyContext.js";
-import { Permission } from "../permissions/permissions.js";
-import { requirePermission } from "../permissions/permissionMiddleware.js";
+import { requireRole } from "../permissions/permissionMiddleware.js";
+import { toHttpError } from "../../lib/httpErrors.js";
 import {
-    approvePurchaseDocument,
-    markPurchaseDocumentPosted,
+  approvePurchaseDocument,
+  listPurchaseApprovalHistory,
+  markPurchaseDocumentPosted,
+  rejectPurchaseDocument,
 } from "./purchaseApprovalService.js";
 
-/**
- * Envia erro JSON seguro.
- *
- * @param {import("express").Response} res - Resposta Express.
- * @param {unknown} error - Erro capturado.
- * @returns {import("express").Response} Resposta HTTP.
- */
 function sendError(res, error) {
-    const response = toHttpError(error);
-    return res
-        .status(response.status)
-        .json({ error: response.code, message: response.message });
+  const response = toHttpError(error);
+  return res.status(response.status).json({ error: response.code, message: response.message });
 }
 
-/**
- * Constrói router montado em `/api/purchases/documents`.
- *
- * @param {{ prisma: import("@prisma/client").PrismaClient }} deps - Dependências.
- * @returns {import("express").Router} Router Express.
- */
 export function buildPurchaseApprovalRoutes({ prisma }) {
-    const router = Router();
-    const approvalGuards = [
-        requireAuth(prisma),
-        requireCompanyContext(prisma),
-        requirePermission(Permission.PURCHASES_APPROVE),
-    ];
-    const postingGuards = [
-        requireAuth(prisma),
-        requireCompanyContext(prisma),
-        requirePermission(Permission.ACCOUNTING_WRITE),
-    ];
+  const router = Router();
+  const decisionGuards = [requireAuth(prisma), requireCompanyContext(prisma), requireRole("ADMIN", "GESTOR")];
+  const accountingGuards = [requireAuth(prisma), requireCompanyContext(prisma), requireRole("ADMIN", "CONTABILISTA")];
+  const historyGuards = [requireAuth(prisma), requireCompanyContext(prisma), requireRole("ADMIN", "GESTOR", "AUDITOR")];
 
-    router.post("/:id/approve", approvalGuards, async (req, res) => {
-        try {
-            const purchaseDocument = await approvePurchaseDocument(
-                prisma,
-                req.companyId,
-                req.user.id,
-                req.params.id,
-            );
-            return res.status(200).json({ purchaseDocument });
-        } catch (error) {
-            return sendError(res, error);
-        }
-    });
+  router.post("/:id/approve", decisionGuards, async (req, res) => {
+    try {
+      const data = await approvePurchaseDocument(prisma, req.companyId, req.user.id, req.params.id, req.body);
 
-    router.post("/:id/post-state", postingGuards, async (req, res) => {
-        try {
-            const journalEntry = await markPurchaseDocumentPosted(
-                prisma,
-                req.companyId,
-                req.user.id,
-                req.params.id,
-            );
-            return res.status(200).json({ journalEntry });
-        } catch (error) {
-            return sendError(res, error);
-        }
-    });
+      return res.status(200).json({ data });
+    } catch (error) {
+      return sendError(res, error);
+    }
+  });
 
-    return router;
+  router.post("/:id/reject", decisionGuards, async (req, res) => {
+    try {
+      const data = await rejectPurchaseDocument(prisma, req.companyId, req.user.id, req.params.id, req.body);
+
+      return res.status(200).json({ data });
+    } catch (error) {
+      return sendError(res, error);
+    }
+  });
+
+  router.post("/:id/post-state", accountingGuards, async (req, res) => {
+    try {
+      const data = await markPurchaseDocumentPosted(prisma, req.companyId, req.user.id, req.params.id);
+
+      return res.status(200).json({ data });
+    } catch (error) {
+      return sendError(res, error);
+    }
+  });
+
+  router.get("/:id/approval-history", historyGuards, async (req, res) => {
+    try {
+      const items = await listPurchaseApprovalHistory(prisma, {
+        companyId: req.companyId,
+        purchaseDocumentId: req.params.id,
+      });
+
+      return res.json({ items });
+    } catch (error) {
+      return sendError(res, error);
+    }
+  });
+
+  return router;
 }
