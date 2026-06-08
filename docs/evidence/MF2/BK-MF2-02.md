@@ -121,3 +121,43 @@ Cenários validados:
 - sucesso mostra “Movimento criado.”;
 - erro da API aparece no elemento com role="alert";
 - a página não assume sucesso quando o backend rejeita o pedido.
+
+Passo 7
+- PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> npm run test:unit -- stockMovement
+
+> @opsa/api@1.0.0 test:unit
+> node --test tests/unit/*.test.js stockMovement
+
+✔ BK01: login aceita password curta e deixa a autenticação decidir credenciais inválidas (4.7356ms)
+✔ BK01: registo mantém política de password forte (1.7996ms)
+✔ BK06: perfil da empresa assume EUR quando currency é omitida (1.331ms)
+✔ BK06: perfil da empresa rejeita dia fiscal impossível (0.7323ms)
+✔ BK07: importação vazia é rejeitada (0.7873ms)
+✔ BK10: fornecedor aceita NIF vazio e valida quando preenchido (0.9761ms)
+✔ BK08: período fiscal rejeita datas normalizadas pelo JavaScript (1.0908ms)
+✔ BK01: rate limit de autenticação bloqueia excesso e exige store em produção (1.0676ms)
+✔ BK02: permissões de escrita seguem os atores documentados na MF0 (1.1778ms)
+✔ BK-MF1-01: IVA isento exige motivo de isenção (4.7336ms)
+✔ BK-MF1-02: venda calcula totais no backend e usa companyId do contexto (4.8121ms)
+✔ BK-MF1-06: emissão definitiva exige venda aprovada (1.4551ms)
+✔ BK-MF1-02: emissão definitiva reserva número por upsert atómico (2.7186ms)
+✔ BK-MF1-02: emissão concorrente não reserva número sem claim do documento (1.2473ms)
+✔ BK-MF1-03: recebimento não pode exceder montante em aberto (1.5335ms)
+✔ BK-MF1-03: recebimento rejeita saldo alterado em concorrência (1.3752ms)
+✔ BK-MF1-04: lançamento de venda fica balanceado (2.7252ms)
+✔ BK-MF1-05: títulos em aberto calculam antiguidade e ignoram liquidados (1.7571ms)
+✔ BK-MF1-07/BK-MF1-10: compra nasce em rascunho com totais backend (3.7515ms)
+✔ BK-MF1-08: pagamento rejeita compra ainda em rascunho (1.5972ms)
+✔ BK-MF1-08: pagamento rejeita saldo alterado em concorrência (1.2729ms)
+✔ BK-MF1-08: pagamento total não altera estado contabilístico da compra (1.1766ms)
+✔ BK-MF1-09: lançamento de compra fica balanceado (2.0961ms)
+✔ BK-MF1-10: compra paga pode ser lançada e termina em POSTED (1.5442ms)
+✔ BK-MF1-10: aprovação de compra só aceita rascunho (0.6544ms)
+ℹ tests 25
+ℹ suites 0
+ℹ pass 25
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 969.8747
