@@ -29,6 +29,7 @@ import { buildPurchaseDocumentRoutes } from "./modules/purchases/purchaseDocumen
 import { buildPaymentRoutes } from "./modules/payments/paymentRoutes.js";
 import { buildPurchasePostingRoutes } from "./modules/accounting/purchasePostingRoutes.js";
 import { buildPurchaseApprovalRoutes } from "./modules/purchase-approval/purchaseApprovalRoutes.js";
+import { createStockMovementRouter } from "./modules/inventory/stockMovementRoutes.js";
 
 const prisma = new PrismaClient();
 const app = express();
@@ -68,6 +69,7 @@ app.use(
     "/api/accounting/purchase-postings",
     buildPurchasePostingRoutes({ prisma }),
 );
+app.use("/api/inventory/stock-movements", createStockMovementRouter(prisma));
 
 /**
  * Arranca o servidor HTTP.
