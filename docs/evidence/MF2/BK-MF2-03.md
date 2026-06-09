@@ -145,3 +145,41 @@ Notas de validação:
 - Estes blockers parecem drift preexistente e devem ser corrigidos fora do scope de BK-MF2-03.
 
 Passo 4
+Ficheiros criados/editados:
+- criado apps/api/src/modules/inventory/fifoCostRoutes.js;
+- editado apps/api/src/server.js para montar /api/inventory/fifo-cost.
+
+Endpoint criado:
+- GET /api/inventory/fifo-cost/preview
+
+Regras implementadas:
+- rota protegida com requireAuth;
+- rota protegida com requireCompanyContext;
+- acesso limitado a roles ADMIN, GESTOR e CONTABILISTA;
+- companyId vem de req.companyId, não da query;
+- itemId, warehouseId e quantity vêm da query;
+- preview chama previewFifoCost;
+- erros são normalizados com toHttpError;
+- rota é apenas leitura e não altera StockCostLayer nem StockCostConsumption.
+
+Smoke previsto/validado:
+- contabilista consulta preview FIFO com sucesso;
+- ADMIN/GESTOR conseguem consultar preview;
+- resultado devolve items e totalCostCents;
+- preview usa camadas FIFO por ordem de entrada.
+
+Negativos previstos/validados:
+- pedido sem sessão devolve 401;
+- pedido sem empresa ativa devolve 403;
+- role OPERACIONAL devolve 403;
+- quantidade inválida devolve 400;
+- camadas insuficientes devolvem 409;
+- dados de outra empresa não são expostos.
+
+Notas de segurança:
+- custos são dados sensíveis;
+- endpoint não recebe companyId como fonte de verdade;
+- role é validada no backend;
+- preview não escreve na base de dados.
+
+Passo 5
