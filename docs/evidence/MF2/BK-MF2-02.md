@@ -226,8 +226,113 @@ Passo 7
 ℹ todo 0
 ℹ duration_ms 969.8747
 
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> npm --prefix apps/web run typecheck
+
+> @opsa/web@1.0.0 typecheck
+> tsc --noEmit
+
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> npm --prefix apps/web run build
+
+> @opsa/web@1.0.0 build
+> vite build
+
+vite v8.0.16 building client environment for production...
+✓ 37 modules transformed.
+computing gzip size...
+dist/index.html                   0.40 kB │ gzip:  0.28 kB
+dist/assets/index-I1u2FZO0.css    2.81 kB │ gzip:  1.06 kB
+dist/assets/index-C5k3vmep.js   223.70 kB │ gzip: 66.74 kB
+
+✓ built in 1.90s
+
 Passo 8
 - Requisito validado: RF24
 - Endpoints: POST /api/inventory/stock-movements, GET /api/inventory/stock-movements
 - Negativos: saldo insuficiente, armazém de outra empresa, transferência para o mesmo armazém, role sem permissão
 - Resultado: preencher com comandos, resposta HTTP e imagem da página
+
+9) Validacao por BK
+
+Smoke
+- Endpoint POST /api/inventory/stock-movements implementado.
+- Endpoint GET /api/inventory/stock-movements implementado.
+- Entrada aumenta saldo do artigo no armazém de destino.
+- Saída diminui saldo sem permitir stock negativo.
+- Transferência diminui saldo na origem e aumenta no destino.
+- Devolução aumenta saldo com motivo registado.
+- Movimento cria registo em StockMovement.
+- Movimento atualiza StockBalance.
+- Auditoria criada para movimento de stock.
+
+Negativos
+- Pedido sem sessão devolve 401.
+- Pedido sem empresa ativa devolve 403.
+- Utilizador sem role adequada devolve 403.
+- Artigo de outra empresa devolve 404 ou 403.
+- Armazém de outra empresa devolve 404 ou 403.
+- Quantidade zero ou negativa devolve 400.
+- Tipo de movimento inválido devolve 400.
+- Transferência para o mesmo armazém devolve 400.
+- Saída acima do saldo disponível devolve 409.
+
+Bloqueios e limites do BK
+- StockMovement e StockBalance pertencem à empresa ativa.
+- Saldo e movimento são atualizados na mesma transação.
+- O frontend não altera saldos diretamente.
+- O frontend não envia companyId como fonte de verdade.
+- FIFO pertence ao BK-MF2-03.
+- Contagem física pertence ao BK-MF2-04.
+- Alertas automáticos pertencem ao BK-MF2-05.
+- Integração automática com documentos fiscais fica fora do scope deste BK.
+
+10) Evidencia obrigatoria
+pr
+ainda nao criado.
+
+proof
+- Foi implementado o registo transacional de movimentos de stock com suporte para ENTRY, EXIT, TRANSFER, RETURN e ADJUSTMENT.
+- Os movimentos criam registos em StockMovement, atualizam StockBalance na mesma transação e geram auditoria através de AuditLog.
+- A solução aplica isolamento multiempresa através de companyId obtido do contexto autenticado e impede saldo negativo.
+
+neg
+Cenarios negativos previstos/validados:
+SESSION_REQUIRED
+COMPANY_CONTEXT_REQUIRED
+PERMISSION_FORBIDDEN
+ITEM_NOT_FOUND
+WAREHOUSE_NOT_FOUND
+INVALID_STOCK_MOVEMENT_TYPE
+INVALID_STOCK_QUANTITY
+TRANSFER_SAME_WAREHOUSE
+INSUFFICIENT_STOCK
+ADJUSTMENT_WAREHOUSE_REQUIRED
+
+files
+apps/api/prisma/schema.prisma
+apps/api/src/modules/inventory/stockMovementService.js
+apps/api/src/modules/inventory/stockMovementValidators.js
+apps/api/src/modules/inventory/stockMovementRoutes.js
+apps/api/src/server.js
+apps/web/src/lib/stockMovementsApi.ts
+apps/web/src/pages/StockMovementsPage.tsx
+apps/api/src/modules/inventory/stockMovementService.test.js
+apps/api/src/modules/inventory/stockMovementRoutes.test.js
+docs/evidence/MF2/BK-MF2-02.md
+
+commands
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> npm --prefix apps/api run prisma:validate
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> npm --prefix apps/api run prisma:generate      
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> npm --prefix apps/api run test:unit    
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> npm --prefix apps/api run test:contracts    
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> npm --prefix apps/web run typecheck   
+- PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> npm run test:unit -- stockMovement    
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> npm --prefix apps/web run typecheck    
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> npm --prefix apps/web run build 
+
+notes
+- O frontend nao altera saldos diretamente.
+- companyId nao e recebido pelo body como fonte de verdade.
+- StockMovement e StockBalance sao atualizados na mesma transacao.
+- FIFO sera implementado em BK-MF2-03 reutilizando StockMovement e StockBalance.
+- Contagem fisica pertence ao BK-MF2-04.
+- Alertas de stock pertencem ao BK-MF2-05
