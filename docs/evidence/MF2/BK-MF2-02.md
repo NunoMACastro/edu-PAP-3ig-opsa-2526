@@ -225,3 +225,9 @@ Passo 7
 ℹ skipped 0
 ℹ todo 0
 ℹ duration_ms 969.8747
+
+Passo 8
+- Requisito validado: RF24
+- Endpoints: POST /api/inventory/stock-movements, GET /api/inventory/stock-movements
+- Negativos: saldo insuficiente, armazém de outra empresa, transferência para o mesmo armazém, role sem permissão
+- Resultado: preencher com comandos, resposta HTTP e imagem da página
