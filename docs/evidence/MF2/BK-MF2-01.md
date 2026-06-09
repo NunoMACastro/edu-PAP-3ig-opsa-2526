@@ -9,6 +9,9 @@ Passo 2
 ficeiro editado: apps/api/prisma/schema.prisma
 
 Passo 3
+Ficeiros criados
+apps/api/src/modules/purchase-approval/purchaseApprovalHistoryValidators.js
+apps/api/src/modules/purchase-approval/purchaseApprovalService.js
 
 # BK-MF2-01
 
