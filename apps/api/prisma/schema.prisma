@@ -162,6 +162,8 @@ model Company {
   auditLogs         AuditLog[]
   stockBalances     StockBalance[]
   stockMovements    StockMovement[]
+  stockCostLayers   StockCostLayer[]
+  stockCostConsumptions StockCostConsumption[]
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
  }
@@ -312,6 +314,7 @@ model Item {
   purchaseDocumentLines PurchaseDocumentLine[]
   stockBalances         StockBalance[]
   stockMovements        StockMovement[]
+  stockCostLayers       StockCostLayer[]
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
 
@@ -551,6 +554,7 @@ model Warehouse {
   createdAt DateTime            @default(now())
   updatedAt DateTime            @updatedAt
   stockBalances StockBalance[]
+  stockCostLayers StockCostLayer[]
   company Company @relation(fields: [companyId], references: [id])
   outgoingStockMovements StockMovement[] @relation("StockMovementFromWarehouse")
   incomingStockMovements StockMovement[] @relation("StockMovementToWarehouse")
@@ -606,10 +610,46 @@ model StockMovement {
   sourceType      String?
   sourceId        String?
   createdById     String
+  costLayers      StockCostLayer[]
+  costConsumptions StockCostConsumption[]
   createdBy       User              @relation(fields: [createdById], references: [id])
   createdAt       DateTime          @default(now())
 
   @@index([companyId, itemId, createdAt])
   @@index([companyId, fromWarehouseId])
   @@index([companyId, toWarehouseId])
+}
+
+model StockCostLayer {
+  id                String        @id @default(uuid())
+  companyId         String
+  company           Company       @relation(fields: [companyId], references: [id])
+  itemId            String
+  item              Item          @relation(fields: [itemId], references: [id])
+  warehouseId       String
+  warehouse         Warehouse     @relation(fields: [warehouseId], references: [id])
+  sourceMovementId  String
+  sourceMovement    StockMovement @relation(fields: [sourceMovementId], references: [id])
+  quantity          Decimal       @db.Decimal(18, 3)
+  remainingQuantity Decimal       @db.Decimal(18, 3)
+  unitCostCents     Int
+  createdAt         DateTime      @default(now())
+
+  @@index([companyId, itemId, warehouseId, createdAt])
+}
+
+model StockCostConsumption {
+  id             String         @id @default(uuid())
+  companyId      String
+  company        Company        @relation(fields: [companyId], references: [id])
+  movementId     String
+  movement       StockMovement  @relation(fields: [movementId], references: [id])
+  layerId        String
+  layer          StockCostLayer @relation(fields: [layerId], references: [id])
+  quantity       Decimal        @db.Decimal(18, 3)
+  unitCostCents  Int
+  totalCostCents Int
+  createdAt      DateTime       @default(now())
+
+  @@index([companyId, movementId])
 }
