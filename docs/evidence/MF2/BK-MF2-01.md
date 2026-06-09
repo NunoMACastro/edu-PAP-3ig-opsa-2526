@@ -13,6 +13,9 @@ Ficeiros criados
 apps/api/src/modules/purchase-approval/purchaseApprovalHistoryValidators.js
 apps/api/src/modules/purchase-approval/purchaseApprovalService.js
 
+Passo 4
+Ficheiro editado - apps/api/src/modules/purchase-approval/purchaseApprovalRoutes.js
+
 # BK-MF2-01
 
 - Requisito validado: RF23
