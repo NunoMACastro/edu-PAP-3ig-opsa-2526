@@ -103,9 +103,9 @@ model User {
   memberships         CompanyMembership[]
   passwordResetTokens PasswordResetToken[]
   auditLogs           AuditLog[]
+  purchaseApprovalDecisions PurchaseApprovalHistory[]
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
-  // purchaseApprovalDecisions PurchaseApprovalHistory[]
 }
 
 model Session {
@@ -157,9 +157,9 @@ model Company {
   purchaseDocuments PurchaseDocument[]
   payments          Payment[]
   auditLogs         AuditLog[]
+  purchaseApprovalHistories PurchaseApprovalHistory[]
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
- // purchaseApprovalHistories PurchaseApprovalHistory[]
  }
 
 model CompanyMembership {
@@ -475,11 +475,11 @@ model PurchaseDocument {
   company  Company                @relation(fields: [companyId], references: [id])
   supplier Supplier               @relation(fields: [supplierId], references: [id])
   lines    PurchaseDocumentLine[]
+  approvalHistory PurchaseApprovalHistory[]
 
   @@unique([companyId, supplierId, supplierNumber])
   @@index([companyId, supplierId, issuedAt])
   @@index([companyId, status, issuedAt])
-  // approvalHistory PurchaseApprovalHistory[]
 }
 
 model PurchaseDocumentLine {

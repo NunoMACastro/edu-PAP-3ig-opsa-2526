@@ -1,3 +1,15 @@
+Passo 1
+bk=BK-MF2-01
+macro=MF2
+rf=RF23
+dependencias=BK-MF1-10
+proximo=BK-MF2-02
+
+Passo 2
+ficeiro editado: apps/api/prisma/schema.prisma
+
+Passo 3
+
 # BK-MF2-01
 
 - Requisito validado: RF23
