@@ -10,6 +10,7 @@ import { SaleDocumentsPage } from "./pages/SaleDocumentsPage";
 import { SalePostingsPage } from "./pages/SalePostingsPage";
 import { SalesOpenItemsPage } from "./pages/SalesOpenItemsPage";
 import { VatRatesPage } from "./pages/VatRatesPage";
+import { StockMovementsPage } from "./pages/StockMovementsPage";
 
 type ApiObject = Record<string, unknown>;
 type FieldKind = "text" | "email" | "password" | "number" | "textarea" | "select";
@@ -679,6 +680,11 @@ export function App() {
         id: "purchase-postings",
         title: "Lancamentos de compras",
         render: () => <PurchasePostingsPage />,
+      },
+      {
+        id: "stock-movements",
+        title: "Movimentos de stock",
+        render: () => <StockMovementsPage />,
       },
     ],
     [],

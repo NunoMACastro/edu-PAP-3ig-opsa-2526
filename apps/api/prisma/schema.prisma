@@ -88,9 +88,12 @@ enum PaymentMethod {
   OTHER
 }
 
-enum PurchaseDecisionAction {
-  APPROVED
-  REJECTED
+enum StockMovementType {
+  ENTRY 
+  EXIT 
+  TRANSFER 
+  RETURN 
+  ADJUSTMENT 
 }
 
 model User {
@@ -103,7 +106,7 @@ model User {
   memberships         CompanyMembership[]
   passwordResetTokens PasswordResetToken[]
   auditLogs           AuditLog[]
-  purchaseApprovalDecisions PurchaseApprovalHistory[]
+  stockMovements      StockMovement[]
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
 }
@@ -157,7 +160,8 @@ model Company {
   purchaseDocuments PurchaseDocument[]
   payments          Payment[]
   auditLogs         AuditLog[]
-  purchaseApprovalHistories PurchaseApprovalHistory[]
+  stockBalances     StockBalance[]
+  stockMovements    StockMovement[]
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
  }
@@ -306,6 +310,8 @@ model Item {
   isActive              Boolean                @default(true)
   saleDocumentLines     SaleDocumentLine[]
   purchaseDocumentLines PurchaseDocumentLine[]
+  stockBalances         StockBalance[]
+  stockMovements        StockMovement[]
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
 
@@ -544,9 +550,10 @@ model Warehouse {
   locations WarehouseLocation[]
   createdAt DateTime            @default(now())
   updatedAt DateTime            @updatedAt
-
+  stockBalances StockBalance[]
   company Company @relation(fields: [companyId], references: [id])
-
+  outgoingStockMovements StockMovement[] @relation("StockMovementFromWarehouse")
+  incomingStockMovements StockMovement[] @relation("StockMovementToWarehouse")
   @@unique([companyId, code])
   @@unique([companyId, name])
   @@index([companyId])
@@ -568,17 +575,41 @@ model WarehouseLocation {
   @@index([warehouseId])
 }
 
-model PurchaseApprovalHistory {
-  id                 String                 @id @default(uuid())
-  companyId          String
-  company            Company                @relation(fields: [companyId], references: [id])
-  purchaseDocumentId String
-  purchaseDocument   PurchaseDocument       @relation(fields: [purchaseDocumentId], references: [id])
-  action             PurchaseDecisionAction
-  reason             String
-  decidedById        String
-  decidedBy          User                   @relation(fields: [decidedById], references: [id])
-  decidedAt          DateTime               @default(now())
+model StockBalance {
+  id          String    @id @default(uuid())
+  companyId   String
+  company     Company   @relation(fields: [companyId], references: [id])
+  itemId      String
+  item        Item      @relation(fields: [itemId], references: [id])
+  warehouseId String
+  warehouse   Warehouse @relation(fields: [warehouseId], references: [id])
+  quantity    Decimal   @default(0) @db.Decimal(18, 3)
+  updatedAt   DateTime  @updatedAt
 
-  @@index([companyId, purchaseDocumentId, decidedAt])
+  @@unique([companyId, itemId, warehouseId])
+  @@index([companyId, warehouseId])
+}
+
+model StockMovement {
+  id              String            @id @default(uuid())
+  companyId       String
+  company         Company           @relation(fields: [companyId], references: [id])
+  itemId          String
+  item            Item              @relation(fields: [itemId], references: [id])
+  type            StockMovementType
+  quantity        Decimal           @db.Decimal(18, 3)
+  fromWarehouseId String?
+  fromWarehouse   Warehouse?        @relation("StockMovementFromWarehouse", fields: [fromWarehouseId], references: [id])
+  toWarehouseId   String?
+  toWarehouse     Warehouse?        @relation("StockMovementToWarehouse", fields: [toWarehouseId], references: [id])
+  reason          String
+  sourceType      String?
+  sourceId        String?
+  createdById     String
+  createdBy       User              @relation(fields: [createdById], references: [id])
+  createdAt       DateTime          @default(now())
+
+  @@index([companyId, itemId, createdAt])
+  @@index([companyId, fromWarehouseId])
+  @@index([companyId, toWarehouseId])
 }
