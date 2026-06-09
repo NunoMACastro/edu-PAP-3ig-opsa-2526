@@ -210,3 +210,23 @@ Comandos executados:
 Typecheck/build falharam por purchaseApprovalApi em ficheiros MF1.
 
 Passo 6
+Ficheiros criados/editados:
+- criado apps/web/src/pages/FifoCostPage.tsx;
+- editado apps/web/src/App.tsx para expor a página Custo FIFO no menu.
+
+Regras implementadas:
+- formulário para itemId, warehouseId e quantity;
+- chamada ao cliente previewFifoCost;
+- estado loading com “A calcular...”;
+- erro mostrado com role="alert";
+- estado vazio “Sem camadas FIFO para mostrar.”;
+- resultado mostra camadas FIFO usadas;
+- resultado mostra totalCostCents convertido para EUR;
+- frontend não calcula FIFO, apenas apresenta resposta do backend.
+
+Smoke previsto:
+- página Custo FIFO abre no frontend;
+- formulário chama GET /api/inventory/fifo-cost/preview;
+- resposta com camadas mostra lista e total;
+- ausência de camadas mostra estado vazio ou erro controlado;
+- erro 409 aparece como mensagem clara.
