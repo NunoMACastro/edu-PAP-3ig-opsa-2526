@@ -1,6 +1,7 @@
 // apps/api/src/modules/inventory/stockMovementService.js
 import { httpError } from "../../lib/httpErrors.js";
 import { parseStockMovement } from "./stockMovementValidators.js";
+import { applyFifoToMovementInTransaction } from "./fifoCostService.js";
 
 const MOVEMENT_TYPES = new Set(["ENTRY", "EXIT", "TRANSFER", "RETURN", "ADJUSTMENT"]);
 
@@ -83,4 +84,20 @@ export async function createStockMovementInTransaction(tx, { companyId, userId, 
 
 export async function createStockMovement(prisma, context) {
   return prisma.$transaction((tx) => createStockMovementInTransaction(tx, context));
+}
+
+export async function createStockMovementWithCostInTransaction(tx, context) {
+  // Esta função reutiliza a criação de movimento do BK-MF2-02 e acrescenta a valorização FIFO.
+  const movement = await createStockMovementInTransaction(tx, context);
+  await applyFifoToMovementInTransaction(tx, {
+    companyId: context.companyId,
+    movement,
+    input: context.input,
+  });
+
+  return movement;
+}
+
+export async function createStockMovement(prisma, context) {
+  return prisma.$transaction((tx) => createStockMovementWithCostInTransaction(tx, context));
 }
