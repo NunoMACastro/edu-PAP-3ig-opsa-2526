@@ -64,10 +64,35 @@ Passo 7
 
 Passo 8
 # BK-MF2-01
-
 - Requisito validado: RF23
 - Endpoints: POST /api/purchases/documents/:id/approve, POST /api/purchases/documents/:id/reject, GET /api/purchases/documents/:id/approval-history
 - Endpoint preservado de BK-MF1-10: POST /api/purchases/documents/:id/post-state
 - Negativos: sem sessão, role sem permissão, documento inexistente, reprovação sem motivo, decisão em estado inválido
 - Resultado: preencher com os comandos executados e prints da UI
 
+10) Evidencia obrigatoria
+- `pr`;
+ainda não criado
+
+- `proof`;
+Acrescentado histórico auditável às decisões de aprovação e reprovação de compras. O sistema passa a guardar quem decidiu, quando decidiu, que justificação foi dada e em que estado ficou o documento de compra.
+
+- `neg`;
+Pedido sem sessão deve devolver 401.
+Pedido sem empresa ativa deve devolver 403.
+Recurso de outra empresa deve devolver 404 ou 403, sem expor dados.
+Reprovação sem justificação devolve 400.
+Compra já lançada devolve 409.
+
+- `files`;
+apps/api/prisma/schema.prisma
+apps/api/src/modules/purchase-approval/purchaseApprovalHistoryValidators.js
+apps/api/src/modules/purchase-approval/purchaseApprovalService.js
+apps/api/src/modules/purchase-approval/purchaseApprovalRoutes.js
+apps/web/src/lib/purchaseApprovalApi.ts
+apps/web/src/pages/PurchaseApprovalPage.tsx
+
+- `commands`;
+- `screenshots`, quando houver UI;
+- `exports`, quando houver PDF/Excel;
+- `notes`.
