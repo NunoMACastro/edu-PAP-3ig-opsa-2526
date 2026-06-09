@@ -91,8 +91,12 @@ apps/api/src/modules/purchase-approval/purchaseApprovalService.js
 apps/api/src/modules/purchase-approval/purchaseApprovalRoutes.js
 apps/web/src/lib/purchaseApprovalApi.ts
 apps/web/src/pages/PurchaseApprovalPage.tsx
+apps/api/src/modules/purchase-approval/purchaseApprovalService.test.js
+apps/api/src/modules/purchase-approval/purchaseApprovalRoutes.test.js
+docs/evidence/MF2/BK-MF2-01.md
 
 - `commands`;
-- `screenshots`, quando houver UI;
-- `exports`, quando houver PDF/Excel;
-- `notes`.
+npm --prefix apps/api run test:unit
+npm --prefix apps/api run test:contracts
+npm --prefix apps/api run prisma:validate
+npm --prefix apps/web run build
