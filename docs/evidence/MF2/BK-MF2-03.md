@@ -183,3 +183,30 @@ Notas de segurança:
 - preview não escreve na base de dados.
 
 Passo 5
+Ficheiros criados:
+- apps/web/src/lib/fifoCostApi.ts
+
+Regras implementadas:
+- criado tipo FifoPreviewLine;
+- criada função previewFifoCost;
+- chamada GET para /api/inventory/fifo-cost/preview;
+- itemId, warehouseId e quantity enviados por query string;
+- credentials: "include" usado para manter sessão por cookie HttpOnly;
+- frontend não calcula FIFO;
+- frontend apenas pede preview ao backend e recebe camadas + totalCostCents;
+- erros da API são convertidos em Error com mensagem clara.
+
+Smoke previsto/validado:
+- chamada com itemId, warehouseId e quantity válidos devolve items e totalCostCents;
+- resposta contém linhas com layerId, quantity, unitCostCents e totalCostCents.
+
+Negativo previsto/validado:
+- erro 409 de camadas insuficientes aparece como mensagem clara;
+- erro 400 de quantidade inválida aparece como mensagem clara.
+
+Comandos executados:
+- npm --prefix apps/web run typecheck
+- npm --prefix apps/web run build
+Typecheck/build falharam por purchaseApprovalApi em ficheiros MF1.
+
+Passo 6
