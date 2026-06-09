@@ -62,6 +62,7 @@ Passo 7
 ℹ️ todo 0
 ℹ️ duration_ms 218.525252
 
+Passo 8
 # BK-MF2-01
 
 - Requisito validado: RF23
