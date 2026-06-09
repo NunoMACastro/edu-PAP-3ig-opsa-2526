@@ -166,7 +166,7 @@ dist/assets/index-C5k3vmep.js   223.70 kB │ gzip: 66.74 kB
 Passo 6
 Ficheiros criados/editados:
 - criado apps/web/src/pages/StockMovementsPage.tsx;
-- editado apps/web/src/App.tsx para expor a página no frontend.
+- editado apps/web/src/App.tsx para expor StockMovementsPage no menu da aplicação.
 
 Regras implementadas:
 - formulário mínimo para criar movimentos de stock;
@@ -315,6 +315,7 @@ apps/api/src/modules/inventory/stockMovementRoutes.js
 apps/api/src/server.js
 apps/web/src/lib/stockMovementsApi.ts
 apps/web/src/pages/StockMovementsPage.tsx
+apps/web/src/App.tsx
 apps/api/src/modules/inventory/stockMovementService.test.js
 apps/api/src/modules/inventory/stockMovementRoutes.test.js
 docs/evidence/MF2/BK-MF2-02.md
