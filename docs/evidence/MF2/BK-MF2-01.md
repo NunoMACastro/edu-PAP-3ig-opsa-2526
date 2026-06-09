@@ -22,15 +22,8 @@ Ficheiro criado - apps/web/src/lib/purchaseApprovalApi.ts
 Passo 6
 Ficheiro editado - apps/web/src/pages/PurchaseApprovalPage.tsx
 
-# BK-MF2-01
-
-- Requisito validado: RF23
-- Endpoints: POST /api/purchases/documents/:id/approve, POST /api/purchases/documents/:id/reject, GET /api/purchases/documents/:id/approval-history
-- Endpoint preservado de BK-MF1-10: POST /api/purchases/documents/:id/post-state
-- Negativos: sem sessão, role sem permissão, documento inexistente, reprovação sem motivo, decisão em estado inválido
-- Resultado: preencher com os comandos executados e prints da UI
-
-[23:24, 08/06/2026] SR💞: @sofialramos ➜ /workspaces/edu-PAP-3ig-opsa-2526 (feat/bk-mf2-01-historico-aprovacoes-sofia) $ npm --prefix apps/api run test:unit
+Passo 7
+- [23:24, 08/06/2026] SR💞: @sofialramos ➜ /workspaces/edu-PAP-3ig-opsa-2526 (feat/bk-mf2-01-historico-aprovacoes-sofia) $ npm --prefix apps/api run test:unit
 
 > @opsa/api@1.0.0 test:unit
 > node --test tests/unit/*.test.js
@@ -69,48 +62,11 @@ Ficheiro editado - apps/web/src/pages/PurchaseApprovalPage.tsx
 ℹ️ todo 0
 ℹ️ duration_ms 218.525252
 
-✖️ failing tests:
+# BK-MF2-01
 
-test at tests/unit/mf1-services.test.js:595:1
-✖️ BK-MF1-10: compra paga pode ser lançada e termina em POSTED (0.375096ms)
-  Error [HttpError]: Apenas compras aprovadas podem ser lançadas.
-      at httpError (file:///workspaces/edu-PAP-3ig-opsa-2526/apps/api/src/lib/httpErrors.js:40:12)
-      at file:///workspaces/edu-PAP-3ig-opsa-2526/apps/api/src/modules/purchase-approval/purchaseApprovalService.js:134:13
-      at async TestContext.<anonymous> (file:///workspaces/edu-PAP-3ig-opsa-2526/apps/api/tests/unit/mf1-services.test.js:635:5)
-      at async Test.run (node:internal/test_runner/test:1125:7)
-      at async Test.processPendingSubtests (node:internal/test_runner/test:787:7) {
-    status: 409,
-    code: 'INVALID_STATUS',
-    details: undefined
-  }
+- Requisito validado: RF23
+- Endpoints: POST /api/purchases/documents/:id/approve, POST /api/purchases/documents/:id/reject, GET /api/purchases/documents/:id/approval-history
+- Endpoint preservado de BK-MF1-10: POST /api/purchases/documents/:id/post-state
+- Negativos: sem sessão, role sem permissão, documento inexistente, reprovação sem motivo, decisão em estado inválido
+- Resultado: preencher com os comandos executados e prints da UI
 
-test at tests/unit/mf1-services.test.js:645:1
-✖️ BK-MF1-10: aprovação de compra só aceita rascunho (1.157939ms)
-  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
-  + actual - expected
-  
-  + Comparison {}
-  - Comparison {
-  -   code: 'INVALID_STATUS'
-  - }
-  
-      at async TestContext.<anonymous> (file:///workspaces/edu-PAP-3ig-opsa-2526/apps/api/tests/unit/mf1-services.test.js:655:5)
-      at async Test.run (node:internal/test_runner/test:1125:7)
-      at async Test.processPendingSubtests (node:internal/test_runner/test:787:7) {
-    generatedMessage: true,
-    code: 'ERR_ASSERTION',
-    actual: TypeError: prisma.$transaction is not a function
-        at approvePurchaseDocument (file:///workspaces/edu-PAP-3ig-opsa-2526/apps/api/src/modules/purchase-approval/purchaseApprovalService.js:44:17)
-        at assert.rejects.code (file:///workspaces/edu-PAP-3ig-opsa-2526/apps/api/tests/unit/mf1-services.test.js:656:15)
-        at waitForActual (node:assert:632:21)
-        at strict.rejects (node:assert:769:31)
-        at TestContext.<anonymous> (file:///workspaces/edu-PAP-3ig-opsa-2526/apps/api/tests/unit/mf1-services.test.js:655:18)
-        at Test.runInAsyncScope (node:async_hooks:228:14)
-        at Test.run (node:internal/test_runner/test:1118:25)
-        at Test.processPendingSubtests (node:internal/test_runner/test:787:18)
-        at Test.postRun (node:internal/test_runner/test:1247:19)
-        at Test.run (node:internal/test_runner/test:1175:12),
-    expected: { code: 'INVALID_STATUS' },
-    operator: 'rejects',
-    diff: 'simple'
-  }
