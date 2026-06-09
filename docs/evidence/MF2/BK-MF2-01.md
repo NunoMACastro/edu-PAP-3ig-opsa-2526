@@ -18,6 +18,10 @@ Ficheiro editado - apps/api/src/modules/purchase-approval/purchaseApprovalRoutes
 
 Passo 5
 Ficheiro criado - apps/web/src/lib/purchaseApprovalApi.ts
+
+Passo 6
+Ficheiro editado - apps/web/src/pages/PurchaseApprovalPage.tsx
+
 # BK-MF2-01
 
 - Requisito validado: RF23
