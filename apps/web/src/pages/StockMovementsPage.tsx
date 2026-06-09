@@ -2,12 +2,17 @@
 import { FormEvent, useState } from "react";
 import { createStockMovement, StockMovementType } from "../lib/stockMovementsApi";
 
+function movementNeedsUnitCost(type: StockMovementType) {
+  return type === "ENTRY" || type === "RETURN";
+}
+
 export function StockMovementsPage() {
   const [type, setType] = useState<StockMovementType>("ENTRY");
   const [itemId, setItemId] = useState("");
   const [fromWarehouseId, setFromWarehouseId] = useState("");
   const [toWarehouseId, setToWarehouseId] = useState("");
   const [quantity, setQuantity] = useState(1);
+  const [unitCostCents, setUnitCostCents] = useState(0);
   const [reason, setReason] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -27,6 +32,7 @@ export function StockMovementsPage() {
         reason,
         fromWarehouseId: fromWarehouseId || undefined,
         toWarehouseId: toWarehouseId || undefined,
+        unitCostCents: movementNeedsUnitCost(type) ? unitCostCents : undefined,
       });
       setSuccess(true);
     } catch (err) {
@@ -50,6 +56,16 @@ export function StockMovementsPage() {
         <input value={fromWarehouseId} onChange={(event) => setFromWarehouseId(event.target.value)} placeholder="Armazém de origem" />
         <input value={toWarehouseId} onChange={(event) => setToWarehouseId(event.target.value)} placeholder="Armazém de destino" />
         <input type="number" min="0.001" step="0.001" value={quantity} onChange={(event) => setQuantity(Number(event.target.value))} />
+        {movementNeedsUnitCost(type) ? (
+          <input
+            type="number"
+            min="1"
+            step="1"
+            value={unitCostCents}
+            onChange={(event) => setUnitCostCents(Number(event.target.value))}
+            placeholder="Custo unitário em cêntimos"
+          />
+        ) : null}
         <input value={reason} onChange={(event) => setReason(event.target.value)} placeholder="Motivo" />
         <button type="submit" disabled={loading}>{loading ? "A guardar..." : "Criar"}</button>
       </form>
