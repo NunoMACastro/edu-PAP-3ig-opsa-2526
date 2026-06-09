@@ -232,6 +232,31 @@ Smoke previsto:
 - erro 409 aparece como mensagem clara.
 
 Passo 7
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> npm --prefix apps/api run test:contracts 
+
+> @opsa/api@1.0.0 test:contracts
+> node --test tests/contracts/*.test.js
+
+✔ BK01: resolveSession não propaga passwordHash na sessão nem no utilizador público (2.9333ms)
+✔ BK04/BK05: adapters mock não registam tokens, URLs secretas ou email completo (1.0758ms)
+✔ BK05: rate limit em memória falha explicitamente em produção sem opt-in (3.2653ms)
+✔ BK06: conflito de NIF é mapeado para NIF_ALREADY_EXISTS (1.1854ms)
+✔ BK09/BK10: pesquisa usa nome ou NIF sem alterar listagem base (2.6216ms)
+✔ BK12: nome de armazém duplicado é rejeitado (0.9674ms)
+✔ MF1: permissões backend separam escrita operacional, aprovação e contabilidade (4.7971ms)
+✔ MF1: routers principais montam sem dependências inexistentes (8.9087ms)
+✔ MF1 HTTP: criar venda sem sessão devolve erro de autenticação (7.3599ms)
+✔ MF1 HTTP: operacional não pode aprovar venda (2.5683ms)
+✔ MF1 HTTP: pagamento em compra rascunho devolve regra de estado (2.9837ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6074.5045
+
 - PS D:\PAP\edu-PAP-3ig-opsa-2526> npm --prefix apps/api run test:unit -- fifoCost
 
 > @opsa/api@1.0.0 test:unit
@@ -280,6 +305,52 @@ test at tests\unit\mf1-services.test.js:595:1
 test at tests\unit\mf1-services.test.js:645:1
 ✖ BK-MF1-10: aprovação de compra só aceita rascunho (9.7957ms)
 
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> npm --prefix apps/api run test:unit   
+
+> @opsa/api@1.0.0 test:unit
+> node --test tests/unit/*.test.js
+
+✔ BK01: login aceita password curta e deixa a autenticação decidir credenciais inválidas (8.2022ms)
+✔ BK01: registo mantém política de password forte (2.0923ms)
+✔ BK06: perfil da empresa assume EUR quando currency é omitida (6.169ms)
+✔ BK06: perfil da empresa rejeita dia fiscal impossível (0.8203ms)
+✔ BK07: importação vazia é rejeitada (1.0536ms)
+✔ BK10: fornecedor aceita NIF vazio e valida quando preenchido (1.1281ms)
+✔ BK08: período fiscal rejeita datas normalizadas pelo JavaScript (1.1831ms)
+✔ BK01: rate limit de autenticação bloqueia excesso e exige store em produção (1.6532ms)
+✔ BK02: permissões de escrita seguem os atores documentados na MF0 (1.6532ms)
+✔ BK-MF1-01: IVA isento exige motivo de isenção (16.0958ms)
+✔ BK-MF1-02: venda calcula totais no backend e usa companyId do contexto (3.1834ms)
+✔ BK-MF1-06: emissão definitiva exige venda aprovada (7.5975ms)
+✔ BK-MF1-02: emissão definitiva reserva número por upsert atómico (3.2651ms)
+✔ BK-MF1-02: emissão concorrente não reserva número sem claim do documento (1.3904ms)
+✔ BK-MF1-03: recebimento não pode exceder montante em aberto (1.7657ms)
+✔ BK-MF1-03: recebimento rejeita saldo alterado em concorrência (1.9817ms)
+✔ BK-MF1-04: lançamento de venda fica balanceado (9.8848ms)
+✔ BK-MF1-05: títulos em aberto calculam antiguidade e ignoram liquidados (1.9642ms)
+✔ BK-MF1-07/BK-MF1-10: compra nasce em rascunho com totais backend (13.6185ms)
+✔ BK-MF1-08: pagamento rejeita compra ainda em rascunho (1.9948ms)
+✔ BK-MF1-08: pagamento rejeita saldo alterado em concorrência (2.1334ms)
+✔ BK-MF1-08: pagamento total não altera estado contabilístico da compra (2.7182ms)
+✔ BK-MF1-09: lançamento de compra fica balanceado (6.7142ms)
+✖ BK-MF1-10: compra paga pode ser lançada e termina em POSTED (1.4802ms)
+✖ BK-MF1-10: aprovação de compra só aceita rascunho (4.1695ms)
+ℹ tests 25
+ℹ suites 0
+ℹ pass 23
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1793.6224
+
+✖ failing tests:
+
+test at tests\unit\mf1-services.test.js:595:1
+✖ BK-MF1-10: compra paga pode ser lançada e termina em POSTED (1.4802ms)
+
+test at tests\unit\mf1-services.test.js:645:1
+✖ BK-MF1-10: aprovação de compra só aceita rascunho (4.1695ms)
 
 - PS D:\PAP\edu-PAP-3ig-opsa-2526> npm --prefix apps/web run typecheck
 
@@ -293,3 +364,95 @@ test at tests\unit\mf1-services.test.js:645:1
 
 vite v8.0.16 building client environment for production...
 ✓ 41 modules transformed.
+
+Passo 8
+- Requisito validado: RF25
+- Endpoints: GET /api/inventory/fifo-cost/preview
+- Negativos: quantidade inválida, camadas insuficientes, role sem permissão
+- Resultado: preencher com comandos, custo esperado e imagem da página
+
+9) Validacao por BK
+Smoke
+* Camadas FIFO criadas em entradas com custo unitário.
+* Camadas FIFO criadas em devoluções com custo unitário.
+* Saídas consomem camadas FIFO pela ordem correta (FIFO).
+* Transferências preservam custo entre armazéns.
+* Preview devolve camadas utilizadas e custo total esperado.
+* Movimento de stock fica valorizado quando aplicável.
+
+Negativos
+* Pedido sem sessão devolve `401`.
+* Pedido sem empresa ativa devolve `403`.
+* Utilizador sem role adequada devolve `403`.
+* Entrada sem custo unitário quando obrigatório devolve `400`.
+* Custo unitário zero ou negativo devolve `400`.
+* Saída sem camadas suficientes devolve erro controlado (`409`).
+* Quantidade inválida devolve `400`.
+* Artigo de outra empresa devolve `404` ou `403`.
+* Armazém de outra empresa devolve `404` ou `403`.
+* Preview não altera dados nem cria registos.
+
+Bloqueios e limites do BK
+* O custo FIFO é calculado no backend.
+* O frontend não calcula FIFO.
+* Não é utilizada média ponderada.
+* Consumos FIFO são explicáveis por camada.
+* Valores monetários são guardados em cêntimos.
+* O preview não escreve na base de dados.
+* Lançamento contabilístico automático do custo fica fora do scope deste BK.
+
+10) Evidencia obrigatoria
+
+
+pr
+ainda nao criado.
+
+proof
+- Foi implementado o cálculo de custo FIFO por camadas, reutilizando os movimentos de stock criados em BK-MF2-02.
+- Entradas, devoluções e ajustes positivos criam `StockCostLayer` com custo unitário obrigatório. Saídas, transferências e ajustes negativos consomem primeiro as camadas mais antigas e registam consumos em `StockCostConsumption`.
+- Foi ainda criada uma funcionalidade de preview FIFO que permite consultar o custo esperado sem alterar dados na base de dados.
+
+neg
+Cenarios negativos previstos/validados:
+* `SESSION_REQUIRED`
+* `COMPANY_CONTEXT_REQUIRED`
+* `PERMISSION_FORBIDDEN`
+* `INVALID_STOCK_QUANTITY`
+* `UNIT_COST_REQUIRED`
+* `INVALID_UNIT_COST`
+* `FIFO_LAYERS_INSUFFICIENT`
+* `ITEM_NOT_FOUND`
+* `WAREHOUSE_NOT_FOUND`
+
+files
+apps/api/prisma/schema.prisma
+apps/api/src/modules/inventory/fifoCostService.js
+apps/api/src/modules/inventory/stockMovementService.js
+apps/web/src/lib/stockMovementsApi.ts
+apps/web/src/pages/StockMovementsPage.tsx
+apps/api/src/modules/inventory/fifoCostRoutes.js
+apps/api/src/server.js
+apps/web/src/lib/fifoCostApi.ts
+apps/web/src/pages/FifoCostPage.tsx
+apps/web/src/App.tsx
+apps/api/src/modules/inventory/fifoCostService.test.js
+apps/api/src/modules/inventory/fifoCostRoutes.test.js
+docs/evidence/MF2/BK-MF2-03.md
+
+commands
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> npm --prefix apps/api run prisma:validate    
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> npm --prefix apps/api run test:unit    
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> npm --prefix apps/api run test:contracts    
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> npm --prefix apps/web run typecheck   
+- PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> npm --prefix apps/api run test:unit -- fifoCost  
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> npm --prefix apps/web run typecheck    
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> npm --prefix apps/web run build 
+
+notes
+* FIFO e calculado exclusivamente no backend.
+* O frontend nao calcula custos nem camadas.
+* O preview nao escreve na base de dados.
+* Valores monetarios sao tratados em centimos.
+* Transferencias preservam o custo das camadas entre armazens.
+* Existem blockers/drift preexistentes em componentes MF1 (PurchaseApprovalHistory e purchaseApprovalApi) que podem afetar validacoes globais, mas nao pertencem ao scope deste BK.
+* BK-MF2-04 reutiliza `StockCostLayer` e `StockCostConsumption`.
