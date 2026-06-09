@@ -11,6 +11,7 @@ import { SalePostingsPage } from "./pages/SalePostingsPage";
 import { SalesOpenItemsPage } from "./pages/SalesOpenItemsPage";
 import { VatRatesPage } from "./pages/VatRatesPage";
 import { StockMovementsPage } from "./pages/StockMovementsPage";
+import { FifoCostPage } from "./pages/FifoCostPage";
 
 type ApiObject = Record<string, unknown>;
 type FieldKind = "text" | "email" | "password" | "number" | "textarea" | "select";
@@ -685,6 +686,11 @@ export function App() {
         id: "stock-movements",
         title: "Movimentos de stock",
         render: () => <StockMovementsPage />,
+      },
+      {
+        id: "fifo-cost",
+        title: "Custo FIFO",
+        render: () => <FifoCostPage />,
       },
     ],
     [],
