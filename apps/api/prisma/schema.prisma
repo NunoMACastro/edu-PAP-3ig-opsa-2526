@@ -653,3 +653,47 @@ model StockCostConsumption {
 
   @@index([companyId, movementId])
 }
+
+enum InventoryCountStatus { DRAFT POSTED CANCELLED }
+
+model InventoryCount {
+  id          String               @id @default(uuid())
+  companyId   String
+  company     Company              @relation(fields: [companyId], references: [id])
+  warehouseId String
+  warehouse   Warehouse            @relation(fields: [warehouseId], references: [id])
+  status      InventoryCountStatus @default(DRAFT)
+  reason      String
+  countedAt   DateTime
+  createdById String
+  createdBy   User                 @relation(fields: [createdById], references: [id])
+  postedAt    DateTime?
+  createdAt   DateTime             @default(now())
+  lines       InventoryCountLine[]
+  @@index([companyId, warehouseId, status])
+}
+
+model InventoryCountLine {
+  id               String @id @default(uuid())
+  inventoryCountId String
+  inventoryCount   InventoryCount @relation(fields: [inventoryCountId], references: [id])
+  itemId           String
+  item             Item @relation(fields: [itemId], references: [id])
+  expectedQuantity Decimal @db.Decimal(18, 3)
+  countedQuantity  Decimal @db.Decimal(18, 3)
+  unitCostCents    Int?
+  @@unique([inventoryCountId, itemId])
+  @@index([itemId])
+}
+
+// Acrescentar no modelo Company:
+// inventoryCounts InventoryCount[]
+
+// Acrescentar no modelo Warehouse:
+// inventoryCounts InventoryCount[]
+
+// Acrescentar no modelo User:
+// inventoryCountsCreated InventoryCount[]
+
+// Acrescentar no modelo Item:
+// inventoryCountLines InventoryCountLine[]
