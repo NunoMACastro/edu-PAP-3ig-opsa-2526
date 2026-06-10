@@ -256,30 +256,6 @@ test at tests\unit\mf1-services.test.js:645:1
 ℹ todo 0
 ℹ duration_ms 4100.8599
 
-- PS D:\PAP\edu-PAP-3ig-opsa-2526> npm --prefix apps/api run test:contracts -- manualJournal
-
-> @opsa/api@1.0.0 test:contracts
-> node --test tests/contracts/*.test.js manualJournal
-
-✔ BK01: resolveSession não propaga passwordHash na sessão nem no utilizador público (3.9063ms)
-✔ BK04/BK05: adapters mock não registam tokens, URLs secretas ou email completo (1.0807ms)
-✔ BK05: rate limit em memória falha explicitamente em produção sem opt-in (2.274ms)
-✔ BK06: conflito de NIF é mapeado para NIF_ALREADY_EXISTS (1.1718ms)
-✔ BK12: nome de armazém duplicado é rejeitado (0.9918ms)
-✔ MF1: permissões backend separam escrita operacional, aprovação e contabilidade (2.6895ms)
-✔ MF1: routers principais montam sem dependências inexistentes (9.7653ms)
-✔ MF1 HTTP: criar venda sem sessão devolve erro de autenticação (3.9636ms)
-✔ MF1 HTTP: operacional não pode aprovar venda (4.7793ms)
-✔ MF1 HTTP: pagamento em compra rascunho devolve regra de estado (3.0751ms)
-ℹ tests 11
-ℹ suites 0
-ℹ pass 11
-ℹ fail 0
-ℹ cancelled 0
-ℹ skipped 0
-ℹ todo 0
-ℹ duration_ms 4100.8599
-
 - PS D:\PAP\edu-PAP-3ig-opsa-2526> npm --prefix apps/web run build
 
 > @opsa/web@1.0.0 build
@@ -376,3 +352,105 @@ Passo 8
 - Requisito validado: RF28
 - Endpoints: POST /api/accounting/manual-journals, GET /api/accounting/manual-journals/:id, PATCH /api/accounting/manual-journals/:id, POST /api/accounting/manual-journals/:id/attachments
 - Negativos: lançamento desequilibrado, edição de lançamento automático, período fechado, conta de outra empresa, MIME não permitido
+
+
+9) Validacao por BK
+Smoke
+* Criar lançamento manual em `POST /api/accounting/manual-journals`.
+* Consultar lançamento manual em `GET /api/accounting/manual-journals/:id`.
+* Editar lançamento manual em `PATCH /api/accounting/manual-journals/:id`.
+* Anexar ficheiro em `POST /api/accounting/manual-journals/:id/attachments`.
+* Confirmar criação de auditoria para criação e edição.
+* Confirmar associação do anexo ao lançamento manual.
+* Confirmar carregamento de lançamento existente em modo de edição.
+* Confirmar atualização de data, descrição e linhas contabilísticas.
+
+Negativos
+* Pedido sem sessão devolve `401`.
+* Pedido sem empresa ativa devolve `403`.
+* Utilizador sem role adequada devolve `403`.
+* Lançamento desequilibrado devolve `400`.
+* Conta SNC inexistente devolve `404`.
+* Conta SNC de outra empresa devolve `404` ou `403`.
+* Data fora de período fiscal aberto devolve `409`.
+* Tentativa de editar lançamento automático devolve `409`.
+* Lançamento de outra empresa devolve `404`.
+* Anexo com MIME inválido devolve erro controlado.
+* Anexo vazio devolve erro controlado.
+* Anexo para lançamento inexistente devolve `404`.
+
+Bloqueios e limites do BK
+* Dupla entrada é obrigatória.
+* Débitos e créditos têm de ficar equilibrados.
+* Apenas lançamentos com `source=MANUAL` podem ser editados.
+* JournalEntry e JournalEntryLine são reutilizados de MF1.
+* O frontend não decide regras contabilísticas.
+* Períodos fiscais fechados bloqueiam criação e edição.
+* Anexos ficam em armazenamento privado.
+* Não existe exposição direta de ficheiros contabilísticos por URL pública.
+* Lançamentos automáticos de MF1 ficam fora do scope deste BK.
+* SAF-T fica fora do scope deste BK.
+* Reconciliação bancária fica fora do scope deste BK.
+
+10) Evidencia obrigatoria
+
+pr
+PR: ainda nao criado.
+
+proof
+- Foi implementado o registo de lançamentos manuais reutilizando `JournalEntry` e `JournalEntryLine` criados em MF1.
+- A solução permite criar, consultar e editar lançamentos contabilísticos manuais equilibrados, validando contas SNC da empresa ativa, período fiscal aberto e regras de dupla entrada.
+- Foi também implementado suporte a anexos privados através de `JournalAttachment`, mantendo os ficheiros fora de pastas públicas e registando apenas os metadados na base de dados.
+
+neg
+Cenarios negativos previstos/validados:
+* `SESSION_REQUIRED`
+* `COMPANY_CONTEXT_REQUIRED`
+* `PERMISSION_FORBIDDEN`
+* `INVALID_ENTRY_DATE`
+* `ACCOUNT_REQUIRED`
+* `ACCOUNT_NOT_FOUND`
+* `INVALID_JOURNAL_LINE_AMOUNT`
+* `INVALID_JOURNAL_LINE_SIDE`
+* `JOURNAL_NOT_BALANCED`
+* `JOURNAL_ENTRY_NOT_FOUND`
+* `JOURNAL_ENTRY_NOT_MANUAL`
+* `FISCAL_PERIOD_CLOSED`
+* `ATTACHMENT_MIME_NOT_ALLOWED`
+* `ATTACHMENT_EMPTY`
+
+files
+apps/api/prisma/schema.prisma
+apps/api/src/modules/accounting/manualJournalService.js
+apps/api/src/modules/accounting/journalAttachmentStorage.js
+apps/api/src/modules/accounting/manualJournalRoutes.js
+apps/api/src/server.js
+apps/web/src/lib/manualJournalsApi.ts
+apps/web/src/pages/ManualJournalPage.tsx
+apps/api/src/modules/accounting/manualJournalService.test.js
+apps/api/src/modules/accounting/manualJournalRoutes.test.js
+docs/evidence/MF2/BK-MF2-06.md
+apps/web/src/App.tsx
+
+commands
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> npm --prefix apps/api run prisma:validate    
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> npm --prefix apps/api run prisma:generate
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> npm --prefix apps/api run test:unit -- manualJournal
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> npm --prefix apps/api run test:contracts -- manualJournal 
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> npm --prefix apps/web run build
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> npm --prefix apps/web run typecheck
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> npm --prefix apps/api run test:unit    
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> npm --prefix apps/api run test:contracts    
+
+exports
+Nao aplicavel neste BK.
+
+notes
+* JournalEntry e JournalEntryLine foram reutilizados de MF1 e não foram recriados.
+* Apenas lançamentos com `source=MANUAL` podem ser editados.
+* Débitos e créditos são validados em cêntimos.
+* O backend valida equilíbrio contabilístico, contas SNC e período fiscal.
+* Os anexos são armazenados em localização privada.
+* O frontend não guarda tokens nem aplica regras contabilísticas.
+* Dados contabilísticos permanecem isolados por empresa.
+* Lançamentos automáticos de MF1 permanecem fora do scope deste BK.
