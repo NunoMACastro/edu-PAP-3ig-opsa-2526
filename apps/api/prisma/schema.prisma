@@ -107,6 +107,7 @@ model User {
   passwordResetTokens PasswordResetToken[]
   auditLogs           AuditLog[]
   stockMovements      StockMovement[]
+  journalAttachments  JournalAttachment[]
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
 }
@@ -164,6 +165,7 @@ model Company {
   stockMovements    StockMovement[]
   stockCostLayers   StockCostLayer[]
   stockCostConsumptions StockCostConsumption[]
+  journalAttachments JournalAttachment[]
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
  }
@@ -441,7 +443,8 @@ model JournalEntry {
   createdAt   DateTime      @default(now())
 
   company Company            @relation(fields: [companyId], references: [id])
-  lines   JournalEntryLine[]
+  lines       JournalEntryLine[]
+  attachments JournalAttachment[]
 
   @@unique([companyId, source, sourceId])
   @@index([companyId, entryDate])
@@ -654,46 +657,20 @@ model StockCostConsumption {
   @@index([companyId, movementId])
 }
 
-enum InventoryCountStatus { DRAFT POSTED CANCELLED }
+model JournalAttachment {
+  id             String       @id @default(uuid())
+  companyId      String
+  company        Company      @relation(fields: [companyId], references: [id])
+  journalEntryId String
+  journalEntry   JournalEntry @relation(fields: [journalEntryId], references: [id])
+  fileName       String
+  mimeType       String
+  sizeBytes      Int
+  storageKey     String
+  uploadedById   String
+  uploadedBy     User         @relation(fields: [uploadedById], references: [id])
+  createdAt      DateTime     @default(now())
 
-model InventoryCount {
-  id          String               @id @default(uuid())
-  companyId   String
-  company     Company              @relation(fields: [companyId], references: [id])
-  warehouseId String
-  warehouse   Warehouse            @relation(fields: [warehouseId], references: [id])
-  status      InventoryCountStatus @default(DRAFT)
-  reason      String
-  countedAt   DateTime
-  createdById String
-  createdBy   User                 @relation(fields: [createdById], references: [id])
-  postedAt    DateTime?
-  createdAt   DateTime             @default(now())
-  lines       InventoryCountLine[]
-  @@index([companyId, warehouseId, status])
+  @@index([companyId, journalEntryId])
+  @@index([uploadedById])
 }
-
-model InventoryCountLine {
-  id               String @id @default(uuid())
-  inventoryCountId String
-  inventoryCount   InventoryCount @relation(fields: [inventoryCountId], references: [id])
-  itemId           String
-  item             Item @relation(fields: [itemId], references: [id])
-  expectedQuantity Decimal @db.Decimal(18, 3)
-  countedQuantity  Decimal @db.Decimal(18, 3)
-  unitCostCents    Int?
-  @@unique([inventoryCountId, itemId])
-  @@index([itemId])
-}
-
-// Acrescentar no modelo Company:
-// inventoryCounts InventoryCount[]
-
-// Acrescentar no modelo Warehouse:
-// inventoryCounts InventoryCount[]
-
-// Acrescentar no modelo User:
-// inventoryCountsCreated InventoryCount[]
-
-// Acrescentar no modelo Item:
-// inventoryCountLines InventoryCountLine[]
