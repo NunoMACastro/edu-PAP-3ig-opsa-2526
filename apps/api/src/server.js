@@ -31,6 +31,7 @@ import { buildPurchasePostingRoutes } from "./modules/accounting/purchasePosting
 import { buildPurchaseApprovalRoutes } from "./modules/purchase-approval/purchaseApprovalRoutes.js";
 import { createStockMovementRouter } from "./modules/inventory/stockMovementRoutes.js";
 import { createFifoCostRouter } from "./modules/inventory/fifoCostRoutes.js";
+import { createManualJournalRouter } from "./modules/accounting/manualJournalRoutes.js";
 
 const prisma = new PrismaClient();
 const app = express();
@@ -72,6 +73,7 @@ app.use(
 );
 app.use("/api/inventory/stock-movements", createStockMovementRouter(prisma));
 app.use("/api/inventory/fifo-cost", createFifoCostRouter(prisma));
+app.use("/api/accounting/manual-journals", createManualJournalRouter(prisma));
 
 /**
  * Arranca o servidor HTTP.
