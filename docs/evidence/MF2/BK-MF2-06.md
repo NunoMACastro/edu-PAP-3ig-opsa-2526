@@ -370,3 +370,9 @@ test at tests\unit\mf1-services.test.js:645:1
 ℹ skipped 0
 ℹ todo 0
 ℹ duration_ms 1779.6132
+
+Passo 8
+# BK-MF2-06
+- Requisito validado: RF28
+- Endpoints: POST /api/accounting/manual-journals, GET /api/accounting/manual-journals/:id, PATCH /api/accounting/manual-journals/:id, POST /api/accounting/manual-journals/:id/attachments
+- Negativos: lançamento desequilibrado, edição de lançamento automático, período fechado, conta de outra empresa, MIME não permitido
