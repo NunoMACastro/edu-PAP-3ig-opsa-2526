@@ -69,8 +69,6 @@ Negativos previstos:
 - lançamento de outra empresa devolve 404.
 
 Passo 4
-Passo 4 - Criar rotas com consulta, edição e anexos
-
 Ficheiros criados/editados:
 - criado apps/api/src/modules/accounting/journalAttachmentStorage.js;
 - criado apps/api/src/modules/accounting/manualJournalRoutes.js;
@@ -121,3 +119,34 @@ Notas de segurança:
 - dados de outra empresa não são expostos;
 - companyId vem do contexto autenticado;
 - roles são aplicadas no backend.
+
+Passo 5
+Ficheiros criados:
+- apps/web/src/lib/manualJournalsApi.ts
+
+Regras implementadas:
+- criado tipo ManualJournalLine;
+- criado tipo ManualJournalPayload;
+- criado tipo ManualJournal;
+- criada função createManualJournal;
+- criada função getManualJournal;
+- criada função updateManualJournal;
+- criada função uploadJournalAttachment;
+- todas as chamadas usam credentials: "include";
+- criação e edição enviam JSON;
+- upload envia ficheiro bruto para /attachments;
+- upload envia content-type e x-file-name;
+- erros da API são convertidos em Error com mensagem clara;
+- o frontend não guarda tokens no browser.
+
+Smoke previsto/validado:
+- criar lançamento manual via POST;
+- carregar lançamento manual via GET;
+- editar lançamento manual via PATCH;
+- anexar ficheiro via POST /attachments.
+
+Negativos previstos/validados:
+- erro de período fechado aparece como mensagem clara;
+- erro de lançamento automático aparece como mensagem clara;
+- erro de MIME inválido aparece como mensagem clara;
+- erro de sessão/permissão aparece como mensagem clara.
