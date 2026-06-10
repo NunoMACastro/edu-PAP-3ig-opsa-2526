@@ -150,3 +150,35 @@ Negativos previstos/validados:
 - erro de lançamento automático aparece como mensagem clara;
 - erro de MIME inválido aparece como mensagem clara;
 - erro de sessão/permissão aparece como mensagem clara.
+
+Passo 6
+Ficheiros criados/editados:
+- criado apps/web/src/pages/ManualJournalPage.tsx;
+- editado apps/web/src/App.tsx para expor a página na estrutura real da app.
+
+Nota de adaptação:
+Embora o guia indique apenas a criação de ManualJournalPage.tsx, a estrutura real da aplicação exige registar a página em App.tsx para permitir smoke manual no browser.
+
+Regras implementadas:
+- formulário para data, descrição e linhas;
+- suporte a modo de criação sem id;
+- suporte a modo de edição com initialEntryId;
+- cálculo visual de débitos e créditos;
+- botão para adicionar linhas;
+- submissão para createManualJournal ou updateManualJournal;
+- upload de anexo após existir entryId;
+- mensagens de loading, erro e sucesso;
+- backend continua a validar equilíbrio, contas, período fiscal e permissões.
+
+Smoke previsto:
+- criar lançamento sem id;
+- editar lançamento com id;
+- adicionar linhas;
+- visualizar total de débitos e créditos;
+- anexar PDF/PNG/JPEG após guardar;
+- erro da API aparece com role="alert".
+
+Negativo previsto:
+- totais diferentes não são aceites pelo backend;
+- anexo não pode ser enviado antes de existir entryId;
+- erro de período fechado aparece como mensagem clara.

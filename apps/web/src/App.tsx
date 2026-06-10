@@ -12,6 +12,7 @@ import { SalesOpenItemsPage } from "./pages/SalesOpenItemsPage";
 import { VatRatesPage } from "./pages/VatRatesPage";
 import { StockMovementsPage } from "./pages/StockMovementsPage";
 import { FifoCostPage } from "./pages/FifoCostPage";
+import { ManualJournalPage } from "./pages/ManualJournalPage";
 
 type ApiObject = Record<string, unknown>;
 type FieldKind = "text" | "email" | "password" | "number" | "textarea" | "select";
@@ -691,6 +692,11 @@ export function App() {
         id: "fifo-cost",
         title: "Custo FIFO",
         render: () => <FifoCostPage />,
+      },
+      {
+        id: "manual-journals",
+        title: "Lançamentos manuais",
+        render: () => <ManualJournalPage />,
       },
     ],
     [],
