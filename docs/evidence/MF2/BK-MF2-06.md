@@ -182,3 +182,191 @@ Negativo previsto:
 - totais diferentes não são aceites pelo backend;
 - anexo não pode ser enviado antes de existir entryId;
 - erro de período fechado aparece como mensagem clara.
+
+Passo 7
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> npm --prefix apps/api run test:unit -- manualJournal
+
+> @opsa/api@1.0.0 test:unit
+> node --test tests/unit/*.test.js manualJournal
+
+✔ BK01: login aceita password curta e deixa a autenticação decidir credenciais inválidas (6.9291ms)
+✔ BK01: registo mantém política de password forte (1.7609ms)
+✔ BK06: perfil da empresa assume EUR quando currency é omitida (2.2249ms)
+✔ BK06: perfil da empresa rejeita dia fiscal impossível (0.7248ms)
+✔ BK07: importação vazia é rejeitada (1.3558ms)
+✔ BK10: fornecedor aceita NIF vazio e valida quando preenchido (0.9518ms)
+✔ BK08: período fiscal rejeita datas normalizadas pelo JavaScript (1.0338ms)
+✔ BK01: rate limit de autenticação bloqueia excesso e exige store em produção (0.9112ms)
+✔ BK02: permissões de escrita seguem os atores documentados na MF0 (0.8085ms)
+✔ BK-MF1-01: IVA isento exige motivo de isenção (9.7927ms)
+✔ BK-MF1-02: venda calcula totais no backend e usa companyId do contexto (2.6408ms)
+✔ BK-MF1-06: emissão definitiva exige venda aprovada (1.3978ms)
+✔ BK-MF1-02: emissão definitiva reserva número por upsert atómico (8.3025ms)
+✔ BK-MF1-02: emissão concorrente não reserva número sem claim do documento (5.3375ms)
+✔ BK-MF1-03: recebimento não pode exceder montante em aberto (3.0842ms)
+✔ BK-MF1-03: recebimento rejeita saldo alterado em concorrência (5.87ms)
+✔ BK-MF1-04: lançamento de venda fica balanceado (2.4622ms)
+✔ BK-MF1-05: títulos em aberto calculam antiguidade e ignoram liquidados (3.4535ms)
+✔ BK-MF1-07/BK-MF1-10: compra nasce em rascunho com totais backend (7.0009ms)
+✔ BK-MF1-08: pagamento rejeita compra ainda em rascunho (1.8419ms)
+✔ BK-MF1-08: pagamento rejeita saldo alterado em concorrência (1.3449ms)
+✔ BK-MF1-08: pagamento total não altera estado contabilístico da compra (1.1364ms)
+✔ BK-MF1-09: lançamento de compra fica balanceado (2.1339ms)
+✖ BK-MF1-10: compra paga pode ser lançada e termina em POSTED (1.2956ms)
+✖ BK-MF1-10: aprovação de compra só aceita rascunho (7.4574ms)
+ℹ tests 25
+ℹ suites 0
+ℹ pass 23
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1611.2965
+
+✖ failing tests:
+
+test at tests\unit\mf1-services.test.js:595:1
+✖ BK-MF1-10: compra paga pode ser lançada e termina em POSTED (1.2956ms)
+
+test at tests\unit\mf1-services.test.js:645:1
+✖ BK-MF1-10: aprovação de compra só aceita rascunho (7.4574ms)
+
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> npm --prefix apps/api run test:contracts -- manualJournal
+
+> @opsa/api@1.0.0 test:contracts
+> node --test tests/contracts/*.test.js manualJournal
+
+✔ BK01: resolveSession não propaga passwordHash na sessão nem no utilizador público (3.9063ms)
+✔ BK04/BK05: adapters mock não registam tokens, URLs secretas ou email completo (1.0807ms)
+✔ BK05: rate limit em memória falha explicitamente em produção sem opt-in (2.274ms)
+✔ BK06: conflito de NIF é mapeado para NIF_ALREADY_EXISTS (1.1718ms)
+✔ BK09/BK10: pesquisa usa nome ou NIF sem alterar listagem base (2.5211ms)
+✔ BK12: nome de armazém duplicado é rejeitado (0.9918ms)
+✔ MF1: permissões backend separam escrita operacional, aprovação e contabilidade (2.6895ms)
+✔ MF1: routers principais montam sem dependências inexistentes (9.7653ms)
+✔ MF1 HTTP: criar venda sem sessão devolve erro de autenticação (3.9636ms)
+✔ MF1 HTTP: operacional não pode aprovar venda (4.7793ms)
+✔ MF1 HTTP: pagamento em compra rascunho devolve regra de estado (3.0751ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4100.8599
+
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> npm --prefix apps/api run test:contracts -- manualJournal
+
+> @opsa/api@1.0.0 test:contracts
+> node --test tests/contracts/*.test.js manualJournal
+
+✔ BK01: resolveSession não propaga passwordHash na sessão nem no utilizador público (3.9063ms)
+✔ BK04/BK05: adapters mock não registam tokens, URLs secretas ou email completo (1.0807ms)
+✔ BK05: rate limit em memória falha explicitamente em produção sem opt-in (2.274ms)
+✔ BK06: conflito de NIF é mapeado para NIF_ALREADY_EXISTS (1.1718ms)
+✔ BK12: nome de armazém duplicado é rejeitado (0.9918ms)
+✔ MF1: permissões backend separam escrita operacional, aprovação e contabilidade (2.6895ms)
+✔ MF1: routers principais montam sem dependências inexistentes (9.7653ms)
+✔ MF1 HTTP: criar venda sem sessão devolve erro de autenticação (3.9636ms)
+✔ MF1 HTTP: operacional não pode aprovar venda (4.7793ms)
+✔ MF1 HTTP: pagamento em compra rascunho devolve regra de estado (3.0751ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4100.8599
+
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> npm --prefix apps/web run build
+
+> @opsa/web@1.0.0 build
+> vite build
+
+vite v8.0.16 building client environment for production...
+✓ 43 modules transformed.
+
+src/pages/mf1Pages.tsx:14:10 - error TS2305: Module '"../lib/purchaseApprovalApi"' has no exported member 'purchaseApprovalApi'.
+14 import { purchaseApprovalApi } from "../lib/purchaseApprovalApi";
+
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> npm --prefix apps/web run typecheck
+
+> @opsa/web@1.0.0 typecheck
+> tsc --noEmit
+
+src/pages/mf1Pages.tsx:14:10 - error TS2305: Module '"../lib/purchaseApprovalApi"' has no exported member 'purchaseApprovalApi'.
+14 import { purchaseApprovalApi } from "../lib/purchaseApprovalApi";
+
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> npm --prefix apps/api run test:unit 
+
+> @opsa/api@1.0.0 test:unit
+> node --test tests/unit/*.test.js
+
+✔ BK01: login aceita password curta e deixa a autenticação decidir credenciais inválidas (4.77ms)
+✔ BK01: registo mantém política de password forte (1.7462ms)
+✔ BK06: perfil da empresa assume EUR quando currency é omitida (1.2445ms)
+✔ BK06: perfil da empresa rejeita dia fiscal impossível (0.7222ms)
+✔ BK07: importação vazia é rejeitada (0.7997ms)
+✔ BK10: fornecedor aceita NIF vazio e valida quando preenchido (0.9644ms)
+✔ BK08: período fiscal rejeita datas normalizadas pelo JavaScript (2.7168ms)
+✔ BK01: rate limit de autenticação bloqueia excesso e exige store em produção (1.7212ms)
+✔ BK02: permissões de escrita seguem os atores documentados na MF0 (1.1972ms)
+✔ BK-MF1-01: IVA isento exige motivo de isenção (7.2869ms)
+✔ BK-MF1-02: venda calcula totais no backend e usa companyId do contexto (2.7799ms)
+✔ BK-MF1-06: emissão definitiva exige venda aprovada (1.4183ms)
+✔ BK-MF1-02: emissão definitiva reserva número por upsert atómico (2.7414ms)
+✔ BK-MF1-02: emissão concorrente não reserva número sem claim do documento (1.2351ms)
+✔ BK-MF1-03: recebimento não pode exceder montante em aberto (1.5194ms)
+✔ BK-MF1-03: recebimento rejeita saldo alterado em concorrência (1.7661ms)
+✔ BK-MF1-04: lançamento de venda fica balanceado (2.5916ms)
+✔ BK-MF1-05: títulos em aberto calculam antiguidade e ignoram liquidados (3.6099ms)
+✔ BK-MF1-07/BK-MF1-10: compra nasce em rascunho com totais backend (4.0727ms)
+✔ BK-MF1-08: pagamento rejeita compra ainda em rascunho (1.6708ms)
+✔ BK-MF1-08: pagamento rejeita saldo alterado em concorrência (1.3104ms)
+✔ BK-MF1-08: pagamento total não altera estado contabilístico da compra (1.1671ms)
+✔ BK-MF1-09: lançamento de compra fica balanceado (2.1188ms)
+✖ BK-MF1-10: compra paga pode ser lançada e termina em POSTED (1.2817ms)
+✖ BK-MF1-10: aprovação de compra só aceita rascunho (4.2204ms)
+ℹ tests 25
+ℹ suites 0
+ℹ pass 23
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1347.129
+
+✖ failing tests:
+
+test at tests\unit\mf1-services.test.js:595:1
+✖ BK-MF1-10: compra paga pode ser lançada e termina em POSTED (1.2817ms)
+
+test at tests\unit\mf1-services.test.js:645:1
+✖ BK-MF1-10: aprovação de compra só aceita rascunho (4.2204ms)
+
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> npm --prefix apps/api run test:contracts 
+
+> @opsa/api@1.0.0 test:contracts
+> node --test tests/contracts/*.test.js
+
+✔ BK01: resolveSession não propaga passwordHash na sessão nem no utilizador público (3.2354ms)
+✔ BK04/BK05: adapters mock não registam tokens, URLs secretas ou email completo (1.0534ms)
+✔ BK05: rate limit em memória falha explicitamente em produção sem opt-in (2.2579ms)
+✔ BK06: conflito de NIF é mapeado para NIF_ALREADY_EXISTS (1.1488ms)
+✔ BK09/BK10: pesquisa usa nome ou NIF sem alterar listagem base (2.5053ms)
+✔ BK12: nome de armazém duplicado é rejeitado (0.9527ms)
+✔ MF1: permissões backend separam escrita operacional, aprovação e contabilidade (2.995ms)
+✔ MF1: routers principais montam sem dependências inexistentes (9.974ms)
+✔ MF1 HTTP: criar venda sem sessão devolve erro de autenticação (10.1656ms)
+✔ MF1 HTTP: operacional não pode aprovar venda (11.4085ms)
+✔ MF1 HTTP: pagamento em compra rascunho devolve regra de estado (15.7035ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1779.6132
