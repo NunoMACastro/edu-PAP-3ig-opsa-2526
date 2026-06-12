@@ -451,6 +451,18 @@ def main() -> None:
         if not last_updated or not is_recent_last_updated(last_updated):
             outdated_docs.append(str(p))
 
+    blocking_consistency_pass = (
+        not mismatches
+        and not broken_guia_links
+        and not deps_invalid
+        and not cycles
+        and not scorecard_contract_issues
+        and not declared_totals_issues
+        and not rnf_index_anchor_consistency_issues
+    )
+    blocking_guides_pass = not guide_header_issues and not naming_issues and not missing_guides
+    advisory_pass = not outdated_docs and not guide_content_issues
+
     result = {
         "counts": {
             "rf_docs": len(rf_codes),
@@ -488,33 +500,17 @@ def main() -> None:
             and not missing_rf_backlog
             and not missing_rnf_backlog
             and not invalid_refs,
-            "consistency_pass": not mismatches
-            and not broken_guia_links
-            and not deps_invalid
-            and not cycles
-            and not outdated_docs
-            and not scorecard_contract_issues
-            and not declared_totals_issues
-            and not rnf_index_anchor_consistency_issues,
-            "guides_pass": not guide_header_issues and not guide_content_issues and not naming_issues and not missing_guides,
+            "consistency_pass": blocking_consistency_pass,
+            "guides_pass": blocking_guides_pass,
             "naming_pass": not naming_issues,
+            "advisory_pass": advisory_pass,
             "overall_pass": not missing_rf_matrix
             and not missing_rnf_matrix
             and not missing_rf_backlog
             and not missing_rnf_backlog
             and not invalid_refs
-            and not mismatches
-            and not broken_guia_links
-            and not deps_invalid
-            and not cycles
-            and not outdated_docs
-            and not scorecard_contract_issues
-            and not declared_totals_issues
-            and not rnf_index_anchor_consistency_issues
-            and not guide_header_issues
-            and not guide_content_issues
-            and not naming_issues
-            and not missing_guides,
+            and blocking_consistency_pass
+            and blocking_guides_pass,
         },
     }
 
