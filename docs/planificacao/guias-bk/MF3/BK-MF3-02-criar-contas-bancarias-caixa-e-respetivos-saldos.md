@@ -1,4 +1,4 @@
-# BK-MF3-02 - Criar contas bancarias/caixa e respetivos saldos.
+# BK-MF3-02 - Criar contas bancárias/caixa e respetivos saldos.
 
 ## Header
 - `doc_id`: `GUIA-BK-MF3-02`
@@ -20,29 +20,29 @@
 
 #### Objetivo
 
-Neste BK vais implementar contas bancarias e caixa com saldos iniciais por empresa. Estas contas sao a base para importar extratos, reconciliar movimentos e prever tesouraria.
+Neste BK vais implementar contas bancárias e caixa com saldos iniciais por empresa. Estas contas são a base para importar extratos, reconciliar movimentos e prever tesouraria.
 
-#### Importancia
+#### Importância
 
-RF32 cria a entidade central da tesouraria. Sem contas reais, BK-MF3-03 nao sabe a que conta associar um extrato e BK-MF3-04 nao consegue calcular saldos previstos.
+RF32 cria a entidade central da tesouraria. Sem contas reais, BK-MF3-03 não sabe a que conta associar um extrato e BK-MF3-04 não consegue calcular saldos previstos.
 
 #### Scope-in
 
-- Criar conta bancaria ou caixa.
-- Validar IBAN em contas bancarias.
-- Guardar saldo inicial em centimos.
+- Criar conta bancária ou caixa.
+- Validar IBAN em contas bancárias.
+- Guardar saldo inicial em cêntimos.
 - Listar contas ativas por empresa.
 - Aplicar roles no backend.
 
 #### Scope-out
 
-- Ligacao real a bancos.
-- Sincronizacao bancaria automatica.
-- Transferencias entre contas.
+- Ligação real a bancos.
+- Sincronização bancária automática.
+- Transferências entre contas.
 
 #### Estado antes e depois
 
-- Estado antes: nao ha base de tesouraria documentada para extratos.
+- Estado antes: não há base de tesouraria documentada para extratos.
 - Estado depois: existem `TreasuryAccount` e `TreasuryBalanceSnapshot` por empresa.
 
 #### Pre-requisitos
@@ -51,18 +51,18 @@ RF32 cria a entidade central da tesouraria. Sem contas reais, BK-MF3-03 nao sabe
 - Rever contratos MF0 de autenticação, roles e multiempresa.
 - Confirmar moeda da empresa em `BK-MF0-06`.
 
-#### Glossario
+#### Glossário
 
-- **Conta bancaria:** conta com IBAN usada para banco.
-- **Caixa:** conta interna para dinheiro fisico.
+- **Conta bancária:** conta com IBAN usada para banco.
+- **Caixa:** conta interna para dinheiro físico.
 - **Saldo inicial:** valor de arranque controlado pelo contabilista.
 - **Snapshot:** fotografia do saldo numa data.
 
-#### Conceitos teoricos essenciais
+#### Conceitos teóricos essenciais
 
-- IBAN identifica uma conta bancaria e deve ser validado no backend.
-- Valores monetarios ficam em centimos para evitar erros de casas decimais.
-- O frontend pode validar campos, mas a protecao real fica no backend.
+- IBAN identifica uma conta bancária e deve ser validado no backend.
+- Valores monetários ficam em cêntimos para evitar erros de casas decimais.
+- O frontend pode validar campos, mas a proteção real fica no backend.
 - Uma conta pertence sempre a uma empresa.
 
 #### Arquitetura do BK
@@ -84,42 +84,42 @@ RF32 cria a entidade central da tesouraria. Sem contas reais, BK-MF3-03 nao sabe
 - EDITAR: `apps/web/src/App.tsx`
 - REVER: RF32, RNF05, BK-MF0-03, BK-MF0-06.
 
-#### Tutorial tecnico linear
+#### Tutorial técnico linear
 
 ### Passo 1 - Confirmar contrato e tipos de conta
 
 1. Objetivo funcional do passo no ERP.
 
-Separar conta bancaria de caixa antes de criar schema e validações.
+Separar conta bancária de caixa antes de criar schema e validações.
 
 2. Ficheiros envolvidos:
     - CRIAR: nenhum.
     - EDITAR: nenhum.
     - REVER: `docs/RF.md`, matriz e backlog.
-    - LOCALIZACAO: linhas de RF32 e BK-MF3-02.
+    - LOCALIZAÇÃO: linhas de RF32 e BK-MF3-02.
 
-3. Instrucoes do que fazer.
+3. Instruções do que fazer.
 
-Define que `BANK` exige IBAN e `CASH` nao exige IBAN.
+Define que `BANK` exige IBAN e `CASH` não exige IBAN.
 
-- `CANONICO`: RF32 exige contas bancarias/caixa por empresa para suportar tesouraria.
-- `DERIVADO`: o MVP guarda o saldo inicial como primeiro `TreasuryBalanceSnapshot`, para o BK-MF3-04 conseguir calcular previsoes sem criar outro conceito de saldo.
+- `CANONICO`: RF32 exige contas bancárias/caixa por empresa para suportar tesouraria.
+- `DERIVADO`: o MVP guarda o saldo inicial como primeiro `TreasuryBalanceSnapshot`, para o BK-MF3-04 conseguir calcular previsões sem criar outro conceito de saldo.
 
-4. Codigo completo, correto e integrado com a app final.
+4. Código completo, correto e integrado com a app final.
 
-Sem codigo neste passo.
+Sem código neste passo.
 
-5. Explicacao do codigo.
+5. Explicação do código.
 
-A decisao evita misturar dinheiro em caixa com conta bancaria.
+A decisão evita misturar dinheiro em caixa com conta bancária.
 
-6. Validacao do passo.
+6. Validação do passo.
 
 Evidence deve indicar os dois tipos aceites: `BANK` e `CASH`.
 
-7. Cenario negativo/erro esperado.
+7. Cenário negativo/erro esperado.
 
-Uma conta bancaria sem IBAN deve ser rejeitada.
+Uma conta bancária sem IBAN deve ser rejeitada.
 
 ### Passo 2 - Modelar contas e snapshots
 
@@ -131,13 +131,13 @@ Guardar contas e saldos por empresa.
     - CRIAR: nenhum.
     - EDITAR: `apps/api/prisma/schema.prisma`
     - REVER: modelo `Company`.
-    - LOCALIZACAO: zona de tesouraria.
+    - LOCALIZAÇÃO: zona de tesouraria.
 
-3. Instrucoes do que fazer.
+3. Instruções do que fazer.
 
-Adiciona modelos com unicidade por empresa. No modelo `Company` existente, adiciona tambem o lado inverso da relacao.
+Adiciona modelos com unicidade por empresa. No modelo `Company` existente, adiciona também o lado inverso da relação.
 
-4. Codigo completo, correto e integrado com a app final.
+4. Código completo, correto e integrado com a app final.
 
 No `model Company` existente, acrescenta este campo:
 
@@ -168,8 +168,8 @@ model TreasuryAccount {
   @@index([companyId, isActive])
 }
 
-/// Fotografia de saldo de uma conta num momento especifico.
-/// O primeiro snapshot nasce com o saldo inicial; snapshots futuros podem vir de reconciliacao ou fecho de tesouraria.
+/// Fotografia de saldo de uma conta num momento específico.
+/// O primeiro snapshot nasce com o saldo inicial; snapshots futuros podem vir de reconciliação ou fecho de tesouraria.
 model TreasuryBalanceSnapshot {
   id                String   @id @default(uuid())
   companyId         String
@@ -184,17 +184,17 @@ model TreasuryBalanceSnapshot {
 }
 ```
 
-5. Explicacao do codigo.
+5. Explicação do código.
 
-`TreasuryAccount` identifica conta por empresa. `TreasuryBalanceSnapshot` guarda saldo inicial ou posterior. A relacao nomeada com `Company` mantem o schema Prisma coerente e a unicidade impede duas contas com o mesmo nome dentro da mesma empresa.
+`TreasuryAccount` identifica conta por empresa. `TreasuryBalanceSnapshot` guarda saldo inicial ou posterior. A relação nomeada com `Company` mantém o schema Prisma coerente e a unicidade impede duas contas com o mesmo nome dentro da mesma empresa.
 
-6. Validacao do passo.
+6. Validação do passo.
 
-Migration deve criar as duas tabelas, os indices e validar a relacao com `Company`.
+Migration deve criar as duas tabelas, os índices e validar a relação com `Company`.
 
-7. Cenario negativo/erro esperado.
+7. Cenário negativo/erro esperado.
 
-Sem o campo inverso em `Company`, o Prisma rejeita a relacao. Sem `@@unique([companyId, name])`, o aluno pode criar duplicados confusos.
+Sem o campo inverso em `Company`, o Prisma rejeita a relação. Sem `@@unique([companyId, name])`, o aluno pode criar duplicados confusos.
 
 ### Passo 3 - Criar validator de payload
 
@@ -206,13 +206,13 @@ Validar nome, tipo, IBAN, moeda e saldo antes de gravar.
     - CRIAR: `apps/api/src/modules/treasury/bankAccountValidators.js`
     - EDITAR: nenhum.
     - REVER: `httpErrors.js`.
-    - LOCALIZACAO: ficheiro completo.
+    - LOCALIZAÇÃO: ficheiro completo.
 
-3. Instrucoes do que fazer.
+3. Instruções do que fazer.
 
 Valida tudo no backend. O IBAN fica simplificado para PT50 + 21 algarismos no MVP.
 
-4. Codigo completo, correto e integrado com a app final.
+4. Código completo, correto e integrado com a app final.
 
 ```js
 // apps/api/src/modules/treasury/bankAccountValidators.js
@@ -221,7 +221,7 @@ import { httpError } from "../../lib/httpErrors.js";
 const accountTypes = new Set(["BANK", "CASH"]);
 
 /**
- * Valida texto obrigatorio vindo do payload HTTP.
+ * Valida texto obrigatório vindo do payload HTTP.
  *
  * @param {unknown} value Valor recebido no body.
  * @param {string} fieldName Nome do campo para mensagem ao utilizador.
@@ -230,50 +230,50 @@ const accountTypes = new Set(["BANK", "CASH"]);
  */
 function requiredText(value, fieldName) {
     if (typeof value !== "string" || value.trim().length < 2) {
-        throw httpError(400, "INVALID_TREASURY_ACCOUNT", `${fieldName} e obrigatorio`);
+        throw httpError(400, "INVALID_TREASURY_ACCOUNT", `${fieldName} é obrigatório`);
     }
     return value.trim();
 }
 
 /**
- * Confirma que o saldo chega em centimos inteiros.
+ * Confirma que o saldo chega em cêntimos inteiros.
  *
  * @param {unknown} value Valor enviado pelo frontend.
- * @returns {number} Saldo inicial em centimos.
- * @throws {import("../../lib/httpErrors.js").HttpError} 400 quando o valor nao e inteiro.
+ * @returns {number} Saldo inicial em cêntimos.
+ * @throws {import("../../lib/httpErrors.js").HttpError} 400 quando o valor não é inteiro.
  */
 function parseInitialBalance(value) {
     if (!Number.isInteger(value)) {
-        throw httpError(400, "INVALID_INITIAL_BALANCE", "Saldo inicial deve estar em centimos");
+        throw httpError(400, "INVALID_INITIAL_BALANCE", "Saldo inicial deve estar em cêntimos");
     }
     return value;
 }
 
 /**
- * Valida o IBAN portugues para contas bancarias e remove IBAN de contas caixa.
+ * Valida o IBAN português para contas bancárias e remove IBAN de contas caixa.
  *
  * @param {string} type Tipo de conta validado.
  * @param {unknown} iban IBAN enviado no payload.
  * @returns {string | null} IBAN normalizado ou null para caixa.
- * @throws {import("../../lib/httpErrors.js").HttpError} 400 quando uma conta bancaria nao tem IBAN portugues valido.
+ * @throws {import("../../lib/httpErrors.js").HttpError} 400 quando uma conta bancária não tem IBAN português válido.
  */
 function assertIban(type, iban) {
     if (type === "CASH") return null;
     const normalized = requiredText(iban, "IBAN").replace(/\s+/g, "").toUpperCase();
     if (!/^PT50\d{21}$/.test(normalized)) {
-        throw httpError(400, "INVALID_IBAN", "IBAN portugues invalido");
+        throw httpError(400, "INVALID_IBAN", "IBAN português inválido");
     }
     return normalized;
 }
 
 /**
- * Valida o payload de criacao de conta de tesouraria.
+ * Valida o payload de criação de conta de tesouraria.
  *
- * A empresa e o utilizador nao entram neste DTO porque vêm da sessao e dos guards da MF0.
+ * A empresa e o utilizador não entram neste DTO porque vêm da sessão e dos guards da MF0.
  *
  * @param {{ type?: unknown, name?: unknown, iban?: unknown, currency?: unknown, initialBalanceCents?: unknown }} body Body HTTP recebido pela route.
  * @returns {{ name: string, type: "BANK" | "CASH", iban: string | null, currency: string, initialBalanceCents: number }} Payload seguro para o service.
- * @throws {import("../../lib/httpErrors.js").HttpError} 400 quando algum campo funcional e invalido.
+ * @throws {import("../../lib/httpErrors.js").HttpError} 400 quando algum campo funcional é inválido.
  */
 export function validateTreasuryAccountPayload(body) {
     const type = requiredText(body.type, "Tipo");
@@ -291,15 +291,15 @@ export function validateTreasuryAccountPayload(body) {
 }
 ```
 
-5. Explicacao do codigo.
+5. Explicação do código.
 
-O validator impede payload incompleto. `assertIban` exige IBAN para banco e dispensa em caixa. `parseInitialBalance` obriga centimos inteiros. O JSDoc mostra ao aluno que o payload nao transporta `companyId`: esse dado e sempre resolvido no backend pela sessao.
+O validator impede payload incompleto. `assertIban` exige IBAN para banco e dispensa em caixa. `parseInitialBalance` obriga cêntimos inteiros. O JSDoc mostra ao aluno que o payload não transporta `companyId`: esse dado é sempre resolvido no backend pela sessão.
 
-6. Validacao do passo.
+6. Validação do passo.
 
-Testa conta `BANK` com IBAN valido e conta `CASH` sem IBAN.
+Testa conta `BANK` com IBAN válido e conta `CASH` sem IBAN.
 
-7. Cenario negativo/erro esperado.
+7. Cenário negativo/erro esperado.
 
 `BANK` com `iban=""` devolve `400 INVALID_IBAN`.
 
@@ -307,19 +307,19 @@ Testa conta `BANK` com IBAN valido e conta `CASH` sem IBAN.
 
 1. Objetivo funcional do passo no ERP.
 
-Criar conta e snapshot do saldo inicial na mesma transacao.
+Criar conta e snapshot do saldo inicial na mesma transação.
 
 2. Ficheiros envolvidos:
     - CRIAR: `apps/api/src/modules/treasury/bankAccountService.js`
     - EDITAR: nenhum.
     - REVER: schema criado no passo 2.
-    - LOCALIZACAO: ficheiro completo.
+    - LOCALIZAÇÃO: ficheiro completo.
 
-3. Instrucoes do que fazer.
+3. Instruções do que fazer.
 
-Usa `companyId` da sessao e nunca do body.
+Usa `companyId` da sessão e nunca do body.
 
-4. Codigo completo, correto e integrado com a app final.
+4. Código completo, correto e integrado com a app final.
 
 ```js
 // apps/api/src/modules/treasury/bankAccountService.js
@@ -329,12 +329,12 @@ import { httpError } from "../../lib/httpErrors.js";
  * Lista contas de tesouraria ativas da empresa atual.
  *
  * @param {import("@prisma/client").PrismaClient} prisma Cliente Prisma da app.
- * @param {{ companyId: string }} input Contexto multiempresa vindo da sessao.
+ * @param {{ companyId: string }} input Contexto multiempresa vindo da sessão.
  * @returns {Promise<Array<object>>} Contas ativas com o snapshot mais recente.
- * @throws {import("../../lib/httpErrors.js").HttpError} 401 quando nao ha empresa ativa.
+ * @throws {import("../../lib/httpErrors.js").HttpError} 401 quando não há empresa ativa.
  */
 export async function listTreasuryAccounts(prisma, { companyId }) {
-    if (!companyId) throw httpError(401, "COMPANY_CONTEXT_REQUIRED", "Empresa ativa obrigatoria");
+    if (!companyId) throw httpError(401, "COMPANY_CONTEXT_REQUIRED", "Empresa ativa obrigatória");
 
     return prisma.treasuryAccount.findMany({
         where: { companyId, isActive: true },
@@ -344,23 +344,23 @@ export async function listTreasuryAccounts(prisma, { companyId }) {
 }
 
 /**
- * Cria uma conta de tesouraria e o primeiro snapshot de saldo na mesma transacao.
+ * Cria uma conta de tesouraria e o primeiro snapshot de saldo na mesma transação.
  *
  * @param {import("@prisma/client").PrismaClient} prisma Cliente Prisma da app.
  * @param {{ companyId: string, userId: string, payload: { name: string, type: "BANK" | "CASH", iban: string | null, currency: string, initialBalanceCents: number } }} input Contexto seguro e payload validado.
  * @returns {Promise<object | null>} Conta criada com snapshot mais recente.
- * @throws {import("../../lib/httpErrors.js").HttpError} 401 sem empresa ativa ou 409 quando o nome ja existe na empresa.
+ * @throws {import("../../lib/httpErrors.js").HttpError} 401 sem empresa ativa ou 409 quando o nome já existe na empresa.
  */
 export async function createTreasuryAccount(prisma, { companyId, userId, payload }) {
-    if (!companyId) throw httpError(401, "COMPANY_CONTEXT_REQUIRED", "Empresa ativa obrigatoria");
+    if (!companyId) throw httpError(401, "COMPANY_CONTEXT_REQUIRED", "Empresa ativa obrigatória");
 
     const existing = await prisma.treasuryAccount.findUnique({
         where: { companyId_name: { companyId, name: payload.name } },
     });
-    if (existing) throw httpError(409, "TREASURY_ACCOUNT_EXISTS", "Ja existe uma conta com este nome");
+    if (existing) throw httpError(409, "TREASURY_ACCOUNT_EXISTS", "Já existe uma conta com este nome");
 
     return prisma.$transaction(async (tx) => {
-        // Conta e snapshot ficam na mesma transacao para nao existir conta sem saldo inicial.
+        // Conta e snapshot ficam na mesma transação para não existir conta sem saldo inicial.
         const account = await tx.treasuryAccount.create({
             data: {
                 companyId,
@@ -389,15 +389,15 @@ export async function createTreasuryAccount(prisma, { companyId, userId, payload
 }
 ```
 
-5. Explicacao do codigo.
+5. Explicação do código.
 
-A transacao garante que a conta nao fica sem snapshot inicial. A empresa vem da sessao, por isso o browser nao consegue criar conta noutra empresa. O JSDoc documenta os efeitos secundarios: escrita em `TreasuryAccount` e `TreasuryBalanceSnapshot`.
+A transação garante que a conta não fica sem snapshot inicial. A empresa vem da sessão, por isso o browser não consegue criar conta noutra empresa. O JSDoc documenta os efeitos secundários: escrita em `TreasuryAccount` e `TreasuryBalanceSnapshot`.
 
-6. Validacao do passo.
+6. Validação do passo.
 
 Cria uma conta com saldo inicial de `125000` e confirma snapshot com o mesmo valor.
 
-7. Cenario negativo/erro esperado.
+7. Cenário negativo/erro esperado.
 
 Nome duplicado na mesma empresa devolve `409 TREASURY_ACCOUNT_EXISTS`.
 
@@ -411,13 +411,13 @@ Permitir listar e criar contas com roles adequadas.
     - CRIAR: `apps/api/src/modules/treasury/bankAccountRoutes.js`
     - EDITAR: `apps/api/src/server.js`
     - REVER: middlewares MF0.
-    - LOCALIZACAO: ficheiro completo e montagem.
+    - LOCALIZAÇÃO: ficheiro completo e montagem.
 
-3. Instrucoes do que fazer.
+3. Instruções do que fazer.
 
 `GET` permite consulta; `POST` cria conta.
 
-4. Codigo completo, correto e integrado com a app final.
+4. Código completo, correto e integrado com a app final.
 
 ```js
 // apps/api/src/modules/treasury/bankAccountRoutes.js
@@ -430,9 +430,9 @@ import { validateTreasuryAccountPayload } from "./bankAccountValidators.js";
 import { createTreasuryAccount, listTreasuryAccounts } from "./bankAccountService.js";
 
 /**
- * Constroi as routes de contas de tesouraria.
+ * Constrói as routes de contas de tesouraria.
  *
- * @param {{ prisma: import("@prisma/client").PrismaClient }} deps Dependencias da route.
+ * @param {{ prisma: import("@prisma/client").PrismaClient }} deps Dependências da route.
  * @returns {import("express").Router} Router montado em `/api/treasury/accounts`.
  */
 export function buildTreasuryAccountRoutes({ prisma }) {
@@ -473,35 +473,35 @@ import { buildTreasuryAccountRoutes } from "./modules/treasury/bankAccountRoutes
 app.use("/api/treasury/accounts", buildTreasuryAccountRoutes({ prisma }));
 ```
 
-5. Explicacao do codigo.
+5. Explicação do código.
 
-As routes separam leitura e escrita. `GET` e `POST` convertem erros para HTTP controlado. `POST` valida payload antes do service. A role e validada no backend, nao apenas escondida no menu, e o comentario reforca que ownership vem da sessao.
+As routes separam leitura e escrita. `GET` e `POST` convertem erros para HTTP controlado. `POST` valida payload antes do service. A role é validada no backend, não apenas escondida no menu, e o comentário reforça que ownership vem da sessão.
 
-6. Validacao do passo.
+6. Validação do passo.
 
 `POST /api/treasury/accounts` com role `CONTABILISTA` devolve `201`.
 
-7. Cenario negativo/erro esperado.
+7. Cenário negativo/erro esperado.
 
-`GESTOR` consegue listar, mas nao criar conta.
+`GESTOR` consegue listar, mas não criar conta.
 
 ### Passo 6 - Criar cliente API
 
 1. Objetivo funcional do passo no ERP.
 
-Dar ao frontend funcoes tipadas para listar e criar contas.
+Dar ao frontend funções tipadas para listar e criar contas.
 
 2. Ficheiros envolvidos:
     - CRIAR: `apps/web/src/lib/treasuryApi.ts`
     - EDITAR: nenhum.
     - REVER: cliente API comum.
-    - LOCALIZACAO: ficheiro completo.
+    - LOCALIZAÇÃO: ficheiro completo.
 
-3. Instrucoes do que fazer.
+3. Instruções do que fazer.
 
-Usa tipos especificos de tesouraria.
+Usa tipos específicos de tesouraria.
 
-4. Codigo completo, correto e integrado com a app final.
+4. Código completo, correto e integrado com a app final.
 
 ```ts
 // apps/web/src/lib/treasuryApi.ts
@@ -537,7 +537,7 @@ export function listTreasuryAccounts() {
 }
 
 /**
- * Cria uma conta bancaria ou caixa.
+ * Cria uma conta bancária ou caixa.
  *
  * @param {TreasuryAccountPayload} payload Dados validados no backend.
  * @returns {Promise<TreasuryAccount>} Conta criada.
@@ -547,19 +547,19 @@ export function createTreasuryAccount(payload: TreasuryAccountPayload) {
 }
 ```
 
-5. Explicacao do codigo.
+5. Explicação do código.
 
-O cliente usa tipos de payload e resposta e reutiliza `apiClient`, que ja envia `credentials: "include"` e transforma erros HTTP em mensagens visiveis. Assim a MF3 nao duplica contratos HTTP criados na MF1.
+O cliente usa tipos de payload e resposta e reutiliza `apiClient`, que já envia `credentials: "include"` e transforma erros HTTP em mensagens visíveis. Assim a MF3 não duplica contratos HTTP criados na MF1.
 
-6. Validacao do passo.
+6. Validação do passo.
 
 Chama `listTreasuryAccounts` após criar uma conta.
 
-7. Cenario negativo/erro esperado.
+7. Cenário negativo/erro esperado.
 
-Se o backend devolver `400 INVALID_IBAN`, a pagina mostra a mensagem sem quebrar.
+Se o backend devolver `400 INVALID_IBAN`, a página mostra a mensagem sem quebrar.
 
-### Passo 7 - Criar pagina de contas
+### Passo 7 - Criar página de contas
 
 1. Objetivo funcional do passo no ERP.
 
@@ -569,13 +569,13 @@ Permitir criar e consultar contas de tesouraria.
     - CRIAR: `apps/web/src/pages/TreasuryAccountsPage.tsx`
     - EDITAR: `apps/web/src/App.tsx`
     - REVER: `treasuryApi.ts`.
-    - LOCALIZACAO: ficheiro completo e menu.
+    - LOCALIZAÇÃO: ficheiro completo e menu.
 
-3. Instrucoes do que fazer.
+3. Instruções do que fazer.
 
 Mostra formulario e lista com saldo mais recente.
 
-4. Codigo completo, correto e integrado com a app final.
+4. Código completo, correto e integrado com a app final.
 
 ```tsx
 // apps/web/src/pages/TreasuryAccountsPage.tsx
@@ -583,20 +583,20 @@ import { FormEvent, useEffect, useState } from "react";
 import { createTreasuryAccount, listTreasuryAccounts, type TreasuryAccount } from "../lib/treasuryApi";
 
 /**
- * Formata centimos em euros para apresentacao.
+ * Formata cêntimos em euros para apresentacao.
  *
- * @param {number} cents Valor em centimos.
- * @returns {string} Valor legivel em EUR.
+ * @param {number} cents Valor em cêntimos.
+ * @returns {string} Valor legível em EUR.
  */
 function euros(cents: number) {
     return `${(cents / 100).toFixed(2)} EUR`;
 }
 
 /**
- * Pagina de gestao de contas bancarias e caixa.
+ * Página de gestão de contas bancárias e caixa.
  *
- * Controla estados de lista, erro e loading. A validacao final fica no backend para impedir que uma
- * alteracao manual no HTML crie contas invalidas.
+ * Controla estados de lista, erro e loading. A validação final fica no backend para impedir que uma
+ * alteração manual no HTML crie contas inválidas.
  *
  * @returns {JSX.Element} Interface de tesouraria.
  */
@@ -617,7 +617,7 @@ export function TreasuryAccountsPage() {
         setLoading(true);
         setError("");
         try {
-            // O formulario envia euros legiveis; a API recebe centimos inteiros.
+            // O formulario envia euros legiveis; a API recebe cêntimos inteiros.
             await createTreasuryAccount({
                 name: String(form.get("name") ?? ""),
                 type: String(form.get("type") ?? "BANK") as "BANK" | "CASH",
@@ -636,7 +636,7 @@ export function TreasuryAccountsPage() {
 
     return (
         <main>
-            <h1>Contas bancarias e caixa</h1>
+            <h1>Contas bancárias e caixa</h1>
             <form onSubmit={handleSubmit}>
                 <input name="name" placeholder="Nome da conta" required />
                 <select name="type" defaultValue="BANK"><option value="BANK">Banco</option><option value="CASH">Caixa</option></select>
@@ -645,22 +645,22 @@ export function TreasuryAccountsPage() {
                 <button disabled={loading}>{loading ? "A guardar..." : "Criar conta"}</button>
             </form>
             {error && <p role="alert">{error}</p>}
-            {accounts.length === 0 && !error && <p>Ainda nao existem contas de tesouraria.</p>}
+            {accounts.length === 0 && !error && <p>Ainda não existem contas de tesouraria.</p>}
             <ul>{accounts.map((account) => <li key={account.id}>{account.name} - {account.type} - {euros(account.snapshots[0]?.balanceCents ?? 0)}</li>)}</ul>
         </main>
     );
 }
 ```
 
-5. Explicacao do codigo.
+5. Explicação do código.
 
-A pagina carrega contas ao abrir e volta a carregar apos criar. O saldo apresentado vem do snapshot mais recente. A validacao final do IBAN fica no backend. O JSDoc documenta os estados de UI e o comentario no submit explica a conversao de euros para centimos.
+A página carrega contas ao abrir e volta a carregar após criar. O saldo apresentado vem do snapshot mais recente. A validação final do IBAN fica no backend. O JSDoc documenta os estados de UI e o comentário no submit explica a conversão de euros para cêntimos.
 
-6. Validacao do passo.
+6. Validação do passo.
 
-Cria `Banco Principal` com IBAN valido e confirma listagem.
+Cria `Banco Principal` com IBAN válido e confirma listagem.
 
-7. Cenario negativo/erro esperado.
+7. Cenário negativo/erro esperado.
 
 Tentar criar banco sem IBAN mostra erro de validação.
 
@@ -673,26 +673,26 @@ Garantir que BK-MF3-03 recebe contas reais para importar extratos.
 2. Ficheiros envolvidos:
     - CRIAR: nenhum.
     - EDITAR: evidence do BK.
-    - REVER: schema, routes, service e pagina.
-    - LOCALIZACAO: checklist da PR.
+    - REVER: schema, routes, service e página.
+    - LOCALIZAÇÃO: checklist da PR.
 
-3. Instrucoes do que fazer.
+3. Instruções do que fazer.
 
 Regista caso principal e negativos.
 
-4. Codigo completo, correto e integrado com a app final.
+4. Código completo, correto e integrado com a app final.
 
-Sem codigo novo neste passo.
+Sem código novo neste passo.
 
-5. Explicacao do codigo.
+5. Explicação do código.
 
-A evidence demonstra que as contas existem e que o proximo BK pode usar `treasuryAccountId`.
+A evidence demonstra que as contas existem e que o próximo BK pode usar `treasuryAccountId`.
 
-6. Validacao do passo.
+6. Validação do passo.
 
 Confirma `GET /api/treasury/accounts` com pelo menos uma conta.
 
-7. Cenario negativo/erro esperado.
+7. Cenário negativo/erro esperado.
 
 Um utilizador sem empresa ativa recebe `401 COMPANY_CONTEXT_REQUIRED`.
 
@@ -702,11 +702,11 @@ Um utilizador sem empresa ativa recebe `401 COMPANY_CONTEXT_REQUIRED`.
 - `GET /api/treasury/accounts` devolve contas ativas da empresa.
 - Banco sem IBAN devolve `400 INVALID_IBAN`.
 - Duplicado devolve `409 TREASURY_ACCOUNT_EXISTS`.
-- Role sem permissao de escrita devolve `403`.
+- Role sem permissão de escrita devolve `403`.
 
 ## Critérios de aceite
 
-- Conta e snapshot inicial criados na mesma transacao.
+- Conta e snapshot inicial criados na mesma transação.
 - Todas as queries usam empresa ativa.
 - IBAN validado no backend.
 - Frontend usa `apiClient` com cookie HttpOnly.
@@ -716,19 +716,19 @@ Um utilizador sem empresa ativa recebe `401 COMPANY_CONTEXT_REQUIRED`.
 
 - Confirmar migration.
 - Confirmar route montada.
-- Confirmar menu/pagina.
+- Confirmar menu/página.
 - Confirmar negativos.
 
 ## Evidence para PR/defesa
 
 - JSON da conta criada.
 - Screenshot da lista.
-- Provas de IBAN invalido, duplicado e role sem permissao.
+- Provas de IBAN inválido, duplicado e role sem permissão.
 
 ## Handoff
 
-BK-MF3-03 usa `TreasuryAccount.id` para associar extratos bancarios a uma conta real.
+BK-MF3-03 usa `TreasuryAccount.id` para associar extratos bancários a uma conta real.
 
 ## Changelog
 
-- `2026-06-13`: corrigido para criar contas e snapshots reais, com validator, service transacional, routes com erros controlados, frontend com `apiClient`, JSDoc e comentarios didaticos.
+- `2026-06-13`: corrigido para criar contas e snapshots reais, com validator, service transacional, routes com erros controlados, frontend com `apiClient`, JSDoc e comentários didáticos.

@@ -9,7 +9,7 @@
 - `prioridade`: `P1`
 - `estado`: `TODO`
 - `esforco`: `S`
-- `dependencias`: `BK-MF1-02, BK-MF1-03, BK-MF1-07, BK-MF1-08, BK-MF3-07`
+- `dependencias`: `BK-MF3-07`
 - `rf_rnf`: `RF38`
 - `fase_documental`: `Fase 2`
 - `sprint`: `S07-S08`
@@ -22,27 +22,27 @@
 
 Neste BK vais calcular KPIs executivos: receita, custos, EBITDA operacional, PMR e PMP.
 
-#### Importancia
+#### Importância
 
-RF38 transforma dados operacionais em indicadores de gestao. Estes KPIs alimentam a MF4, onde a IA deve explicar tendencias com fontes reais.
+RF38 transforma dados operacionais em indicadores de gestão. Estes KPIs alimentam a MF4, onde a IA deve explicar tendências com fontes reais.
 
 #### Scope-in
 
-- Calcular receita e custos do periodo.
+- Calcular receita e custos do período.
 - Calcular EBITDA operacional MVP.
 - Calcular PMR com vendas e recebimentos.
 - Calcular PMP com compras e pagamentos.
-- Guardar execucao em `ExecutiveKpiRun`.
+- Guardar execução em `ExecutiveKpiRun`.
 
 #### Scope-out
 
 - EBITDA legal/fiscal completo.
-- Indicadores nao documentados.
-- Decisoes automaticas pela IA.
+- Indicadores não documentados.
+- Decisões automáticas pela IA.
 
 #### Estado antes e depois
 
-- Estado antes: existem relatorios operacionais.
+- Estado antes: existem relatórios operacionais.
 - Estado depois: `GET /api/reports/executive-kpis` devolve indicadores calculados.
 
 #### Pre-requisitos
@@ -50,20 +50,20 @@ RF38 transforma dados operacionais em indicadores de gestao. Estes KPIs alimenta
 - Rever BK-MF3-07, RF38 e RNF31.
 - Rever BK-MF1-02, BK-MF1-03, BK-MF1-07 e BK-MF1-08.
 
-#### Glossario
+#### Glossário
 
-- **Receita:** vendas emitidas no periodo.
-- **Custos:** compras/custos operacionais do periodo.
+- **Receita:** vendas emitidas no período.
+- **Custos:** compras/custos operacionais do período.
 - **EBITDA MVP:** receita menos custos operacionais conhecidos.
-- **PMR:** prazo medio de recebimento.
-- **PMP:** prazo medio de pagamento.
+- **PMR:** prazo médio de recebimento.
+- **PMP:** prazo médio de pagamento.
 
-#### Conceitos teoricos essenciais
+#### Conceitos teóricos essenciais
 
-- KPI resume dados, mas deve manter origem explicavel.
-- Divisao por zero deve devolver `null`, nao erro tecnico.
-- PMR/PMP usam diferenca entre data de documento e data de recebimento/pagamento.
-- IA futura pode recomendar, mas nao altera dados contabilisticos.
+- KPI resume dados, mas deve manter origem explicável.
+- Divisão por zero deve devolver `null`, não erro técnico.
+- PMR/PMP usam diferença entre data de documento e data de recebimento/pagamento.
+- IA futura pode recomendar, mas não altera dados contabilísticos.
 
 #### Arquitetura do BK
 
@@ -84,45 +84,45 @@ RF38 transforma dados operacionais em indicadores de gestao. Estes KPIs alimenta
 - EDITAR: `apps/web/src/App.tsx`
 - REVER: BK-MF3-07, BK-MF1-02, BK-MF1-03, BK-MF1-07, BK-MF1-08.
 
-#### Tutorial tecnico linear
+#### Tutorial técnico linear
 
-### Passo 1 - Confirmar formulas MVP
+### Passo 1 - Confirmar fórmulas MVP
 
 1. Objetivo funcional do passo no ERP.
 
-Definir formulas sem inventar indicadores fora do RF38.
+Definir fórmulas sem inventar indicadores fora do RF38.
 
 2. Ficheiros envolvidos:
     - CRIAR: nenhum.
     - EDITAR: nenhum.
     - REVER: RF38, BK-MF3-07.
-    - LOCALIZACAO: documentos canonicos.
+    - LOCALIZAÇÃO: documentos canónicos.
 
-3. Instrucoes do que fazer.
+3. Instruções do que fazer.
 
-Regista formulas: receita, custos, EBITDA, PMR e PMP.
+Regista fórmulas: receita, custos, EBITDA, PMR e PMP.
 
 - `CANONICO`: RF38 pede KPIs executivos de receita, custos, EBITDA, PMR e PMP.
-- `DERIVADO`: EBITDA neste BK e `receita - custos` como indicador operacional MVP, nao EBITDA fiscal/legal completo.
-- `DERIVADO`: PMR/PMP usam media simples entre data do documento e data de recebimento/pagamento; sem dados suficientes devolvem `null`.
+- `DERIVADO`: EBITDA neste BK é `receita - custos` como indicador operacional MVP, não EBITDA fiscal/legal completo.
+- `DERIVADO`: PMR/PMP usam média simples entre data do documento e data de recebimento/pagamento; sem dados suficientes devolvem `null`.
 
-4. Codigo completo, correto e integrado com a app final.
+4. Código completo, correto e integrado com a app final.
 
-Sem codigo neste passo.
+Sem código neste passo.
 
-5. Explicacao do codigo.
+5. Explicação do código.
 
-A decisao evita apresentar EBITDA MVP como resultado contabilistico oficial.
+A decisão evita apresentar EBITDA MVP como resultado contabilístico oficial.
 
-6. Validacao do passo.
+6. Validação do passo.
 
-Evidence deve listar formulas.
+Evidence deve listar fórmulas.
 
-7. Cenario negativo/erro esperado.
+7. Cenário negativo/erro esperado.
 
-Nao criar KPI novo sem documento canonico.
+Não criar KPI novo sem documento canónico.
 
-### Passo 2 - Modelar execucao KPI
+### Passo 2 - Modelar execução KPI
 
 1. Objetivo funcional do passo no ERP.
 
@@ -132,17 +132,17 @@ Guardar KPIs calculados.
     - CRIAR: nenhum.
     - EDITAR: `apps/api/prisma/schema.prisma`
     - REVER: `SaleDocument`, `PurchaseDocument`, `Receipt`, `Payment`.
-    - LOCALIZACAO: modelos de reporting.
+    - LOCALIZAÇÃO: modelos de reporting.
 
-3. Instrucoes do que fazer.
+3. Instruções do que fazer.
 
-Adiciona `ExecutiveKpiRun`. Este modelo grava a execucao dos KPIs; os dados de origem continuam nos documentos, recebimentos e pagamentos.
+Adiciona `ExecutiveKpiRun`. Este modelo grava a execução dos KPIs; os dados de origem continuam nos documentos, recebimentos e pagamentos.
 
-4. Codigo completo, correto e integrado com a app final.
+4. Código completo, correto e integrado com a app final.
 
 ```prisma
-/// Execucao de KPIs executivos por empresa.
-/// Guarda indicadores calculados para evidence e para consumo explicavel pela MF4.
+/// Execução de KPIs executivos por empresa.
+/// Guarda indicadores calculados para evidence e para consumo explicável pela MF4.
 model ExecutiveKpiRun {
   id            String   @id @default(uuid())
   companyId     String
@@ -160,15 +160,15 @@ model ExecutiveKpiRun {
 }
 ```
 
-5. Explicacao do codigo.
+5. Explicação do código.
 
-`pmrDays` e `pmpDays` podem ser nulos quando nao ha recebimentos ou pagamentos suficientes. A relacao com `BK-MF3-07` e funcional: ambos sao relatorios, mas este BK calcula os indicadores a partir das fontes transacionais.
+`pmrDays` e `pmpDays` podem ser nulos quando não há recebimentos ou pagamentos suficientes. A relação com `BK-MF3-07` é funcional: ambos são relatórios, mas este BK calcula os indicadores a partir das fontes transacionais.
 
-6. Validacao do passo.
+6. Validação do passo.
 
 Migration cria modelo.
 
-7. Cenario negativo/erro esperado.
+7. Cenário negativo/erro esperado.
 
 Forcar zero em PMR sem dados enganaria o gestor.
 
@@ -176,19 +176,19 @@ Forcar zero em PMR sem dados enganaria o gestor.
 
 1. Objetivo funcional do passo no ERP.
 
-Validar periodo de KPI.
+Validar período de KPI.
 
 2. Ficheiros envolvidos:
     - CRIAR: `apps/api/src/modules/reports/executiveKpiFilters.js`
     - EDITAR: nenhum.
     - REVER: `httpErrors.js`.
-    - LOCALIZACAO: ficheiro completo.
+    - LOCALIZAÇÃO: ficheiro completo.
 
-3. Instrucoes do que fazer.
+3. Instruções do que fazer.
 
-Reutiliza padrao de relatorios.
+Reutiliza padrão de relatórios.
 
-4. Codigo completo, correto e integrado com a app final.
+4. Código completo, correto e integrado com a app final.
 
 ```js
 // apps/api/src/modules/reports/executiveKpiFilters.js
@@ -200,20 +200,20 @@ import { httpError } from "../../lib/httpErrors.js";
  * @param {unknown} value Valor recebido em `req.query`.
  * @param {string} field Nome do campo para erro.
  * @returns {Date} Data validada.
- * @throws {import("../../lib/httpErrors.js").HttpError} 400 quando a data e invalida.
+ * @throws {import("../../lib/httpErrors.js").HttpError} 400 quando a data é inválida.
  */
 function parseDate(value, field) {
     const date = new Date(value);
-    if (typeof value !== "string" || Number.isNaN(date.getTime())) throw httpError(400, "INVALID_KPI_RANGE", `${field} deve ser uma data valida`);
+    if (typeof value !== "string" || Number.isNaN(date.getTime())) throw httpError(400, "INVALID_KPI_RANGE", `${field} deve ser uma data válida`);
     return date;
 }
 
 /**
- * Valida periodo dos KPIs executivos.
+ * Valida período dos KPIs executivos.
  *
  * @param {Record<string, unknown>} query Query string Express.
- * @returns {{ fromDate: Date, toDate: Date }} Periodo validado.
- * @throws {import("../../lib/httpErrors.js").HttpError} 400 quando o intervalo e invalido.
+ * @returns {{ fromDate: Date, toDate: Date }} Período validado.
+ * @throws {import("../../lib/httpErrors.js").HttpError} 400 quando o intervalo é inválido.
  */
 export function validateExecutiveKpiQuery(query) {
     const fromDate = parseDate(query.from, "from");
@@ -223,17 +223,17 @@ export function validateExecutiveKpiQuery(query) {
 }
 ```
 
-5. Explicacao do codigo.
+5. Explicação do código.
 
-O validator isola erros de KPIs dos restantes relatorios. O JSDoc mostra a responsabilidade exata: converter query HTTP em DTO de datas para o service.
+O validator isola erros de KPIs dos restantes relatórios. O JSDoc mostra a responsabilidade exata: converter query HTTP em DTO de datas para o service.
 
-6. Validacao do passo.
+6. Validação do passo.
 
-Testa periodo invertido.
+Testa período invertido.
 
-7. Cenario negativo/erro esperado.
+7. Cenário negativo/erro esperado.
 
-Periodo invertido devolve `400 INVALID_KPI_RANGE`.
+Período invertido devolve `400 INVALID_KPI_RANGE`.
 
 ### Passo 4 - Implementar service de KPIs
 
@@ -245,13 +245,13 @@ Calcular KPIs com dados reais e fontes.
     - CRIAR: `apps/api/src/modules/reports/executiveKpiService.js`
     - EDITAR: nenhum.
     - REVER: vendas, compras, recebimentos e pagamentos.
-    - LOCALIZACAO: ficheiro completo.
+    - LOCALIZAÇÃO: ficheiro completo.
 
-3. Instrucoes do que fazer.
+3. Instruções do que fazer.
 
-Trata divisao por zero.
+Trata divisão por zero.
 
-4. Codigo completo, correto e integrado com a app final.
+4. Código completo, correto e integrado com a app final.
 
 ```js
 // apps/api/src/modules/reports/executiveKpiService.js
@@ -260,23 +260,23 @@ import { httpError } from "../../lib/httpErrors.js";
 const dayMs = 86400000;
 
 /**
- * Soma um campo monetario em centimos.
+ * Soma um campo monetario em cêntimos.
  *
  * @param {Array<Record<string, unknown>>} rows Linhas vindas do Prisma.
  * @param {string} field Campo a somar.
- * @returns {number} Soma em centimos.
+ * @returns {number} Soma em cêntimos.
  */
 function sum(rows, field) {
     return rows.reduce((total, row) => total + (Number.isFinite(row[field]) ? row[field] : 0), 0);
 }
 
 /**
- * Calcula media de dias entre duas datas.
+ * Calcula média de dias entre duas datas.
  *
- * @param {Array<Record<string, Date>>} rows Linhas com datas de inicio e fim.
+ * @param {Array<Record<string, Date>>} rows Linhas com datas de início e fim.
  * @param {string} startField Campo da data inicial.
  * @param {string} endField Campo da data final.
- * @returns {number | null} Media arredondada a uma casa, ou null sem dados.
+ * @returns {number | null} Média arredondada a uma casa, ou null sem dados.
  */
 function averageDays(rows, startField, endField) {
     if (rows.length === 0) return null;
@@ -288,12 +288,12 @@ function averageDays(rows, startField, endField) {
  * Calcula KPIs executivos a partir de documentos e liquidações reais.
  *
  * @param {import("@prisma/client").PrismaClient} prisma Cliente Prisma da app.
- * @param {{ companyId: string, userId: string, fromDate: Date, toDate: Date }} input Contexto multiempresa e periodo.
+ * @param {{ companyId: string, userId: string, fromDate: Date, toDate: Date }} input Contexto multiempresa e período.
  * @returns {Promise<{ runId: string, revenueCents: number, costCents: number, ebitdaCents: number, pmrDays: number | null, pmpDays: number | null, sources: string[] }>} KPIs prontos para UI e MF4.
- * @throws {import("../../lib/httpErrors.js").HttpError} 401 quando nao ha empresa ativa.
+ * @throws {import("../../lib/httpErrors.js").HttpError} 401 quando não há empresa ativa.
  */
 export async function buildExecutiveKpis(prisma, { companyId, userId, fromDate, toDate }) {
-    if (!companyId) throw httpError(401, "COMPANY_CONTEXT_REQUIRED", "Empresa ativa obrigatoria");
+    if (!companyId) throw httpError(401, "COMPANY_CONTEXT_REQUIRED", "Empresa ativa obrigatória");
 
     const [sales, purchases, receipts, payments] = await Promise.all([
         prisma.saleDocument.findMany({ where: { companyId, issuedAt: { gte: fromDate, lte: toDate }, status: { in: ["ISSUED", "SETTLED"] } }, select: { id: true, issuedAt: true, totalCents: true } }),
@@ -304,7 +304,7 @@ export async function buildExecutiveKpis(prisma, { companyId, userId, fromDate, 
 
     const revenueCents = sum(sales, "totalCents");
     const costCents = sum(purchases, "totalCents");
-    // EBITDA MVP: indicador operacional simples, nao demonstracao financeira oficial.
+    // EBITDA MVP: indicador operacional simples, não demonstracao financeira oficial.
     const ebitdaCents = revenueCents - costCents;
     const pmrDays = averageDays(receipts.map((row) => ({ issuedAt: row.saleDocument.issuedAt, receivedAt: row.receivedAt })), "issuedAt", "receivedAt");
     const pmpDays = averageDays(payments.map((row) => ({ issuedAt: row.purchaseDocument.issuedAt, paidAt: row.paidAt })), "issuedAt", "paidAt");
@@ -314,15 +314,15 @@ export async function buildExecutiveKpis(prisma, { companyId, userId, fromDate, 
 }
 ```
 
-5. Explicacao do codigo.
+5. Explicação do código.
 
-O service calcula receita e custos por soma. A receita usa os estados reais de venda `ISSUED` e `SETTLED`, definidos na MF1. EBITDA MVP e a diferenca operacional. PMR/PMP usam media de dias entre documento e liquidacao. Sem dados, devolvem `null`, evitando inventar zero. O JSDoc documenta formulas, retorno e a regra multiempresa.
+O service calcula receita e custos por soma. A receita usa os estados reais de venda `ISSUED` e `SETTLED`, definidos na MF1. EBITDA MVP é a diferença operacional. PMR/PMP usam média de dias entre documento e liquidação. Sem dados, devolvem `null`, evitando inventar zero. O JSDoc documenta fórmulas, retorno e a regra multiempresa.
 
-6. Validacao do passo.
+6. Validação do passo.
 
 Venda emitida dia 1 e recebida dia 11 gera PMR de 10 dias.
 
-7. Cenario negativo/erro esperado.
+7. Cenário negativo/erro esperado.
 
 Sem recebimentos, `pmrDays` deve ser `null`.
 
@@ -336,13 +336,13 @@ Publicar KPIs apenas para gestor.
     - CRIAR: `apps/api/src/modules/reports/executiveKpiRoutes.js`
     - EDITAR: `apps/api/src/server.js`
     - REVER: middlewares.
-    - LOCALIZACAO: ficheiro completo e montagem.
+    - LOCALIZAÇÃO: ficheiro completo e montagem.
 
-3. Instrucoes do que fazer.
+3. Instruções do que fazer.
 
 Cria `GET /api/reports/executive-kpis`.
 
-4. Codigo completo, correto e integrado com a app final.
+4. Código completo, correto e integrado com a app final.
 
 ```js
 // apps/api/src/modules/reports/executiveKpiRoutes.js
@@ -355,9 +355,9 @@ import { validateExecutiveKpiQuery } from "./executiveKpiFilters.js";
 import { buildExecutiveKpis } from "./executiveKpiService.js";
 
 /**
- * Constroi a route de KPIs executivos.
+ * Constrói a route de KPIs executivos.
  *
- * @param {{ prisma: import("@prisma/client").PrismaClient }} deps Dependencias da route.
+ * @param {{ prisma: import("@prisma/client").PrismaClient }} deps Dependências da route.
  * @returns {import("express").Router} Router montado em `/api/reports/executive-kpis`.
  */
 export function buildExecutiveKpiRoutes({ prisma }) {
@@ -384,15 +384,15 @@ import { buildExecutiveKpiRoutes } from "./modules/reports/executiveKpiRoutes.js
 app.use("/api/reports/executive-kpis", buildExecutiveKpiRoutes({ prisma }));
 ```
 
-5. Explicacao do codigo.
+5. Explicação do código.
 
-A route aplica role de gestao e usa query validada. O `companyId` continua na sessao, como reforca o comentario no handler.
+A route aplica role de gestão e usa query validada. O `companyId` continua na sessão, como reforça o comentário no handler.
 
-6. Validacao do passo.
+6. Validação do passo.
 
 Gestor recebe `200`.
 
-7. Cenario negativo/erro esperado.
+7. Cenário negativo/erro esperado.
 
 Auditor sem role de gestor recebe `403`.
 
@@ -406,13 +406,13 @@ Tipar indicadores executivos.
     - CRIAR: `apps/web/src/lib/kpiApi.ts`
     - EDITAR: nenhum.
     - REVER: cliente comum.
-    - LOCALIZACAO: ficheiro completo.
+    - LOCALIZAÇÃO: ficheiro completo.
 
-3. Instrucoes do que fazer.
+3. Instruções do que fazer.
 
 Cria tipo com `number | null` para PMR/PMP.
 
-4. Codigo completo, correto e integrado com a app final.
+4. Código completo, correto e integrado com a app final.
 
 ```ts
 // apps/web/src/lib/kpiApi.ts
@@ -444,19 +444,19 @@ export async function fetchExecutiveKpis(from: string, to: string): Promise<Exec
 }
 ```
 
-5. Explicacao do codigo.
+5. Explicação do código.
 
-PMR/PMP aceitam `null`, porque sem dados suficientes nao se inventa indicador. O cliente usa `apiClient`, por isso o cookie seguro acompanha a chamada sem duplicar `fetch`.
+PMR/PMP aceitam `null`, porque sem dados suficientes não se inventa indicador. O cliente usa `apiClient`, por isso o cookie seguro acompanha a chamada sem duplicar `fetch`.
 
-6. Validacao do passo.
+6. Validação do passo.
 
-Confirma resposta com `pmrDays: null` quando nao ha recebimentos.
+Confirma resposta com `pmrDays: null` quando não há recebimentos.
 
-7. Cenario negativo/erro esperado.
+7. Cenário negativo/erro esperado.
 
-Role errada gera erro apresentado na pagina.
+Role errada gera erro apresentado na página.
 
-### Passo 7 - Criar pagina de KPIs
+### Passo 7 - Criar página de KPIs
 
 1. Objetivo funcional do passo no ERP.
 
@@ -466,13 +466,13 @@ Mostrar indicadores executivos.
     - CRIAR: `apps/web/src/pages/ExecutiveKpisPage.tsx`
     - EDITAR: `apps/web/src/App.tsx`
     - REVER: `kpiApi.ts`.
-    - LOCALIZACAO: ficheiro completo e menu.
+    - LOCALIZAÇÃO: ficheiro completo e menu.
 
-3. Instrucoes do que fazer.
+3. Instruções do que fazer.
 
 Mostra cards simples com fonte.
 
-4. Codigo completo, correto e integrado com a app final.
+4. Código completo, correto e integrado com a app final.
 
 ```tsx
 // apps/web/src/pages/ExecutiveKpisPage.tsx
@@ -480,19 +480,19 @@ import { FormEvent, useState } from "react";
 import { fetchExecutiveKpis, type ExecutiveKpis } from "../lib/kpiApi";
 
 /**
- * Formata centimos em EUR para apresentacao.
+ * Formata cêntimos em EUR para apresentacao.
  *
- * @param {number} cents Valor em centimos.
- * @returns {string} Valor legivel.
+ * @param {number} cents Valor em cêntimos.
+ * @returns {string} Valor legível.
  */
 function euros(cents: number) {
     return `${(cents / 100).toFixed(2)} EUR`;
 }
 
 /**
- * Pagina de KPIs executivos.
+ * Página de KPIs executivos.
  *
- * Mostra indicadores e fontes sem executar qualquer decisao automatica. PMR/PMP usam texto "Sem dados"
+ * Mostra indicadores e fontes sem executar qualquer decisão automática. PMR/PMP usam texto "Sem dados"
  * quando o backend devolve `null`.
  *
  * @returns {JSX.Element} Interface de KPIs.
@@ -508,7 +508,7 @@ export function ExecutiveKpisPage() {
         setLoading(true);
         setError("");
         try {
-            // A UI pede o periodo; permissoes e empresa sao sempre decididas no backend.
+            // A UI pede o período; permissões e empresa são sempre decididas no backend.
             setResult(await fetchExecutiveKpis(String(form.get("from")), String(form.get("to"))));
         } catch (err) {
             setResult(null);
@@ -529,54 +529,54 @@ export function ExecutiveKpisPage() {
 }
 ```
 
-5. Explicacao do codigo.
+5. Explicação do código.
 
-A pagina mostra `Sem dados` quando o backend devolve `null`, em vez de inventar zero. As fontes ficam visiveis para apoiar defesa e IA. O JSDoc reforca que a pagina apresenta indicadores, nao toma decisoes.
+A página mostra `Sem dados` quando o backend devolve `null`, em vez de inventar zero. As fontes ficam visíveis para apoiar defesa e IA. O JSDoc reforça que a página apresenta indicadores, não toma decisões.
 
-6. Validacao do passo.
+6. Validação do passo.
 
-Calcular periodo com vendas e compras.
+Calcular período com vendas e compras.
 
-7. Cenario negativo/erro esperado.
+7. Cenário negativo/erro esperado.
 
-Periodo sem liquidações mostra PMR/PMP sem dados.
+Período sem liquidações mostra PMR/PMP sem dados.
 
 ### Passo 8 - Validar entrega e preparar MF4
 
 1. Objetivo funcional do passo no ERP.
 
-Garantir que a IA da MF4 recebe KPIs explicaveis.
+Garantir que a IA da MF4 recebe KPIs explicáveis.
 
 2. Ficheiros envolvidos:
     - CRIAR: nenhum.
     - EDITAR: evidence.
     - REVER: resultado e fontes.
-    - LOCALIZACAO: checklist final.
+    - LOCALIZAÇÃO: checklist final.
 
-3. Instrucoes do que fazer.
+3. Instruções do que fazer.
 
 Regista output JSON e fontes.
 
-4. Codigo completo, correto e integrado com a app final.
+4. Código completo, correto e integrado com a app final.
 
-Sem codigo novo neste passo.
+Sem código novo neste passo.
 
-5. Explicacao do codigo.
+5. Explicação do código.
 
-O BK termina com dados prontos para insights, sem acao automatica.
+O BK termina com dados prontos para insights, sem ação automática.
 
-6. Validacao do passo.
+6. Validação do passo.
 
 Confirmar `ExecutiveKpiRun`.
 
-7. Cenario negativo/erro esperado.
+7. Cenário negativo/erro esperado.
 
 Sem dados suficientes, PMR/PMP ficam `null`.
 
 ## Expected results
 
 - `200` com receita, custos, EBITDA MVP, PMR e PMP.
-- `400 INVALID_KPI_RANGE` para periodo invalido.
+- `400 INVALID_KPI_RANGE` para período inválido.
 - `403` sem role `GESTOR`.
 - PMR/PMP `null` sem dados suficientes.
 
@@ -584,13 +584,13 @@ Sem dados suficientes, PMR/PMP ficam `null`.
 
 - KPIs calculados com dados reais.
 - Fontes incluidas.
-- Sem divisao por zero.
+- Sem divisão por zero.
 - Sem IA a alterar dados.
 - Cliente frontend usa `apiClient`.
 
 ## Validação final
 
-- Confirmar formulas.
+- Confirmar fórmulas.
 - Confirmar route.
 - Confirmar UI.
 - Confirmar handoff para BK-MF4-01.
@@ -598,15 +598,15 @@ Sem dados suficientes, PMR/PMP ficam `null`.
 ## Evidence para PR/defesa
 
 - JSON dos KPIs.
-- Screenshot da pagina.
+- Screenshot da página.
 - Prova de PMR/PMP sem dados.
 - Prova de `403`.
 
 ## Handoff
 
-BK-MF4-01 usa estes KPIs e relatorios como fonte para insights automaticos explicaveis.
+BK-MF4-01 usa estes KPIs e relatórios como fonte para insights automáticos explicáveis.
 
 ## Changelog
 
-- `2026-06-13`: corrigido para calcular KPIs reais, tratar falta de dados, usar `apiClient`, adicionar JSDoc e preparar fontes para IA explicavel.
+- `2026-06-13`: corrigido para calcular KPIs reais, tratar falta de dados, usar `apiClient`, adicionar JSDoc e preparar fontes para IA explicável.
 - `2026-06-13`: alinhado com MF1, usando estados reais de venda em vez de estados de compra.

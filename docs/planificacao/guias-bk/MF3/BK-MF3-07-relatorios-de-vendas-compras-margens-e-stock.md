@@ -1,4 +1,4 @@
-# BK-MF3-07 - Relatorios de vendas, compras, margens e stock.
+# BK-MF3-07 - Relatórios de vendas, compras, margens e stock.
 
 ## Header
 - `doc_id`: `GUIA-BK-MF3-07`
@@ -22,17 +22,17 @@
 
 Neste BK vais implementar relatórios operacionais de vendas, compras, margem e stock com fontes reais e filtragem por empresa.
 
-#### Importancia
+#### Importância
 
-RF37 e a base de reporting para gestores e operacionais. Tambem prepara BK-MF3-08 e os insights da MF4, que precisam de dados explicaveis.
+RF37 é a base de reporting para gestores e operacionais. Também prepara BK-MF3-08 e os insights da MF4, que precisam de dados explicáveis.
 
 #### Scope-in
 
-- Agregar vendas por periodo.
-- Agregar compras por periodo.
+- Agregar vendas por período.
+- Agregar compras por período.
 - Calcular margem operacional simples.
 - Listar stock atual por artigo.
-- Guardar execucao em `OperationalReportRun`.
+- Guardar execução em `OperationalReportRun`.
 
 #### Scope-out
 
@@ -42,7 +42,7 @@ RF37 e a base de reporting para gestores e operacionais. Tambem prepara BK-MF3-0
 
 #### Estado antes e depois
 
-- Estado antes: havia dados transacionais, mas nao relatorio consolidado.
+- Estado antes: havia dados transacionais, mas não relatório consolidado.
 - Estado depois: `GET /api/reports/operational` devolve valores reais por empresa.
 
 #### Pre-requisitos
@@ -50,19 +50,19 @@ RF37 e a base de reporting para gestores e operacionais. Tambem prepara BK-MF3-0
 - Rever BK-MF1-02, BK-MF1-07 e BK-MF2-02.
 - Rever RF37, RF39 e RF41.
 
-#### Glossario
+#### Glossário
 
 - **Receita:** total de vendas emitidas.
 - **Custo:** total de compras ou custo de stock associado.
 - **Margem:** receita menos custo.
-- **Fonte:** modelo usado no calculo.
+- **Fonte:** modelo usado no cálculo.
 
-#### Conceitos teoricos essenciais
+#### Conceitos teóricos essenciais
 
-- Reporting operacional agrega dados; nao cria transacoes.
-- Margem do MVP e simples e deve ser explicada como indicador operacional.
-- Stock vem de movimentos e saldos de inventario.
-- A IA posterior so deve responder com fontes rastreaveis.
+- Reporting operacional agrega dados; não cria transações.
+- Margem do MVP é simples e deve ser explicada como indicador operacional.
+- Stock vem de movimentos e saldos de inventário.
+- A IA posterior só deve responder com fontes rastreáveis.
 
 #### Arquitetura do BK
 
@@ -83,63 +83,63 @@ RF37 e a base de reporting para gestores e operacionais. Tambem prepara BK-MF3-0
 - EDITAR: `apps/web/src/App.tsx`
 - REVER: BK-MF1-02, BK-MF1-07, BK-MF2-02.
 
-#### Tutorial tecnico linear
+#### Tutorial técnico linear
 
-### Passo 1 - Confirmar fronteira do relatorio
+### Passo 1 - Confirmar fronteira do relatório
 
 1. Objetivo funcional do passo no ERP.
 
-Confirmar que este BK le e agrega dados, sem alterar documentos.
+Confirmar que este BK lê e agrega dados, sem alterar documentos.
 
 2. Ficheiros envolvidos:
     - CRIAR: nenhum.
     - EDITAR: nenhum.
     - REVER: RF37.
-    - LOCALIZACAO: documentos canonicos.
+    - LOCALIZAÇÃO: documentos canónicos.
 
-3. Instrucoes do que fazer.
+3. Instruções do que fazer.
 
-Regista que margem e operacional e nao substitui demonstrações oficiais.
+Regista que margem é operacional e não substitui demonstrações oficiais.
 
-- `CANONICO`: RF37 pede relatorios de vendas, compras, margens e stock.
-- `DERIVADO`: a margem deste BK e `vendas - compras` como indicador operacional MVP; nao substitui margem bruta calculada por custo de stock/FIFO nem demonstracoes financeiras.
+- `CANONICO`: RF37 pede relatórios de vendas, compras, margens e stock.
+- `DERIVADO`: a margem deste BK é `vendas - compras` como indicador operacional MVP; não substitui margem bruta calculada por custo de stock/FIFO nem demonstrações financeiras.
 
-4. Codigo completo, correto e integrado com a app final.
+4. Código completo, correto e integrado com a app final.
 
-Sem codigo neste passo.
+Sem código neste passo.
 
-5. Explicacao do codigo.
+5. Explicação do código.
 
-Separar relatorio operacional de contabilidade evita conclusoes legais erradas.
+Separar relatório operacional de contabilidade evita conclusoes legais erradas.
 
-6. Validacao do passo.
+6. Validação do passo.
 
 Evidence deve indicar fontes: vendas, compras e stock.
 
-7. Cenario negativo/erro esperado.
+7. Cenário negativo/erro esperado.
 
-Nao usar balanco como relatorio operacional.
+Não usar balanço como relatório operacional.
 
-### Passo 2 - Modelar execucao
+### Passo 2 - Modelar execução
 
 1. Objetivo funcional do passo no ERP.
 
-Guardar resumo do relatorio.
+Guardar resumo do relatório.
 
 2. Ficheiros envolvidos:
     - CRIAR: nenhum.
     - EDITAR: `apps/api/prisma/schema.prisma`
     - REVER: modelos transacionais.
-    - LOCALIZACAO: modelos de reporting.
+    - LOCALIZAÇÃO: modelos de reporting.
 
-3. Instrucoes do que fazer.
+3. Instruções do que fazer.
 
 Adiciona `OperationalReportRun`.
 
-4. Codigo completo, correto e integrado com a app final.
+4. Código completo, correto e integrado com a app final.
 
 ```prisma
-/// Execucao de relatorio operacional.
+/// Execução de relatório operacional.
 /// Guarda totais para evidence e para KPIs derivados no BK-MF3-08.
 model OperationalReportRun {
   id             String   @id @default(uuid())
@@ -157,35 +157,35 @@ model OperationalReportRun {
 }
 ```
 
-5. Explicacao do codigo.
+5. Explicação do código.
 
-O modelo guarda totais principais e prova de execucao. As linhas detalhadas sao devolvidas pela API.
+O modelo guarda totais principais e prova de execução. As linhas detalhadas são devolvidas pela API.
 
-6. Validacao do passo.
+6. Validação do passo.
 
 Migration cria o modelo.
 
-7. Cenario negativo/erro esperado.
+7. Cenário negativo/erro esperado.
 
-Sem run, BK-MF3-08 nao tem ponto de apoio para KPIs.
+Sem run, BK-MF3-08 não tem ponto de apoio para KPIs.
 
 ### Passo 3 - Validar query
 
 1. Objetivo funcional do passo no ERP.
 
-Validar periodo do relatorio.
+Validar período do relatório.
 
 2. Ficheiros envolvidos:
     - CRIAR: `apps/api/src/modules/reports/operationalReportFilters.js`
     - EDITAR: nenhum.
     - REVER: `httpErrors.js`.
-    - LOCALIZACAO: ficheiro completo.
+    - LOCALIZAÇÃO: ficheiro completo.
 
-3. Instrucoes do que fazer.
+3. Instruções do que fazer.
 
 Usa validator de datas simples.
 
-4. Codigo completo, correto e integrado com a app final.
+4. Código completo, correto e integrado com a app final.
 
 ```js
 // apps/api/src/modules/reports/operationalReportFilters.js
@@ -197,20 +197,20 @@ import { httpError } from "../../lib/httpErrors.js";
  * @param {unknown} value Valor recebido em `req.query`.
  * @param {string} field Nome do campo para erro.
  * @returns {Date} Data validada.
- * @throws {import("../../lib/httpErrors.js").HttpError} 400 quando a data e invalida.
+ * @throws {import("../../lib/httpErrors.js").HttpError} 400 quando a data é inválida.
  */
 function parseDate(value, field) {
     const date = new Date(value);
-    if (typeof value !== "string" || Number.isNaN(date.getTime())) throw httpError(400, "INVALID_REPORT_RANGE", `${field} deve ser uma data valida`);
+    if (typeof value !== "string" || Number.isNaN(date.getTime())) throw httpError(400, "INVALID_REPORT_RANGE", `${field} deve ser uma data válida`);
     return date;
 }
 
 /**
- * Valida periodo de relatorio operacional.
+ * Valida período de relatório operacional.
  *
  * @param {Record<string, unknown>} query Query string Express.
- * @returns {{ fromDate: Date, toDate: Date }} Periodo seguro para o service.
- * @throws {import("../../lib/httpErrors.js").HttpError} 400 quando o intervalo e invalido.
+ * @returns {{ fromDate: Date, toDate: Date }} Período seguro para o service.
+ * @throws {import("../../lib/httpErrors.js").HttpError} 400 quando o intervalo é inválido.
  */
 export function validateOperationalReportQuery(query) {
     const fromDate = parseDate(query.from, "from");
@@ -220,19 +220,19 @@ export function validateOperationalReportQuery(query) {
 }
 ```
 
-5. Explicacao do codigo.
+5. Explicação do código.
 
-O validator evita consultas sem periodo e devolve erro especifico do modulo de relatorios. O JSDoc ensina a separar input HTTP textual do DTO usado pelo service.
+O validator evita consultas sem período e devolve erro específico do módulo de relatórios. O JSDoc ensina a separar input HTTP textual do DTO usado pelo service.
 
-6. Validacao do passo.
+6. Validação do passo.
 
-Testa data invalida.
+Testa data inválida.
 
-7. Cenario negativo/erro esperado.
+7. Cenário negativo/erro esperado.
 
-Periodo invertido devolve `400`.
+Período invertido devolve `400`.
 
-### Passo 4 - Implementar service de agregacao
+### Passo 4 - Implementar service de agregação
 
 1. Objetivo funcional do passo no ERP.
 
@@ -241,40 +241,40 @@ Somar vendas, compras, margem e stock com dados reais.
 2. Ficheiros envolvidos:
     - CRIAR: `apps/api/src/modules/reports/operationalReportService.js`
     - EDITAR: nenhum.
-    - REVER: modelos de dependencias.
-    - LOCALIZACAO: ficheiro completo.
+    - REVER: modelos de dependências.
+    - LOCALIZAÇÃO: ficheiro completo.
 
-3. Instrucoes do que fazer.
+3. Instruções do que fazer.
 
 Filtra sempre por `companyId`.
 
-4. Codigo completo, correto e integrado com a app final.
+4. Código completo, correto e integrado com a app final.
 
 ```js
 // apps/api/src/modules/reports/operationalReportService.js
 import { httpError } from "../../lib/httpErrors.js";
 
 /**
- * Soma um campo monetario em centimos numa lista de registos.
+ * Soma um campo monetario em cêntimos numa lista de registos.
  *
  * @param {Array<Record<string, unknown>>} rows Linhas vindas do Prisma.
  * @param {string} field Campo a somar.
- * @returns {number} Soma em centimos.
+ * @returns {number} Soma em cêntimos.
  */
 function sumCents(rows, field) {
     return rows.reduce((sum, row) => sum + (Number.isFinite(row[field]) ? row[field] : 0), 0);
 }
 
 /**
- * Gera relatorio operacional de vendas, compras, margem simples e stock.
+ * Gera relatório operacional de vendas, compras, margem simples e stock.
  *
  * @param {import("@prisma/client").PrismaClient} prisma Cliente Prisma da app.
- * @param {{ companyId: string, userId: string, fromDate: Date, toDate: Date }} input Contexto multiempresa e periodo.
- * @returns {Promise<{ runId: string, totals: { salesCents: number, purchasesCents: number, marginCents: number, stockUnits: number }, sales: Array<object>, purchases: Array<object>, stock: Array<object>, sources: string[] }>} Relatorio pronto para UI e KPIs.
- * @throws {import("../../lib/httpErrors.js").HttpError} 401 quando nao ha empresa ativa.
+ * @param {{ companyId: string, userId: string, fromDate: Date, toDate: Date }} input Contexto multiempresa e período.
+ * @returns {Promise<{ runId: string, totals: { salesCents: number, purchasesCents: number, marginCents: number, stockUnits: number }, sales: Array<object>, purchases: Array<object>, stock: Array<object>, sources: string[] }>} Relatório pronto para UI e KPIs.
+ * @throws {import("../../lib/httpErrors.js").HttpError} 401 quando não há empresa ativa.
  */
 export async function buildOperationalReport(prisma, { companyId, userId, fromDate, toDate }) {
-    if (!companyId) throw httpError(401, "COMPANY_CONTEXT_REQUIRED", "Empresa ativa obrigatoria");
+    if (!companyId) throw httpError(401, "COMPANY_CONTEXT_REQUIRED", "Empresa ativa obrigatória");
 
     const [sales, purchases, stockBalances] = await Promise.all([
         prisma.saleDocument.findMany({ where: { companyId, issuedAt: { gte: fromDate, lte: toDate }, status: { in: ["ISSUED", "SETTLED"] } }, select: { id: true, number: true, totalCents: true } }),
@@ -284,7 +284,7 @@ export async function buildOperationalReport(prisma, { companyId, userId, fromDa
 
     const salesCents = sumCents(sales, "totalCents");
     const purchasesCents = sumCents(purchases, "totalCents");
-    // Margem MVP: indicador operacional simples, nao margem contabilistica por custo de stock.
+    // Margem MVP: indicador operacional simples, não margem contabilística por custo de stock.
     const marginCents = salesCents - purchasesCents;
     const stockUnits = stockBalances.reduce((sum, row) => sum + Number(row.quantity), 0);
     const purchaseRows = purchases.map((document) => ({ id: document.id, number: document.supplierNumber, totalCents: document.totalCents }));
@@ -302,15 +302,15 @@ export async function buildOperationalReport(prisma, { companyId, userId, fromDa
 }
 ```
 
-5. Explicacao do codigo.
+5. Explicação do código.
 
-O service soma totais de vendas e compras e calcula margem simples. Vendas usam estados reais `ISSUED` e `SETTLED`; compras usam `supplierNumber` e expoem esse valor como `number` na resposta para manter o contrato simples do frontend. Stock vem de `StockBalance`, criado na MF2, e a quantidade e convertida para numero antes de somar. O resultado inclui fontes para IA posterior. O comentario no calculo da margem evita que o aluno confunda este indicador MVP com margem contabilistica por custo de vendas.
+O service soma totais de vendas e compras e calcula margem simples. Vendas usam estados reais `ISSUED` e `SETTLED`; compras usam `supplierNumber` e expõem esse valor como `number` na resposta para manter o contrato simples do frontend. Stock vem de `StockBalance`, criado na MF2, e a quantidade é convertida para número antes de somar. O resultado inclui fontes para IA posterior. O comentário no cálculo da margem evita que o aluno confunda este indicador MVP com margem contabilística por custo de vendas.
 
-6. Validacao do passo.
+6. Validação do passo.
 
 Com venda 1000 EUR e compra 600 EUR, margem deve ser 400 EUR.
 
-7. Cenario negativo/erro esperado.
+7. Cenário negativo/erro esperado.
 
 Sem empresa ativa devolve `401`.
 
@@ -318,19 +318,19 @@ Sem empresa ativa devolve `401`.
 
 1. Objetivo funcional do passo no ERP.
 
-Publicar relatorio para gestor e operacional.
+Publicar relatório para gestor e operacional.
 
 2. Ficheiros envolvidos:
     - CRIAR: `apps/api/src/modules/reports/operationalReportRoutes.js`
     - EDITAR: `apps/api/src/server.js`
     - REVER: middlewares.
-    - LOCALIZACAO: ficheiro completo e montagem.
+    - LOCALIZAÇÃO: ficheiro completo e montagem.
 
-3. Instrucoes do que fazer.
+3. Instruções do que fazer.
 
 Cria `GET /api/reports/operational`.
 
-4. Codigo completo, correto e integrado com a app final.
+4. Código completo, correto e integrado com a app final.
 
 ```js
 // apps/api/src/modules/reports/operationalReportRoutes.js
@@ -343,9 +343,9 @@ import { validateOperationalReportQuery } from "./operationalReportFilters.js";
 import { buildOperationalReport } from "./operationalReportService.js";
 
 /**
- * Constroi a route de relatorios operacionais.
+ * Constrói a route de relatórios operacionais.
  *
- * @param {{ prisma: import("@prisma/client").PrismaClient }} deps Dependencias da route.
+ * @param {{ prisma: import("@prisma/client").PrismaClient }} deps Dependências da route.
  * @returns {import("express").Router} Router montado em `/api/reports/operational`.
  */
 export function buildOperationalReportRoutes({ prisma }) {
@@ -372,15 +372,15 @@ import { buildOperationalReportRoutes } from "./modules/reports/operationalRepor
 app.use("/api/reports/operational", buildOperationalReportRoutes({ prisma }));
 ```
 
-5. Explicacao do codigo.
+5. Explicação do código.
 
-A route aplica permissao no backend. O controller transforma erros em JSON, e o comentario deixa explicita a protecao multiempresa.
+A route aplica permissão no backend. O controller transforma erros em JSON, e o comentário deixa explícita a proteção multiempresa.
 
-6. Validacao do passo.
+6. Validação do passo.
 
 `GESTOR` recebe `200`.
 
-7. Cenario negativo/erro esperado.
+7. Cenário negativo/erro esperado.
 
 Sem sessão devolve `401`.
 
@@ -388,26 +388,26 @@ Sem sessão devolve `401`.
 
 1. Objetivo funcional do passo no ERP.
 
-Tipar relatorio operacional no frontend.
+Tipar relatório operacional no frontend.
 
 2. Ficheiros envolvidos:
     - CRIAR: `apps/web/src/lib/reportApi.ts`
     - EDITAR: nenhum.
     - REVER: cliente comum.
-    - LOCALIZACAO: ficheiro completo.
+    - LOCALIZAÇÃO: ficheiro completo.
 
-3. Instrucoes do que fazer.
+3. Instruções do que fazer.
 
 Cria tipos de totais e listas.
 
-4. Codigo completo, correto e integrado com a app final.
+4. Código completo, correto e integrado com a app final.
 
 ```ts
 // apps/web/src/lib/reportApi.ts
 import { apiClient } from "./apiClient";
 
 /**
- * Relatorio operacional usado por gestores e operacionais.
+ * Relatório operacional usado por gestores e operacionais.
  */
 export type OperationalReport = {
     runId: string;
@@ -419,11 +419,11 @@ export type OperationalReport = {
 };
 
 /**
- * Consulta relatorio operacional no backend.
+ * Consulta relatório operacional no backend.
  *
  * @param {string} from Data inicial `YYYY-MM-DD`.
  * @param {string} to Data final `YYYY-MM-DD`.
- * @returns {Promise<OperationalReport>} Relatorio tipado com fontes.
+ * @returns {Promise<OperationalReport>} Relatório tipado com fontes.
  */
 export async function fetchOperationalReport(from: string, to: string): Promise<OperationalReport> {
     const params = new URLSearchParams({ from, to });
@@ -431,19 +431,19 @@ export async function fetchOperationalReport(from: string, to: string): Promise<
 }
 ```
 
-5. Explicacao do codigo.
+5. Explicação do código.
 
-O cliente usa nomes de dominio e reutiliza `apiClient` para manter cookies HttpOnly. `sources` permite mostrar origem dos dados na UI.
+O cliente usa nomes de domínio e reutiliza `apiClient` para manter cookies HttpOnly. `sources` permite mostrar origem dos dados na UI.
 
-6. Validacao do passo.
+6. Validação do passo.
 
 Confirma chamada com datas.
 
-7. Cenario negativo/erro esperado.
+7. Cenário negativo/erro esperado.
 
 Erro `403` aparece como mensagem.
 
-### Passo 7 - Criar pagina de relatorios
+### Passo 7 - Criar página de relatórios
 
 1. Objetivo funcional do passo no ERP.
 
@@ -453,13 +453,13 @@ Mostrar totais e listas principais.
     - CRIAR: `apps/web/src/pages/OperationalReportsPage.tsx`
     - EDITAR: `apps/web/src/App.tsx`
     - REVER: `reportApi.ts`.
-    - LOCALIZACAO: ficheiro completo e menu.
+    - LOCALIZAÇÃO: ficheiro completo e menu.
 
-3. Instrucoes do que fazer.
+3. Instruções do que fazer.
 
 Cria formulario e resumo.
 
-4. Codigo completo, correto e integrado com a app final.
+4. Código completo, correto e integrado com a app final.
 
 ```tsx
 // apps/web/src/pages/OperationalReportsPage.tsx
@@ -467,19 +467,19 @@ import { FormEvent, useState } from "react";
 import { fetchOperationalReport, type OperationalReport } from "../lib/reportApi";
 
 /**
- * Formata centimos em EUR para apresentacao.
+ * Formata cêntimos em EUR para apresentacao.
  *
- * @param {number} cents Valor em centimos.
- * @returns {string} Valor legivel.
+ * @param {number} cents Valor em cêntimos.
+ * @returns {string} Valor legível.
  */
 function euros(cents: number) {
     return `${(cents / 100).toFixed(2)} EUR`;
 }
 
 /**
- * Pagina de relatorios operacionais.
+ * Página de relatórios operacionais.
  *
- * Gere datas, loading, erro, resultado e estado vazio. A pagina apresenta um indicador de margem MVP,
+ * Gere datas, loading, erro, resultado e estado vazio. A página apresenta um indicador de margem MVP,
  * sem o transformar em demonstracao financeira oficial.
  *
  * @returns {JSX.Element} Interface de reporting operacional.
@@ -495,7 +495,7 @@ export function OperationalReportsPage() {
         setLoading(true);
         setError("");
         try {
-            // A UI recolhe periodo; roles e empresa sao validados pela route.
+            // A UI recolhe período; roles e empresa são validados pela route.
             setResult(await fetchOperationalReport(String(form.get("from")), String(form.get("to"))));
         } catch (err) {
             setResult(null);
@@ -507,27 +507,27 @@ export function OperationalReportsPage() {
 
     return (
         <main>
-            <h1>Relatorios operacionais</h1>
+            <h1>Relatórios operacionais</h1>
             <form onSubmit={handleSubmit}><input name="from" type="date" required /><input name="to" type="date" required /><button disabled={loading}>{loading ? "A carregar..." : "Consultar"}</button></form>
             {error && <p role="alert">{error}</p>}
             {result && <section><p>Vendas: {euros(result.totals.salesCents)}</p><p>Compras: {euros(result.totals.purchasesCents)}</p><p>Margem: {euros(result.totals.marginCents)}</p><p>Stock: {result.totals.stockUnits} unidades</p></section>}
-            {result && result.sales.length === 0 && result.purchases.length === 0 && <p>Sem vendas ou compras no periodo.</p>}
+            {result && result.sales.length === 0 && result.purchases.length === 0 && <p>Sem vendas ou compras no período.</p>}
         </main>
     );
 }
 ```
 
-5. Explicacao do codigo.
+5. Explicação do código.
 
-A pagina mostra totais principais e estado vazio. Os detalhes de vendas, compras e stock ficam disponiveis em `result` para tabela na mesma pagina. O JSDoc reforca que a margem apresentada e operacional MVP.
+A página mostra totais principais e estado vazio. Os detalhes de vendas, compras e stock ficam disponíveis em `result` para tabela na mesma página. O JSDoc reforça que a margem apresentada é operacional MVP.
 
-6. Validacao do passo.
+6. Validação do passo.
 
-Consulta periodo com vendas.
+Consulta período com vendas.
 
-7. Cenario negativo/erro esperado.
+7. Cenário negativo/erro esperado.
 
-Sessao expirada mostra erro.
+Sessão expirada mostra erro.
 
 ### Passo 8 - Validar entrega e handoff
 
@@ -539,32 +539,32 @@ Preparar KPIs e IA com fontes reais.
     - CRIAR: nenhum.
     - EDITAR: evidence.
     - REVER: service e resultado.
-    - LOCALIZACAO: checklist final.
+    - LOCALIZAÇÃO: checklist final.
 
-3. Instrucoes do que fazer.
+3. Instruções do que fazer.
 
 Regista valores e fontes.
 
-4. Codigo completo, correto e integrado com a app final.
+4. Código completo, correto e integrado com a app final.
 
-Sem codigo novo neste passo.
+Sem código novo neste passo.
 
-5. Explicacao do codigo.
+5. Explicação do código.
 
 O handoff garante que BK-MF3-08 usa estes totais para KPIs.
 
-6. Validacao do passo.
+6. Validação do passo.
 
 Confirmar `OperationalReportRun`.
 
-7. Cenario negativo/erro esperado.
+7. Cenário negativo/erro esperado.
 
 Empresa sem dados devolve totais a zero e listas vazias.
 
 ## Expected results
 
 - `200` com vendas, compras, margem e stock.
-- `400 INVALID_REPORT_RANGE` para periodo invalido.
+- `400 INVALID_REPORT_RANGE` para período inválido.
 - `401` sem sessão.
 - `403` sem role.
 
@@ -584,7 +584,7 @@ Empresa sem dados devolve totais a zero e listas vazias.
 
 ## Evidence para PR/defesa
 
-- JSON do relatorio.
+- JSON do relatório.
 - Screenshot.
 - Provas de negativos.
 
@@ -595,4 +595,4 @@ BK-MF3-08 usa `OperationalReportRun` e os mesmos modelos para KPIs executivos.
 ## Changelog
 
 - `2026-06-13`: corrigido para agregar vendas, compras, margem MVP e stock com fontes reais, JSDoc e `apiClient`.
-- `2026-06-13`: alinhado com MF1/MF2, usando estados reais de venda, `supplierNumber` em compras e conversao numerica de `StockBalance.quantity`.
+- `2026-06-13`: alinhado com MF1/MF2, usando estados reais de venda, `supplierNumber` em compras e conversão numérica de `StockBalance.quantity`.

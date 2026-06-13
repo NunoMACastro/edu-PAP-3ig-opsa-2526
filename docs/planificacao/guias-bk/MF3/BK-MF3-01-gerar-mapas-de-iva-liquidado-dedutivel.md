@@ -1,4 +1,4 @@
-# BK-MF3-01 - Gerar Mapas de IVA (liquidado/dedutivel).
+# BK-MF3-01 - Gerar Mapas de IVA (liquidado/dedutível).
 
 ## Header
 - `doc_id`: `GUIA-BK-MF3-01`
@@ -9,7 +9,7 @@
 - `prioridade`: `P0`
 - `estado`: `TODO`
 - `esforco`: `M`
-- `dependencias`: `BK-MF1-01, BK-MF1-02, BK-MF1-04, BK-MF1-07, BK-MF1-09`
+- `dependencias`: `BK-MF1-04, BK-MF1-09`
 - `rf_rnf`: `RF31`
 - `fase_documental`: `Fase 2`
 - `sprint`: `S07-S08`
@@ -20,30 +20,30 @@
 
 #### Objetivo
 
-Neste BK vais implementar o mapa de IVA do OPSA. O mapa junta IVA liquidado de vendas e IVA dedutivel de compras, sempre dentro da empresa ativa e dentro de um intervalo de datas validado.
+Neste BK vais implementar o mapa de IVA do OPSA. O mapa junta IVA liquidado de vendas e IVA dedutível de compras, sempre dentro da empresa ativa e dentro de um intervalo de datas validado.
 
-#### Importancia
+#### Importância
 
-Este BK fecha RF31 e prepara relatórios fiscais internos. O mapa nao submete dados a Autoridade Tributaria; ele calcula uma visao auditavel para o contabilista confirmar valores.
+Este BK fecha RF31 e prepara relatórios fiscais internos. O mapa não submete dados a Autoridade Tributária; ele calcula uma visão auditável para o contabilista confirmar valores.
 
 #### Scope-in
 
-- Ler lancamentos contabilisticos `JournalEntry` de vendas ja contabilizadas por `BK-MF1-04`.
-- Ler lancamentos contabilisticos `JournalEntry` de compras ja contabilizadas por `BK-MF1-09`.
-- Usar as linhas dos documentos ligados por `sourceId` apenas para obter codigo e taxa de IVA, porque o diario contabilistico guarda a conta SNC mas nao guarda a taxa fiscal detalhada.
-- Agregar IVA por codigo e taxa.
-- Persistir a execucao em `VatMapRun`.
-- Expor endpoint e pagina React com loading, erro, vazio e sucesso.
+- Ler lançamentos contabilísticos `JournalEntry` de vendas já contabilizadas por `BK-MF1-04`.
+- Ler lançamentos contabilísticos `JournalEntry` de compras já contabilizadas por `BK-MF1-09`.
+- Usar as linhas dos documentos ligados por `sourceId` apenas para obter código e taxa de IVA, porque o diário contabilístico guarda a conta SNC mas não guarda a taxa fiscal detalhada.
+- Agregar IVA por código e taxa.
+- Persistir a execução em `VatMapRun`.
+- Expor endpoint e página React com loading, erro, vazio e sucesso.
 
 #### Scope-out
 
-- Submissao oficial de declaracoes.
-- Regimes especiais de IVA que nao estejam documentados.
-- Alteracao de faturas, compras ou lancamentos.
+- Submissão oficial de declarações.
+- Regimes especiais de IVA que não estejam documentados.
+- Alteração de faturas, compras ou lançamentos.
 
 #### Estado antes e depois
 
-- Estado antes: existem vendas e compras contabilizadas, mas nao existe mapa fiscal consolidado.
+- Estado antes: existem vendas e compras contabilizadas, mas não existe mapa fiscal consolidado.
 - Estado depois: o aluno consegue consultar `GET /api/tax/vat-maps` e obter totais reais de IVA por empresa.
 
 #### Pre-requisitos
@@ -52,20 +52,20 @@ Este BK fecha RF31 e prepara relatórios fiscais internos. O mapa nao submete da
 - Rever `BK-MF1-01`, `BK-MF1-02`, `BK-MF1-04`, `BK-MF1-07` e `BK-MF1-09`.
 - Confirmar que `requireAuth`, `requireCompanyContext` e `requireRole` existem desde MF0.
 
-#### Glossario
+#### Glossário
 
 - **IVA liquidado:** IVA cobrado em vendas.
-- **IVA dedutivel:** IVA suportado em compras.
-- **Saldo de IVA:** diferenca entre liquidado e dedutivel.
-- **Mapa de IVA:** relatorio interno por periodo, taxa e empresa.
+- **IVA dedutível:** IVA suportado em compras.
+- **Saldo de IVA:** diferença entre liquidado e dedutível.
+- **Mapa de IVA:** relatório interno por período, taxa e empresa.
 
-#### Conceitos teoricos essenciais
+#### Conceitos teóricos essenciais
 
-- Um mapa fiscal nao deve alterar documentos; apenas le dados ja registados.
-- O `companyId` vem da sessao para impedir mistura de empresas.
+- Um mapa fiscal não deve alterar documentos; apenas lê dados já registados.
+- O `companyId` vem da sessão para impedir mistura de empresas.
 - O validator transforma query string em datas seguras antes do service.
-- O service concentra calculo financeiro e grava uma execucao auditavel.
-- A route aplica sessao, empresa ativa e role no backend.
+- O service concentra cálculo financeiro e grava uma execução auditável.
+- A route aplica sessão, empresa ativa e role no backend.
 - O frontend usa `credentials: 'include'` para enviar o cookie HttpOnly.
 
 #### Arquitetura do BK
@@ -88,60 +88,60 @@ Este BK fecha RF31 e prepara relatórios fiscais internos. O mapa nao submete da
 - EDITAR: `apps/web/src/App.tsx`
 - REVER: `BK-MF1-01`, `BK-MF1-02`, `BK-MF1-04`, `BK-MF1-07`, `BK-MF1-09`, `MATRIZ-CANONICA-BK.md`, `BACKLOG-MVP.md`
 
-#### Tutorial tecnico linear
+#### Tutorial técnico linear
 
-### Passo 1 - Confirmar contrato canonico e fronteiras
+### Passo 1 - Confirmar contrato canónico e fronteiras
 
 1. Objetivo funcional do passo no ERP.
 
-Confirmar que este BK implementa apenas RF31 e nao altera documentos de venda, compra ou contabilidade.
+Confirmar que este BK implementa apenas RF31 e não altera documentos de venda, compra ou contabilidade.
 
 2. Ficheiros envolvidos:
     - CRIAR: nenhum.
     - EDITAR: nenhum.
     - REVER: `docs/RF.md`, `docs/planificacao/backlogs/MATRIZ-CANONICA-BK.md`, `docs/planificacao/backlogs/BACKLOG-MVP.md`.
-    - LOCALIZACAO: linhas de `BK-MF3-01` e `RF31`.
+    - LOCALIZAÇÃO: linhas de `BK-MF3-01` e `RF31`.
 
-3. Instrucoes do que fazer.
+3. Instruções do que fazer.
 
-Regista na evidence que RF31 depende de RF16 e RF21. Confirma que o mapa de IVA e leitura agregada, nao escrita contabilistica.
+Regista na evidence que RF31 depende de RF16 e RF21. Confirma que o mapa de IVA é leitura agregada, não escrita contabilística.
 
-- `CANONICO`: o mapa so considera documentos que ja tenham `JournalEntry` criado por `BK-MF1-04` ou `BK-MF1-09`.
-- `DERIVADO`: a decomposicao por codigo/taxa de IVA usa `SaleDocumentLine` e `PurchaseDocumentLine` ligadas pelo `sourceId` do lancamento, porque `JournalEntryLine` identifica a conta SNC de IVA, mas nao guarda `vatRateId`.
+- `CANONICO`: o mapa só considera documentos que já tenham `JournalEntry` criado por `BK-MF1-04` ou `BK-MF1-09`.
+- `DERIVADO`: a decomposição por código/taxa de IVA usa `SaleDocumentLine` e `PurchaseDocumentLine` ligadas pelo `sourceId` do lançamento, porque `JournalEntryLine` identifica a conta SNC de IVA, mas não guarda `vatRateId`.
 
-4. Codigo completo, correto e integrado com a app final.
+4. Código completo, correto e integrado com a app final.
 
-Sem codigo neste passo.
+Sem código neste passo.
 
-5. Explicacao do codigo.
+5. Explicação do código.
 
-Nao ha codigo porque este passo protege o escopo. A decisao importante e separar calculo fiscal interno de emissao oficial.
+Não há código porque este passo protege o escopo. A decisão importante é separar cálculo fiscal interno de emissão oficial.
 
-6. Validacao do passo.
+6. Validação do passo.
 
 A evidence deve listar RF31, BK-MF1-04, BK-MF1-09 e o endpoint escolhido.
 
-7. Cenario negativo/erro esperado.
+7. Cenário negativo/erro esperado.
 
-Se alguem tentar alterar uma fatura a partir do mapa de IVA, a decisao deve ser recusada porque esse comportamento pertence aos BKs de vendas ou compras.
+Se alguém tentar alterar uma fatura a partir do mapa de IVA, a decisão deve ser recusada porque esse comportamento pertence aos BKs de vendas ou compras.
 
-### Passo 2 - Criar persistencia da execucao do mapa
+### Passo 2 - Criar persistência da execução do mapa
 
 1. Objetivo funcional do passo no ERP.
 
-Guardar cada execucao do mapa com empresa, utilizador, periodo e totais calculados.
+Guardar cada execução do mapa com empresa, utilizador, período e totais calculados.
 
 2. Ficheiros envolvidos:
     - CRIAR: nenhum.
     - EDITAR: `apps/api/prisma/schema.prisma`
     - REVER: modelos `Company`, `User`, `SaleDocument`, `PurchaseDocument`.
-    - LOCALIZACAO: zona dos modelos fiscais/financeiros.
+    - LOCALIZAÇÃO: zona dos modelos fiscais/financeiros.
 
-3. Instrucoes do que fazer.
+3. Instruções do que fazer.
 
-Adiciona o modelo se ainda nao existir com estes campos e indices. No mesmo ficheiro, adiciona tambem os campos inversos nos modelos `Company` e `User` existentes.
+Adiciona o modelo se ainda não existir com estes campos e índices. No mesmo ficheiro, adiciona também os campos inversos nos modelos `Company` e `User` existentes.
 
-4. Codigo completo, correto e integrado com a app final.
+4. Código completo, correto e integrado com a app final.
 
 No `model Company` existente, acrescenta este campo:
 
@@ -155,11 +155,11 @@ No `model User` existente, acrescenta este campo:
 vatMapRunsGenerated VatMapRun[] @relation("UserVatMapRuns")
 ```
 
-Depois adiciona o modelo da execucao:
+Depois adiciona o modelo da execução:
 
 ```prisma
-/// Execucao historica de um mapa de IVA interno por empresa.
-/// Guarda apenas totais calculados; as linhas detalhadas continuam a vir das fontes contabilisticas/documentais.
+/// Execução histórica de um mapa de IVA interno por empresa.
+/// Guarda apenas totais calculados; as linhas detalhadas continuam a vir das fontes contabilísticas/documentais.
 model VatMapRun {
   id                 String   @id @default(uuid())
   companyId          String
@@ -179,35 +179,35 @@ model VatMapRun {
 }
 ```
 
-5. Explicacao do codigo.
+5. Explicação do código.
 
-`VatMapRun` guarda uma fotografia do calculo. O `companyId` aplica multiempresa; `generatedById` permite defesa e auditoria; os totais em centimos evitam erros de arredondamento. As relacoes nomeadas mantem o schema Prisma valido porque `Company` e `User` passam a ter o lado inverso da relacao.
+`VatMapRun` guarda uma fotografia do cálculo. O `companyId` aplica multiempresa; `generatedById` permite defesa e auditoria; os totais em cêntimos evitam erros de arredondamento. As relações nomeadas mantêm o schema Prisma válido porque `Company` e `User` passam a ter o lado inverso da relação.
 
-6. Validacao do passo.
+6. Validação do passo.
 
-Executa a migration e confirma que o schema Prisma valida e que o modelo nao duplica outro conceito fiscal.
+Executa a migration e confirma que o schema Prisma valida e que o modelo não duplica outro conceito fiscal.
 
-7. Cenario negativo/erro esperado.
+7. Cenário negativo/erro esperado.
 
-Sem campos inversos em `Company` e `User`, o Prisma rejeita a relacao durante a validacao do schema.
+Sem campos inversos em `Company` e `User`, o Prisma rejeita a relação durante a validação do schema.
 
 ### Passo 3 - Validar filtros de datas
 
 1. Objetivo funcional do passo no ERP.
 
-Impedir intervalos vazios, invalidos ou demasiado grandes antes de consultar dados financeiros.
+Impedir intervalos vazios, inválidos ou demasiado grandes antes de consultar dados financeiros.
 
 2. Ficheiros envolvidos:
     - CRIAR: `apps/api/src/modules/tax/vatMapFilters.js`
     - EDITAR: nenhum.
     - REVER: `apps/api/src/lib/httpErrors.js`
-    - LOCALIZACAO: ficheiro completo.
+    - LOCALIZAÇÃO: ficheiro completo.
 
-3. Instrucoes do que fazer.
+3. Instruções do que fazer.
 
 Cria um validator que recebe `req.query` e devolve `fromDate` e `toDate`.
 
-4. Codigo completo, correto e integrado com a app final.
+4. Código completo, correto e integrado com a app final.
 
 ```js
 // apps/api/src/modules/tax/vatMapFilters.js
@@ -219,97 +219,97 @@ import { httpError } from "../../lib/httpErrors.js";
  * @param {unknown} value Valor recebido em `req.query`.
  * @param {string} fieldName Nome do campo usado na mensagem de erro.
  * @returns {Date} Data validada.
- * @throws {import("../../lib/httpErrors.js").HttpError} 400 quando o campo falta ou nao e uma data valida.
+ * @throws {import("../../lib/httpErrors.js").HttpError} 400 quando o campo falta ou não é uma data válida.
  */
 function parseDate(value, fieldName) {
     if (typeof value !== "string" || value.trim() === "") {
-        throw httpError(400, "INVALID_DATE_RANGE", `${fieldName} e obrigatorio`);
+        throw httpError(400, "INVALID_DATE_RANGE", `${fieldName} é obrigatório`);
     }
 
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) {
-        throw httpError(400, "INVALID_DATE_RANGE", `${fieldName} deve ser uma data valida`);
+        throw httpError(400, "INVALID_DATE_RANGE", `${fieldName} deve ser uma data válida`);
     }
 
     return date;
 }
 
 /**
- * Valida o periodo pedido para o mapa de IVA.
+ * Valida o período pedido para o mapa de IVA.
  *
- * O DTO devolvido e pequeno de proposito: o service recebe datas ja normalizadas e nunca recebe `companyId`
+ * O DTO devolvido é pequeno de propósito: o service recebe datas já normalizadas e nunca recebe `companyId`
  * vindo do frontend, preservando a regra multiempresa da MF0.
  *
  * @param {Record<string, unknown>} query Query string Express.
- * @returns {{ fromDate: Date, toDate: Date }} Periodo validado para consulta fiscal.
- * @throws {import("../../lib/httpErrors.js").HttpError} 400 quando o intervalo e invalido ou demasiado largo.
+ * @returns {{ fromDate: Date, toDate: Date }} Período validado para consulta fiscal.
+ * @throws {import("../../lib/httpErrors.js").HttpError} 400 quando o intervalo é inválido ou demasiado largo.
  */
 export function validateVatMapQuery(query) {
     const fromDate = parseDate(query.from, "from");
     const toDate = parseDate(query.to, "to");
 
     if (fromDate > toDate) {
-        throw httpError(400, "INVALID_DATE_RANGE", "A data inicial nao pode ser posterior a data final");
+        throw httpError(400, "INVALID_DATE_RANGE", "A data inicial não pode ser posterior a data final");
     }
 
     const days = Math.ceil((toDate.getTime() - fromDate.getTime()) / 86400000) + 1;
     if (days > 366) {
-        throw httpError(400, "INVALID_DATE_RANGE", "O intervalo maximo do mapa de IVA e de 366 dias");
+        throw httpError(400, "INVALID_DATE_RANGE", "O intervalo máximo do mapa de IVA é de 366 dias");
     }
 
     return { fromDate, toDate };
 }
 ```
 
-5. Explicacao do codigo.
+5. Explicação do código.
 
-`parseDate` transforma texto em `Date` e falha cedo com `400`. `validateVatMapQuery` protege a base de dados contra consultas abertas e devolve um DTO pequeno para o service. O JSDoc documenta parametros, retorno e erros esperados para o aluno perceber que a validacao pertence ao backend e acontece antes de qualquer query financeira.
+`parseDate` transforma texto em `Date` e falha cedo com `400`. `validateVatMapQuery` protege a base de dados contra consultas abertas e devolve um DTO pequeno para o service. O JSDoc documenta parâmetros, retorno e erros esperados para o aluno perceber que a validação pertence ao backend e acontece antes de qualquer query financeira.
 
-6. Validacao do passo.
+6. Validação do passo.
 
 Testa `from=2026-01-01&to=2026-01-31` e depois `from=abc`.
 
-7. Cenario negativo/erro esperado.
+7. Cenário negativo/erro esperado.
 
 `from=2026-02-01&to=2026-01-01` devolve `400 INVALID_DATE_RANGE`.
 
-### Passo 4 - Implementar service com calculo real
+### Passo 4 - Implementar service com cálculo real
 
 1. Objetivo funcional do passo no ERP.
 
-Calcular IVA liquidado, IVA dedutivel e saldo por taxa, sempre filtrando pela empresa ativa.
+Calcular IVA liquidado, IVA dedutível e saldo por taxa, sempre filtrando pela empresa ativa.
 
 2. Ficheiros envolvidos:
     - CRIAR: `apps/api/src/modules/tax/vatMapService.js`
     - EDITAR: nenhum.
-    - REVER: services de contabilizacao criados em `BK-MF1-04` e `BK-MF1-09`.
-    - LOCALIZACAO: ficheiro completo.
+    - REVER: services de contabilização criados em `BK-MF1-04` e `BK-MF1-09`.
+    - LOCALIZAÇÃO: ficheiro completo.
 
-3. Instrucoes do que fazer.
+3. Instruções do que fazer.
 
-Implementa queries reais sobre `JournalEntry` de vendas e compras. Depois usa os `sourceId` desses lancamentos para ir buscar as linhas operacionais que contem `vatRateId`, `vatRate.code`, `rateBps` e `vatCents`. Usa a persistencia `VatMapRun` para gravar a execucao depois do calculo.
+Implementa queries reais sobre `JournalEntry` de vendas e compras. Depois usa os `sourceId` desses lançamentos para ir buscar as linhas operacionais que contêm `vatRateId`, `vatRate.code`, `rateBps` e `vatCents`. Usa a persistência `VatMapRun` para gravar a execução depois do cálculo.
 
-4. Codigo completo, correto e integrado com a app final.
+4. Código completo, correto e integrado com a app final.
 
 ```js
 // apps/api/src/modules/tax/vatMapService.js
 import { httpError } from "../../lib/httpErrors.js";
 
 /**
- * Normaliza valores monetarios em centimos antes de os somar.
+ * Normaliza valores monetários em cêntimos antes de os somar.
  *
  * @param {number | null | undefined} value Valor monetario vindo da base de dados.
- * @returns {number} Valor seguro para agregacao.
+ * @returns {number} Valor seguro para agregação.
  */
 function cents(value) {
     return Number.isFinite(value) ? value : 0;
 }
 
 /**
- * Agrega IVA por codigo e taxa.
+ * Agrega IVA por código e taxa.
  *
  * @param {Map<string, { vatCode: string, vatRateBps: number, liquidatedVatCents: number, deductibleVatCents: number }>} map Buckets acumulados.
- * @param {string} key Chave composta por codigo e taxa.
+ * @param {string} key Chave composta por código e taxa.
  * @param {{ vatCode: string, vatRateBps: number, liquidatedVatCents?: number, deductibleVatCents?: number }} patch Valores a somar ao bucket.
  * @returns {void}
  */
@@ -329,18 +329,18 @@ function addToBucket(map, key, patch) {
 /**
  * Gera o mapa de IVA interno da empresa ativa.
  *
- * A fonte canonica de inclusao e `JournalEntry`: so entram documentos contabilizados pelos BKs MF1-04 e MF1-09.
- * As linhas de venda/compra sao usadas de forma derivada para obter codigo/taxa de IVA, porque o diario guarda
- * a conta SNC de IVA mas nao guarda a taxa fiscal original da linha.
+ * A fonte canónica de inclusão é `JournalEntry`: só entram documentos contabilizados pelos BKs MF1-04 e MF1-09.
+ * As linhas de venda/compra são usadas de forma derivada para obter código/taxa de IVA, porque o diário guarda
+ * a conta SNC de IVA mas não guarda a taxa fiscal original da linha.
  *
  * @param {import("@prisma/client").PrismaClient} prisma Cliente Prisma da app.
- * @param {{ companyId: string, userId: string, fromDate: Date, toDate: Date }} input Contexto multiempresa e periodo validado.
+ * @param {{ companyId: string, userId: string, fromDate: Date, toDate: Date }} input Contexto multiempresa e período validado.
  * @returns {Promise<{ runId: string, from: string, to: string, totals: { liquidatedVatCents: number, deductibleVatCents: number, vatBalanceCents: number }, rows: Array<{ vatCode: string, vatRateBps: number, liquidatedVatCents: number, deductibleVatCents: number, balanceCents: number }>, sources: string[] }>} Resultado fiscal pronto para frontend e evidence.
- * @throws {import("../../lib/httpErrors.js").HttpError} 401 quando nao ha empresa ativa.
+ * @throws {import("../../lib/httpErrors.js").HttpError} 401 quando não há empresa ativa.
  */
 export async function buildVatMap(prisma, { companyId, userId, fromDate, toDate }) {
     if (!companyId) {
-        throw httpError(401, "COMPANY_CONTEXT_REQUIRED", "Empresa ativa obrigatoria");
+        throw httpError(401, "COMPANY_CONTEXT_REQUIRED", "Empresa ativa obrigatória");
     }
 
     const [saleEntries, purchaseEntries] = await Promise.all([
@@ -365,7 +365,7 @@ export async function buildVatMap(prisma, { companyId, userId, fromDate, toDate 
     const saleDocumentIds = saleEntries.map((entry) => entry.sourceId);
     const purchaseDocumentIds = purchaseEntries.map((entry) => entry.sourceId);
 
-    // O diario contabilistico decide que documentos entram; as linhas operacionais dao a taxa fiscal detalhada.
+    // O diário contabilístico decide que documentos entram; as linhas operacionais dao a taxa fiscal detalhada.
     const [sales, purchases] = await Promise.all([
         prisma.saleDocumentLine.findMany({
             where: {
@@ -448,15 +448,15 @@ export async function buildVatMap(prisma, { companyId, userId, fromDate, toDate 
 }
 ```
 
-5. Explicacao do codigo.
+5. Explicação do código.
 
-O service le primeiro `JournalEntry` dentro da empresa e do periodo, usando `source=SALE` e `source=PURCHASE`. Esta e a fonte canonica que prova que a venda ou compra ja foi contabilizada. Depois usa `sourceId` para consultar as linhas dos documentos e obter `vatRate.code`, `vatRate.rateBps` e `vatCents`. `addToBucket` agrega por codigo/taxa, separa liquidado e dedutivel, calcula saldo e grava `VatMapRun`. A regra evita usar valores enviados pelo frontend para escolher empresa e evita incluir documentos ainda nao contabilizados.
+O service lê primeiro `JournalEntry` dentro da empresa e do período, usando `source=SALE` e `source=PURCHASE`. Esta é a fonte canónica que prova que a venda ou compra já foi contabilizada. Depois usa `sourceId` para consultar as linhas dos documentos e obter `vatRate.code`, `vatRate.rateBps` e `vatCents`. `addToBucket` agrega por código/taxa, separa liquidado e dedutível, calcula saldo e grava `VatMapRun`. A regra evita usar valores enviados pelo frontend para escolher empresa e evita incluir documentos ainda não contabilizados.
 
-6. Validacao do passo.
+6. Validação do passo.
 
 Com uma venda com IVA de 23 EUR e uma compra com IVA de 10 EUR, o saldo deve ser 13 EUR a entregar.
 
-7. Cenario negativo/erro esperado.
+7. Cenário negativo/erro esperado.
 
 Sem empresa ativa, o service devolve `401 COMPANY_CONTEXT_REQUIRED`.
 
@@ -470,13 +470,13 @@ Publicar o mapa de IVA apenas para roles financeiras.
     - CRIAR: `apps/api/src/modules/tax/vatMapRoutes.js`
     - EDITAR: `apps/api/src/server.js`
     - REVER: middlewares de autenticação, empresa e permissões.
-    - LOCALIZACAO: ficheiro completo e montagem em `server.js`.
+    - LOCALIZAÇÃO: ficheiro completo e montagem em `server.js`.
 
-3. Instrucoes do que fazer.
+3. Instruções do que fazer.
 
 Liga validator e service numa route `GET /`.
 
-4. Codigo completo, correto e integrado com a app final.
+4. Código completo, correto e integrado com a app final.
 
 ```js
 // apps/api/src/modules/tax/vatMapRoutes.js
@@ -489,9 +489,9 @@ import { validateVatMapQuery } from "./vatMapFilters.js";
 import { buildVatMap } from "./vatMapService.js";
 
 /**
- * Constroi as routes HTTP do mapa de IVA.
+ * Constrói as routes HTTP do mapa de IVA.
  *
- * @param {{ prisma: import("@prisma/client").PrismaClient }} deps Dependencias injetadas pelo servidor.
+ * @param {{ prisma: import("@prisma/client").PrismaClient }} deps Dependências injetadas pelo servidor.
  * @returns {import("express").Router} Router montado em `/api/tax/vat-maps`.
  */
 export function buildVatMapRoutes({ prisma }) {
@@ -502,7 +502,7 @@ export function buildVatMapRoutes({ prisma }) {
         try {
             const filters = validateVatMapQuery(req.query);
             const result = await buildVatMap(prisma, {
-                // O companyId vem da sessao ativa; o browser nunca escolhe a empresa por query string.
+                // O companyId vem da sessão ativa; o browser nunca escolhe a empresa por query string.
                 companyId: req.companyId,
                 userId: req.user.id,
                 ...filters,
@@ -525,15 +525,15 @@ import { buildVatMapRoutes } from "./modules/tax/vatMapRoutes.js";
 app.use("/api/tax/vat-maps", buildVatMapRoutes({ prisma }));
 ```
 
-5. Explicacao do codigo.
+5. Explicação do código.
 
-A route aplica autenticação, empresa e role antes do calculo. O controller nao recebe `companyId` do browser; usa `req.companyId`. O JSDoc documenta onde a route e montada e o comentario dentro do handler reforca a regra de seguranca que evita fuga de dados entre empresas.
+A route aplica autenticação, empresa e role antes do cálculo. O controller não recebe `companyId` do browser; usa `req.companyId`. O JSDoc documenta onde a route é montada e o comentário dentro do handler reforça a regra de segurança que evita fuga de dados entre empresas.
 
-6. Validacao do passo.
+6. Validação do passo.
 
 Um `CONTABILISTA` autenticado recebe `200`; um `OPERACIONAL` recebe `403`.
 
-7. Cenario negativo/erro esperado.
+7. Cenário negativo/erro esperado.
 
 Sem cookie de sessão, a route devolve `401 SESSION_REQUIRED`.
 
@@ -541,26 +541,26 @@ Sem cookie de sessão, a route devolve `401 SESSION_REQUIRED`.
 
 1. Objetivo funcional do passo no ERP.
 
-Permitir que a pagina chame o endpoint real com tipos claros.
+Permitir que a página chame o endpoint real com tipos claros.
 
 2. Ficheiros envolvidos:
     - CRIAR: `apps/web/src/lib/taxApi.ts`
     - EDITAR: nenhum.
     - REVER: `apps/web/src/lib/apiClient.ts`
-    - LOCALIZACAO: ficheiro completo.
+    - LOCALIZAÇÃO: ficheiro completo.
 
-3. Instrucoes do que fazer.
+3. Instruções do que fazer.
 
-Cria tipos de resposta com nomes fiscais, nao nomes genericos.
+Cria tipos de resposta com nomes fiscais, não nomes genericos.
 
-4. Codigo completo, correto e integrado com a app final.
+4. Código completo, correto e integrado com a app final.
 
 ```ts
 // apps/web/src/lib/taxApi.ts
 import { apiClient } from "./apiClient";
 
 /**
- * Linha agregada do mapa de IVA por codigo/taxa.
+ * Linha agregada do mapa de IVA por código/taxa.
  */
 export type VatMapRow = {
     vatCode: string;
@@ -600,19 +600,19 @@ export async function fetchVatMap(from: string, to: string): Promise<VatMapResul
 }
 ```
 
-5. Explicacao do codigo.
+5. Explicação do código.
 
-O cliente define a forma da resposta e reutiliza `apiClient`, criado em `BK-MF1-01`, que ja envia `credentials: "include"` para o cookie HttpOnly. Os nomes `liquidatedVatCents` e `deductibleVatCents` ensinam o dominio certo, e o JSDoc explica a entrada, a saida e a origem dos erros.
+O cliente define a forma da resposta e reutiliza `apiClient`, criado em `BK-MF1-01`, que já envia `credentials: "include"` para o cookie HttpOnly. Os nomes `liquidatedVatCents` e `deductibleVatCents` ensinam o domínio certo, e o JSDoc explica a entrada, a saída e a origem dos erros.
 
-6. Validacao do passo.
+6. Validação do passo.
 
 Confirma no browser que o pedido inclui cookie de sessão.
 
-7. Cenario negativo/erro esperado.
+7. Cenário negativo/erro esperado.
 
 Se o backend devolver `403`, a função lança erro com mensagem controlada.
 
-### Passo 7 - Criar pagina React do mapa
+### Passo 7 - Criar página React do mapa
 
 1. Objetivo funcional do passo no ERP.
 
@@ -622,13 +622,13 @@ Mostrar o mapa de IVA com formulario, estados e tabela por taxa.
     - CRIAR: `apps/web/src/pages/VatMapPage.tsx`
     - EDITAR: `apps/web/src/App.tsx`
     - REVER: cliente `taxApi.ts`.
-    - LOCALIZACAO: ficheiro completo e registo da rota/menu.
+    - LOCALIZAÇÃO: ficheiro completo e registo da rota/menu.
 
-3. Instrucoes do que fazer.
+3. Instruções do que fazer.
 
-Cria pagina com datas obrigatorias e mensagens em portugues de Portugal.
+Cria página com datas obrigatórias e mensagens em português de Portugal.
 
-4. Codigo completo, correto e integrado com a app final.
+4. Código completo, correto e integrado com a app final.
 
 ```tsx
 // apps/web/src/pages/VatMapPage.tsx
@@ -636,20 +636,20 @@ import { FormEvent, useState } from "react";
 import { fetchVatMap, type VatMapResult } from "../lib/taxApi";
 
 /**
- * Formata centimos para euros apenas para apresentacao.
+ * Formata cêntimos para euros apenas para apresentacao.
  *
- * @param {number} cents Valor em centimos vindo da API.
- * @returns {string} Valor monetario legivel.
+ * @param {number} cents Valor em cêntimos vindo da API.
+ * @returns {string} Valor monetario legível.
  */
 function euros(cents: number) {
     return `${(cents / 100).toFixed(2)} EUR`;
 }
 
 /**
- * Pagina React que permite gerar e consultar o mapa de IVA.
+ * Página React que permite gerar e consultar o mapa de IVA.
  *
- * Mantem estados de formulario, carregamento, erro, resultado e vazio. A empresa continua a vir da sessao
- * no backend, por isso a pagina nunca pede `companyId` ao utilizador.
+ * Mantém estados de formulario, carregamento, erro, resultado e vazio. A empresa continua a vir da sessão
+ * no backend, por isso a página nunca pede `companyId` ao utilizador.
  *
  * @returns {JSX.Element} Interface do mapa de IVA.
  */
@@ -666,7 +666,7 @@ export function VatMapPage() {
         setLoading(true);
 
         try {
-            // A chamada usa cookies HttpOnly via apiClient; nao ha tokens em localStorage.
+            // A chamada usa cookies HttpOnly via apiClient; não há tokens em localStorage.
             setResult(await fetchVatMap(from, to));
         } catch (caughtError) {
             setResult(null);
@@ -685,14 +685,14 @@ export function VatMapPage() {
                 <button type="submit" disabled={loading}>{loading ? "A calcular..." : "Gerar mapa"}</button>
             </form>
             {error && <p role="alert">{error}</p>}
-            {result && result.rows.length === 0 && <p>Sem movimentos de IVA no periodo selecionado.</p>}
+            {result && result.rows.length === 0 && <p>Sem movimentos de IVA no período selecionado.</p>}
             {result && (
                 <section aria-label="Resumo de IVA">
                     <p>IVA liquidado: {euros(result.totals.liquidatedVatCents)}</p>
-                    <p>IVA dedutivel: {euros(result.totals.deductibleVatCents)}</p>
+                    <p>IVA dedutível: {euros(result.totals.deductibleVatCents)}</p>
                     <p>Saldo de IVA: {euros(result.totals.vatBalanceCents)}</p>
                     <table>
-                        <thead><tr><th>Codigo</th><th>Taxa</th><th>Liquidado</th><th>Dedutivel</th><th>Saldo</th></tr></thead>
+                        <thead><tr><th>Código</th><th>Taxa</th><th>Liquidado</th><th>Dedutível</th><th>Saldo</th></tr></thead>
                         <tbody>
                             {result.rows.map((row) => (
                                 <tr key={`${row.vatCode}-${row.vatRateBps}`}>
@@ -712,17 +712,17 @@ export function VatMapPage() {
 }
 ```
 
-5. Explicacao do codigo.
+5. Explicação do código.
 
-A pagina mantem estado de datas, resultado, erro e carregamento. A tabela usa chaves por codigo/taxa e mostra o dominio fiscal real. O utilizador nunca escolhe empresa por input; essa escolha vem da sessao. O JSDoc e o comentario no submit tornam explicito que a seguranca depende do cookie HttpOnly e da verificacao backend, nao de estado local.
+A página mantém estado de datas, resultado, erro e carregamento. A tabela usa chaves por código/taxa e mostra o domínio fiscal real. O utilizador nunca escolhe empresa por input; essa escolha vem da sessão. O JSDoc e o comentário no submit tornam explícito que a segurança depende do cookie HttpOnly e da verificação backend, não de estado local.
 
-6. Validacao do passo.
+6. Validação do passo.
 
-Gera um mapa com dados e confirma a tabela. Depois gera um periodo vazio e confirma mensagem de vazio.
+Gera um mapa com dados e confirma a tabela. Depois gera um período vazio e confirma mensagem de vazio.
 
-7. Cenario negativo/erro esperado.
+7. Cenário negativo/erro esperado.
 
-Com sessão expirada, a pagina deve apresentar erro sem mostrar stack trace.
+Com sessão expirada, a página deve apresentar erro sem mostrar stack trace.
 
 ### Passo 8 - Validar entrega e handoff
 
@@ -734,62 +734,62 @@ Confirmar que o BK deixa a fiscalidade pronta para a tesouraria e reporting segu
     - CRIAR: nenhum.
     - EDITAR: evidence do BK.
     - REVER: todos os ficheiros criados neste BK.
-    - LOCALIZACAO: checklist final da PR/defesa.
+    - LOCALIZAÇÃO: checklist final da PR/defesa.
 
-3. Instrucoes do que fazer.
+3. Instruções do que fazer.
 
-Executa smoke com dados reais e tres negativos: datas invalidas, sem sessão e role errada.
+Executa smoke com dados reais e três negativos: datas inválidas, sem sessão e role errada.
 
-4. Codigo completo, correto e integrado com a app final.
+4. Código completo, correto e integrado com a app final.
 
-Sem codigo novo neste passo.
+Sem código novo neste passo.
 
-5. Explicacao do codigo.
+5. Explicação do código.
 
-A validacao garante que o codigo anterior calcula valores reais e nao apenas resposta vazia.
+A validação garante que o código anterior calcula valores reais e não apenas resposta vazia.
 
-6. Validacao do passo.
+6. Validação do passo.
 
 `GET /api/tax/vat-maps?from=2026-01-01&to=2026-01-31` deve devolver totais coerentes com vendas e compras.
 
-7. Cenario negativo/erro esperado.
+7. Cenário negativo/erro esperado.
 
 Um utilizador sem role financeira recebe `403 ROLE_FORBIDDEN`.
 
 ## Expected results
 
 - `200` com `liquidatedVatCents`, `deductibleVatCents`, `vatBalanceCents` e linhas por taxa.
-- `400 INVALID_DATE_RANGE` para datas invalidas.
+- `400 INVALID_DATE_RANGE` para datas inválidas.
 - `401 SESSION_REQUIRED` sem sessão.
 - `403 ROLE_FORBIDDEN` sem role permitida.
-- Periodo sem dados devolve totais a zero e lista vazia.
+- Período sem dados devolve totais a zero e lista vazia.
 
 ## Critérios de aceite
 
-- O service consulta `JournalEntry` real e usa linhas dos documentos apenas para decompor taxa/codigo de IVA.
+- O service consulta `JournalEntry` real e usa linhas dos documentos apenas para decompor taxa/código de IVA.
 - Todas as queries usam `companyId`.
 - O frontend apresenta nomes fiscais corretos.
 - A execução fica registada em `VatMapRun`.
-- A evidence inclui caso principal e tres negativos.
+- A evidence inclui caso principal e três negativos.
 
 ## Validação final
 
 - Confirmar imports.
 - Confirmar route montada.
 - Confirmar sem dados cross-company.
-- Confirmar que o proximo BK nao precisa reescrever o mapa.
+- Confirmar que o próximo BK não precisa reescrever o mapa.
 
 ## Evidence para PR/defesa
 
 - Output JSON do mapa.
-- Screenshot da pagina.
+- Screenshot da página.
 - Provas de `400`, `401` e `403`.
-- Periodo e empresa usados no teste.
+- Período e empresa usados no teste.
 
 ## Handoff
 
-BK-MF3-02 usa a mesma disciplina de multiempresa para criar contas bancarias e caixa, que depois alimentam extratos e previsoes.
+BK-MF3-02 usa a mesma disciplina de multiempresa para criar contas bancárias e caixa, que depois alimentam extratos e previsões.
 
 ## Changelog
 
-- `2026-06-13`: corrigido para implementar calculo real de IVA liquidado/dedutivel, fonte contabilistica por `JournalEntry`, nomes fiscais, route protegida, pagina React, JSDoc, `apiClient` e evidence.
+- `2026-06-13`: corrigido para implementar cálculo real de IVA liquidado/dedutível, fonte contabilística por `JournalEntry`, nomes fiscais, route protegida, página React, JSDoc, `apiClient` e evidence.
