@@ -9,7 +9,7 @@
 - `prioridade`: `P1`
 - `estado`: `TODO`
 - `esforco`: `S`
-- `dependencias`: `BK-MF3-07`
+- `dependencias`: `BK-MF1-02, BK-MF1-03, BK-MF1-07, BK-MF1-08`
 - `rf_rnf`: `RF38`
 - `fase_documental`: `Fase 2`
 - `sprint`: `S07-S08`
@@ -42,7 +42,7 @@ RF38 transforma dados operacionais em indicadores de gestão. Estes KPIs aliment
 
 #### Estado antes e depois
 
-- Estado antes: existem relatórios operacionais.
+- Estado antes: existem documentos de venda/compra, recebimentos e pagamentos.
 - Estado depois: `GET /api/reports/executive-kpis` devolve indicadores calculados.
 
 #### Pre-requisitos
@@ -162,7 +162,7 @@ model ExecutiveKpiRun {
 
 5. Explicação do código.
 
-`pmrDays` e `pmpDays` podem ser nulos quando não há recebimentos ou pagamentos suficientes. A relação com `BK-MF3-07` é funcional: ambos são relatórios, mas este BK calcula os indicadores a partir das fontes transacionais.
+`pmrDays` e `pmpDays` podem ser nulos quando não há recebimentos ou pagamentos suficientes. A relação com `BK-MF3-07` é apenas funcional: ambos são relatórios, mas este BK calcula os indicadores diretamente a partir das fontes transacionais.
 
 6. Validação do passo.
 

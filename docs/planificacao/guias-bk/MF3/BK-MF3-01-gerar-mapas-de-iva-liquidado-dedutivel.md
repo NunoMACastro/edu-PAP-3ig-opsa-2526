@@ -9,7 +9,7 @@
 - `prioridade`: `P0`
 - `estado`: `TODO`
 - `esforco`: `M`
-- `dependencias`: `BK-MF1-04, BK-MF1-09`
+- `dependencias`: `BK-MF1-01, BK-MF1-02, BK-MF1-04, BK-MF1-07, BK-MF1-09`
 - `rf_rnf`: `RF31`
 - `fase_documental`: `Fase 2`
 - `sprint`: `S07-S08`

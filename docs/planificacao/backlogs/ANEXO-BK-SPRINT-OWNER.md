@@ -44,14 +44,14 @@ Rastreabilidade operacional `BK -> Sprint -> Owner`, com contrato de carga pedag
 | BK-MF2-06 | MF2 | S05-S06 | Oleksii | Pedro | P0 | Reforco | RF28 | BK-MF0-07 | docs/planificacao/guias-bk/MF2/BK-MF2-06-criar-e-editar-lancamentos-manuais-com-anexos.md |
 | BK-MF2-07 | MF2 | S05-S06 | Andre | Oleksii | P0 | Reforco | RF29 | BK-MF2-06 | docs/planificacao/guias-bk/MF2/BK-MF2-07-consultar-balancete-e-razao-exportavel-pdf-excel.md |
 | BK-MF2-08 | MF2 | S05-S06 | Pedro | Andre | P0 | Reforco | RF30 | BK-MF2-07 | docs/planificacao/guias-bk/MF2/BK-MF2-08-gerar-demonstracao-de-resultados-e-balanco.md |
-| BK-MF3-01 | MF3 | S07-S08 | Oleksii | Andre | P0 | Reforco | RF31 | BK-MF1-04, BK-MF1-09 | docs/planificacao/guias-bk/MF3/BK-MF3-01-gerar-mapas-de-iva-liquidado-dedutivel.md |
+| BK-MF3-01 | MF3 | S07-S08 | Oleksii | Andre | P0 | Reforco | RF31 | BK-MF1-01, BK-MF1-02, BK-MF1-04, BK-MF1-07, BK-MF1-09 | docs/planificacao/guias-bk/MF3/BK-MF3-01-gerar-mapas-de-iva-liquidado-dedutivel.md |
 | BK-MF3-02 | MF3 | S07-S08 | Andre | Oleksii | P0 | Reforco | RF32 | - | docs/planificacao/guias-bk/MF3/BK-MF3-02-criar-contas-bancarias-caixa-e-respetivos-saldos.md |
-| BK-MF3-03 | MF3 | S07-S08 | Oleksii | Pedro | P0 | Reforco | RF33 | BK-MF3-02, BK-MF1-02, BK-MF1-07 | docs/planificacao/guias-bk/MF3/BK-MF3-03-importar-extratos-bancarios-csv-ofx-e-fazer-reconciliacao-automatica.md |
-| BK-MF3-04 | MF3 | S07-S08 | Oleksii | Pedro | P1 | Core | RF34 | BK-MF1-03, BK-MF1-08 | docs/planificacao/guias-bk/MF3/BK-MF3-04-gerar-previsao-de-tesouraria-entradas-e-saidas-futuras.md |
-| BK-MF3-05 | MF3 | S07-S08 | Pedro | Andre | P1 | Core | RF35 | - | docs/planificacao/guias-bk/MF3/BK-MF3-05-importar-csv-excel-de-clientes-fornecedores-artigos-e-extratos.md |
-| BK-MF3-06 | MF3 | S07-S08 | Oleksii | Sofia | P0 | Reforco | RF36 | - | docs/planificacao/guias-bk/MF3/BK-MF3-06-exportar-saf-t-pt-de-faturacao-e-contabilidade.md |
-| BK-MF3-07 | MF3 | S07-S08 | Andre | Oleksii | P0 | Reforco | RF37 | BK-MF1-02, BK-MF1-07, BK-MF2-02 | docs/planificacao/guias-bk/MF3/BK-MF3-07-relatorios-de-vendas-compras-margens-e-stock.md |
-| BK-MF3-08 | MF3 | S07-S08 | Andre | Oleksii | P1 | Core | RF38 | BK-MF3-07 | docs/planificacao/guias-bk/MF3/BK-MF3-08-kpis-executivos-receita-custos-ebitda-pmr-pmp.md |
+| BK-MF3-03 | MF3 | S07-S08 | Oleksii | Pedro | P0 | Reforco | RF33 | BK-MF3-02, BK-MF1-03, BK-MF1-08 | docs/planificacao/guias-bk/MF3/BK-MF3-03-importar-extratos-bancarios-csv-ofx-e-fazer-reconciliacao-automatica.md |
+| BK-MF3-04 | MF3 | S07-S08 | Oleksii | Pedro | P1 | Core | RF34 | BK-MF3-02, BK-MF1-02, BK-MF1-03, BK-MF1-07, BK-MF1-08 | docs/planificacao/guias-bk/MF3/BK-MF3-04-gerar-previsao-de-tesouraria-entradas-e-saidas-futuras.md |
+| BK-MF3-05 | MF3 | S07-S08 | Pedro | Andre | P1 | Core | RF35 | BK-MF0-09, BK-MF0-10, BK-MF0-11, BK-MF3-02, BK-MF3-03 | docs/planificacao/guias-bk/MF3/BK-MF3-05-importar-csv-excel-de-clientes-fornecedores-artigos-e-extratos.md |
+| BK-MF3-06 | MF3 | S07-S08 | Oleksii | Sofia | P0 | Reforco | RF36 | BK-MF0-06, BK-MF0-09, BK-MF0-10, BK-MF1-02, BK-MF1-04, BK-MF1-07, BK-MF1-09, BK-MF2-06 | docs/planificacao/guias-bk/MF3/BK-MF3-06-exportar-saf-t-pt-de-faturacao-e-contabilidade.md |
+| BK-MF3-07 | MF3 | S07-S08 | Andre | Oleksii | P0 | Reforco | RF37 | BK-MF0-11, BK-MF1-02, BK-MF1-07, BK-MF2-02 | docs/planificacao/guias-bk/MF3/BK-MF3-07-relatorios-de-vendas-compras-margens-e-stock.md |
+| BK-MF3-08 | MF3 | S07-S08 | Andre | Oleksii | P1 | Core | RF38 | BK-MF1-02, BK-MF1-03, BK-MF1-07, BK-MF1-08 | docs/planificacao/guias-bk/MF3/BK-MF3-08-kpis-executivos-receita-custos-ebitda-pmr-pmp.md |
 | BK-MF4-01 | MF4 | S08-S09 | Oleksii | Pedro | P0 | Reforco | RF39 | BK-MF3-07 | docs/planificacao/guias-bk/MF4/BK-MF4-01-gerar-insights-automaticos-tendencias-riscos-clientes-artigos-parados.md |
 | BK-MF4-02 | MF4 | S08-S09 | Sofia | Oleksii | P1 | Core | RF40 | BK-MF4-01 | docs/planificacao/guias-bk/MF4/BK-MF4-02-sugerir-acoes-ajustar-precos-negociar-fornecedor-repor-stock.md |
 | BK-MF4-03 | MF4 | S08-S09 | Andre | Oleksii | P1 | Core | RF41 | BK-MF3-07 | docs/planificacao/guias-bk/MF4/BK-MF4-03-permitir-perguntas-em-linguagem-natural-e-responder-com-dados-e-fonte.md |

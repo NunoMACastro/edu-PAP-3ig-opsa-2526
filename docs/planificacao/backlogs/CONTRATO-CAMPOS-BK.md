@@ -62,14 +62,14 @@ Formalizar os campos obrigatorios por BK para manter coerencia entre `MATRIZ-CAN
 | BK-MF2-06 | MF2 | S05-S06 | Oleksii | RF28 | BK-MF0-03, BK-MF0-07, BK-MF0-08 | docs/planificacao/guias-bk/MF2/BK-MF2-06-criar-e-editar-lancamentos-manuais-com-anexos.md | Reforco |
 | BK-MF2-07 | MF2 | S05-S06 | Andre | RF29 | BK-MF2-06 | docs/planificacao/guias-bk/MF2/BK-MF2-07-consultar-balancete-e-razao-exportavel-pdf-excel.md | Reforco |
 | BK-MF2-08 | MF2 | S05-S06 | Pedro | RF30 | BK-MF2-07 | docs/planificacao/guias-bk/MF2/BK-MF2-08-gerar-demonstracao-de-resultados-e-balanco.md | Reforco |
-| BK-MF3-01 | MF3 | S07-S08 | Oleksii | RF31 | BK-MF1-04, BK-MF1-09 | docs/planificacao/guias-bk/MF3/BK-MF3-01-gerar-mapas-de-iva-liquidado-dedutivel.md | Reforco |
+| BK-MF3-01 | MF3 | S07-S08 | Oleksii | RF31 | BK-MF1-01, BK-MF1-02, BK-MF1-04, BK-MF1-07, BK-MF1-09 | docs/planificacao/guias-bk/MF3/BK-MF3-01-gerar-mapas-de-iva-liquidado-dedutivel.md | Reforco |
 | BK-MF3-02 | MF3 | S07-S08 | Andre | RF32 | - | docs/planificacao/guias-bk/MF3/BK-MF3-02-criar-contas-bancarias-caixa-e-respetivos-saldos.md | Reforco |
-| BK-MF3-03 | MF3 | S07-S08 | Oleksii | RF33 | BK-MF3-02, BK-MF1-02, BK-MF1-07 | docs/planificacao/guias-bk/MF3/BK-MF3-03-importar-extratos-bancarios-csv-ofx-e-fazer-reconciliacao-automatica.md | Reforco |
-| BK-MF3-04 | MF3 | S07-S08 | Oleksii | RF34 | BK-MF1-03, BK-MF1-08 | docs/planificacao/guias-bk/MF3/BK-MF3-04-gerar-previsao-de-tesouraria-entradas-e-saidas-futuras.md | Core |
-| BK-MF3-05 | MF3 | S07-S08 | Pedro | RF35 | - | docs/planificacao/guias-bk/MF3/BK-MF3-05-importar-csv-excel-de-clientes-fornecedores-artigos-e-extratos.md | Core |
-| BK-MF3-06 | MF3 | S07-S08 | Oleksii | RF36 | - | docs/planificacao/guias-bk/MF3/BK-MF3-06-exportar-saf-t-pt-de-faturacao-e-contabilidade.md | Reforco |
-| BK-MF3-07 | MF3 | S07-S08 | Andre | RF37 | BK-MF1-02, BK-MF1-07, BK-MF2-02 | docs/planificacao/guias-bk/MF3/BK-MF3-07-relatorios-de-vendas-compras-margens-e-stock.md | Reforco |
-| BK-MF3-08 | MF3 | S07-S08 | Andre | RF38 | BK-MF3-07 | docs/planificacao/guias-bk/MF3/BK-MF3-08-kpis-executivos-receita-custos-ebitda-pmr-pmp.md | Core |
+| BK-MF3-03 | MF3 | S07-S08 | Oleksii | RF33 | BK-MF3-02, BK-MF1-03, BK-MF1-08 | docs/planificacao/guias-bk/MF3/BK-MF3-03-importar-extratos-bancarios-csv-ofx-e-fazer-reconciliacao-automatica.md | Reforco |
+| BK-MF3-04 | MF3 | S07-S08 | Oleksii | RF34 | BK-MF3-02, BK-MF1-02, BK-MF1-03, BK-MF1-07, BK-MF1-08 | docs/planificacao/guias-bk/MF3/BK-MF3-04-gerar-previsao-de-tesouraria-entradas-e-saidas-futuras.md | Core |
+| BK-MF3-05 | MF3 | S07-S08 | Pedro | RF35 | BK-MF0-09, BK-MF0-10, BK-MF0-11, BK-MF3-02, BK-MF3-03 | docs/planificacao/guias-bk/MF3/BK-MF3-05-importar-csv-excel-de-clientes-fornecedores-artigos-e-extratos.md | Core |
+| BK-MF3-06 | MF3 | S07-S08 | Oleksii | RF36 | BK-MF0-06, BK-MF0-09, BK-MF0-10, BK-MF1-02, BK-MF1-04, BK-MF1-07, BK-MF1-09, BK-MF2-06 | docs/planificacao/guias-bk/MF3/BK-MF3-06-exportar-saf-t-pt-de-faturacao-e-contabilidade.md | Reforco |
+| BK-MF3-07 | MF3 | S07-S08 | Andre | RF37 | BK-MF0-11, BK-MF1-02, BK-MF1-07, BK-MF2-02 | docs/planificacao/guias-bk/MF3/BK-MF3-07-relatorios-de-vendas-compras-margens-e-stock.md | Reforco |
+| BK-MF3-08 | MF3 | S07-S08 | Andre | RF38 | BK-MF1-02, BK-MF1-03, BK-MF1-07, BK-MF1-08 | docs/planificacao/guias-bk/MF3/BK-MF3-08-kpis-executivos-receita-custos-ebitda-pmr-pmp.md | Core |
 | BK-MF4-01 | MF4 | S08-S09 | Oleksii | RF39 | BK-MF3-07 | docs/planificacao/guias-bk/MF4/BK-MF4-01-gerar-insights-automaticos-tendencias-riscos-clientes-artigos-parados.md | Reforco |
 | BK-MF4-02 | MF4 | S08-S09 | Sofia | RF40 | BK-MF4-01 | docs/planificacao/guias-bk/MF4/BK-MF4-02-sugerir-acoes-ajustar-precos-negociar-fornecedor-repor-stock.md | Core |
 | BK-MF4-03 | MF4 | S08-S09 | Andre | RF41 | BK-MF3-07 | docs/planificacao/guias-bk/MF4/BK-MF4-03-permitir-perguntas-em-linguagem-natural-e-responder-com-dados-e-fonte.md | Core |

@@ -50,14 +50,14 @@ Quando um campo nao estiver explicito nesta tabela, e derivado dos anexos canón
 | BK-MF2-06 | MF2 | Criar e editar lançamentos manuais (com anexos). | Oleksii | Pedro | P0 | TODO | M | BK-MF0-03, BK-MF0-07, BK-MF0-08 | RF28 | Fase 1 | BK-MF2-07 |
 | BK-MF2-07 | MF2 | Consultar balancete e razão exportável (PDF/Excel). | Andre | Oleksii | P0 | TODO | M | BK-MF2-06 | RF29 | Fase 1 | BK-MF2-08 |
 | BK-MF2-08 | MF2 | Gerar Demonstração de Resultados e Balanço. | Pedro | Andre | P0 | TODO | M | BK-MF2-07 | RF30 | Fase 1 | BK-MF3-01 |
-| BK-MF3-01 | MF3 | Gerar Mapas de IVA (liquidado/dedutível). | Oleksii | Andre | P0 | TODO | M | BK-MF1-04, BK-MF1-09 | RF31 | Fase 2 | BK-MF3-02 |
+| BK-MF3-01 | MF3 | Gerar Mapas de IVA (liquidado/dedutível). | Oleksii | Andre | P0 | TODO | M | BK-MF1-01, BK-MF1-02, BK-MF1-04, BK-MF1-07, BK-MF1-09 | RF31 | Fase 2 | BK-MF3-02 |
 | BK-MF3-02 | MF3 | Criar contas bancárias/caixa e respetivos saldos. | Andre | Oleksii | P0 | TODO | M | - | RF32 | Fase 2 | BK-MF3-03 |
-| BK-MF3-03 | MF3 | Importar extratos bancários (CSV/OFX) e fazer reconciliação automática. | Oleksii | Pedro | P0 | TODO | M | BK-MF3-02, BK-MF1-02, BK-MF1-07 | RF33 | Fase 2 | BK-MF3-04 |
-| BK-MF3-04 | MF3 | Gerar previsão de tesouraria (entradas e saídas futuras). | Oleksii | Pedro | P1 | TODO | S | BK-MF1-03, BK-MF1-08 | RF34 | Fase 2 | BK-MF3-05 |
-| BK-MF3-05 | MF3 | Importar CSV/Excel de clientes, fornecedores, artigos e extratos. | Pedro | Andre | P1 | TODO | S | - | RF35 | Fase 2 | BK-MF3-06 |
-| BK-MF3-06 | MF3 | Exportar SAF-T (PT) de faturação e contabilidade. | Oleksii | Sofia | P0 | TODO | M | - | RF36 | Fase 2 | BK-MF3-07 |
-| BK-MF3-07 | MF3 | Relatórios de vendas, compras, margens e stock. | Andre | Oleksii | P0 | TODO | M | BK-MF1-02, BK-MF1-07, BK-MF2-02 | RF37 | Fase 2 | BK-MF3-08 |
-| BK-MF3-08 | MF3 | KPIs executivos (receita, custos, EBITDA, PMR, PMP). | Andre | Oleksii | P1 | TODO | S | BK-MF3-07 | RF38 | Fase 2 | BK-MF4-01 |
+| BK-MF3-03 | MF3 | Importar extratos bancários (CSV/OFX) e fazer reconciliação automática. | Oleksii | Pedro | P0 | TODO | M | BK-MF3-02, BK-MF1-03, BK-MF1-08 | RF33 | Fase 2 | BK-MF3-04 |
+| BK-MF3-04 | MF3 | Gerar previsão de tesouraria (entradas e saídas futuras). | Oleksii | Pedro | P1 | TODO | S | BK-MF3-02, BK-MF1-02, BK-MF1-03, BK-MF1-07, BK-MF1-08 | RF34 | Fase 2 | BK-MF3-05 |
+| BK-MF3-05 | MF3 | Importar CSV/Excel de clientes, fornecedores, artigos e extratos. | Pedro | Andre | P1 | TODO | S | BK-MF0-09, BK-MF0-10, BK-MF0-11, BK-MF3-02, BK-MF3-03 | RF35 | Fase 2 | BK-MF3-06 |
+| BK-MF3-06 | MF3 | Exportar SAF-T (PT) de faturação e contabilidade. | Oleksii | Sofia | P0 | TODO | M | BK-MF0-06, BK-MF0-09, BK-MF0-10, BK-MF1-02, BK-MF1-04, BK-MF1-07, BK-MF1-09, BK-MF2-06 | RF36 | Fase 2 | BK-MF3-07 |
+| BK-MF3-07 | MF3 | Relatórios de vendas, compras, margens e stock. | Andre | Oleksii | P0 | TODO | M | BK-MF0-11, BK-MF1-02, BK-MF1-07, BK-MF2-02 | RF37 | Fase 2 | BK-MF3-08 |
+| BK-MF3-08 | MF3 | KPIs executivos (receita, custos, EBITDA, PMR, PMP). | Andre | Oleksii | P1 | TODO | S | BK-MF1-02, BK-MF1-03, BK-MF1-07, BK-MF1-08 | RF38 | Fase 2 | BK-MF4-01 |
 | BK-MF4-01 | MF4 | Gerar insights automáticos (tendências, riscos, clientes, artigos parados). | Oleksii | Pedro | P0 | TODO | M | BK-MF3-07 | RF39 | Fase 2 | BK-MF4-02 |
 | BK-MF4-02 | MF4 | Sugerir ações (ajustar preços, negociar fornecedor, repor stock). | Sofia | Oleksii | P1 | TODO | S | BK-MF4-01 | RF40 | Fase 2 | BK-MF4-03 |
 | BK-MF4-03 | MF4 | Permitir perguntas em linguagem natural e responder com dados e fonte. | Andre | Oleksii | P1 | TODO | S | BK-MF3-07 | RF41 | Fase 2 | BK-MF4-04 |
