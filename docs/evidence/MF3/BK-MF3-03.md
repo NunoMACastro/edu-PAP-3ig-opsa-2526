@@ -334,3 +334,111 @@ Critérios confirmados:
 
 Handoff:
 - BK-MF3-04 pode reutilizar extratos, contas de tesouraria, recebimentos e pagamentos para previsão de tesouraria.
+
+9) Validacao Final BK-MF3-03
+Smoke
+* importar extrato em `POST /api/treasury/statements/import`;
+* guardar registo em `BankStatementImport`;
+* guardar linhas normalizadas em `BankStatementLine`;
+* gerar sugestões de reconciliação para `Receipt` quando existir valor igual e data próxima;
+* gerar sugestões de reconciliação para `Payment` quando existir valor igual e data próxima;
+* devolver resultado da importação com linhas e sugestões;
+* validar que todas as linhas pertencem à empresa ativa.
+
+Negativos
+* formato inválido (`PDF`, `XLSX`, etc.) devolve `400 INVALID_STATEMENT_FORMAT`;
+* conta de tesouraria inexistente devolve `404 TREASURY_ACCOUNT_NOT_FOUND`;
+* conta de outra empresa devolve `404 TREASURY_ACCOUNT_NOT_FOUND`;
+* utilizador sem role permitida devolve `403 ROLE_FORBIDDEN`;
+* pedido sem sessão devolve `401 SESSION_REQUIRED`;
+* sugestão nunca altera automaticamente `Receipt` ou `Payment`.
+
+Bloqueios
+* reconciliação automática significa apenas sugestão auditável;
+* nenhuma sugestão confirma movimentos financeiros;
+* CSV segue formato MVP `data;descricao;referencia;valor`;
+* OFX segue formato textual simplificado documentado no guia;
+* importação fica sempre associada à empresa ativa através de `companyId`;
+* não existe integração bancária real neste BK;
+* `BK-MF4-10`, `BK-MF6-03` e futuros logs podem reutilizar `BankStatementImport`, `BankStatementLine` e `BankReconciliationSuggestion`.
+
+10) Evidencia obrigatoria BK-MF3-03
+
+pr
+PR: ainda não criado.
+
+proof
+* Importação criada através de `POST /api/treasury/statements/import`.
+* Criação de `BankStatementImport`.
+* Criação de `BankStatementLine`.
+* Geração de sugestões em `BankReconciliationSuggestion`.
+* Sugestões criadas para `Receipt` e `Payment` quando existe igualdade de valor e proximidade de data.
+* Todas as queries filtradas por `companyId`.
+* Nenhum recebimento ou pagamento foi confirmado automaticamente.
+
+neg
+* `400 INVALID_STATEMENT_FORMAT` para formatos diferentes de CSV ou OFX.
+* `404 TREASURY_ACCOUNT_NOT_FOUND` para conta inexistente.
+* `404 TREASURY_ACCOUNT_NOT_FOUND` para conta pertencente a outra empresa.
+* `403 ROLE_FORBIDDEN` para role sem permissão.
+* `401 SESSION_REQUIRED` sem sessão autenticada.
+* Sugestões permanecem em estado `SUGGESTED`.
+
+files
+apps/api/prisma/schema.prisma
+apps/api/src/modules/treasury/statementImportValidators.js
+apps/api/src/modules/treasury/statementImportService.js
+apps/api/src/modules/treasury/statementRoutes.js
+apps/api/src/server.js
+apps/web/src/lib/statementApi.ts
+apps/web/src/pages/StatementImportPage.tsx
+apps/web/src/App.tsx
+Temporarios:
+edu-PAP-3ig-opsa-2526/test-statement-service.js
+edu-PAP-3ig-opsa-2526/test-statement-validator.js
+
+commands
+npm --prefix apps/api run prisma:validate
+npm run prisma:generate 
+node test-statement-validator.js
+node test-statement-service.js
+npm --prefix apps/api run test:contracts
+npm --prefix apps/api run test:unit
+npm --prefix apps/web run build
+
+exports
+CSV utilizado no teste:
+```text
+2026-01-02;Pagamento cliente;FT 1;123.45
+```
+
+CSV utilizado para pagamento:
+```text
+2026-01-03;Pagamento fornecedor;FC 1;-50.00
+```
+
+JSON resumido da importação:
+```json
+{
+  "totalLines": 1,
+  "lines": [
+    {
+      "amountCents": 12345,
+      "suggestions": [
+        {
+          "targetType": "RECEIPT",
+          "confidence": 90
+        }
+      ]
+    }
+  ]
+}
+```
+
+notes
+* CSV segue formato MVP `data;descricao;referencia;valor`.
+* OFX implementado apenas no formato simplificado documentado.
+* Reconciliação automática significa apenas sugestão auditável.
+* Não existe integração bancária real.
+* Não existe confirmação automática de recebimentos ou pagamentos.
+* Artefactos produzidos neste BK serão reutilizados por BK-MF3-04, BK-MF4-10 e BK-MF6-03.
