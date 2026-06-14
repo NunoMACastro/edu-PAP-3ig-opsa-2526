@@ -132,3 +132,39 @@ Validação manual do service:
 - perfil fiscal incompleto devolveu 422 COMPANY_PROFILE_INCOMPLETE
 
 Passo 5
+Passo 5 - Expor route protegida
+
+Ficheiros criados/editados:
+- criado apps/api/src/modules/compliance/saftRoutes.js;
+- editado apps/api/src/server.js.
+
+Endpoint criado:
+- GET /api/compliance/saft
+
+Regras implementadas:
+- route protegida com requireAuth;
+- route protegida com requireCompanyContext;
+- acesso limitado a CONTABILISTA e AUDITOR;
+- query validada com validateSaftExportQuery;
+- geração delegada para buildSaftXml;
+- companyId vem de req.companyId;
+- userId vem de req.user.id;
+- companyId não é recebido por query string;
+- erros são normalizados com toHttpError;
+- endpoint devolve fileName, xml e counts.
+
+Smoke previsto:
+- AUDITOR autenticado recebe 200;
+- CONTABILISTA autenticado recebe 200;
+- resposta contém fileName;
+- resposta contém xml;
+- resposta contém counts;
+- XML contém AuditFile.
+
+Negativos previstos:
+- pedido sem sessão devolve 401 SESSION_REQUIRED;
+- pedido sem empresa ativa devolve 403 COMPANY_CONTEXT_REQUIRED;
+- OPERACIONAL devolve 403 ROLE_FORBIDDEN;
+- from=abc devolve 400 INVALID_SAFT_RANGE;
+- perfil fiscal incompleto devolve 422 COMPANY_PROFILE_INCOMPLETE;
+- dados de outra empresa não entram no XML.
