@@ -132,8 +132,6 @@ Validação manual do service:
 - perfil fiscal incompleto devolveu 422 COMPANY_PROFILE_INCOMPLETE
 
 Passo 5
-Passo 5 - Expor route protegida
-
 Ficheiros criados/editados:
 - criado apps/api/src/modules/compliance/saftRoutes.js;
 - editado apps/api/src/server.js.
@@ -284,3 +282,86 @@ Critérios confirmados:
 Handoff:
 - BK-MF3-07 pode reutilizar os mesmos documentos, dados mestres e lançamentos para relatórios operacionais;
 - compliance legal aprofundada permanece para BK-MF7-07.
+
+9) Validacao Final BK-MF3-06
+
+Smoke
+* Exportar SAF-T em `GET /api/compliance/saft`.
+* Confirmar `fileName` terminado em `.xml`.
+* Confirmar campo `xml` com bloco `<AuditFile>`.
+* Confirmar `counts` com contagens da exportação.
+* Confirmar dados fiscais obrigatórios da empresa no `<Header>`.
+* Confirmar clientes e fornecedores em `<MasterFiles>`.
+* Confirmar vendas e compras em `<SourceDocuments>`.
+* Confirmar lançamentos contabilísticos em `<GeneralLedgerEntries>`.
+* Confirmar criação de `SaftExportRun`.
+
+Negativos
+* Perfil fiscal incompleto devolve `422 COMPANY_PROFILE_INCOMPLETE`.
+* Período inválido devolve `400 INVALID_SAFT_RANGE`.
+* Utilizador sem sessão devolve `401 SESSION_REQUIRED`.
+* Utilizador sem role adequada devolve `403 ROLE_FORBIDDEN`.
+* Exportação nunca inclui dados de outra empresa.
+* `companyId` enviado por query string não é usado como fonte de verdade.
+
+Bloqueios e limites do BK
+* SAF-T da MF3 é XML MVP estruturado e rastreável.
+* Este BK não promete certificação legal completa.
+* Conformidade legal aprofundada fica para `BK-MF7-07`.
+* O sistema gera o ficheiro, mas não submete à Autoridade Tributária.
+* Dados fiscais reais não entram na evidence.
+* Dados pessoais, financeiros ou fiscais usados em screenshots devem estar sanitizados.
+
+10) Evidencia obrigatoria
+
+pr
+PR: ainda nao criado.
+
+proof
+* Foi implementada exportação SAF-T (PT) MVP em XML para faturação e contabilidade.
+* A exportação valida período, perfil fiscal da empresa e permissões antes de gerar o ficheiro.
+* O XML inclui Header, MasterFiles, SourceDocuments e GeneralLedgerEntries.
+* Cada exportação fica registada em `SaftExportRun` para auditoria e rastreabilidade.
+
+neg
+* `INVALID_SAFT_RANGE`
+* `SESSION_REQUIRED`
+* `ROLE_FORBIDDEN`
+* `COMPANY_PROFILE_INCOMPLETE`
+* Exclusão de dados de outras empresas através de `companyId` da sessão.
+
+files
+apps/api/prisma/schema.prisma
+apps/api/src/modules/compliance/saftValidators.js
+apps/api/src/modules/compliance/saftService.js
+apps/api/src/modules/compliance/saftRoutes.js
+apps/api/src/server.js
+apps/web/src/lib/complianceApi.ts
+apps/web/src/pages/SaftExportPage.tsx
+apps/web/src/App.tsx
+docs/evidence/MF3/BK-MF3-06.md
+Temporarios
+D:\PAP\edu-PAP-3ig-opsa-2526\test-saft-validator.js
+D:\PAP\edu-PAP-3ig-opsa-2526\test-saft-service.js
+
+commands
+npm --prefix apps/api run prisma:validate
+npm --prefix apps/api run prisma:generate
+node test-saft-validator.js
+node test-saft-service.js
+npm --prefix apps/api run test:contracts
+npm --prefix apps/web run build
+
+exports
+* XML SAF-T MVP gerado.
+* Resposta JSON com:
+  * `fileName`
+  * `xml`
+  * `counts`
+
+notes
+* O ficheiro SAF-T gerado é um MVP documentado para RF36.
+* A exportação não submete dados à Autoridade Tributária.
+* A conformidade legal completa permanece fora do âmbito deste BK e será reforçada em `BK-MF7-07`.
+* Caracteres especiais são escapados antes da geração do XML.
+* A evidence não deve incluir NIF reais nem outros dados fiscais sensíveis.
