@@ -45,3 +45,40 @@ Prisma schema loaded from prisma\schema.prisma
 ✔ Generated Prisma Client (v6.19.3) to .\node_modules\@prisma\client in 3.69s
 
 Passo 3
+Ficheiros criados:
+- apps/api/src/modules/treasury/cashflowForecastFilters.js
+Temporario
+edu-PAP-3ig-opsa-2526/node test-forecast-filter.js
+
+Regras implementadas:
+- from é obrigatório e deve ser data válida;
+- to é obrigatório e deve ser data válida;
+- from não pode ser posterior a to;
+- horizonte máximo permitido é 180 dias;
+- intervalo superior a 180 dias devolve FORECAST_RANGE_TOO_LONG;
+- validator devolve fromDate e toDate já normalizados;
+- companyId não vem da query.
+
+Smoke validado:
+- intervalo de 180 dias é aceite.
+
+Negativo validado:
+- intervalo de 181 dias devolve 400 FORECAST_RANGE_TOO_LONG.
+
+Comandos executados:
+- node test-forecast-filter.js
+- npm --prefix apps/api run syntax:check
+
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> node test-forecast-filter.js
+Teste 180 dias passou: {
+  fromDate: 2026-01-01T00:00:00.000Z,
+  toDate: 2026-06-29T00:00:00.000Z
+}
+{
+  status: 400,
+  code: 'FORECAST_RANGE_TOO_LONG',
+  message: 'A previsão não deve exceder 180 dias'
+}
+Teste 181 dias passou: intervalo superior a 180 dias bloqueado.
+
+Passo 4
