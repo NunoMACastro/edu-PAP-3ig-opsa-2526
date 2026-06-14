@@ -186,6 +186,7 @@ model Company {
   vatMapRuns         VatMapRun[] @relation("CompanyVatMapRuns")
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
+  treasuryAccounts TreasuryAccount[] @relation("CompanyTreasuryAccounts")
 }
 
 model CompanyMembership {
@@ -794,4 +795,38 @@ model VatMapRun {
 
   @@index([companyId, fromDate, toDate])
   @@index([generatedById, generatedAt])
+}
+/// Conta de tesouraria da empresa: banco ou caixa.
+/// A unicidade por empresa evita que duas contas tenham o mesmo nome no mesmo contexto multiempresa.
+model TreasuryAccount {
+  id          String   @id @default(uuid())
+  companyId   String
+  name        String
+  type        String
+  iban        String?
+  currency    String
+  isActive    Boolean  @default(true)
+  createdById String
+  createdAt   DateTime @default(now())
+
+  company   Company @relation("CompanyTreasuryAccounts", fields: [companyId], references: [id])
+  snapshots TreasuryBalanceSnapshot[]
+
+  @@unique([companyId, name])
+  @@index([companyId, isActive])
+}
+
+/// Fotografia de saldo de uma conta num momento específico.
+/// O primeiro snapshot nasce com o saldo inicial; snapshots futuros podem vir de reconciliação ou fecho de tesouraria.
+model TreasuryBalanceSnapshot {
+  id                String   @id @default(uuid())
+  companyId         String
+  treasuryAccountId String
+  balanceCents      Int
+  capturedAt        DateTime @default(now())
+  capturedById      String
+
+  account TreasuryAccount @relation(fields: [treasuryAccountId], references: [id])
+
+  @@index([companyId, treasuryAccountId, capturedAt])
 }
