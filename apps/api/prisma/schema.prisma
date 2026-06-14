@@ -121,6 +121,7 @@ model User {
   stockMovements      StockMovement[]
   inventoryCountsCreated InventoryCount[]
   journalAttachments  JournalAttachment[]
+  vatMapRunsGenerated VatMapRun[] @relation("UserVatMapRuns")
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
 }
@@ -182,6 +183,7 @@ model Company {
   inventoryCounts   InventoryCount[]
   stockAlertSettings StockAlertSetting[]
   journalAttachments JournalAttachment[]
+  vatMapRuns         VatMapRun[] @relation("CompanyVatMapRuns")
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
 }
@@ -772,4 +774,24 @@ model JournalAttachment {
 
   @@index([companyId, journalEntryId])
   @@index([uploadedById])
+}
+
+/// Execução histórica de um mapa de IVA interno por empresa.
+/// Guarda apenas totais calculados; as linhas detalhadas continuam a vir das fontes contabilísticas/documentais.
+model VatMapRun {
+  id                 String   @id @default(uuid())
+  companyId          String
+  fromDate           DateTime
+  toDate             DateTime
+  liquidatedVatCents Int
+  deductibleVatCents Int
+  vatBalanceCents    Int
+  generatedById      String
+  generatedAt        DateTime @default(now())
+
+  company     Company @relation("CompanyVatMapRuns", fields: [companyId], references: [id])
+  generatedBy User    @relation("UserVatMapRuns", fields: [generatedById], references: [id])
+
+  @@index([companyId, fromDate, toDate])
+  @@index([generatedById, generatedAt])
 }
