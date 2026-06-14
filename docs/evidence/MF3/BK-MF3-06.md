@@ -341,8 +341,8 @@ apps/web/src/pages/SaftExportPage.tsx
 apps/web/src/App.tsx
 docs/evidence/MF3/BK-MF3-06.md
 Temporarios
-D:\PAP\edu-PAP-3ig-opsa-2526\test-saft-validator.js
-D:\PAP\edu-PAP-3ig-opsa-2526\test-saft-service.js
+edu-PAP-3ig-opsa-2526\test-saft-validator.js
+edu-PAP-3ig-opsa-2526\test-saft-service.js
 
 commands
 npm --prefix apps/api run prisma:validate
