@@ -795,3 +795,19 @@ model VatMapRun {
   @@index([companyId, fromDate, toDate])
   @@index([generatedById, generatedAt])
 }
+
+/// Registo de uma exportação SAF-T MVP.
+/// Mantém período, ficheiro e utilizador para auditoria de compliance.
+model SaftExportRun {
+  id           String   @id @default(uuid())
+  companyId    String
+  fromDate     DateTime
+  toDate       DateTime
+  fileName     String
+  status       String
+  exportedById String
+  exportedAt   DateTime @default(now())
+  warnings     Json?
+
+  @@index([companyId, fromDate, toDate])
+}
