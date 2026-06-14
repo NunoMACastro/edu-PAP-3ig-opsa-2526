@@ -169,3 +169,42 @@ Negativos previstos:
 - companyId por query string não é usado.
 
 Passo 6
+Ficheiros criados:
+- apps/web/src/lib/taxApi.ts
+
+Regras implementadas:
+- criado tipo VatMapRow;
+- criado tipo VatMapResult;
+- criada função fetchVatMap;
+- chamada GET para /api/tax/vat-maps;
+- from e to enviados por query string;
+- cliente reutiliza apiClient existente;
+- apiClient mantém sessão por cookie HttpOnly;
+- resposta usa nomes fiscais explícitos: liquidatedVatCents, deductibleVatCents e vatBalanceCents;
+- frontend não calcula IVA;
+- frontend apenas pede o mapa ao backend e apresenta o resultado.
+
+Smoke previsto/validado:
+- chamada com from=2026-01-01 e to=2026-01-31 chama o endpoint real;
+- resposta esperada contém runId, totals, rows e sources;
+- pedido mantém cookie de sessão através do apiClient.
+
+Negativos previstos/validados:
+- erro 403 da API é propagado como mensagem controlada;
+- erro 400 por datas inválidas é propagado para a página;
+- frontend não envia companyId.
+
+Comandos executados:
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> npm --prefix apps/web run build
+
+> @opsa/web@1.0.0 build
+> vite build
+
+vite v8.0.16 building client environment for production...
+✓ 38 modules transformed.
+computing gzip size...
+dist/index.html                   0.40 kB │ gzip:  0.28 kB
+dist/assets/index-I1u2FZO0.css    2.81 kB │ gzip:  1.06 kB
+dist/assets/index-DrgUAVs_.js   244.32 kB │ gzip: 69.65 kB
+
+✓ built in 7.26s
