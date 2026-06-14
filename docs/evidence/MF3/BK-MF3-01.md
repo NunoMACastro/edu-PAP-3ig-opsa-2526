@@ -75,7 +75,7 @@ HttpError: from deve ser uma data válida{
   details: undefined
 }
 
-Passo 3
+Passo 4
 Ficheiros criados:
 - apps/api/src/modules/tax/vatMapService.js
 
@@ -137,3 +137,35 @@ Validação manual do service:
   ]
 }
 Teste passou: saldo IVA = 13 EUR
+
+Passo 5
+Ficheiros criados/editados:
+- criado apps/api/src/modules/tax/vatMapRoutes.js;
+- editado apps/api/src/server.js.
+
+Endpoint criado:
+- GET /api/tax/vat-maps
+
+Regras implementadas:
+- route protegida com requireAuth;
+- route protegida com requireCompanyContext;
+- acesso limitado a CONTABILISTA e AUDITOR;
+- query validada com validateVatMapQuery;
+- cálculo delegado para buildVatMap;
+- companyId vem de req.companyId;
+- userId vem de req.user.id;
+- companyId não é recebido por query string;
+- erros são normalizados com toHttpError.
+
+Smoke previsto:
+- CONTABILISTA autenticado recebe 200;
+- AUDITOR autenticado recebe 200;
+- resultado devolve totals, rows, sources e runId.
+
+Negativos previstos:
+- sem cookie de sessão devolve 401 SESSION_REQUIRED;
+- OPERACIONAL devolve 403;
+- datas inválidas devolvem 400 INVALID_DATE_RANGE;
+- companyId por query string não é usado.
+
+Passo 6
