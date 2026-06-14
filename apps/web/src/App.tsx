@@ -20,6 +20,7 @@ import {
   StockMovementsPage,
 } from "./pages/mf2Pages";
 import { VatMapPage } from "./pages/VatMapPage";
+import { StatementImportPage } from "./pages/StatementImportPage";
 
 type ApiObject = Record<string, unknown>;
 type FieldKind = "text" | "email" | "password" | "number" | "textarea" | "select";
@@ -734,6 +735,11 @@ export function App() {
         id: "vat-map",
         title: "Mapa de IVA",
         render: () => <VatMapPage />,
+      },
+      {
+        id: "statement-import",
+        title: "Importar extratos",
+        render: () => <StatementImportPage />,
       },
     ],
     [],
