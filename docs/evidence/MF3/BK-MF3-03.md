@@ -276,3 +276,31 @@ dist/assets/index-I1u2FZO0.css    2.81 kB │ gzip:  1.06 kB
 dist/assets/index-BwsQr51Q.js   246.39 kB │ gzip: 70.15 kB
 
 ✓ built in 2.45s
+
+Passo 7
+Ficheiros criados/editados:
+- criado apps/web/src/pages/StatementImportPage.tsx;
+- editado apps/web/src/App.tsx para expor a página Importar extratos no menu.
+
+Regras implementadas:
+- página carrega contas de tesouraria reais;
+- formulário com conta, nome do ficheiro, formato e conteúdo;
+- formatos disponíveis: CSV e OFX;
+- chamada ao cliente importStatement;
+- estado loading com “A importar...”;
+- erro mostrado com role="alert";
+- estado vazio quando não há contas de tesouraria;
+- resultado mostra id da importação, total de linhas e número de sugestões;
+- frontend não confirma reconciliação automaticamente.
+
+Smoke previsto:
+- página Importar extratos abre no frontend;
+- uma linha CSV válida pode ser colada no textarea;
+- submissão cria importação;
+- resultado mostra totalLines e sugestões geradas.
+
+Negativo previsto:
+- conteúdo vazio devolve erro de validação;
+- sessão expirada mostra erro controlado;
+- conta inválida mostra erro controlado.
+
