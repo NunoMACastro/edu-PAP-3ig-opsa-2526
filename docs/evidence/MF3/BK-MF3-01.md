@@ -236,3 +236,66 @@ Negativo previsto/validado:
 - sessão expirada mostra erro controlado;
 - erro da API não mostra stack trace;
 - datas inválidas são rejeitadas pelo backend.
+
+Passo 8
+Passo 8 - Validar entrega e handoff
+
+Smoke validado:
+- GET /api/tax/vat-maps?from=2026-01-01&to=2026-01-31 devolve 200;
+- resposta inclui liquidatedVatCents, deductibleVatCents e vatBalanceCents;
+- resposta inclui linhas por código/taxa de IVA;
+- período sem dados devolve totais a zero e rows vazias;
+- execução fica registada em VatMapRun.
+
+Negativos validados:
+- datas inválidas devolvem 400 INVALID_DATE_RANGE;
+- pedido sem sessão devolve 401 SESSION_REQUIRED;
+- utilizador sem role financeira devolve 403 ROLE_FORBIDDEN.
+
+Critérios confirmados:
+- service consulta JournalEntry real;
+- linhas de venda/compra são usadas apenas para decompor código/taxa de IVA;
+- todas as queries usam companyId;
+- frontend apresenta nomes fiscais corretos;
+- mapa de IVA não altera vendas, compras nem contabilidade;
+- não há dados cross-company.
+
+Evidence para PR/defesa:
+- output JSON do mapa;
+- screenshot da página VatMapPage;
+- prova de 400 INVALID_DATE_RANGE;
+- prova de 401 SESSION_REQUIRED;
+- prova de 403 ROLE_FORBIDDEN;
+- período usado no teste: 2026-01-01 a 2026-01-31;
+- empresa usada: empresa ativa da sessão, sem expor companyId real.
+
+Handoff:
+- BK-MF3-02 deve manter a mesma disciplina de multiempresa;
+- BK-MF3-02 não precisa reescrever o mapa de IVA;
+- BK-MF3-07 e relatórios futuros podem reutilizar a disciplina de filtros, roles e companyId deste BK.
+
+Passo 8
+Smoke validado:
+- GET /api/tax/vat-maps?from=2026-01-01&to=2026-01-31 devolve 200;
+- resposta inclui liquidatedVatCents, deductibleVatCents e vatBalanceCents;
+- resposta inclui linhas por código/taxa de IVA;
+- período sem dados devolve totais a zero e rows vazias;
+- execução fica registada em VatMapRun.
+
+Negativos validados:
+- datas inválidas devolvem 400 INVALID_DATE_RANGE;
+- pedido sem sessão devolve 401 SESSION_REQUIRED;
+- utilizador sem role financeira devolve 403 ROLE_FORBIDDEN.
+
+Critérios confirmados:
+- service consulta JournalEntry real;
+- linhas de venda/compra são usadas apenas para decompor código/taxa de IVA;
+- todas as queries usam companyId;
+- frontend apresenta nomes fiscais corretos;
+- mapa de IVA não altera vendas, compras nem contabilidade;
+- não há dados cross-company.
+
+Handoff:
+- BK-MF3-02 deve manter a mesma disciplina de multiempresa;
+- BK-MF3-02 não precisa reescrever o mapa de IVA;
+- BK-MF3-07 e relatórios futuros podem reutilizar a disciplina de filtros, roles e companyId deste BK.
