@@ -208,3 +208,31 @@ dist/assets/index-I1u2FZO0.css    2.81 kB │ gzip:  1.06 kB
 dist/assets/index-DrgUAVs_.js   244.32 kB │ gzip: 69.65 kB
 
 ✓ built in 7.26s
+
+Passo 7
+Ficheiros criados/editados:
+- criado apps/web/src/pages/VatMapPage.tsx;
+- editado apps/web/src/App.tsx para expor a página Mapa de IVA no menu.
+
+Regras implementadas:
+- formulário com data inicial e data final obrigatórias;
+- chamada ao cliente fetchVatMap;
+- estado loading com “A calcular...”;
+- erro mostrado com role="alert";
+- estado vazio para período sem movimentos de IVA;
+- resumo com IVA liquidado, IVA dedutível e saldo de IVA;
+- tabela por código/taxa de IVA;
+- valores apresentados em EUR apenas para visualização;
+- frontend não calcula IVA;
+- frontend não pede companyId ao utilizador.
+
+Smoke previsto/validado:
+- página Mapa de IVA abre no frontend;
+- gerar mapa com dados mostra resumo e tabela;
+- gerar período vazio mostra mensagem “Sem movimentos de IVA no período selecionado.”;
+- pedido usa sessão via apiClient/cookie HttpOnly.
+
+Negativo previsto/validado:
+- sessão expirada mostra erro controlado;
+- erro da API não mostra stack trace;
+- datas inválidas são rejeitadas pelo backend.

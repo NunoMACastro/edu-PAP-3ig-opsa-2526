@@ -19,6 +19,7 @@ import {
   StockAlertsPage,
   StockMovementsPage,
 } from "./pages/mf2Pages";
+import { VatMapPage } from "./pages/VatMapPage";
 
 type ApiObject = Record<string, unknown>;
 type FieldKind = "text" | "email" | "password" | "number" | "textarea" | "select";
@@ -728,6 +729,11 @@ export function App() {
         id: "financial-statements",
         title: "DR e Balanco",
         render: () => <FinancialStatementsPage />,
+      },
+      {
+        id: "vat-map",
+        title: "Mapa de IVA",
+        render: () => <VatMapPage />,
       },
     ],
     [],
