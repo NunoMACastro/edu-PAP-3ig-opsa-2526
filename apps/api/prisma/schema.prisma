@@ -887,3 +887,20 @@ model BankReconciliationSuggestion {
 
   @@index([companyId, statementLineId])
 }
+
+/// Execução resumida de uma previsão de tesouraria.
+/// Guarda evidence da consulta sem alterar documentos, recebimentos ou pagamentos.
+model CashflowForecastRun {
+  id                 String   @id @default(uuid())
+  companyId          String
+  fromDate           DateTime
+  toDate             DateTime
+  openingBalanceCents Int
+  expectedInCents    Int
+  expectedOutCents   Int
+  closingBalanceCents Int
+  generatedById      String
+  generatedAt        DateTime @default(now())
+
+  @@index([companyId, fromDate, toDate])
+}
