@@ -44,3 +44,55 @@ Environment variables loaded from .env
 Prisma schema loaded from prisma\schema.prisma
 
 ✔ Generated Prisma Client (v6.19.3) to .\node_modules\@prisma\client in 2.09s
+
+Passo 3
+Ficheiros criados:
+- apps/api/src/modules/treasury/statementImportValidators.js
+Temporario
+- edu-PAP-3ig-opsa-2526> node test-statement-validator.js
+
+Regras implementadas:
+- treasuryAccountId é obrigatório;
+- fileName é obrigatório;
+- format é obrigatório;
+- content é obrigatório;
+- formatos aceites: CSV e OFX;
+- CSV usa data;descricao;referencia;valor;
+- OFX simplificado usa DTPOSTED, MEMO e TRNAMT;
+- valores em euros são normalizados para cêntimos;
+- datas inválidas são rejeitadas antes do service;
+- validator devolve rows normalizadas.
+
+Smoke validado:
+- CSV `2026-01-02;Pagamento cliente;FT 1;123.45` gera 1 linha;
+- amountCents calculado: 12345;
+- reference calculada: FT 1.
+
+Negativo validado:
+- format=PDF devolve 400 INVALID_STATEMENT_FORMAT.
+
+Comandos executados:
+- node test-statement-validator.js
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> node test-statement-validator.js
+{
+  treasuryAccountId: 'treasury-1',
+  fileName: 'extrato.csv',
+  format: 'CSV',
+  rows: [
+    {
+      bookedAt: 2026-01-02T00:00:00.000Z,
+      description: 'Pagamento cliente',
+      reference: 'FT 1',
+      amountCents: 12345
+    }
+  ]
+}
+Teste CSV passou: 123.45 EUR convertido para 12345 cêntimos.
+{
+  status: 400,
+  code: 'INVALID_STATEMENT_FORMAT',
+  message: 'Formato deve ser CSV ou OFX'
+}
+Teste negativo passou: PDF devolve INVALID_STATEMENT_FORMAT.
+
+Passo 4
