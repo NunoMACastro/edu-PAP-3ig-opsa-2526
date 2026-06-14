@@ -255,3 +255,32 @@ Negativo previsto/validado:
 - empresa sem NIF mostra erro controlado;
 - sessão expirada mostra erro controlado;
 - role sem permissão mostra erro controlado.
+
+Passo 8
+Smoke validado:
+- GET /api/compliance/saft devolve 200 com fileName, xml e counts;
+- XML contém bloco AuditFile;
+- XML contém Header com dados fiscais da empresa;
+- XML contém MasterFiles;
+- XML contém SourceDocuments;
+- XML contém GeneralLedgerEntries;
+- SaftExportRun é criado após exportação;
+- frontend apresenta XML e permite download local.
+
+Negativos validados:
+- perfil fiscal incompleto devolve 422 COMPANY_PROFILE_INCOMPLETE;
+- role sem permissão devolve 403 ROLE_FORBIDDEN;
+- datas inválidas devolvem 400 INVALID_SAFT_RANGE;
+- pedido sem sessão devolve 401 SESSION_REQUIRED.
+
+Critérios confirmados:
+- XML gerado com escaping de caracteres especiais;
+- dados filtrados por companyId;
+- cliente frontend usa apiClient;
+- exportação não submete dados à Autoridade Tributária;
+- escopo legal limitado ao MVP documentado;
+- dados reais/sensíveis não foram incluídos na evidence.
+
+Handoff:
+- BK-MF3-07 pode reutilizar os mesmos documentos, dados mestres e lançamentos para relatórios operacionais;
+- compliance legal aprofundada permanece para BK-MF7-07.
