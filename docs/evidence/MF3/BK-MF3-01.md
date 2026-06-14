@@ -299,3 +299,85 @@ Handoff:
 - BK-MF3-02 deve manter a mesma disciplina de multiempresa;
 - BK-MF3-02 não precisa reescrever o mapa de IVA;
 - BK-MF3-07 e relatórios futuros podem reutilizar a disciplina de filtros, roles e companyId deste BK.
+
+9) Validacao Final BK-MF3-01
+
+Smoke
+* Consultar mapa em `GET /api/tax/vat-maps`.
+* Confirmar `liquidatedVatCents`.
+* Confirmar `deductibleVatCents`.
+* Confirmar `vatBalanceCents`.
+* Confirmar linhas por taxa/código de IVA.
+* Confirmar que a fonte são documentos já contabilizados.
+* Confirmar que vendas contabilizadas entram como IVA liquidado.
+* Confirmar que compras contabilizadas entram como IVA dedutível.
+* Confirmar que a execução fica registada em `VatMapRun`.
+
+Negativos
+* Datas inválidas devolvem `400 INVALID_DATE_RANGE`.
+* Utilizador sem sessão devolve `401 SESSION_REQUIRED`.
+* Utilizador sem role adequada devolve `403 ROLE_FORBIDDEN`.
+* Documentos de outra empresa não entram no mapa.
+* Período sem dados devolve totais a zero e lista vazia.
+* `companyId` enviado por query string não é usado como fonte de verdade.
+
+Bloqueios e limites do BK
+* O mapa não submete dados à Autoridade Tributária.
+* O mapa não altera documentos de venda.
+* O mapa não altera documentos de compra.
+* O mapa não altera lançamentos contabilísticos.
+* `JournalEntry` é a fonte contabilística principal.
+* Apenas documentos já contabilizados entram no mapa.
+* A decomposição por taxa/código usa linhas de venda/compra ligadas ao lançamento.
+* O cálculo é interno, fiscal e auditável, mas não substitui submissão oficial.
+
+
+10) Evidencia obrigatoria - BK-MF3-01
+pr
+PR: ainda não criado.
+
+proof
+- Foi implementado o mapa interno de IVA (RF31), calculando IVA liquidado, IVA dedutível e saldo de IVA a partir de documentos já contabilizados.
+- A fonte canónica do cálculo é JournalEntry, garantindo que apenas vendas e compras contabilizadas entram no mapa. A decomposição por código e taxa de IVA é obtida através das linhas dos documentos (SaleDocumentLine e PurchaseDocumentLine) ligadas pelo sourceId do lançamento contabilístico.
+- Cada execução fica registada em VatMapRun, incluindo empresa, utilizador, período e totais calculados.
+
+neg
+- Cenários negativos previstos/validados:
+INVALID_DATE_RANGE
+SESSION_REQUIRED
+ROLE_FORBIDDEN
+exclusão de documentos de outras empresas
+período sem movimentos devolve totais a zero
+impossibilidade de escolher empresa através de query string
+
+files
+apps/api/prisma/schema.prisma
+apps/api/src/modules/tax/vatMapFilters.js
+apps/api/src/modules/tax/vatMapService.js
+apps/api/src/modules/tax/vatMapRoutes.js
+apps/api/src/server.js
+apps/web/src/lib/taxApi.ts
+apps/web/src/pages/VatMapPage.tsx
+apps/web/src/App.tsx
+docs/evidence/MF3/BK-MF3-01.md
+temporarios
+node apps/api/tests/temp-vat-test.js
+apps/api/tests/temp-vat-map-service-test.js
+
+commands
+npm --prefix apps/api run prisma:validate
+npm --prefix apps/api run prisma:generate
+node apps/api/tests/temp-vat-map-service-test.js
+npm --prefix apps/web run build
+
+exports
+Não aplicável neste BK.
+Não existem exportações SAF-T, CSV, PDF ou Excel.
+
+notes
+O cálculo é executado exclusivamente no backend.
+O frontend apenas apresenta os resultados.
+Todas as queries utilizam companyId proveniente da sessão ativa.
+O mapa é apenas um relatório interno e não efetua submissões à Autoridade Tributária.
+O BK reutiliza informação contabilística criada nos BK-MF1-04 e BK-MF1-09.
+A execução histórica fica auditável através de VatMapRun.
