@@ -67,7 +67,6 @@ Negativo validado:
 
 Comandos executados:
 - node test-forecast-filter.js
-- npm --prefix apps/api run syntax:check
 
 - PS D:\PAP\edu-PAP-3ig-opsa-2526> node test-forecast-filter.js
 Teste 180 dias passou: {
@@ -329,3 +328,90 @@ Handoff:
 - BK-MF4-04 pode reutilizar rows e sources para alertas inteligentes de cashflow;
 - BK-MF3-05 deve manter dados mestres limpos para melhorar importações e relatórios seguintes.
 
+9) Validacao Final BK-MF3-04
+Smoke:
+* consultar previsão em `GET /api/treasury/forecast`;
+* confirmar saldo inicial (`openingBalanceCents`);
+* confirmar entradas previstas (`expectedInCents`);
+* confirmar saídas previstas (`expectedOutCents`);
+* confirmar saldo final previsto (`closingBalanceCents`);
+* confirmar horizonte máximo documentado de 180 dias;
+* confirmar fontes (`sources`) associadas às linhas do forecast;
+* confirmar utilização de dados reais de `SaleDocument`, `PurchaseDocument` e `TreasuryBalanceSnapshot`;
+* confirmar criação de registo em `CashflowForecastRun`.
+
+Negativos:
+* intervalo superior a 180 dias => `400 FORECAST_RANGE_TOO_LONG`;
+* datas inválidas => `400 INVALID_FORECAST_RANGE`;
+* utilizador sem sessão => `401 SESSION_REQUIRED`;
+* role sem permissão => `403 ROLE_FORBIDDEN`;
+* ausência de empresa ativa => `401 COMPANY_CONTEXT_REQUIRED`;
+* previsão não altera recebimentos, pagamentos, datas ou contabilidade.
+
+Bloqueios:
+* funcionalidade analítica sem escrita operacional;
+* entradas e saídas usam apenas valores em aberto (`totalCents - amountPaidCents`);
+* todas as queries utilizam `companyId`;
+* o frontend nunca escolhe empresa por parâmetro;
+* role principal é `GESTOR`;
+* `BK-MF4-04` pode consumir esta previsão para alertas inteligentes de cashflow;
+* fontes (`sources`) devem permanecer disponíveis para explicabilidade futura.
+
+10) Evidencia obrigatória — BK-MF3-04
+
+pr
+PR: ainda não criado.
+
+proof
+* Forecast consultado através de `GET /api/treasury/forecast`.
+* Saldo inicial calculado a partir do snapshot mais recente de cada conta de tesouraria.
+* Entradas previstas calculadas a partir de documentos de venda com valor em aberto.
+* Saídas previstas calculadas a partir de documentos de compra com valor em aberto.
+* Saldo projetado calculado corretamente.
+* Execução registada em `CashflowForecastRun`.
+* Linhas incluem campo `sources` para rastreabilidade.
+
+neg
+* Intervalo superior a 180 dias devolve `400 FORECAST_RANGE_TOO_LONG`.
+* Datas inválidas devolvem `400 INVALID_FORECAST_RANGE`.
+* Utilizador sem sessão devolve `401 SESSION_REQUIRED`.
+* Utilizador sem role `GESTOR` devolve `403 ROLE_FORBIDDEN`.
+* Empresa ativa inexistente devolve `401 COMPANY_CONTEXT_REQUIRED`.
+
+files
+apps/api/prisma/schema.prisma
+apps/api/src/modules/treasury/cashflowForecastFilters.js
+apps/api/src/modules/treasury/cashflowForecastService.js
+apps/api/src/modules/treasury/cashflowForecastRoutes.js
+apps/api/src/server.js
+apps/web/src/lib/forecastApi.ts
+apps/web/src/pages/CashflowForecastPage.tsx
+apps/web/src/App.tsx
+Temporarios
+edu-PAP-3ig-opsa-2526/node test-forecast-api.js
+edu-PAP-3ig-opsa-2526/node test-forecast-service.js
+edu-PAP-3ig-opsa-2526/node test-forecast-filter.js
+
+commands
+npm --prefix apps/api run prisma:validate
+npm --prefix apps/api run prisma:generate
+node test-forecast-filter.js
+node test-forecast-service.js
+npm --prefix apps/api run test:unit
+node test-forecast-api.js
+npm --prefix apps/web run build
+
+exports
+* Não aplicável.
+* Este BK não gera ficheiros SAF-T, CSV, PDF ou Excel.
+
+notes
+* Funcionalidade exclusivamente analítica.
+* Não altera documentos de venda.
+* Não altera documentos de compra.
+* Não altera recebimentos.
+* Não altera pagamentos.
+* Não altera contabilidade.
+* Todas as consultas usam `companyId`.
+* O horizonte máximo é limitado a 180 dias.
+* As fontes (`sources`) ficam disponíveis para explicabilidade futura e integração com BK-MF4-04.
