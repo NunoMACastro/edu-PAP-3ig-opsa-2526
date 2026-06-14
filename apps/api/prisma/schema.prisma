@@ -830,3 +830,60 @@ model TreasuryBalanceSnapshot {
 
   @@index([companyId, treasuryAccountId, capturedAt])
 }
+
+/// Registo de uma importação de extrato bancário.
+/// Funciona também como log de integração para evidence e auditoria operacional.
+model BankStatementImport {
+  id                String   @id @default(uuid())
+  companyId         String
+  treasuryAccountId String
+  fileName          String
+  format            String
+  status            String
+  totalLines        Int
+  validLines        Int
+  errorLines        Int
+  importedById      String
+  importedAt        DateTime @default(now())
+  errors            Json?
+
+  lines BankStatementLine[]
+
+  @@index([companyId, treasuryAccountId, importedAt])
+}
+
+/// Linha individual de extrato já normalizada para cêntimos e data.
+/// A constraint reduz duplicados dentro da mesma importação e empresa.
+model BankStatementLine {
+  id          String   @id @default(uuid())
+  companyId   String
+  importId    String
+  bookedAt    DateTime
+  description String
+  reference   String?
+  amountCents Int
+
+  import BankStatementImport @relation(fields: [importId], references: [id])
+  suggestions BankReconciliationSuggestion[]
+
+  @@unique([companyId, importId, bookedAt, amountCents, description])
+  @@index([companyId, bookedAt])
+}
+
+/// Sugestão de reconciliação gerada automaticamente.
+/// O estado inicial é sempre SUGGESTED para impedir confirmação contabilística sem revisão humana.
+model BankReconciliationSuggestion {
+  id              String   @id @default(uuid())
+  companyId       String
+  statementLineId String
+  targetType      String
+  targetId        String
+  confidence      Int
+  reason          String
+  status          String   @default("SUGGESTED")
+  createdAt       DateTime @default(now())
+
+  statementLine BankStatementLine @relation(fields: [statementLineId], references: [id])
+
+  @@index([companyId, statementLineId])
+}
