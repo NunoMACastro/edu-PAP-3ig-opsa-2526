@@ -49,7 +49,7 @@ Passo 3
 Ficheiros criados:
 - apps/api/src/modules/treasury/statementImportValidators.js
 Temporario
-- edu-PAP-3ig-opsa-2526> node test-statement-validator.js
+- edu-PAP-3ig-opsa-2526/test-statement-validator.js
 
 Regras implementadas:
 - treasuryAccountId é obrigatório;
@@ -96,3 +96,79 @@ Teste CSV passou: 123.45 EUR convertido para 12345 cêntimos.
 Teste negativo passou: PDF devolve INVALID_STATEMENT_FORMAT.
 
 Passo 4
+Ficheiros criados:
+- apps/api/src/modules/treasury/statementImportService.js
+Temporario
+- edu-PAP-3ig-opsa-2526/test-statement-service.js
+
+Regras implementadas:
+- valida conta de tesouraria por companyId e isActive;
+- cria BankStatementImport dentro de transação;
+- cria BankStatementLine para cada linha normalizada;
+- procura Receipt para valores positivos;
+- procura Payment para valores negativos;
+- usa igualdade de valor em cêntimos;
+- usa tolerância de três dias;
+- cria BankReconciliationSuggestion;
+- sugestão começa como SUGGESTED;
+- não confirma recebimentos nem pagamentos automaticamente.
+
+Smoke validado:
+- linha positiva de 12345 cêntimos com data próxima de Receipt gerou sugestão RECEIPT.
+
+Negativo validado:
+- conta inativa ou de outra empresa devolve 404 TREASURY_ACCOUNT_NOT_FOUND.
+
+Comandos executados:
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> node test-statement-service.js
+{
+  "id": "import-1",
+  "companyId": "company-1",
+  "treasuryAccountId": "treasury-1",
+  "fileName": "extrato.csv",
+  "format": "CSV",
+  "status": "IMPORTED",
+  "totalLines": 1,
+  "validLines": 1,
+  "errorLines": 0,
+  "importedById": "user-1",
+  "lines": [
+    {
+      "id": "line-1",
+      "bookedAt": "2026-01-02T00:00:00.000Z",
+      "description": "Pagamento cliente",
+      "reference": "FT 1",
+      "amountCents": 12345,
+      "companyId": "company-1",
+      "importId": "import-1",
+      "suggestions": [
+        {
+          "targetType": "RECEIPT",
+          "targetId": "receipt-1",
+          "confidence": 90,
+          "reason": "Valor igual e data próxima de recebimento"
+        }
+      ]
+    }
+  ]
+}
+[
+  {
+    "id": "suggestion-1",
+    "targetType": "RECEIPT",
+    "targetId": "receipt-1",
+    "confidence": 90,
+    "reason": "Valor igual e data próxima de recebimento",
+    "companyId": "company-1",
+    "statementLineId": "line-1"
+  }
+]
+Teste positivo passou: linha positiva gerou sugestão RECEIPT.
+{
+  status: 404,
+  code: 'TREASURY_ACCOUNT_NOT_FOUND',
+  message: 'Conta de tesouraria não encontrada'
+}
+Teste negativo passou: conta inativa/outra empresa devolve 404.
+
+Passo 5
