@@ -77,3 +77,58 @@ Comandos executados:
   code: 'INVALID_SAFT_RANGE',
   message: 'Data inicial posterior a data final'
 }
+
+Passo 4
+Ficheiros criados:
+- apps/api/src/modules/compliance/saftService.js
+Temporario 
+- D:\PAP\edu-PAP-3ig-opsa-2526\test-saft-service.js
+
+Regras implementadas:
+- buildSaftXml gera XML SAF-T MVP;
+- XML inclui bloco AuditFile;
+- XML inclui Header com CompanyName, TaxRegistrationNumber e CurrencyCode;
+- XML inclui MasterFiles com clientes e fornecedores;
+- XML inclui SourceDocuments com vendas e compras;
+- XML inclui GeneralLedgerEntries com lançamentos contabilísticos;
+- dados são filtrados por companyId;
+- período é filtrado por fromDate e toDate;
+- caracteres especiais são escapados antes de entrar no XML;
+- exportação é bloqueada quando o perfil fiscal da empresa está incompleto;
+- execução é registada em SaftExportRun;
+- service devolve fileName, xml e counts;
+- service não submete dados à Autoridade Tributária.
+
+Smoke previsto/validado:
+- empresa com CompanyProfile completo gera XML com AuditFile;
+- cliente aparece no bloco Customer;
+- fornecedor aparece no bloco Supplier;
+- fatura de venda aparece em SalesInvoice;
+- compra aparece em PurchaseInvoice;
+- lançamento contabilístico aparece em GeneralLedgerEntries;
+- SaftExportRun é criado com status GENERATED.
+
+Negativos previstos/validados:
+- sem companyId devolve 401 COMPANY_CONTEXT_REQUIRED;
+- empresa sem NIF devolve 422 COMPANY_PROFILE_INCOMPLETE;
+- empresa sem legalName devolve 422 COMPANY_PROFILE_INCOMPLETE;
+- empresa sem currency devolve 422 COMPANY_PROFILE_INCOMPLETE;
+- dados de outra empresa não entram no XML.
+
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> node test-saft-service.js
+saft-company-1-2026-01-01-2026-01-31.xml
+{ customers: 1, suppliers: 1, sales: 1, purchases: 1, entries: 1 }
+<?xml version="1.0" encoding="UTF-8"?><AuditFile><Header><CompanyName>Empresa Teste Lda</CompanyName><TaxRegistrationNumber>123456789</TaxRegistrationNumber><CurrencyCode>EUR</CurrencyCode></Header><MasterFiles><Customer><CustomerID>customer-1</CustomerID><CompanyName>Cliente Teste</CompanyName><TaxRegistrationNumber>111222333</TaxRegistrationNumber></Customer><Supplier><SupplierID>supplier-1</SupplierID><CompanyName>Fornecedor Teste</CompanyName><TaxRegistrationNumber>444555666</TaxRegistrationNumber></Supplier></MasterFiles><SourceDocuments><SalesInvoice><InvoiceNo>FT 2026/1</InvoiceNo><InvoiceDate>2026-01-10</InvoiceDate></SalesInvoice><PurchaseInvoice><InvoiceNo>FC 2026/1</InvoiceNo><InvoiceDate>2026-01-12</InvoiceDate></PurchaseInvoice></SourceDocuments><GeneralLedgerEntries><Journal><JournalID>journal-1</JournalID></Journal></GeneralLedgerEntries></AuditFile>
+Teste positivo passou: XML SAF-T MVP contém AuditFile.
+{
+  status: 422,
+  code: 'COMPANY_PROFILE_INCOMPLETE',
+  message: 'Dados fiscais da empresa incompletos'
+}
+Teste negativo passou: perfil fiscal incompleto bloqueado.
+
+Validação manual do service:
+- empresa com CompanyProfile completo, cliente, fornecedor, venda, compra e lançamento gerou XML com AuditFile;
+- perfil fiscal incompleto devolveu 422 COMPANY_PROFILE_INCOMPLETE
+
+Passo 5
