@@ -186,6 +186,7 @@ model Company {
   vatMapRuns         VatMapRun[] @relation("CompanyVatMapRuns")
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
+  treasuryAccounts TreasuryAccount[] @relation("CompanyTreasuryAccounts")
 }
 
 model CompanyMembership {
