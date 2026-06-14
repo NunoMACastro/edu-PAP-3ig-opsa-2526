@@ -168,3 +168,65 @@ Negativos previstos:
 - from=abc devolve 400 INVALID_SAFT_RANGE;
 - perfil fiscal incompleto devolve 422 COMPANY_PROFILE_INCOMPLETE;
 - dados de outra empresa não entram no XML.
+
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> npm --prefix apps/api run test:contracts
+
+> @opsa/api@1.0.0 test:contracts
+> node --test tests/contracts/*.test.js
+
+✔ BK01: resolveSession não propaga passwordHash na sessão nem no utilizador público (4.0902ms)
+✔ BK04/BK05: adapters mock não registam tokens, URLs secretas ou email completo (5.0982ms)
+✔ BK05: rate limit em memória falha explicitamente em produção sem opt-in (3.8231ms)
+✔ BK06: conflito de NIF é mapeado para NIF_ALREADY_EXISTS (1.3306ms)
+✔ BK09/BK10: pesquisa usa nome ou NIF sem alterar listagem base (3.2626ms)
+✔ BK12: nome de armazém duplicado é rejeitado (1.1636ms)
+✔ MF1: permissões backend separam escrita operacional, aprovação e contabilidade (15.0237ms)
+✔ MF1: routers principais montam sem dependências inexistentes (27.357ms)
+✔ MF1 HTTP: criar venda sem sessão devolve erro de autenticação (13.4053ms)
+✔ MF1 HTTP: operacional não pode aprovar venda (4.4516ms)
+✔ MF1 HTTP: pagamento em compra rascunho devolve regra de estado (3.9906ms)
+
+Passo 6
+Ficheiros criados:
+- apps/web/src/lib/complianceApi.ts
+
+Regras implementadas:
+- criado tipo SaftExportResult;
+- criada função fetchSaftExport;
+- chamada GET para /api/compliance/saft;
+- from e to enviados por query string;
+- resposta tipada com fileName, xml e counts;
+- cliente reutiliza apiClient comum;
+- sessão é enviada por cookie HttpOnly;
+- frontend não guarda tokens;
+- frontend não gera XML localmente.
+
+Smoke previsto/validado:
+- chamada com período válido devolve fileName;
+- fileName termina em .xml;
+- resposta inclui xml;
+- resposta inclui counts.
+
+Negativos previstos/validados:
+- perfil fiscal incompleto mostra mensagem do backend;
+- datas inválidas mostram erro controlado;
+- utilizador sem role adequada recebe erro controlado.
+
+Comandos executados:
+- npm --prefix apps/web run build
+
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> npm --prefix apps/web run build
+
+> @opsa/web@1.0.0 build
+> vite build
+
+vite v8.0.16 building client environment for production...
+✓ 40 modules transformed.
+computing gzip size...
+dist/index.html                   0.40 kB │ gzip:  0.28 kB
+dist/assets/index-I1u2FZO0.css    2.81 kB │ gzip:  1.06 kB
+dist/assets/index-BwsQr51Q.js   246.39 kB │ gzip: 70.15 kB
+
+✓ built in 7.61s
+
+Passo 7
