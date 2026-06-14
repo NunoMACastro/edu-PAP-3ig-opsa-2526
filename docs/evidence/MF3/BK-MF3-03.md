@@ -304,3 +304,33 @@ Negativo previsto:
 - sessão expirada mostra erro controlado;
 - conta inválida mostra erro controlado.
 
+Passo 8
+Smoke validado:
+- POST /api/treasury/statements/import devolve 201;
+- importação cria BankStatementImport;
+- linhas são persistidas em BankStatementLine;
+- linha positiva com valor/data compatíveis gera sugestão RECEIPT;
+- linha negativa com valor/data compatíveis gera sugestão PAYMENT;
+- sugestões ficam com status SUGGESTED;
+- recebimentos e pagamentos não são confirmados automaticamente.
+
+Payloads usados:
+- CSV positivo: 2026-01-02;Pagamento cliente;FT 1;123.45
+- CSV negativo: 2026-01-03;Pagamento fornecedor;FC 1;-50.00
+
+Negativos validados:
+- formato inválido devolve 400 INVALID_STATEMENT_FORMAT;
+- conta inexistente ou de outra empresa devolve 404 TREASURY_ACCOUNT_NOT_FOUND;
+- role sem permissão devolve 403 ROLE_FORBIDDEN;
+- pedido sem sessão devolve 401 SESSION_REQUIRED.
+
+Critérios confirmados:
+- CSV é parseado;
+- OFX simplificado é suportado pelo validator;
+- linhas ficam persistidas;
+- sugestões não confirmam reconciliação;
+- todos os dados usam companyId da sessão;
+- frontend usa apiClient indiretamente através de statementApi/treasuryApi.
+
+Handoff:
+- BK-MF3-04 pode reutilizar extratos, contas de tesouraria, recebimentos e pagamentos para previsão de tesouraria.
