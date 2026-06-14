@@ -230,3 +230,28 @@ dist/assets/index-BwsQr51Q.js   246.39 kB │ gzip: 70.15 kB
 ✓ built in 7.61s
 
 Passo 7
+Ficheiros criados/editados:
+- criado apps/web/src/pages/SaftExportPage.tsx;
+- editado apps/web/src/App.tsx para expor a página Exportar SAF-T no menu.
+
+Regras implementadas:
+- formulário com data inicial e data final;
+- chamada ao cliente fetchSaftExport;
+- estado loading com “A gerar...”;
+- erro mostrado com role="alert";
+- resultado mostra fileName;
+- resultado mostra conteúdo XML;
+- link permite descarregar XML localmente;
+- frontend não submete dados à Autoridade Tributária;
+- frontend não gera XML, apenas mostra resposta do backend.
+
+Smoke previsto/validado:
+- página Exportar SAF-T abre no frontend;
+- gerar XML para período com documentos mostra fileName;
+- XML contém AuditFile;
+- link de download usa fileName devolvido pela API.
+
+Negativo previsto/validado:
+- empresa sem NIF mostra erro controlado;
+- sessão expirada mostra erro controlado;
+- role sem permissão mostra erro controlado.

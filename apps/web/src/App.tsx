@@ -20,6 +20,7 @@ import {
   StockMovementsPage,
 } from "./pages/mf2Pages";
 import { VatMapPage } from "./pages/VatMapPage";
+import { SaftExportPage } from "./pages/SaftExportPage";
 
 type ApiObject = Record<string, unknown>;
 type FieldKind = "text" | "email" | "password" | "number" | "textarea" | "select";
@@ -734,6 +735,11 @@ export function App() {
         id: "vat-map",
         title: "Mapa de IVA",
         render: () => <VatMapPage />,
+      },
+      {
+        id: "saft-export",
+        title: "Exportar SAF-T",
+        render: () => <SaftExportPage />,
       },
     ],
     [],
