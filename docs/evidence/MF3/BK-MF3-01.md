@@ -74,3 +74,66 @@ HttpError: from deve ser uma data válida{
   code: 'INVALID_DATE_RANGE',
   details: undefined
 }
+
+Passo 3
+Ficheiros criados:
+- apps/api/src/modules/tax/vatMapService.js
+
+Regras implementadas:
+- service buildVatMap calcula mapa de IVA por empresa ativa;
+- JournalEntry com source=SALE é usado como fonte de IVA liquidado;
+- JournalEntry com source=PURCHASE é usado como fonte de IVA dedutível;
+- apenas documentos contabilizados entram no mapa;
+- sourceId dos lançamentos é usado para encontrar linhas operacionais;
+- SaleDocumentLine fornece vatRate.code, vatRate.rateBps e vatCents;
+- PurchaseDocumentLine fornece vatRate.code, vatRate.rateBps e vatCents;
+- IVA é agregado por código e taxa;
+- totais são calculados em cêntimos;
+- VatMapRun é criado para persistir a execução;
+- companyId vem do contexto autenticado, não do frontend.
+
+Smoke previsto/validado:
+- venda contabilizada com IVA de 2300 cêntimos entra como IVA liquidado;
+- compra contabilizada com IVA de 1000 cêntimos entra como IVA dedutível;
+- saldo calculado é 1300 cêntimos;
+- rows devolvem vatCode, vatRateBps, liquidatedVatCents, deductibleVatCents e balanceCents;
+- resultado devolve runId, período, totals, rows e sources.
+
+Negativos previstos/validados:
+- sem empresa ativa devolve 401 COMPANY_CONTEXT_REQUIRED;
+- documentos sem JournalEntry não entram no mapa;
+- documentos de outra empresa não entram no mapa;
+- período sem documentos devolve totais a zero e rows vazias.
+
+Validação manual do service:
+- venda com IVA liquidado de 2300 cêntimos;
+- compra com IVA dedutível de 1000 cêntimos;
+- saldo calculado: 1300 cêntimos;
+- resultado esperado confirmado: 13 EUR a entregar.
+
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> node apps/api/tests/temp-vat-map-service-test.js
+{
+  "runId": "run-1",
+  "from": "2026-01-01",
+  "to": "2026-01-31",
+  "totals": {
+    "liquidatedVatCents": 2300,
+    "deductibleVatCents": 1000,
+    "vatBalanceCents": 1300
+  },
+  "rows": [
+    {
+      "vatCode": "IVA23",
+      "vatRateBps": 2300,
+      "liquidatedVatCents": 2300,
+      "deductibleVatCents": 1000,
+      "balanceCents": 1300
+    }
+  ],
+  "sources": [
+    "JournalEntry",
+    "SaleDocumentLine",
+    "PurchaseDocumentLine"
+  ]
+}
+Teste passou: saldo IVA = 13 EUR
