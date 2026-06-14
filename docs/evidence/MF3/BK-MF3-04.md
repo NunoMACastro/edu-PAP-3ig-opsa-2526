@@ -216,3 +216,75 @@ Passo 5
 ℹ duration_ms 2319.7443
 
 Passo 6
+Ficheiros criados:
+- apps/web/src/lib/forecastApi.ts
+Temporario
+- edu-PAP-3ig-opsa-2526/node test-forecast-api.js
+
+Funcionalidade implementada:
+- tipo CashflowForecast;
+- tipo para linhas diárias da previsão;
+- fetchCashflowForecast(from, to);
+- construção automática da query string;
+- reutilização de apiClient;
+- utilização de cookie HttpOnly via credentials: include;
+- sem tokens em localStorage.
+
+URL validada:
+- /api/treasury/forecast?from=2026-01-01&to=2026-01-31
+
+Smoke validado:
+- parâmetros from e to são enviados corretamente;
+- resposta tipada como CashflowForecast.
+
+Negativo previsto:
+- FORECAST_RANGE_TOO_LONG devolvido pelo backend pode ser apresentado pela UI.
+
+Comandos executados:
+- node test-forecast-api.js
+
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> node test-forecast-api.js
+/api/treasury/forecast?from=2026-01-01&to=2026-01-31
+Teste passou.
+
+Passo 7
+Ficheiros criados/editados:
+- criado apps/web/src/pages/CashflowForecastPage.tsx;
+- editado apps/web/src/App.tsx para expor a página Previsão de tesouraria no menu.
+
+Regras implementadas:
+- formulário com data inicial e data final;
+- chamada ao cliente fetchCashflowForecast;
+- estado loading com “A calcular...”;
+- erro mostrado com role="alert";
+- resumo com saldo inicial, entradas, saídas e saldo previsto;
+- estado vazio quando não há entradas ou saídas previstas;
+- valores apresentados em EUR;
+- frontend não altera documentos, recebimentos, pagamentos ou contabilidade;
+- validação do horizonte fica no backend.
+
+Smoke previsto/validado:
+- página Previsão de tesouraria abre no frontend;
+- previsão de 30 dias com dados pendentes mostra resumo;
+- período sem dados mostra estado vazio;
+- pedido usa apiClient e sessão por cookie HttpOnly.
+
+Negativo previsto/validado:
+- intervalo superior a 180 dias mostra erro controlado;
+- sessão expirada mostra erro controlado;
+- role sem permissão mostra erro controlado.
+
+Comandos executados:
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> npm --prefix apps/web run build
+
+> @opsa/web@1.0.0 build
+> vite build
+
+vite v8.0.16 building client environment for production...
+✓ 45 modules transformed.
+computing gzip size...
+dist/index.html                   0.40 kB │ gzip:  0.28 kB
+dist/assets/index-I1u2FZO0.css    2.81 kB │ gzip:  1.06 kB
+dist/assets/index-e-HgOJCl.js   249.59 kB │ gzip: 70.86 kB
+
+✓ built in 2.27s
