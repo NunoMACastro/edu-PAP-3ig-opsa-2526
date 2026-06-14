@@ -288,3 +288,44 @@ dist/assets/index-I1u2FZO0.css    2.81 kB │ gzip:  1.06 kB
 dist/assets/index-e-HgOJCl.js   249.59 kB │ gzip: 70.86 kB
 
 ✓ built in 2.27s
+
+Passo 8
+Smoke validado:
+- GET /api/treasury/forecast devolve 200;
+- resposta inclui openingBalanceCents;
+- resposta inclui expectedInCents;
+- resposta inclui expectedOutCents;
+- resposta inclui closingBalanceCents;
+- resposta inclui rows por dia;
+- cada linha inclui sources;
+- execução fica registada em CashflowForecastRun;
+- frontend apresenta resumo da previsão.
+
+Negativos validados:
+- intervalo superior a 180 dias devolve 400 FORECAST_RANGE_TOO_LONG;
+- utilizador sem role GESTOR devolve 403 ROLE_FORBIDDEN;
+- pedido sem sessão devolve 401 SESSION_REQUIRED;
+- datas inválidas devolvem 400 INVALID_FORECAST_RANGE.
+
+Critérios confirmados:
+- forecast usa dados reais de SaleDocument;
+- forecast usa dados reais de PurchaseDocument;
+- forecast usa TreasuryBalanceSnapshot mais recente por conta;
+- todas as queries usam companyId;
+- previsão não altera documentos;
+- previsão não altera recebimentos;
+- previsão não altera pagamentos;
+- previsão não altera contabilidade;
+- frontend usa apiClient.
+
+Evidence para PR/defesa:
+- JSON do forecast;
+- screenshot da página Previsão de tesouraria;
+- prova de erro FORECAST_RANGE_TOO_LONG;
+- prova de role errada;
+- exemplo de rows com sources.
+
+Handoff:
+- BK-MF4-04 pode reutilizar rows e sources para alertas inteligentes de cashflow;
+- BK-MF3-05 deve manter dados mestres limpos para melhorar importações e relatórios seguintes.
+
