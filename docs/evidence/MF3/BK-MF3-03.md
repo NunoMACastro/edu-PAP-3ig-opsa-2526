@@ -237,3 +237,42 @@ Passo 5
 ✔ BK-MF2-08: balanço separa classe 2 por sinal e devolve checkCents (1.1338ms)
 
 Passo 6
+Ficheiros criados:
+- apps/web/src/lib/statementApi.ts
+
+Regras implementadas:
+- criado tipo StatementImportPayload;
+- criado tipo StatementImportResult;
+- criada função importStatement;
+- payload inclui treasuryAccountId, fileName, format e content;
+- format está limitado a CSV ou OFX no TypeScript;
+- chamada POST para /api/treasury/statements/import;
+- cliente reutiliza apiClient;
+- sessão é enviada por cookie HttpOnly;
+- frontend não envia companyId;
+- frontend não confirma reconciliação automaticamente.
+
+Smoke previsto/validado:
+- componente consegue chamar importStatement com format CSV;
+- componente consegue chamar importStatement com format OFX;
+- resposta inclui id, totalLines e lines;
+- lines incluem sugestões quando existirem correspondências.
+
+Negativos previstos/validados:
+- format diferente de CSV/OFX é bloqueado pelo tipo TypeScript;
+- sessão expirada devolve erro controlado;
+- conta inválida devolve erro controlado.
+
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> npm --prefix apps/web run build
+
+> @opsa/web@1.0.0 build
+> vite build
+
+vite v8.0.16 building client environment for production...
+✓ 40 modules transformed.
+computing gzip size...
+dist/index.html                   0.40 kB │ gzip:  0.28 kB
+dist/assets/index-I1u2FZO0.css    2.81 kB │ gzip:  1.06 kB
+dist/assets/index-BwsQr51Q.js   246.39 kB │ gzip: 70.15 kB
+
+✓ built in 2.45s
