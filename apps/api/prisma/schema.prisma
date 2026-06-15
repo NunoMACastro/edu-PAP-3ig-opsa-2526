@@ -828,3 +828,20 @@ model OperationalReportRun {
 
   @@index([companyId, fromDate, toDate])
 }
+/// Execução de KPIs executivos por empresa.
+/// Guarda indicadores calculados para evidence e para consumo explicável pela MF4.
+model ExecutiveKpiRun {
+  id            String   @id @default(uuid())
+  companyId     String
+  fromDate      DateTime
+  toDate        DateTime
+  revenueCents  Int
+  costCents     Int
+  ebitdaCents   Int
+  pmrDays       Float?
+  pmpDays       Float?
+  generatedById String
+  generatedAt   DateTime @default(now())
+
+  @@index([companyId, fromDate, toDate])
+}

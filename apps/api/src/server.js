@@ -39,7 +39,10 @@ import { buildAccountingReportRoutes } from "./modules/accounting-reports/accoun
 import { buildFinancialStatementRoutes } from "./modules/financial-statements/financialStatementRoutes.js";
 import { buildVatMapRoutes } from "./modules/tax/vatMapRoutes.js";
 import { buildSaftRoutes } from "./modules/compliance/saftRoutes.js";
+// apps/api/src/server.js
+import { buildExecutiveKpiRoutes } from "./modules/reports/executiveKpiRoutes.js";
 
+app.use("/api/reports/executive-kpis", buildExecutiveKpiRoutes({ prisma }));
 /**
  * IMPORT NOVO (IMPORTAÇÕES BUSINESS DATA)
  */
