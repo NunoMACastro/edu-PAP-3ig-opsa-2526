@@ -812,3 +812,19 @@ model SaftExportRun {
 
   @@index([companyId, fromDate, toDate])
 }
+/// Execução de relatório operacional.
+/// Guarda totais para evidence e para KPIs derivados no BK-MF3-08.
+model OperationalReportRun {
+  id             String   @id @default(uuid())
+  companyId      String
+  fromDate       DateTime
+  toDate         DateTime
+  salesCents     Int
+  purchasesCents Int
+  marginCents    Int
+  stockUnits     Int
+  generatedById  String
+  generatedAt    DateTime @default(now())
+
+  @@index([companyId, fromDate, toDate])
+}
