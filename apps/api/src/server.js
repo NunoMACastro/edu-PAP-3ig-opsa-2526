@@ -8,12 +8,13 @@
 
 import express from "express";
 import { PrismaClient } from "@prisma/client";
+
 import { buildAuthRoutes } from "./modules/auth/authRoutes.js";
 import { buildPermissionsRoutes } from "./modules/permissions/permissionsRoutes.js";
 import { buildCompanyRoutes } from "./modules/companies/companyRoutes.js";
 import { buildCompanyUserRoutes } from "./modules/company-users/companyUserRoutes.js";
 import { buildCompanyProfileRoutes } from "./modules/company-profile/companyProfileRoutes.js";
-import { buildAccountRoutes } from "./modules/accounting/accounts/accountRoutes.js";
+import { buildAccountRoutes } from "./modules/accounting/accounts/accountRoute.js";
 import { buildFiscalPeriodRoutes } from "./modules/fiscal-periods/fiscalPeriodRoutes.js";
 import { buildCustomerRoutes } from "./modules/customers/customerRoutes.js";
 import { buildSupplierRoutes } from "./modules/suppliers/supplierRoutes.js";
@@ -39,6 +40,11 @@ import { buildFinancialStatementRoutes } from "./modules/financial-statements/fi
 import { buildVatMapRoutes } from "./modules/tax/vatMapRoutes.js";
 import { buildSaftRoutes } from "./modules/compliance/saftRoutes.js";
 
+/**
+ * IMPORT NOVO (IMPORTAÇÕES BUSINESS DATA)
+ */
+import { buildBusinessImportRoutes } from "./modules/imports/businessImportRoutes.js";
+
 const prisma = new PrismaClient();
 const app = express();
 const port = Number.parseInt(process.env.PORT ?? "3000", 10);
@@ -50,6 +56,7 @@ app.use(express.json());
 app.use("/api/auth", buildAuthRoutes({ prisma, isProduction, appBaseUrl }));
 app.use("/api/permissions", buildPermissionsRoutes({ prisma }));
 app.use("/api", buildCompanyRoutes({ prisma }));
+
 app.use(
     "/api/company",
     buildCompanyUserRoutes({
@@ -57,6 +64,7 @@ app.use(
         appBaseUrl,
     }),
 );
+
 app.use("/api/company/profile", buildCompanyProfileRoutes({ prisma }));
 app.use("/api/accounting/accounts", buildAccountRoutes({ prisma }));
 app.use("/api/fiscal-periods", buildFiscalPeriodRoutes({ prisma }));
@@ -70,27 +78,38 @@ app.use("/api/sales/documents", buildReceiptRoutes({ prisma }));
 app.use("/api/sales/documents", buildSaleApprovalRoutes({ prisma }));
 app.use("/api/sales/open-items", buildSalesOpenItemsRoutes({ prisma }));
 app.use("/api/accounting/sale-postings", buildSalePostingRoutes({ prisma }));
+
 app.use("/api/purchases/documents", buildPurchaseDocumentRoutes({ prisma }));
 app.use("/api/purchases/documents", buildPaymentRoutes({ prisma }));
 app.use("/api/purchases/documents", buildPurchaseApprovalRoutes({ prisma }));
+
 app.use(
     "/api/accounting/purchase-postings",
     buildPurchasePostingRoutes({ prisma }),
 );
+
 app.use("/api/inventory", buildStockMovementRoutes({ prisma }));
 app.use("/api/inventory", buildFifoCostRoutes({ prisma }));
 app.use("/api/inventory", buildInventoryCountRoutes({ prisma }));
 app.use("/api/inventory", buildStockAlertRoutes({ prisma }));
+
 app.use("/api/accounting/manual-journals", buildManualJournalRoutes({ prisma }));
 app.use("/api/accounting/reports", buildAccountingReportRoutes({ prisma }));
 app.use("/api/accounting/statements", buildFinancialStatementRoutes({ prisma }));
+
 app.use("/api/tax/vat-maps", buildVatMapRoutes({ prisma }));
 app.use("/api/compliance/saft", buildSaftRoutes({ prisma }));
 
 /**
+ * NOVA ROTA: IMPORTAÇÕES BUSINESS DATA
+ */
+app.use(
+    "/api/imports/business-data",
+    buildBusinessImportRoutes({ prisma })
+);
+
+/**
  * Arranca o servidor HTTP.
- *
- * @returns {import("node:http").Server} Instância HTTP devolvida pelo Express.
  */
 function startServer() {
     return app.listen(port, () => {
