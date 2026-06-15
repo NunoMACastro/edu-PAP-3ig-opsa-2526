@@ -831,6 +831,24 @@ model TreasuryBalanceSnapshot {
   @@index([companyId, treasuryAccountId, capturedAt])
 }
 
+
+/// Execução de importação operacional por empresa.
+/// Guarda totais e erros por linha para auditoria, correção e defesa do aluno.
+model BusinessImportRun {
+  id           String   @id @default(uuid())
+  companyId    String
+  type         String
+  fileName     String
+  totalRows    Int
+  acceptedRows Int
+  rejectedRows Int
+  errors       Json?
+  importedById String
+  importedAt   DateTime @default(now())
+
+  @@index([companyId, type, importedAt])
+}
+
 /// Registo de uma importação de extrato bancário.
 /// Funciona também como log de integração para evidence e auditoria operacional.
 model BankStatementImport {
