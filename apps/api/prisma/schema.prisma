@@ -796,129 +796,19 @@ model VatMapRun {
   @@index([companyId, fromDate, toDate])
   @@index([generatedById, generatedAt])
 }
-/// Conta de tesouraria da empresa: banco ou caixa.
-/// A unicidade por empresa evita que duas contas tenham o mesmo nome no mesmo contexto multiempresa.
-model TreasuryAccount {
-  id          String   @id @default(uuid())
-  companyId   String
-  name        String
-  type        String
-  iban        String?
-  currency    String
-  isActive    Boolean  @default(true)
-  createdById String
-  createdAt   DateTime @default(now())
 
-  company   Company @relation("CompanyTreasuryAccounts", fields: [companyId], references: [id])
-  snapshots TreasuryBalanceSnapshot[]
-
-  @@unique([companyId, name])
-  @@index([companyId, isActive])
-}
-
-/// Fotografia de saldo de uma conta num momento específico.
-/// O primeiro snapshot nasce com o saldo inicial; snapshots futuros podem vir de reconciliação ou fecho de tesouraria.
-model TreasuryBalanceSnapshot {
-  id                String   @id @default(uuid())
-  companyId         String
-  treasuryAccountId String
-  balanceCents      Int
-  capturedAt        DateTime @default(now())
-  capturedById      String
-
-  account TreasuryAccount @relation(fields: [treasuryAccountId], references: [id])
-
-  @@index([companyId, treasuryAccountId, capturedAt])
-}
-
-
-/// Execução de importação operacional por empresa.
-/// Guarda totais e erros por linha para auditoria, correção e defesa do aluno.
-model BusinessImportRun {
+/// Registo de uma exportação SAF-T MVP.
+/// Mantém período, ficheiro e utilizador para auditoria de compliance.
+model SaftExportRun {
   id           String   @id @default(uuid())
   companyId    String
-  type         String
+  fromDate     DateTime
+  toDate       DateTime
   fileName     String
-  totalRows    Int
-  acceptedRows Int
-  rejectedRows Int
-  errors       Json?
-  importedById String
-  importedAt   DateTime @default(now())
-
-  @@index([companyId, type, importedAt])
-}
-
-/// Registo de uma importação de extrato bancário.
-/// Funciona também como log de integração para evidence e auditoria operacional.
-model BankStatementImport {
-  id                String   @id @default(uuid())
-  companyId         String
-  treasuryAccountId String
-  fileName          String
-  format            String
-  status            String
-  totalLines        Int
-  validLines        Int
-  errorLines        Int
-  importedById      String
-  importedAt        DateTime @default(now())
-  errors            Json?
-
-  lines BankStatementLine[]
-
-  @@index([companyId, treasuryAccountId, importedAt])
-}
-
-/// Linha individual de extrato já normalizada para cêntimos e data.
-/// A constraint reduz duplicados dentro da mesma importação e empresa.
-model BankStatementLine {
-  id          String   @id @default(uuid())
-  companyId   String
-  importId    String
-  bookedAt    DateTime
-  description String
-  reference   String?
-  amountCents Int
-
-  import BankStatementImport @relation(fields: [importId], references: [id])
-  suggestions BankReconciliationSuggestion[]
-
-  @@unique([companyId, importId, bookedAt, amountCents, description])
-  @@index([companyId, bookedAt])
-}
-
-/// Sugestão de reconciliação gerada automaticamente.
-/// O estado inicial é sempre SUGGESTED para impedir confirmação contabilística sem revisão humana.
-model BankReconciliationSuggestion {
-  id              String   @id @default(uuid())
-  companyId       String
-  statementLineId String
-  targetType      String
-  targetId        String
-  confidence      Int
-  reason          String
-  status          String   @default("SUGGESTED")
-  createdAt       DateTime @default(now())
-
-  statementLine BankStatementLine @relation(fields: [statementLineId], references: [id])
-
-  @@index([companyId, statementLineId])
-}
-
-/// Execução resumida de uma previsão de tesouraria.
-/// Guarda evidence da consulta sem alterar documentos, recebimentos ou pagamentos.
-model CashflowForecastRun {
-  id                 String   @id @default(uuid())
-  companyId          String
-  fromDate           DateTime
-  toDate             DateTime
-  openingBalanceCents Int
-  expectedInCents    Int
-  expectedOutCents   Int
-  closingBalanceCents Int
-  generatedById      String
-  generatedAt        DateTime @default(now())
+  status       String
+  exportedById String
+  exportedAt   DateTime @default(now())
+  warnings     Json?
 
   @@index([companyId, fromDate, toDate])
 }

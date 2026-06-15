@@ -20,8 +20,7 @@ import {
   StockMovementsPage,
 } from "./pages/mf2Pages";
 import { VatMapPage } from "./pages/VatMapPage";
-import { StatementImportPage } from "./pages/StatementImportPage";
-import { CashflowForecastPage } from "./pages/CashflowForecastPage";
+import { SaftExportPage } from "./pages/SaftExportPage";
 
 type ApiObject = Record<string, unknown>;
 type FieldKind = "text" | "email" | "password" | "number" | "textarea" | "select";
@@ -738,14 +737,9 @@ export function App() {
         render: () => <VatMapPage />,
       },
       {
-        id: "statement-import",
-        title: "Importar extratos",
-        render: () => <StatementImportPage />,
-      },
-      {
-        id: "cashflow-forecast",
-        title: "Previsão de tesouraria",
-        render: () => <CashflowForecastPage />,
+        id: "saft-export",
+        title: "Exportar SAF-T",
+        render: () => <SaftExportPage />,
       },
     ],
     [],

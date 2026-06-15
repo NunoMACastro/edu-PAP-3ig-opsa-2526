@@ -38,9 +38,7 @@ import { buildManualJournalRoutes } from "./modules/accounting/manualJournalRout
 import { buildAccountingReportRoutes } from "./modules/accounting-reports/accountingReportRoutes.js";
 import { buildFinancialStatementRoutes } from "./modules/financial-statements/financialStatementRoutes.js";
 import { buildVatMapRoutes } from "./modules/tax/vatMapRoutes.js";
-import { buildStatementRoutes } from "./modules/treasury/statementRoutes.js";
-import { buildCashflowForecastRoutes } from "./modules/treasury/cashflowForecastRoutes.js";
-
+import { buildSaftRoutes } from "./modules/compliance/saftRoutes.js";
 
 /**
  * IMPORT NOVO (IMPORTAÇÕES BUSINESS DATA)
@@ -100,8 +98,7 @@ app.use("/api/accounting/reports", buildAccountingReportRoutes({ prisma }));
 app.use("/api/accounting/statements", buildFinancialStatementRoutes({ prisma }));
 
 app.use("/api/tax/vat-maps", buildVatMapRoutes({ prisma }));
-app.use("/api/treasury/statements", buildStatementRoutes({ prisma }));
-app.use("/api/treasury/forecast", buildCashflowForecastRoutes({ prisma }));
+app.use("/api/compliance/saft", buildSaftRoutes({ prisma }));
 
 /**
  * NOVA ROTA: IMPORTAÇÕES BUSINESS DATA
