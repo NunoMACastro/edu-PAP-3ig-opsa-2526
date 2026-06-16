@@ -56,7 +56,7 @@ Passo 3
 Ficheiros criados:
 - apps/api/src/modules/ai/aiInsightFilters.js
 Temporaio
-- edu-PAP-3ig-opsa-2526/node test-ai-insight-filter.js
+- edu-PAP-3ig-opsa-2526/test-ai-insight-filter.js
 
 Regras implementadas:
 - from é obrigatório;
@@ -79,3 +79,65 @@ Comandos executados:
   message: 'Data inicial posterior à data final'
 }
 Teste negativo passou: período invertido devolve INVALID_INSIGHT_RANGE.
+
+Passo 4
+Ficheiros criados:
+- apps/api/src/modules/ai/aiInsightService.js
+Temporaio
+- edu-PAP-3ig-opsa-2526/test-ai-insight-service.js
+
+Regras implementadas:
+- geração determinística de insights;
+- leitura de OperationalReportRun;
+- leitura de StockBalance;
+- leitura de StockAlertSetting;
+- todas as queries usam companyId;
+- NEGATIVE_MARGIN é gerado quando marginCents < 0;
+- LOW_STOCK é gerado quando StockBalance.quantity está abaixo de StockAlertSetting.minQuantity;
+- cada insight inclui type, severity, title, summary, explanation, sourceType, sourceId e sourceLabel;
+- suggestedAction é apenas recomendação textual;
+- upsert evita duplicação de insights para a mesma fonte;
+- service não altera preços, stock, documentos ou contabilidade.
+
+Smoke validado:
+- margem negativa gerou insight NEGATIVE_MARGIN;
+- insight gerado contém sourceType OperationalReportRun;
+- insight gerado contém explanation.
+
+Negativo validado:
+- sem fontes disponíveis o service devolve lista vazia;
+- nenhum insight é inventado sem origem.
+
+Comandos executados:
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> node test-ai-insight-service.js
+[
+  {
+    "id": "insight-1",
+    "type": "NEGATIVE_MARGIN",
+    "severity": "HIGH",
+    "summary": "A margem operacional do período está negativa.",
+    "explanation": "O cálculo vem de OperationalReportRun.marginCents e indica que compras superaram vendas no relatório operacional.",
+    "sourceType": "OperationalReportRun",
+    "sourceId": "report-1",
+    "sourceLabel": "Relatório operacional report-1",
+    "suggestedAction": "Rever preços, compras e artigos com menor rotação antes de decidir alterações.",
+    "title": "Margem operacional negativa",
+    "companyId": "company-1",
+    "generatedById": "user-1",
+    "status": "OPEN",
+    "generatedAt": "2026-06-16T17:42:08.320Z",
+    "where": {
+      "companyId_type_sourceType_sourceId": {
+        "companyId": "company-1",
+        "type": "NEGATIVE_MARGIN",
+        "sourceType": "OperationalReportRun",
+        "sourceId": "report-1"
+      }
+    }
+  }
+]
+Teste positivo passou: margem negativa gerou insight com fonte.
+[]
+Teste negativo passou: sem fontes devolve lista vazia.
+
+Passo 5
