@@ -150,6 +150,7 @@ model User {
   saftExportRuns      SaftExportRun[]      @relation("UserSaftExportRuns")
   cashflowForecastRuns CashflowForecastRun[] @relation("UserCashflowForecastRuns")
   operationalReportRuns OperationalReportRun[] @relation("UserOperationalReportRuns")
+  aiInsights          AiInsight[]          @relation("UserAiInsights")
   executiveKpiRuns    ExecutiveKpiRun[]    @relation("UserExecutiveKpiRuns")
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
@@ -223,6 +224,7 @@ model Company {
   cashflowForecastRuns CashflowForecastRun[]
   operationalReportRuns OperationalReportRun[]
   executiveKpiRuns  ExecutiveKpiRun[]
+  aiInsights        AiInsight[]
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
 }
@@ -1034,4 +1036,30 @@ model ExecutiveKpiRun {
   generatedBy User    @relation("UserExecutiveKpiRuns", fields: [generatedById], references: [id])
 
   @@index([companyId, fromDate, toDate])
+}
+
+/// Insight automático gerado por regras transparentes sobre dados reais da empresa.
+/// A IA da MF4 recomenda e explica; não executa alterações contabilísticas.
+model AiInsight {
+  id              String   @id @default(uuid())
+  companyId       String
+  type            String
+  severity        String
+  title           String
+  summary         String
+  explanation     String
+  sourceType      String
+  sourceId        String
+  sourceLabel     String
+  suggestedAction String?
+  status          String   @default("OPEN")
+  generatedById   String
+  generatedAt     DateTime @default(now())
+
+  company     Company @relation(fields: [companyId], references: [id])
+  generatedBy User    @relation("UserAiInsights", fields: [generatedById], references: [id])
+
+  @@index([companyId, type, severity])
+  @@index([companyId, generatedAt])
+  @@unique([companyId, type, sourceType, sourceId])
 }
