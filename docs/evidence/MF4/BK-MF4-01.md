@@ -42,6 +42,7 @@ Regras preparadas:
 - unique constraint evita duplicação para a mesma fonte;
 - companyId vem do backend, não do frontend.
 
+Validação:
 - schema Prisma validado com sucesso.
 
 Passo 3
@@ -347,3 +348,91 @@ Risco validado:
 
 Resultado:
 - handoff para BK-MF4-02 preparado com endpoint, modelo AiInsight, campos de fonte e ação sugerida.
+
+9) Validacao por BK
+Smoke validado:
+- consultado endpoint GET /api/ai/insights;
+- resposta devolveu lista de insights;
+- confirmado type, severity, title, summary, explanation e fonte;
+- geração determinística baseada em OperationalReportRun, StockBalance e StockAlertSetting;
+- todos os dados filtrados por companyId da empresa ativa;
+- frontend listou insights sem enviar companyId;
+- sourceType, sourceId e sourceLabel visíveis na resposta.
+
+Negativos validados:
+- from=2026-06-30&to=2026-06-01 devolveu 400 INVALID_INSIGHT_RANGE;
+- pedido sem sessão devolveu 401 SESSION_REQUIRED;
+- utilizador sem role permitida devolveu 403 ROLE_FORBIDDEN;
+- dados de outra empresa não foram incluídos nos insights.
+
+Bloqueios respeitados:
+- não foram utilizados modelos externos de IA;
+- não foram executadas alterações contabilísticas;
+- não foram executadas alterações operacionais;
+- todos os insights possuem fonte rastreável;
+- BK-MF4-02 e BK-MF4-05 podem consumir AiInsight sem recalcular dados.
+
+10) Evidencia obrigatoria
+pr:
+- BK-MF4-01 - Gerar insights automáticos (tendências, riscos, clientes e artigos parados)
+
+proof:
+- GET /api/ai/insights executado com sucesso;
+- resposta 200 com lista de insights;
+- insights incluem type, severity, title, summary, explanation, sourceType, sourceId e sourceLabel;
+- frontend apresentou os insights da empresa ativa;
+- geração baseada em dados reais de OperationalReportRun, StockBalance e StockAlertSetting.
+
+neg:
+- 400 INVALID_INSIGHT_RANGE para período inválido;
+- 401 SESSION_REQUIRED sem sessão;
+- 403 ROLE_FORBIDDEN para role sem acesso;
+- validação de isolamento multiempresa confirmada.
+
+files:
+- apps/api/prisma/schema.prisma
+- apps/api/src/modules/ai/aiInsightFilters.js
+- apps/api/src/modules/ai/aiInsightService.js
+- apps/api/src/modules/ai/aiInsightRoutes.js
+- apps/api/src/server.js
+- apps/web/src/lib/mf4Api.ts
+- apps/web/src/pages/AiInsightsPage.tsx
+- apps/web/src/App.tsx
+- docs/evidence/MF3/BK-MF4-01.md
+Temporarios
+- edu-PAP-3ig-opsa-2526/test-ai-insight-service.js
+- edu-PAP-3ig-opsa-2526/test-ai-insight-filter.js
+
+commands:
+- node test-ai-insight-filter.js
+- node test-ai-insight-service.js
+- npm --prefix apps/api run test:contracts
+- npm --prefix apps/api run test:unit
+- npm --prefix apps/web run typecheck
+- npm --prefix apps/web run build
+- npm --prefix apps/api run prisma:validate
+- npm --prefix apps/api run syntax:check
+
+screenshots:
+- página AiInsightsPage com resultados carregados;
+- prova visual do pedido executado;
+- prova visual de erro controlado (quando aplicável).
+
+fontes:
+- OperationalReportRun
+- StockBalance
+- StockAlertSetting
+
+logs:
+- AiInsight persistido na base de dados;
+- generatedAt registado;
+- generatedById registado;
+- companyId associado à empresa ativa.
+
+notes:
+- geração determinística baseada em regras transparentes;
+- não utiliza modelos externos de IA;
+- não executa alterações contabilísticas ou operacionais;
+- todos os insights possuem fonte rastreável;
+- frontend não envia companyId;
+- BK-MF4-02 e BK-MF4-05 podem reutilizar AiInsight sem recalcular as fontes.
