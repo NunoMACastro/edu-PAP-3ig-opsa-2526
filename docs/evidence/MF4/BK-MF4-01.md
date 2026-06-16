@@ -319,3 +319,31 @@ The schema at prisma\schema.prisma is valid 🚀
 operable program or batch file.
 
 Passo 8
+Handoff confirmado para BK-MF4-02:
+- AiInsight.type disponível;
+- AiInsight.severity disponível;
+- AiInsight.sourceType disponível;
+- AiInsight.sourceId disponível;
+- AiInsight.sourceLabel disponível;
+- AiInsight.explanation disponível;
+- AiInsight.suggestedAction disponível;
+- AiInsight.status disponível.
+
+Contrato entregue:
+- BK-MF4-02 pode consumir AiInsight existente;
+- BK-MF4-02 não precisa recalcular OperationalReportRun;
+- BK-MF4-02 não precisa recalcular StockBalance;
+- BK-MF4-02 não precisa recalcular StockAlertSetting;
+- BK-MF4-02 pode usar suggestedAction como base inicial da recomendação.
+
+Smoke de handoff:
+- insight NEGATIVE_MARGIN contém suggestedAction;
+- insight LOW_STOCK contém suggestedAction;
+- cada insight contém fonte rastreável;
+- cada insight contém explicação.
+
+Risco validado:
+- se todos os suggestedAction estiverem vazios, BK-MF4-02 fica sem contrato útil.
+
+Resultado:
+- handoff para BK-MF4-02 preparado com endpoint, modelo AiInsight, campos de fonte e ação sugerida.
