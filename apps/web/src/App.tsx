@@ -33,6 +33,7 @@ import {
   TreasuryAccountsPage,
   VatMapPage,
 } from "./pages/mf3Pages";
+import { AiInsightsPage } from "./pages/AiInsightsPage";
 
 type ApiObject = Record<string, unknown>;
 type FieldKind = "text" | "email" | "password" | "number" | "textarea" | "select";
@@ -867,6 +868,11 @@ export function App() {
         id: "executive-kpis",
         title: "KPIs executivos",
         render: () => <ExecutiveKpisPage />,
+      },
+      {
+        id: "ai-insights",
+        title: "Insights automáticos",
+        render: () => <AiInsightsPage />,
       },
     ],
     [],
