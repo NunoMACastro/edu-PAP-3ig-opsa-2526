@@ -42,15 +42,7 @@ Regras preparadas:
 - unique constraint evita duplicação para a mesma fonte;
 - companyId vem do backend, não do frontend.
 
-Validação executada:
-- PS D:\PAP\edu-PAP-3ig-opsa-2526> npm --prefix apps/api run prisma:validate
-
-> @opsa/api@1.0.0 prisma:validate
-> prisma validate
-
-Environment variables loaded from .env
-Prisma schema loaded from prisma\schema.prisma
-The schema at prisma\schema.prisma is valid 🚀
+- schema Prisma validado com sucesso.
 
 Passo 3
 Ficheiros criados:
@@ -307,3 +299,23 @@ dist/assets/index-I1u2FZO0.css    2.81 kB │ gzip:  1.06 kB
 dist/assets/index-Bz-8dXHF.js   254.80 kB │ gzip: 71.38 kB
 
 ✓ built in 1.83s
+
+Passo 7
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> npm --prefix apps/api run prisma:validate
+
+> @opsa/api@1.0.0 prisma:validate
+> prisma validate
+
+Environment variables loaded from .env
+Prisma schema loaded from prisma\schema.prisma
+The schema at prisma\schema.prisma is valid 🚀
+
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> npm --prefix apps/api run syntax:check
+
+> @opsa/api@1.0.0 syntax:check
+> find src tests scripts -name '*.js' -print0 | xargs -0 -n 1 node --check
+
+'xargs' is not recognized as an internal or external command,
+operable program or batch file.
+
+Passo 8
