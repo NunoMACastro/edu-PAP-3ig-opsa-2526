@@ -1063,3 +1063,38 @@ model AiInsight {
   @@index([companyId, generatedAt])
   @@unique([companyId, type, sourceType, sourceId])
 }
+// campos a acrescentar em modelos existentes
+model Company {
+  aiActionSuggestions AiActionSuggestion[]
+}
+
+model User {
+  aiActionSuggestions AiActionSuggestion[] @relation("UserAiActionSuggestions")
+}
+
+model AiInsight {
+  actionSuggestions AiActionSuggestion[]
+}
+
+/// Sugestão de ação criada a partir de um insight.
+/// Representa recomendação humana, não execução automática.
+model AiActionSuggestion {
+  id            String   @id @default(uuid())
+  companyId     String
+  insightId     String
+  actionType    String
+  title         String
+  rationale     String
+  sourceLabel   String
+  status        String   @default("OPEN")
+  createdById   String
+  createdAt     DateTime @default(now())
+
+  company   Company   @relation(fields: [companyId], references: [id])
+  insight   AiInsight @relation(fields: [insightId], references: [id])
+  createdBy User      @relation("UserAiActionSuggestions", fields: [createdById], references: [id])
+
+  @@index([companyId, actionType, status])
+  @@index([companyId, insightId])
+  @@unique([companyId, insightId, actionType])
+}
