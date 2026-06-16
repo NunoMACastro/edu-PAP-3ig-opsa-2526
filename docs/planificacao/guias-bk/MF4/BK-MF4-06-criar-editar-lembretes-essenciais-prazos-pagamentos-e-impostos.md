@@ -51,7 +51,7 @@ RF44 ajuda a equipa a não perder datas importantes. Também fornece uma das fon
 - Ler RF44 em `docs/RF.md`.
 - Rever `docs/planificacao/backlogs/MATRIZ-CANONICA-BK.md`, `BACKLOG-MVP.md`, `CONTRATO-CAMPOS-BK.md`, `MF-VIEWS.md` e `PLANO-SPRINTS.md`.
 - Confirmar dependências canónicas: `-`.
-- Rever `real_dev/api/src/modules/auth`, `real_dev/api/src/modules/companies/companyContext.js` e `real_dev/api/src/modules/permissions`.
+- Rever `apps/api/src/modules/auth`, `apps/api/src/modules/companies/companyContext.js` e `apps/api/src/modules/permissions`.
 
 #### Glossário
 
@@ -76,13 +76,13 @@ RF44 ajuda a equipa a não perder datas importantes. Também fornece uma das fon
 
 #### Ficheiros a criar/editar/rever
 
-- EDITAR: `real_dev/api/prisma/schema.prisma`
-- CRIAR: `real_dev/api/src/modules/reminders/reminderValidators.js`
-- CRIAR: `real_dev/api/src/modules/reminders/reminderService.js`
-- CRIAR: `real_dev/api/src/modules/reminders/reminderRoutes.js`
-- EDITAR: `real_dev/api/src/server.js`
-- EDITAR: `real_dev/web/src/lib/mf4Api.ts`
-- CRIAR: `real_dev/web/src/pages/RemindersPage.tsx`
+- EDITAR: `apps/api/prisma/schema.prisma`
+- CRIAR: `apps/api/src/modules/reminders/reminderValidators.js`
+- CRIAR: `apps/api/src/modules/reminders/reminderService.js`
+- CRIAR: `apps/api/src/modules/reminders/reminderRoutes.js`
+- EDITAR: `apps/api/src/server.js`
+- EDITAR: `apps/web/src/lib/mf4Api.ts`
+- CRIAR: `apps/web/src/pages/RemindersPage.tsx`
 - REVER: BK-MF4-08.
 
 #### Tutorial técnico linear
@@ -124,7 +124,7 @@ Se o aluno não conseguir demonstrar este passo com evidence objetiva, o BK não
 Persistir dados por empresa ativa.
 
 2. Ficheiros envolvidos:
-    - EDITAR: `real_dev/api/prisma/schema.prisma`
+    - EDITAR: `apps/api/prisma/schema.prisma`
 
 3. Instruções do que fazer.
 
@@ -182,7 +182,7 @@ Sem índice por empresa, listagens podem misturar dados ou ficar lentas.
 Bloquear dados incompletos.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `real_dev/api/src/modules/reminders/reminderValidators.js`
+    - CRIAR: `apps/api/src/modules/reminders/reminderValidators.js`
 
 3. Instruções do que fazer.
 
@@ -191,7 +191,7 @@ Cria validator explícito.
 4. Código completo, correto e integrado com a app final.
 
 ```js
-// real_dev/api/src/modules/reminders/reminderValidators.js
+// apps/api/src/modules/reminders/reminderValidators.js
 import { httpError } from "../../lib/httpErrors.js";
 
 const allowedReminderTypes = new Set(["DEADLINE", "PAYMENT", "TAX"]);
@@ -272,7 +272,7 @@ Data inválida ou `status: "QUALQUER"` deve devolver `400 INVALID_REMINDER`.
 Listar, criar e atualizar estado.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `real_dev/api/src/modules/reminders/reminderService.js`
+    - CRIAR: `apps/api/src/modules/reminders/reminderService.js`
 
 3. Instruções do que fazer.
 
@@ -281,7 +281,7 @@ Usa sempre `companyId` do contexto.
 4. Código completo, correto e integrado com a app final.
 
 ```js
-// real_dev/api/src/modules/reminders/reminderService.js
+// apps/api/src/modules/reminders/reminderService.js
 import { httpError } from "../../lib/httpErrors.js";
 
 /** Lista lembretes da empresa ativa. */
@@ -329,8 +329,8 @@ Atualizar ID inexistente devolve `404`.
 Expor CRUD mínimo protegido.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `real_dev/api/src/modules/reminders/reminderRoutes.js`
-    - EDITAR: `real_dev/api/src/server.js`
+    - CRIAR: `apps/api/src/modules/reminders/reminderRoutes.js`
+    - EDITAR: `apps/api/src/server.js`
 
 3. Instruções do que fazer.
 
@@ -339,7 +339,7 @@ Monta router REST simples.
 4. Código completo, correto e integrado com a app final.
 
 ```js
-// real_dev/api/src/modules/reminders/reminderRoutes.js
+// apps/api/src/modules/reminders/reminderRoutes.js
 import { Router } from "express";
 import { toHttpError } from "../../lib/httpErrors.js";
 import { requireAuth } from "../auth/authMiddleware.js";
@@ -397,7 +397,7 @@ export function buildReminderRoutes({ prisma }) {
 ```
 
 ```js
-// real_dev/api/src/server.js
+// apps/api/src/server.js
 import { buildReminderRoutes } from "./modules/reminders/reminderRoutes.js";
 
 app.use("/api/reminders", buildReminderRoutes({ prisma }));
@@ -426,8 +426,8 @@ Role fora da lista recebe `403`.
 Permitir smoke visual.
 
 2. Ficheiros envolvidos:
-    - EDITAR: `real_dev/web/src/lib/mf4Api.ts`
-    - CRIAR: `real_dev/web/src/pages/RemindersPage.tsx`
+    - EDITAR: `apps/web/src/lib/mf4Api.ts`
+    - CRIAR: `apps/web/src/pages/RemindersPage.tsx`
 
 3. Instruções do que fazer.
 
@@ -436,7 +436,7 @@ Cria página com formulário de criação, lista e botões de atualização de e
 4. Código completo, correto e integrado com a app final.
 
 ```tsx
-// função a adicionar em real_dev/web/src/lib/mf4Api.ts
+// função a adicionar em apps/web/src/lib/mf4Api.ts
 export type ReminderType = "DEADLINE" | "PAYMENT" | "TAX";
 export type ReminderStatus = "OPEN" | "DONE" | "CANCELLED";
 
@@ -473,7 +473,7 @@ export function updateReminderStatus(id: string, status: ReminderStatus) {
   });
 }
 
-// real_dev/web/src/pages/RemindersPage.tsx
+// apps/web/src/pages/RemindersPage.tsx
 import { FormEvent, useEffect, useState } from "react";
 import { ReminderItem, ReminderStatus, createReminder, loadReminders, updateReminderStatus } from "../lib/mf4Api";
 
@@ -583,9 +583,9 @@ Sem sessão, a API devolve `401` e a página mostra erro.
 
 #### Validação final
 
-- Executar `npm run prisma:validate` em `real_dev/api` depois de editar o schema.
-- Executar `npm run syntax:check` em `real_dev/api` depois de criar routes/services.
-- Executar `npm run typecheck` em `real_dev/web` depois de criar páginas TypeScript.
+- Executar `npm run prisma:validate` em `apps/api` depois de editar o schema.
+- Executar `npm run syntax:check` em `apps/api` depois de criar routes/services.
+- Executar `npm run typecheck` em `apps/web` depois de criar páginas TypeScript.
 - Executar smoke HTTP autenticado para o endpoint principal deste BK.
 - Executar negativos de sessão ausente, role sem acesso e dados de outra empresa.
 
@@ -600,7 +600,7 @@ Sem sessão, a API devolve `401` e a página mostra erro.
 
 - Entrega para `BK-MF4-07`: endpoint, modelos, campos e riscos indicados neste guia.
 - Decisão `CANONICO`: RF44 define o requisito funcional deste BK.
-- Decisão `DERIVADO`: os nomes técnicos dos novos módulos seguem a estrutura real `real_dev/api/src/modules/*` e `real_dev/web/src/*`.
+- Decisão `DERIVADO`: os nomes técnicos dos novos módulos seguem a estrutura real `apps/api/src/modules/*` e `apps/web/src/*`.
 - Risco restante: se a implementação real já tiver divergido, registar drift no PR antes de adaptar caminhos.
 
 #### Changelog

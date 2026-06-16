@@ -51,7 +51,7 @@ RF39 transforma os relatórios da MF3 em apoio à decisão. Este BK é também a
 - Ler RF39 em `docs/RF.md`.
 - Rever `docs/planificacao/backlogs/MATRIZ-CANONICA-BK.md`, `BACKLOG-MVP.md`, `CONTRATO-CAMPOS-BK.md`, `MF-VIEWS.md` e `PLANO-SPRINTS.md`.
 - Confirmar dependências canónicas: `BK-MF3-07`.
-- Rever `real_dev/api/src/modules/auth`, `real_dev/api/src/modules/companies/companyContext.js` e `real_dev/api/src/modules/permissions`.
+- Rever `apps/api/src/modules/auth`, `apps/api/src/modules/companies/companyContext.js` e `apps/api/src/modules/permissions`.
 
 #### Glossário
 
@@ -78,13 +78,13 @@ RF39 transforma os relatórios da MF3 em apoio à decisão. Este BK é também a
 
 #### Ficheiros a criar/editar/rever
 
-- EDITAR: `real_dev/api/prisma/schema.prisma`
-- CRIAR: `real_dev/api/src/modules/ai/aiInsightFilters.js`
-- CRIAR: `real_dev/api/src/modules/ai/aiInsightService.js`
-- CRIAR: `real_dev/api/src/modules/ai/aiInsightRoutes.js`
-- EDITAR: `real_dev/api/src/server.js`
-- EDITAR: `real_dev/web/src/lib/mf4Api.ts`
-- CRIAR: `real_dev/web/src/pages/AiInsightsPage.tsx`
+- EDITAR: `apps/api/prisma/schema.prisma`
+- CRIAR: `apps/api/src/modules/ai/aiInsightFilters.js`
+- CRIAR: `apps/api/src/modules/ai/aiInsightService.js`
+- CRIAR: `apps/api/src/modules/ai/aiInsightRoutes.js`
+- EDITAR: `apps/api/src/server.js`
+- EDITAR: `apps/web/src/lib/mf4Api.ts`
+- CRIAR: `apps/web/src/pages/AiInsightsPage.tsx`
 - REVER: BK-MF3-07 e BK-MF4-02.
 
 #### Tutorial técnico linear
@@ -127,7 +127,7 @@ Se o aluno não conseguir demonstrar este passo com evidence objetiva, o BK não
 Persistir insights para consulta, defesa e handoff.
 
 2. Ficheiros envolvidos:
-    - EDITAR: `real_dev/api/prisma/schema.prisma`
+    - EDITAR: `apps/api/prisma/schema.prisma`
     - LOCALIZAÇÃO: bloco de modelos de IA, após `ExecutiveKpiRun`.
 
 3. Instruções do que fazer.
@@ -179,7 +179,7 @@ O modelo guarda cada insight com tipo, severidade e fonte. `companyId` é persis
 
 6. Validação do passo.
 
-Executa `npm run prisma:validate` em `real_dev/api` depois de editar o schema.
+Executa `npm run prisma:validate` em `apps/api` depois de editar o schema.
 
 7. Cenário negativo/erro esperado.
 
@@ -192,8 +192,8 @@ Se faltares a relação em `Company` ou `User`, o Prisma deve falhar a validaç�
 Impedir consultas sem datas ou com intervalo excessivo.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `real_dev/api/src/modules/ai/aiInsightFilters.js`
-    - REVER: `real_dev/api/src/lib/httpErrors.js`
+    - CRIAR: `apps/api/src/modules/ai/aiInsightFilters.js`
+    - REVER: `apps/api/src/lib/httpErrors.js`
 
 3. Instruções do que fazer.
 
@@ -202,7 +202,7 @@ Cria um validator próprio para RF39.
 4. Código completo, correto e integrado com a app final.
 
 ```js
-// real_dev/api/src/modules/ai/aiInsightFilters.js
+// apps/api/src/modules/ai/aiInsightFilters.js
 import { httpError } from "../../lib/httpErrors.js";
 
 /**
@@ -257,7 +257,7 @@ Data inválida deve falhar antes do service consultar dados.
 Calcular insights com regras explicáveis.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `real_dev/api/src/modules/ai/aiInsightService.js`
+    - CRIAR: `apps/api/src/modules/ai/aiInsightService.js`
     - REVER: `OperationalReportRun`, `StockBalance`, `StockAlertSetting`.
 
 3. Instruções do que fazer.
@@ -267,7 +267,7 @@ Implementa regras simples: margem negativa e artigos parados/abaixo do mínimo.
 4. Código completo, correto e integrado com a app final.
 
 ```js
-// real_dev/api/src/modules/ai/aiInsightService.js
+// apps/api/src/modules/ai/aiInsightService.js
 /**
  * Cria um título curto para o insight.
  *
@@ -403,8 +403,8 @@ Se não existirem fontes, o service deve devolver lista vazia em vez de inventar
 Disponibilizar os insights à UI com autenticação e autorização.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `real_dev/api/src/modules/ai/aiInsightRoutes.js`
-    - EDITAR: `real_dev/api/src/server.js`
+    - CRIAR: `apps/api/src/modules/ai/aiInsightRoutes.js`
+    - EDITAR: `apps/api/src/server.js`
 
 3. Instruções do que fazer.
 
@@ -413,7 +413,7 @@ Monta a rota em `/api/ai/insights` e liga o router ao servidor Express.
 4. Código completo, correto e integrado com a app final.
 
 ```js
-// real_dev/api/src/modules/ai/aiInsightRoutes.js
+// apps/api/src/modules/ai/aiInsightRoutes.js
 import { Router } from "express";
 import { toHttpError } from "../../lib/httpErrors.js";
 import { requireAuth } from "../auth/authMiddleware.js";
@@ -464,7 +464,7 @@ export function buildAiInsightRoutes({ prisma }) {
 ```
 
 ```js
-// real_dev/api/src/server.js
+// apps/api/src/server.js
 import { buildAiInsightRoutes } from "./modules/ai/aiInsightRoutes.js";
 
 app.use("/api/ai", buildAiInsightRoutes({ prisma }));
@@ -493,8 +493,8 @@ Utilizador sem empresa ativa deve receber erro controlado do middleware de conte
 Permitir consulta visual dos insights.
 
 2. Ficheiros envolvidos:
-    - EDITAR: `real_dev/web/src/lib/mf4Api.ts`
-    - CRIAR: `real_dev/web/src/pages/AiInsightsPage.tsx`
+    - EDITAR: `apps/web/src/lib/mf4Api.ts`
+    - CRIAR: `apps/web/src/pages/AiInsightsPage.tsx`
 
 3. Instruções do que fazer.
 
@@ -503,7 +503,7 @@ Cria cliente tipado e página com estados de loading, erro e sucesso.
 4. Código completo, correto e integrado com a app final.
 
 ```tsx
-// real_dev/web/src/lib/mf4Api.ts
+// apps/web/src/lib/mf4Api.ts
 import { createApiClient } from "./apiClient";
 
 const client = createApiClient();
@@ -530,7 +530,7 @@ export function getAiInsights(from: string, to: string) {
   return client.request<{ insights: AiInsight[] }>("GET", "/ai/insights" + query);
 }
 
-// real_dev/web/src/pages/AiInsightsPage.tsx
+// apps/web/src/pages/AiInsightsPage.tsx
 import { FormEvent, useState } from "react";
 import { AiInsight, getAiInsights } from "../lib/mf4Api";
 
@@ -608,8 +608,8 @@ Sem sessão, a página deve mostrar a mensagem devolvida pela API.
 Fechar a prova técnica do BK.
 
 2. Ficheiros envolvidos:
-    - REVER: `real_dev/api/package.json`
-    - REVER: `real_dev/web/package.json`
+    - REVER: `apps/api/package.json`
+    - REVER: `apps/web/package.json`
 
 3. Instruções do que fazer.
 
@@ -671,9 +671,9 @@ Se o aluno não conseguir demonstrar este passo com evidence objetiva, o BK não
 
 #### Validação final
 
-- Executar `npm run prisma:validate` em `real_dev/api` depois de editar o schema.
-- Executar `npm run syntax:check` em `real_dev/api` depois de criar routes/services.
-- Executar `npm run typecheck` em `real_dev/web` depois de criar páginas TypeScript.
+- Executar `npm run prisma:validate` em `apps/api` depois de editar o schema.
+- Executar `npm run syntax:check` em `apps/api` depois de criar routes/services.
+- Executar `npm run typecheck` em `apps/web` depois de criar páginas TypeScript.
 - Executar smoke HTTP autenticado para o endpoint principal deste BK.
 - Executar negativos de sessão ausente, role sem acesso e dados de outra empresa.
 
@@ -688,7 +688,7 @@ Se o aluno não conseguir demonstrar este passo com evidence objetiva, o BK não
 
 - Entrega para `BK-MF4-02`: endpoint, modelos, campos e riscos indicados neste guia.
 - Decisão `CANONICO`: RF39 define o requisito funcional deste BK.
-- Decisão `DERIVADO`: os nomes técnicos dos novos módulos seguem a estrutura real `real_dev/api/src/modules/*` e `real_dev/web/src/*`.
+- Decisão `DERIVADO`: os nomes técnicos dos novos módulos seguem a estrutura real `apps/api/src/modules/*` e `apps/web/src/*`.
 - Risco restante: se a implementação real já tiver divergido, registar drift no PR antes de adaptar caminhos.
 
 #### Changelog

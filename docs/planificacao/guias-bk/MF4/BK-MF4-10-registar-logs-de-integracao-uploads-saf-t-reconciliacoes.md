@@ -51,7 +51,7 @@ RF48 dá rastreabilidade a processos que falham por ficheiros, formatos ou dados
 - Ler RF48 em `docs/RF.md`.
 - Rever `docs/planificacao/backlogs/MATRIZ-CANONICA-BK.md`, `BACKLOG-MVP.md`, `CONTRATO-CAMPOS-BK.md`, `MF-VIEWS.md` e `PLANO-SPRINTS.md`.
 - Confirmar dependências canónicas: `-`.
-- Rever `real_dev/api/src/modules/auth`, `real_dev/api/src/modules/companies/companyContext.js` e `real_dev/api/src/modules/permissions`.
+- Rever `apps/api/src/modules/auth`, `apps/api/src/modules/companies/companyContext.js` e `apps/api/src/modules/permissions`.
 
 #### Glossário
 
@@ -76,12 +76,12 @@ RF48 dá rastreabilidade a processos que falham por ficheiros, formatos ou dados
 
 #### Ficheiros a criar/editar/rever
 
-- EDITAR: `real_dev/api/prisma/schema.prisma`
-- CRIAR: `real_dev/api/src/modules/integrations/integrationLogService.js`
-- CRIAR: `real_dev/api/src/modules/integrations/integrationLogRoutes.js`
-- EDITAR: `real_dev/api/src/server.js`
-- EDITAR: `real_dev/web/src/lib/mf4Api.ts`
-- CRIAR: `real_dev/web/src/pages/IntegrationLogsPage.tsx`
+- EDITAR: `apps/api/prisma/schema.prisma`
+- CRIAR: `apps/api/src/modules/integrations/integrationLogService.js`
+- CRIAR: `apps/api/src/modules/integrations/integrationLogRoutes.js`
+- EDITAR: `apps/api/src/server.js`
+- EDITAR: `apps/web/src/lib/mf4Api.ts`
+- CRIAR: `apps/web/src/pages/IntegrationLogsPage.tsx`
 - REVER: BK-MF3-03, BK-MF3-05 e BK-MF3-06.
 
 #### Tutorial técnico linear
@@ -129,7 +129,7 @@ Se o aluno não conseguir demonstrar este passo com evidence objetiva, o BK não
 Persistir resultado de processos de integração.
 
 2. Ficheiros envolvidos:
-    - EDITAR: `real_dev/api/prisma/schema.prisma`
+    - EDITAR: `apps/api/prisma/schema.prisma`
 
 3. Instruções do que fazer.
 
@@ -199,7 +199,7 @@ Sem contagens, importações parciais não ficam explicáveis.
 Centralizar criação e sanitização.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `real_dev/api/src/modules/integrations/integrationLogService.js`
+    - CRIAR: `apps/api/src/modules/integrations/integrationLogService.js`
 
 3. Instruções do que fazer.
 
@@ -208,7 +208,7 @@ Normaliza status e encurta mensagem.
 4. Código completo, correto e integrado com a app final.
 
 ```js
-// real_dev/api/src/modules/integrations/integrationLogService.js
+// apps/api/src/modules/integrations/integrationLogService.js
 const allowedStatus = new Set(["SUCCESS", "FAILED", "PARTIAL"]);
 
 /** Regista log de integração com mensagem sanitizada. */
@@ -259,8 +259,8 @@ Mensagem muito longa deve ser truncada.
 Permitir Admin consultar logs.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `real_dev/api/src/modules/integrations/integrationLogRoutes.js`
-    - EDITAR: `real_dev/api/src/server.js`
+    - CRIAR: `apps/api/src/modules/integrations/integrationLogRoutes.js`
+    - EDITAR: `apps/api/src/server.js`
 
 3. Instruções do que fazer.
 
@@ -269,7 +269,7 @@ Cria `GET /api/integrations/logs`.
 4. Código completo, correto e integrado com a app final.
 
 ```js
-// real_dev/api/src/modules/integrations/integrationLogRoutes.js
+// apps/api/src/modules/integrations/integrationLogRoutes.js
 import { Router } from "express";
 import { toHttpError } from "../../lib/httpErrors.js";
 import { requireAuth } from "../auth/authMiddleware.js";
@@ -303,7 +303,7 @@ export function buildIntegrationLogRoutes({ prisma }) {
 ```
 
 ```js
-// real_dev/api/src/server.js
+// apps/api/src/server.js
 import { buildIntegrationLogRoutes } from "./modules/integrations/integrationLogRoutes.js";
 
 app.use("/api/integrations", buildIntegrationLogRoutes({ prisma }));
@@ -385,8 +385,8 @@ Não incluir conteúdo do CSV em `message`.
 Dar visibility operacional ao Admin.
 
 2. Ficheiros envolvidos:
-    - EDITAR: `real_dev/web/src/lib/mf4Api.ts`
-    - CRIAR: `real_dev/web/src/pages/IntegrationLogsPage.tsx`
+    - EDITAR: `apps/web/src/lib/mf4Api.ts`
+    - CRIAR: `apps/web/src/pages/IntegrationLogsPage.tsx`
 
 3. Instruções do que fazer.
 
@@ -395,7 +395,7 @@ Adiciona chamada GET e página ao `mf4Api.ts` cumulativo, sem repetir o cliente 
 4. Código completo, correto e integrado com a app final.
 
 ```tsx
-// função a adicionar em real_dev/web/src/lib/mf4Api.ts
+// função a adicionar em apps/web/src/lib/mf4Api.ts
 export interface IntegrationLogItem {
   id: string;
   integrationType: string;
@@ -414,7 +414,7 @@ export function getIntegrationLogs() {
   return client.request<{ logs: IntegrationLogItem[] }>("GET", "/integrations/logs");
 }
 
-// real_dev/web/src/pages/IntegrationLogsPage.tsx
+// apps/web/src/pages/IntegrationLogsPage.tsx
 import { useState } from "react";
 import { IntegrationLogItem, getIntegrationLogs } from "../lib/mf4Api";
 
@@ -542,9 +542,9 @@ Se o aluno não conseguir demonstrar este passo com evidence objetiva, o BK não
 
 #### Validação final
 
-- Executar `npm run prisma:validate` em `real_dev/api` depois de editar o schema.
-- Executar `npm run syntax:check` em `real_dev/api` depois de criar routes/services.
-- Executar `npm run typecheck` em `real_dev/web` depois de criar páginas TypeScript.
+- Executar `npm run prisma:validate` em `apps/api` depois de editar o schema.
+- Executar `npm run syntax:check` em `apps/api` depois de criar routes/services.
+- Executar `npm run typecheck` em `apps/web` depois de criar páginas TypeScript.
 - Executar smoke HTTP autenticado para o endpoint principal deste BK.
 - Executar negativos de sessão ausente, role sem acesso e dados de outra empresa.
 
@@ -559,7 +559,7 @@ Se o aluno não conseguir demonstrar este passo com evidence objetiva, o BK não
 
 - Entrega para `BK-MF5-01`: endpoint, modelos, campos e riscos indicados neste guia.
 - Decisão `CANONICO`: RF48 define o requisito funcional deste BK.
-- Decisão `DERIVADO`: os nomes técnicos dos novos módulos seguem a estrutura real `real_dev/api/src/modules/*` e `real_dev/web/src/*`.
+- Decisão `DERIVADO`: os nomes técnicos dos novos módulos seguem a estrutura real `apps/api/src/modules/*` e `apps/web/src/*`.
 - Risco restante: se a implementação real já tiver divergido, registar drift no PR antes de adaptar caminhos.
 
 #### Changelog

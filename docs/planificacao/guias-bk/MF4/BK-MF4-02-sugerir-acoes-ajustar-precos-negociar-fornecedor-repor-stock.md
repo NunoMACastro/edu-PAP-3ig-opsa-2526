@@ -51,7 +51,7 @@ RF40 ajuda o gestor a decidir se deve rever preços, falar com fornecedores ou r
 - Ler RF40 em `docs/RF.md`.
 - Rever `docs/planificacao/backlogs/MATRIZ-CANONICA-BK.md`, `BACKLOG-MVP.md`, `CONTRATO-CAMPOS-BK.md`, `MF-VIEWS.md` e `PLANO-SPRINTS.md`.
 - Confirmar dependências canónicas: `BK-MF4-01`.
-- Rever `real_dev/api/src/modules/auth`, `real_dev/api/src/modules/companies/companyContext.js` e `real_dev/api/src/modules/permissions`.
+- Rever `apps/api/src/modules/auth`, `apps/api/src/modules/companies/companyContext.js` e `apps/api/src/modules/permissions`.
 
 #### Glossário
 
@@ -76,12 +76,12 @@ RF40 ajuda o gestor a decidir se deve rever preços, falar com fornecedores ou r
 
 #### Ficheiros a criar/editar/rever
 
-- EDITAR: `real_dev/api/prisma/schema.prisma`
-- CRIAR: `real_dev/api/src/modules/ai/aiSuggestionService.js`
-- CRIAR: `real_dev/api/src/modules/ai/aiSuggestionRoutes.js`
-- EDITAR: `real_dev/api/src/server.js`
-- EDITAR: `real_dev/web/src/lib/mf4Api.ts`
-- CRIAR: `real_dev/web/src/pages/AiSuggestionsPage.tsx`
+- EDITAR: `apps/api/prisma/schema.prisma`
+- CRIAR: `apps/api/src/modules/ai/aiSuggestionService.js`
+- CRIAR: `apps/api/src/modules/ai/aiSuggestionRoutes.js`
+- EDITAR: `apps/api/src/server.js`
+- EDITAR: `apps/web/src/lib/mf4Api.ts`
+- CRIAR: `apps/web/src/pages/AiSuggestionsPage.tsx`
 - REVER: BK-MF4-01.
 
 #### Tutorial técnico linear
@@ -123,7 +123,7 @@ Se o aluno não conseguir demonstrar este passo com evidence objetiva, o BK não
 Guardar recomendações ligadas a insights.
 
 2. Ficheiros envolvidos:
-    - EDITAR: `real_dev/api/prisma/schema.prisma`
+    - EDITAR: `apps/api/prisma/schema.prisma`
 
 3. Instruções do que fazer.
 
@@ -188,7 +188,7 @@ Se a sugestão não tiver `sourceLabel`, a defesa não consegue provar origem.
 Transformar insights abertos em recomendações.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `real_dev/api/src/modules/ai/aiSuggestionService.js`
+    - CRIAR: `apps/api/src/modules/ai/aiSuggestionService.js`
 
 3. Instruções do que fazer.
 
@@ -197,7 +197,7 @@ Mapeia tipos de insight para ações permitidas.
 4. Código completo, correto e integrado com a app final.
 
 ```js
-// real_dev/api/src/modules/ai/aiSuggestionService.js
+// apps/api/src/modules/ai/aiSuggestionService.js
 const actionByInsight = {
     NEGATIVE_MARGIN: "PRICE_REVIEW",
     LOW_STOCK: "STOCK_REPLENISHMENT",
@@ -278,8 +278,8 @@ Insight sem tipo reconhecido não deve criar sugestão inventada.
 Permitir consulta protegida.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `real_dev/api/src/modules/ai/aiSuggestionRoutes.js`
-    - EDITAR: `real_dev/api/src/server.js`
+    - CRIAR: `apps/api/src/modules/ai/aiSuggestionRoutes.js`
+    - EDITAR: `apps/api/src/server.js`
 
 3. Instruções do que fazer.
 
@@ -288,7 +288,7 @@ Monta `/api/ai/suggestions` com os mesmos guards de IA.
 4. Código completo, correto e integrado com a app final.
 
 ```js
-// real_dev/api/src/modules/ai/aiSuggestionRoutes.js
+// apps/api/src/modules/ai/aiSuggestionRoutes.js
 import { Router } from "express";
 import { toHttpError } from "../../lib/httpErrors.js";
 import { requireAuth } from "../auth/authMiddleware.js";
@@ -331,7 +331,7 @@ export function buildAiSuggestionRoutes({ prisma }) {
 ```
 
 ```js
-// real_dev/api/src/server.js
+// apps/api/src/server.js
 import { buildAiSuggestionRoutes } from "./modules/ai/aiSuggestionRoutes.js";
 
 app.use("/api/ai", buildAiSuggestionRoutes({ prisma }));
@@ -360,17 +360,17 @@ Role não autorizada deve receber `403 ROLE_FORBIDDEN`.
 Mostrar sugestões abertas.
 
 2. Ficheiros envolvidos:
-    - EDITAR: `real_dev/web/src/lib/mf4Api.ts`
-    - CRIAR: `real_dev/web/src/pages/AiSuggestionsPage.tsx`
+    - EDITAR: `apps/web/src/lib/mf4Api.ts`
+    - CRIAR: `apps/web/src/pages/AiSuggestionsPage.tsx`
 
 3. Instruções do que fazer.
 
-Adiciona a função ao `real_dev/web/src/lib/mf4Api.ts` criado no BK-MF4-01, sem repetir o import e o cliente HTTP inicial.
+Adiciona a função ao `apps/web/src/lib/mf4Api.ts` criado no BK-MF4-01, sem repetir o import e o cliente HTTP inicial.
 
 4. Código completo, correto e integrado com a app final.
 
 ```tsx
-// adicionar em real_dev/web/src/lib/mf4Api.ts
+// adicionar em apps/web/src/lib/mf4Api.ts
 export interface AiActionSuggestion {
   id: string;
   insightId: string;
@@ -388,7 +388,7 @@ export function getAiSuggestions() {
   return client.request<{ suggestions: AiActionSuggestion[] }>("GET", "/ai/suggestions");
 }
 
-// real_dev/web/src/pages/AiSuggestionsPage.tsx
+// apps/web/src/pages/AiSuggestionsPage.tsx
 import { useState } from "react";
 import { AiActionSuggestion, getAiSuggestions } from "../lib/mf4Api";
 
@@ -485,9 +485,9 @@ Se o aluno não conseguir demonstrar este passo com evidence objetiva, o BK não
 
 #### Validação final
 
-- Executar `npm run prisma:validate` em `real_dev/api` depois de editar o schema.
-- Executar `npm run syntax:check` em `real_dev/api` depois de criar routes/services.
-- Executar `npm run typecheck` em `real_dev/web` depois de criar páginas TypeScript.
+- Executar `npm run prisma:validate` em `apps/api` depois de editar o schema.
+- Executar `npm run syntax:check` em `apps/api` depois de criar routes/services.
+- Executar `npm run typecheck` em `apps/web` depois de criar páginas TypeScript.
 - Executar smoke HTTP autenticado para o endpoint principal deste BK.
 - Executar negativos de sessão ausente, role sem acesso e dados de outra empresa.
 
@@ -502,7 +502,7 @@ Se o aluno não conseguir demonstrar este passo com evidence objetiva, o BK não
 
 - Entrega para `BK-MF4-03`: endpoint, modelos, campos e riscos indicados neste guia.
 - Decisão `CANONICO`: RF40 define o requisito funcional deste BK.
-- Decisão `DERIVADO`: os nomes técnicos dos novos módulos seguem a estrutura real `real_dev/api/src/modules/*` e `real_dev/web/src/*`.
+- Decisão `DERIVADO`: os nomes técnicos dos novos módulos seguem a estrutura real `apps/api/src/modules/*` e `apps/web/src/*`.
 - Risco restante: se a implementação real já tiver divergido, registar drift no PR antes de adaptar caminhos.
 
 #### Changelog

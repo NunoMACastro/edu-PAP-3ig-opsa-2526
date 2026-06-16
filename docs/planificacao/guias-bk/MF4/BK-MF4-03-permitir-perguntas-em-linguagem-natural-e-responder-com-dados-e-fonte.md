@@ -51,7 +51,7 @@ RF41 aproxima os relatórios dos utilizadores não técnicos. O ponto central é
 - Ler RF41 em `docs/RF.md`.
 - Rever `docs/planificacao/backlogs/MATRIZ-CANONICA-BK.md`, `BACKLOG-MVP.md`, `CONTRATO-CAMPOS-BK.md`, `MF-VIEWS.md` e `PLANO-SPRINTS.md`.
 - Confirmar dependências canónicas: `BK-MF3-07`.
-- Rever `real_dev/api/src/modules/auth`, `real_dev/api/src/modules/companies/companyContext.js` e `real_dev/api/src/modules/permissions`.
+- Rever `apps/api/src/modules/auth`, `apps/api/src/modules/companies/companyContext.js` e `apps/api/src/modules/permissions`.
 
 #### Glossário
 
@@ -76,13 +76,13 @@ RF41 aproxima os relatórios dos utilizadores não técnicos. O ponto central é
 
 #### Ficheiros a criar/editar/rever
 
-- EDITAR: `real_dev/api/prisma/schema.prisma`
-- CRIAR: `real_dev/api/src/modules/ai/aiQuestionValidators.js`
-- CRIAR: `real_dev/api/src/modules/ai/aiQuestionService.js`
-- CRIAR: `real_dev/api/src/modules/ai/aiQuestionRoutes.js`
-- EDITAR: `real_dev/api/src/server.js`
-- EDITAR: `real_dev/web/src/lib/mf4Api.ts`
-- CRIAR: `real_dev/web/src/pages/AiQuestionsPage.tsx`
+- EDITAR: `apps/api/prisma/schema.prisma`
+- CRIAR: `apps/api/src/modules/ai/aiQuestionValidators.js`
+- CRIAR: `apps/api/src/modules/ai/aiQuestionService.js`
+- CRIAR: `apps/api/src/modules/ai/aiQuestionRoutes.js`
+- EDITAR: `apps/api/src/server.js`
+- EDITAR: `apps/web/src/lib/mf4Api.ts`
+- CRIAR: `apps/web/src/pages/AiQuestionsPage.tsx`
 - REVER: BK-MF3-07.
 
 #### Tutorial técnico linear
@@ -124,7 +124,7 @@ Se o aluno não conseguir demonstrar este passo com evidence objetiva, o BK não
 Guardar pergunta, resposta e fontes.
 
 2. Ficheiros envolvidos:
-    - EDITAR: `real_dev/api/prisma/schema.prisma`
+    - EDITAR: `apps/api/prisma/schema.prisma`
 
 3. Instruções do que fazer.
 
@@ -179,7 +179,7 @@ Sem `sources`, a resposta não cumpre RF41.
 Rejeitar pedidos vazios e mutáveis.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `real_dev/api/src/modules/ai/aiQuestionValidators.js`
+    - CRIAR: `apps/api/src/modules/ai/aiQuestionValidators.js`
 
 3. Instruções do que fazer.
 
@@ -188,7 +188,7 @@ Cria validator de payload.
 4. Código completo, correto e integrado com a app final.
 
 ```js
-// real_dev/api/src/modules/ai/aiQuestionValidators.js
+// apps/api/src/modules/ai/aiQuestionValidators.js
 import { httpError } from "../../lib/httpErrors.js";
 
 const blockedVerbs = ["aprovar", "emitir", "pagar", "lançar", "apagar", "alterar", "criar fatura"];
@@ -236,7 +236,7 @@ Pergunta vazia não pode chegar ao service.
 Consultar relatórios operacionais para responder.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `real_dev/api/src/modules/ai/aiQuestionService.js`
+    - CRIAR: `apps/api/src/modules/ai/aiQuestionService.js`
 
 3. Instruções do que fazer.
 
@@ -245,7 +245,7 @@ Usa intenção simples por palavras-chave.
 4. Código completo, correto e integrado com a app final.
 
 ```js
-// real_dev/api/src/modules/ai/aiQuestionService.js
+// apps/api/src/modules/ai/aiQuestionService.js
 /**
  * Responde a pergunta de leitura com fontes reais.
  *
@@ -298,8 +298,8 @@ Sem relatório, a resposta deve explicar falta de dados.
 Receber pergunta e devolver JSON.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `real_dev/api/src/modules/ai/aiQuestionRoutes.js`
-    - EDITAR: `real_dev/api/src/server.js`
+    - CRIAR: `apps/api/src/modules/ai/aiQuestionRoutes.js`
+    - EDITAR: `apps/api/src/server.js`
 
 3. Instruções do que fazer.
 
@@ -308,7 +308,7 @@ Monta `POST /api/ai/questions`.
 4. Código completo, correto e integrado com a app final.
 
 ```js
-// real_dev/api/src/modules/ai/aiQuestionRoutes.js
+// apps/api/src/modules/ai/aiQuestionRoutes.js
 import { Router } from "express";
 import { toHttpError } from "../../lib/httpErrors.js";
 import { requireAuth } from "../auth/authMiddleware.js";
@@ -354,7 +354,7 @@ export function buildAiQuestionRoutes({ prisma }) {
 ```
 
 ```js
-// real_dev/api/src/server.js
+// apps/api/src/server.js
 import { buildAiQuestionRoutes } from "./modules/ai/aiQuestionRoutes.js";
 
 app.use("/api/ai", buildAiQuestionRoutes({ prisma }));
@@ -383,8 +383,8 @@ Pedido mutável deve devolver `400`.
 Permitir pergunta com feedback.
 
 2. Ficheiros envolvidos:
-    - EDITAR: `real_dev/web/src/lib/mf4Api.ts`
-    - CRIAR: `real_dev/web/src/pages/AiQuestionsPage.tsx`
+    - EDITAR: `apps/web/src/lib/mf4Api.ts`
+    - CRIAR: `apps/web/src/pages/AiQuestionsPage.tsx`
 
 3. Instruções do que fazer.
 
@@ -393,7 +393,7 @@ Cria função POST e formulário.
 4. Código completo, correto e integrado com a app final.
 
 ```tsx
-// função a adicionar em real_dev/web/src/lib/mf4Api.ts
+// função a adicionar em apps/web/src/lib/mf4Api.ts
 export interface AiSourceReference {
   type: string;
   id: string;
@@ -414,7 +414,7 @@ export function askAiQuestion(question: string) {
   return client.request<{ answer: AiQuestionAnswer }>("POST", "/ai/questions", { body: { question } });
 }
 
-// real_dev/web/src/pages/AiQuestionsPage.tsx
+// apps/web/src/pages/AiQuestionsPage.tsx
 import { FormEvent, useState } from "react";
 import { AiQuestionAnswer, askAiQuestion } from "../lib/mf4Api";
 
@@ -488,9 +488,9 @@ Erro `QUESTION_MUTATION_BLOCKED` aparece no ecrã.
 
 #### Validação final
 
-- Executar `npm run prisma:validate` em `real_dev/api` depois de editar o schema.
-- Executar `npm run syntax:check` em `real_dev/api` depois de criar routes/services.
-- Executar `npm run typecheck` em `real_dev/web` depois de criar páginas TypeScript.
+- Executar `npm run prisma:validate` em `apps/api` depois de editar o schema.
+- Executar `npm run syntax:check` em `apps/api` depois de criar routes/services.
+- Executar `npm run typecheck` em `apps/web` depois de criar páginas TypeScript.
 - Executar smoke HTTP autenticado para o endpoint principal deste BK.
 - Executar negativos de sessão ausente, role sem acesso e dados de outra empresa.
 
@@ -505,7 +505,7 @@ Erro `QUESTION_MUTATION_BLOCKED` aparece no ecrã.
 
 - Entrega para `BK-MF4-04`: endpoint, modelos, campos e riscos indicados neste guia.
 - Decisão `CANONICO`: RF41 define o requisito funcional deste BK.
-- Decisão `DERIVADO`: os nomes técnicos dos novos módulos seguem a estrutura real `real_dev/api/src/modules/*` e `real_dev/web/src/*`.
+- Decisão `DERIVADO`: os nomes técnicos dos novos módulos seguem a estrutura real `apps/api/src/modules/*` e `apps/web/src/*`.
 - Risco restante: se a implementação real já tiver divergido, registar drift no PR antes de adaptar caminhos.
 
 #### Changelog

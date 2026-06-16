@@ -51,7 +51,7 @@ RF47 e RNF17 tornam a auditoria requisito de segurança. Sem trilho de auditoria
 - Ler RF47 em `docs/RF.md`.
 - Rever `docs/planificacao/backlogs/MATRIZ-CANONICA-BK.md`, `BACKLOG-MVP.md`, `CONTRATO-CAMPOS-BK.md`, `MF-VIEWS.md` e `PLANO-SPRINTS.md`.
 - Confirmar dependências canónicas: `-`.
-- Rever `real_dev/api/src/modules/auth`, `real_dev/api/src/modules/companies/companyContext.js` e `real_dev/api/src/modules/permissions`.
+- Rever `apps/api/src/modules/auth`, `apps/api/src/modules/companies/companyContext.js` e `apps/api/src/modules/permissions`.
 
 #### Glossário
 
@@ -76,13 +76,13 @@ RF47 e RNF17 tornam a auditoria requisito de segurança. Sem trilho de auditoria
 
 #### Ficheiros a criar/editar/rever
 
-- CRIAR: `real_dev/api/src/modules/audit/auditLogService.js`
-- CRIAR: `real_dev/api/src/modules/audit/auditLogRoutes.js`
-- EDITAR: `real_dev/api/src/server.js`
+- CRIAR: `apps/api/src/modules/audit/auditLogService.js`
+- CRIAR: `apps/api/src/modules/audit/auditLogRoutes.js`
+- EDITAR: `apps/api/src/server.js`
 - EDITAR: services sensíveis futuros para chamar `recordAuditLog`
-- EDITAR: `real_dev/web/src/lib/mf4Api.ts`
-- CRIAR: `real_dev/web/src/pages/AuditLogsPage.tsx`
-- REVER: `real_dev/api/prisma/schema.prisma`.
+- EDITAR: `apps/web/src/lib/mf4Api.ts`
+- CRIAR: `apps/web/src/pages/AuditLogsPage.tsx`
+- REVER: `apps/api/prisma/schema.prisma`.
 
 #### Tutorial técnico linear
 
@@ -128,7 +128,7 @@ Se o aluno não conseguir demonstrar este passo com evidence objetiva, o BK não
 Padronizar criação de `AuditLog`.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `real_dev/api/src/modules/audit/auditLogService.js`
+    - CRIAR: `apps/api/src/modules/audit/auditLogService.js`
 
 3. Instruções do que fazer.
 
@@ -137,7 +137,7 @@ O service recebe contexto autenticado e detalhes mínimos.
 4. Código completo, correto e integrado com a app final.
 
 ```js
-// real_dev/api/src/modules/audit/auditLogService.js
+// apps/api/src/modules/audit/auditLogService.js
 /**
  * Regista operação sensível no trilho de auditoria.
  *
@@ -187,8 +187,8 @@ Não passar palavras-passe, cookies, headers ou bodies completos para `details`.
 Permitir leitura a Admin/Auditor.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `real_dev/api/src/modules/audit/auditLogRoutes.js`
-    - EDITAR: `real_dev/api/src/server.js`
+    - CRIAR: `apps/api/src/modules/audit/auditLogRoutes.js`
+    - EDITAR: `apps/api/src/server.js`
 
 3. Instruções do que fazer.
 
@@ -197,7 +197,7 @@ Cria rota `GET /api/audit/logs`.
 4. Código completo, correto e integrado com a app final.
 
 ```js
-// real_dev/api/src/modules/audit/auditLogRoutes.js
+// apps/api/src/modules/audit/auditLogRoutes.js
 import { Router } from "express";
 import { toHttpError } from "../../lib/httpErrors.js";
 import { requireAuth } from "../auth/authMiddleware.js";
@@ -231,7 +231,7 @@ export function buildAuditLogRoutes({ prisma }) {
 ```
 
 ```js
-// real_dev/api/src/server.js
+// apps/api/src/server.js
 import { buildAuditLogRoutes } from "./modules/audit/auditLogRoutes.js";
 
 app.use("/api/audit", buildAuditLogRoutes({ prisma }));
@@ -305,8 +305,8 @@ Se a operação principal falhar, não registar sucesso falso.
 Dar evidence visual ao Auditor.
 
 2. Ficheiros envolvidos:
-    - EDITAR: `real_dev/web/src/lib/mf4Api.ts`
-    - CRIAR: `real_dev/web/src/pages/AuditLogsPage.tsx`
+    - EDITAR: `apps/web/src/lib/mf4Api.ts`
+    - CRIAR: `apps/web/src/pages/AuditLogsPage.tsx`
 
 3. Instruções do que fazer.
 
@@ -315,7 +315,7 @@ Adiciona consulta simples ao `mf4Api.ts` cumulativo, sem repetir o cliente HTTP.
 4. Código completo, correto e integrado com a app final.
 
 ```tsx
-// função a adicionar em real_dev/web/src/lib/mf4Api.ts
+// função a adicionar em apps/web/src/lib/mf4Api.ts
 export interface AuditLogItem {
   id: string;
   userId: string;
@@ -331,7 +331,7 @@ export function getAuditLogs() {
   return client.request<{ logs: AuditLogItem[] }>("GET", "/audit/logs");
 }
 
-// real_dev/web/src/pages/AuditLogsPage.tsx
+// apps/web/src/pages/AuditLogsPage.tsx
 import { useState } from "react";
 import { AuditLogItem, getAuditLogs } from "../lib/mf4Api";
 
@@ -493,9 +493,9 @@ Se o aluno não conseguir demonstrar este passo com evidence objetiva, o BK não
 
 #### Validação final
 
-- Executar `npm run prisma:validate` em `real_dev/api` depois de editar o schema.
-- Executar `npm run syntax:check` em `real_dev/api` depois de criar routes/services.
-- Executar `npm run typecheck` em `real_dev/web` depois de criar páginas TypeScript.
+- Executar `npm run prisma:validate` em `apps/api` depois de editar o schema.
+- Executar `npm run syntax:check` em `apps/api` depois de criar routes/services.
+- Executar `npm run typecheck` em `apps/web` depois de criar páginas TypeScript.
 - Executar smoke HTTP autenticado para o endpoint principal deste BK.
 - Executar negativos de sessão ausente, role sem acesso e dados de outra empresa.
 
@@ -510,7 +510,7 @@ Se o aluno não conseguir demonstrar este passo com evidence objetiva, o BK não
 
 - Entrega para `BK-MF4-10`: endpoint, modelos, campos e riscos indicados neste guia.
 - Decisão `CANONICO`: RF47 define o requisito funcional deste BK.
-- Decisão `DERIVADO`: os nomes técnicos dos novos módulos seguem a estrutura real `real_dev/api/src/modules/*` e `real_dev/web/src/*`.
+- Decisão `DERIVADO`: os nomes técnicos dos novos módulos seguem a estrutura real `apps/api/src/modules/*` e `apps/web/src/*`.
 - Risco restante: se a implementação real já tiver divergido, registar drift no PR antes de adaptar caminhos.
 
 #### Changelog
