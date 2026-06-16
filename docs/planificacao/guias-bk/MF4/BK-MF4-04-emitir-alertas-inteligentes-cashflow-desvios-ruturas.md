@@ -1,6 +1,7 @@
 # BK-MF4-04 - Emitir alertas inteligentes (cashflow, desvios, ruturas).
 
 ## Header
+
 - `doc_id`: `GUIA-BK-MF4-04`
 - `bk_id`: `BK-MF4-04`
 - `macro`: `MF4`
@@ -16,98 +17,535 @@
 - `core_or_reforco`: `Core`
 - `proximo_bk`: `BK-MF4-05`
 - `guia_path`: `docs/planificacao/guias-bk/MF4/BK-MF4-04-emitir-alertas-inteligentes-cashflow-desvios-ruturas.md`
-- `last_updated`: `2026-04-19`
+- `last_updated`: `2026-06-16`
 
-## Contexto do BK
-- Entrega alvo: implementar `Emitir alertas inteligentes (cashflow, desvios, ruturas).` com rastreabilidade direta ao requisito `RF42`.
-- Foco tecnico da macro: inteligencia operacional, alertas e governanca de operacoes.
-- Regra de governanca: nao alterar IDs nem contratos de dados (`bk_id/mf/sprint/owner/rf_rnf/deps/guia_path/core_or_reforco`).
+#### Objetivo
 
-## Bloco pedagogico
-### Objetivo
-Executar `Emitir alertas inteligentes (cashflow, desvios, ruturas).` com autonomia técnica, garantindo cobertura do requisito `RF42` e evidência objetiva para avaliação.
-- Intenção pedagógica da macro `MF4`: Operacionalizar IA assistiva com explicabilidade e controlo de risco..
+Neste BK vais criar alertas inteligentes para riscos de tesouraria, desvios operacionais e ruturas de stock, usando fontes já implementadas.
 
-### Pre-requisitos
-- Ler o requisito `RF42` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.
-- Validar dependencias declaradas: `BK-MF3-04, BK-MF2-05`.
-- Preparar ambiente para smoke test e validacao negativa.
+#### Importância
 
-### Erros comuns
-- Fechar o BK sem validar cenario negativo.
-- Alterar metadados no guia sem refletir backlog/matriz.
-- Submeter evidence sem provas objetivas (ex.: output real, screenshot, log, teste).
+RF42 transforma forecast e alertas de stock em sinais acionáveis. Ensina a separar alerta de ação automática.
 
-### Check de compreensao
-- [ ] Sei justificar porque este BK existe no fluxo da macro `MF4`.
-- [ ] Sei mostrar onde esta o requisito `RF42` no sistema.
-- [ ] Sei demonstrar pelo menos 1 negativo relevante do BK.
+#### Scope-in
 
-### Tempo estimado
-- `Core`: `45-70 min`.
-- `Reforco`: `n/a`.
+- Criar modelo `SmartAlert`.
+- Gerar alertas a partir de `CashflowForecastRun` e `StockAlertSetting`.
+- Criar endpoint `GET /api/ai/alerts`.
+- Guardar severidade, fonte e mensagem.
+- Preparar notificações do BK-MF4-08.
 
-## Bloco operacional
-### Entrada
-- BK: `BK-MF4-04`
-- Requisito: `RF42`
-- Dependencias: `BK-MF3-04, BK-MF2-05`
-- Artefactos de referencia: `MATRIZ-CANONICA-BK.md`, `BACKLOG-MVP.md`, `PLANO-SPRINTS.md`
+#### Scope-out
 
-### Passos
-1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do `BK-MF4-04` e o requisito `RF42`.
-2. Validar dependencias técnicas (`BK-MF3-04, BK-MF2-05`) e preparar dados de teste mínimos para `Emitir alertas inteligentes (cashflow, desvios, ruturas).`.
-3. Implementar fluxo de IA/alerta/tarefa com fonte explícita e critério de decisão audível.
-4. Validar que a resposta/alerta é explicável e não executa alterações contabilísticas automáticas.
-5. Executar pelo menos 1 teste de smoke orientado ao caso principal do BK.
-6. Executar cenários negativos obrigatórios e registar resultado observado (mensagem/código/efeito).
+- Não enviar notificações ainda.
+- Não alterar forecast, stock ou documentos.
+- Não criar thresholds configuráveis avançados; RNF33 fica em MF8.
+- Não fazer previsão estatística complexa.
 
-### Cenarios negativos recomendados
-- entrada obrigatoria em falta
-- estado de negocio invalido
+#### Estado antes e depois
 
-### Validacao
-- [ ] Smoke: fluxo principal executa sem erro bloqueante.
-- [ ] Negativos: minimo `2` cenarios com resultado controlado.
-- [ ] Tecnico: metadados e contratos de dados estao alinhados entre backlog/matriz/guia.
-- [ ] Evidencia: `pr`, `proof`, `neg` preenchidos com artefactos reais.
+- Estado antes: a MF3 já fornece relatórios, tesouraria, stock, importações e SAF-T, mas este BK ainda não entrega o fluxo específico de RF42.
+- Estado depois: o aluno implementa o contrato deste BK com backend protegido, dados por empresa, validação e evidence objetiva.
 
-### Handoff
-- Proximo BK recomendado: `BK-MF4-05`
-- Registar no handoff: estado de dependencias, risco aberto e decisao tomada.
-- Se houver bloqueio >48h, escalar no scorecard da sprint.
+#### Pre-requisitos
 
-## Snippet tecnico aplicavel
-**Regra de alerta com limiar explicito**
+- Ler RF42 em `docs/RF.md`.
+- Rever `docs/planificacao/backlogs/MATRIZ-CANONICA-BK.md`, `BACKLOG-MVP.md`, `CONTRATO-CAMPOS-BK.md`, `MF-VIEWS.md` e `PLANO-SPRINTS.md`.
+- Confirmar dependências canónicas: `BK-MF3-04, BK-MF2-05`.
+- Rever `real_dev/api/src/modules/auth`, `real_dev/api/src/modules/companies/companyContext.js` e `real_dev/api/src/modules/permissions`.
 
-Contexto de rastreabilidade: `BK-MF4-04` -> `RF42`.
+#### Glossário
 
-```ts
-type Regra = { nome: string; limite: number };
+- **Alerta inteligente:** sinal calculado que chama atenção para risco concreto.
+- **Rutura:** risco de stock insuficiente para operação.
+- **Cashflow:** fluxo previsto de entradas e saídas de dinheiro.
 
-export function avaliarAlerta(valorAtual: number, regra: Regra) {
-  const ativo = valorAtual >= regra.limite;
-  return {
-    bkId: 'BK-MF4-04',
-    regra: regra.nome,
-    ativo,
-    mensagem: ativo ? `Alerta ativo: ${regra.nome}` : 'Sem alerta',
-  };
+#### Conceitos teóricos essenciais
+
+- Um alerta é mais urgente que um insight, mas continua a ser leitura sobre dados.
+- Fontes obrigatórias protegem contra alertas sem prova.
+- A severidade deve ser simples para alunos validarem facilmente.
+- O próximo BK usa explicações destes alertas.
+
+#### Arquitetura do BK
+
+- Endpoint: `GET /api/ai/alerts?from=YYYY-MM-DD&to=YYYY-MM-DD`.
+- Modelo novo: `SmartAlert`.
+- Service: `generateSmartAlerts`.
+- Fontes: `CashflowForecastRun`, `StockBalance`, `StockAlertSetting`.
+- Roles: `ADMIN`, `GESTOR`.
+
+#### Ficheiros a criar/editar/rever
+
+- EDITAR: `real_dev/api/prisma/schema.prisma`
+- CRIAR: `real_dev/api/src/modules/ai/smartAlertService.js`
+- CRIAR: `real_dev/api/src/modules/ai/smartAlertRoutes.js`
+- EDITAR: `real_dev/api/src/server.js`
+- EDITAR: `real_dev/web/src/lib/mf4Api.ts`
+- CRIAR: `real_dev/web/src/pages/SmartAlertsPage.tsx`
+- REVER: BK-MF3-04 e BK-MF2-05.
+
+#### Tutorial técnico linear
+
+### Passo 1 - Confirmar fontes de alerta
+
+1. Objetivo funcional do passo no contexto da app.
+
+Separar cashflow, desvios e ruturas.
+
+2. Ficheiros envolvidos:
+    - REVER: BK-MF3-04
+    - REVER: BK-MF2-05
+    - REVER: RF42
+
+3. Instruções do que fazer.
+
+RF42 depende de forecast e alertas de stock. Não cries fonte nova sem contrato.
+
+4. Código completo, correto e integrado com a app final.
+
+Sem código neste passo.
+
+5. Explicação do código.
+
+Evidence deve indicar `CashflowForecastRun` e `StockAlertSetting` como fontes.
+
+6. Validação do passo.
+
+Alerta sem fonte deve ser recusado.
+
+7. Cenário negativo/erro esperado.
+
+Se o aluno não conseguir demonstrar este passo com evidence objetiva, o BK não deve ser fechado.
+
+### Passo 2 - Modelar alertas
+
+1. Objetivo funcional do passo no contexto da app.
+
+Persistir alertas gerados.
+
+2. Ficheiros envolvidos:
+    - EDITAR: `real_dev/api/prisma/schema.prisma`
+
+3. Instruções do que fazer.
+
+Cria `SmartAlert`, acrescenta relações inversas e usa uma chave única por origem para impedir alertas duplicados.
+
+4. Código completo, correto e integrado com a app final.
+
+```prisma
+// campos a acrescentar em modelos existentes
+model Company {
+  smartAlerts SmartAlert[]
+}
+
+model User {
+  smartAlerts SmartAlert[] @relation("UserSmartAlerts")
+}
+
+/// Alerta inteligente derivado de cashflow, desvios ou stock.
+model SmartAlert {
+  id            String   @id @default(uuid())
+  companyId     String
+  type          String
+  severity      String
+  title         String
+  message       String
+  sourceType    String
+  sourceId      String
+  status        String   @default("OPEN")
+  generatedById String
+  generatedAt   DateTime @default(now())
+
+  company     Company @relation(fields: [companyId], references: [id])
+  generatedBy User    @relation("UserSmartAlerts", fields: [generatedById], references: [id])
+
+  @@index([companyId, type, severity])
+  @@index([companyId, status])
+  @@unique([companyId, type, sourceType, sourceId])
 }
 ```
 
-Usar para gerar alertas auditaveis com criterio transparente (limiar), evitando decisoes opacas na camada de IA/operacao.
+5. Explicação do código.
 
-## Criterios de aceite
-- BK implementado no scope definido, sem romper dependencias.
-- Validacao de smoke e negativos concluida.
-- Contrato de dados canónico mantido (`bk_id/mf/sprint/owner/rf_rnf/deps/guia_path/core_or_reforco`).
-- Evidence pronta para revisao tecnica e defesa PAP.
+O modelo prepara notificações do BK-MF4-08 e mantém fonte por alerta. A chave única evita criar o mesmo alerta cada vez que o utilizador consulta a página.
 
-## Evidence para PR/defesa
-- `pr`: link do commit/PR com resumo objetivo da alteracao.
-- `proof`: prova funcional (output, screenshot, log, ou teste automatizado).
-- `neg`: cenario negativo executado com resultado esperado.
+6. Validação do passo.
 
-## Changelog
-- `2026-04-17`: guia migrado para naming com slug e template pedagogico-operacional executavel.
+Prisma valida modelo e relações.
+
+7. Cenário negativo/erro esperado.
+
+Sem severidade, a UI não sabe priorizar.
+
+### Passo 3 - Gerar alertas no service
+
+1. Objetivo funcional do passo no contexto da app.
+
+Criar alertas determinísticos.
+
+2. Ficheiros envolvidos:
+    - CRIAR: `real_dev/api/src/modules/ai/smartAlertService.js`
+
+3. Instruções do que fazer.
+
+Gera alerta de saldo projetado negativo e stock abaixo do mínimo.
+
+4. Código completo, correto e integrado com a app final.
+
+```js
+// real_dev/api/src/modules/ai/smartAlertService.js
+/** Gera alertas inteligentes com fontes reais. */
+export async function generateSmartAlerts(prisma, input) {
+    // As fontes vêm de módulos anteriores: tesouraria, stock e regras de alerta.
+    // Ler tudo em paralelo mantém o endpoint responsivo e não altera nenhum dado.
+    const [forecast, balances, settings] = await Promise.all([
+        prisma.cashflowForecastRun.findFirst({
+            where: { companyId: input.companyId },
+            orderBy: { generatedAt: "desc" },
+        }),
+        prisma.stockBalance.findMany({
+            where: { companyId: input.companyId },
+            include: { item: true },
+        }),
+        prisma.stockAlertSetting.findMany({
+            where: { companyId: input.companyId },
+        }),
+    ]);
+    const candidates = [];
+    if (forecast && forecast.closingBalanceCents < 0) {
+        // O alerta aponta risco de cashflow, mas não cria pagamento, financiamento
+        // nem lançamento contabilístico. É apenas informação para decisão humana.
+        candidates.push({
+            type: "CASHFLOW_RISK",
+            severity: "HIGH",
+            title: "Saldo projetado negativo",
+            message: "A previsão de tesouraria termina abaixo de zero.",
+            sourceType: "CashflowForecastRun",
+            sourceId: forecast.id,
+        });
+    }
+    const settingsByItem = new Map(
+        settings.map((item) => [item.itemId + ":" + item.warehouseId, item]),
+    );
+    for (const balance of balances) {
+        const setting = settingsByItem.get(
+            balance.itemId + ":" + balance.warehouseId,
+        );
+        if (
+            setting?.minQuantity &&
+            Number(balance.quantity) < Number(setting.minQuantity)
+        ) {
+            // A comparação usa o mínimo configurado no OPSA; não inventa limiares.
+            // Isto mantém a regra auditável para alunos e orientador.
+            candidates.push({
+                type: "STOCK_RUPTURE",
+                severity: "MEDIUM",
+                title: "Risco de rutura",
+                message: balance.item.name + " está abaixo do mínimo definido.",
+                sourceType: "StockBalance",
+                sourceId: balance.id,
+            });
+        }
+    }
+    const alerts = [];
+    for (const candidate of candidates) {
+        alerts.push(
+            // A chave única impede que cada consulta crie novo alerta para a mesma fonte.
+            await prisma.smartAlert.upsert({
+                where: {
+                    companyId_type_sourceType_sourceId: {
+                        companyId: input.companyId,
+                        type: candidate.type,
+                        sourceType: candidate.sourceType,
+                        sourceId: candidate.sourceId,
+                    },
+                },
+                update: {
+                    severity: candidate.severity,
+                    title: candidate.title,
+                    message: candidate.message,
+                    status: "OPEN",
+                    generatedById: input.userId,
+                    generatedAt: new Date(),
+                },
+                create: {
+                    ...candidate,
+                    companyId: input.companyId,
+                    generatedById: input.userId,
+                },
+            }),
+        );
+    }
+    return alerts;
+}
+```
+
+5. Explicação do código.
+
+Este service junta duas famílias de risco: tesouraria e inventário. A previsão de tesouraria vem de `CashflowForecastRun`; o risco de rutura vem de `StockBalance` comparado com `StockAlertSetting`. Isto mostra aos alunos como a MF4 constrói valor sobre contratos anteriores, em vez de criar dados paralelos.
+
+O alerta de cashflow só nasce quando `closingBalanceCents` é negativo. O alerta de stock só nasce quando a quantidade real fica abaixo do mínimo configurado. Estas regras são simples, mas são transparentes: qualquer pessoa consegue verificar a origem do alerta.
+
+O `upsert` mantém o alerta idempotente. Se o utilizador consultar a página várias vezes, o sistema atualiza o alerta existente em vez de encher a base de dados com duplicados. Mais importante ainda: o service não altera saldo bancário, stock ou contabilidade. Ele cria um sinal de apoio à decisão, respeitando a regra de que IA recomenda e explica, mas não executa.
+
+6. Validação do passo.
+
+Forecast negativo gera `CASHFLOW_RISK`.
+
+7. Cenário negativo/erro esperado.
+
+Sem forecast, não inventa alerta de cashflow.
+
+### Passo 4 - Expor rota de alertas
+
+1. Objetivo funcional do passo no contexto da app.
+
+Permitir consulta protegida.
+
+2. Ficheiros envolvidos:
+    - CRIAR: `real_dev/api/src/modules/ai/smartAlertRoutes.js`
+    - EDITAR: `real_dev/api/src/server.js`
+
+3. Instruções do que fazer.
+
+Monta `/api/ai/alerts`.
+
+4. Código completo, correto e integrado com a app final.
+
+```js
+// real_dev/api/src/modules/ai/smartAlertRoutes.js
+import { Router } from "express";
+import { toHttpError } from "../../lib/httpErrors.js";
+import { requireAuth } from "../auth/authMiddleware.js";
+import { requireCompanyContext } from "../companies/companyContext.js";
+import {
+    requirePermission,
+    requireRole,
+} from "../permissions/permissionMiddleware.js";
+import { Permission } from "../permissions/permissions.js";
+import { generateSmartAlerts } from "./smartAlertService.js";
+
+function sendError(res, error) {
+    const response = toHttpError(error);
+    // Formato comum de erro para a UI conseguir mostrar uma mensagem em PT-PT.
+    return res
+        .status(response.status)
+        .json({ error: response.code, message: response.message });
+}
+
+/** Constrói router de alerts. */
+export function buildSmartAlertRoutes({ prisma }) {
+    const router = Router();
+    const guards = [
+        // Alertas inteligentes podem influenciar decisões de gestão,
+        // por isso exigem autenticação, empresa ativa, permissão e role.
+        requireAuth(prisma),
+        requireCompanyContext(prisma),
+        requirePermission(Permission.REPORTS_READ),
+        requireRole("ADMIN", "GESTOR"),
+    ];
+
+    router.get("/alerts", guards, async (req, res) => {
+        try {
+            // A rota não recebe companyId; usa o contexto multiempresa resolvido no backend.
+            const alerts = await generateSmartAlerts(prisma, {
+                companyId: req.companyId,
+                userId: req.user.id,
+            });
+            return res.status(200).json({ alerts });
+        } catch (error) {
+            return sendError(res, error);
+        }
+    });
+
+    return router;
+}
+```
+
+```js
+// real_dev/api/src/server.js
+import { buildSmartAlertRoutes } from "./modules/ai/smartAlertRoutes.js";
+
+app.use("/api/ai", buildSmartAlertRoutes({ prisma }));
+```
+
+5. Explicação do código.
+
+A rota segue o mesmo padrão de segurança dos outros endpoints de IA. O aluno deve reparar que os alertas são dados de apoio à decisão e, por isso, não ficam expostos a qualquer utilizador autenticado. A role `OPERACIONAL`, por exemplo, é bloqueada no backend.
+
+O handler é curto de propósito: validação de sessão e permissões fica nos guards, regra de negócio fica no service e serialização da resposta fica na rota. Esta separação facilita testes e evita que o ficheiro de rotas se transforme num local com cálculos financeiros escondidos.
+
+A montagem em `server.js` fecha o circuito. Sem esse `app.use`, a página poderia chamar `/api/ai/alerts`, mas o Express nunca encontraria o router.
+
+6. Validação do passo.
+
+GET devolve `{ alerts: [...] }`.
+
+7. Cenário negativo/erro esperado.
+
+Role `OPERACIONAL` deve receber `403`.
+
+### Passo 5 - Mostrar alertas no frontend
+
+1. Objetivo funcional do passo no contexto da app.
+
+Dar feedback visual simples.
+
+2. Ficheiros envolvidos:
+    - EDITAR: `real_dev/web/src/lib/mf4Api.ts`
+    - CRIAR: `real_dev/web/src/pages/SmartAlertsPage.tsx`
+
+3. Instruções do que fazer.
+
+Adiciona consulta e página ao frontend, reutilizando o `client` já criado em `mf4Api.ts`.
+
+4. Código completo, correto e integrado com a app final.
+
+```tsx
+// adicionar em real_dev/web/src/lib/mf4Api.ts
+export interface SmartAlert {
+    id: string;
+    type: string;
+    severity: string;
+    title: string;
+    message: string;
+    sourceType: string;
+    sourceId: string;
+    status: string;
+}
+
+/** Consulta alertas inteligentes da empresa ativa. */
+export function getSmartAlerts() {
+    // O backend decide a empresa ativa. O frontend só pede a lista de alertas
+    // que o utilizador autenticado tem autorização para ver.
+    return client.request<{ alerts: SmartAlert[] }>("GET", "/ai/alerts");
+}
+
+// real_dev/web/src/pages/SmartAlertsPage.tsx
+import { useState } from "react";
+import { SmartAlert, getSmartAlerts } from "../lib/mf4Api";
+
+/** Página MF4 para Alertas inteligentes. */
+export function SmartAlertsPage() {
+    const [alerts, setAlerts] = useState<SmartAlert[]>([]);
+    const [error, setError] = useState<string | null>(null);
+
+    async function load() {
+        try {
+            const result = await getSmartAlerts();
+            // Guardamos o array tipado para renderizar título, severidade e fonte
+            // sem depender de JSON bruto.
+            setAlerts(result.alerts);
+            setError(null);
+        } catch (caught) {
+            setError(
+                caught instanceof Error ? caught.message : "Erro inesperado",
+            );
+        }
+    }
+
+    return (
+        <section className="panel">
+            <h2>Alertas inteligentes</h2>
+            <button type="button" onClick={load}>
+                Consultar
+            </button>
+            {error ? <p className="error">{error}</p> : null}
+            {alerts.length === 0 ? <p>Sem alertas abertos.</p> : null}
+            <ul>
+                {alerts.map((alert) => (
+                    <li key={alert.id}>
+                        <strong>{alert.title}</strong>
+                        <p>{alert.message}</p>
+                        <small>
+                            {alert.severity} · {alert.sourceType}
+                        </small>
+                    </li>
+                ))}
+            </ul>
+        </section>
+    );
+}
+```
+
+5. Explicação do código.
+
+A página foi desenhada como uma vista de decisão rápida: título para perceber o problema, mensagem para contextualizar, severidade para priorizar e fonte para justificar. Isto é muito diferente de mostrar JSON bruto; cada campo tem uma função no fluxo de trabalho do gestor.
+
+O `getSmartAlerts` não aceita parâmetros de empresa ou utilizador. Tal como nos BKs anteriores, a UI confia no cookie de sessão e o backend aplica o contexto multiempresa. Esta regra deve ficar interiorizada pelos alunos: frontend pede, backend decide o acesso.
+
+O estado `alerts.length === 0` também é pedagógico. Uma lista vazia não significa erro; pode significar que não existem riscos no momento ou que ainda não há dados suficientes. A UI deve dizer isso de forma limpa em vez de parecer avariada.
+
+6. Validação do passo.
+
+Smoke deve mostrar alerta de cashflow ou lista vazia honesta.
+
+7. Cenário negativo/erro esperado.
+
+Sem sessão deve mostrar erro.
+
+### Passo 6 - Validar handoff para notificações
+
+1. Objetivo funcional do passo no contexto da app.
+
+Preparar BK-MF4-08.
+
+2. Ficheiros envolvidos:
+    - REVER: BK-MF4-08
+
+3. Instruções do que fazer.
+
+Confirma que cada alerta aberto tem `id`, `type`, `severity`, `title`, `message` e `sourceType`.
+
+4. Código completo, correto e integrado com a app final.
+
+Sem código neste passo.
+
+5. Explicação do código.
+
+BK-MF4-08 deve conseguir criar notificação a partir de `SmartAlert`.
+
+6. Validação do passo.
+
+Sem `status`, notificações podem repetir alertas fechados.
+
+7. Cenário negativo/erro esperado.
+
+Se o aluno não conseguir demonstrar este passo com evidence objetiva, o BK não deve ser fechado.
+
+#### Critérios de aceite
+
+- O guia preserva header, owner, prioridade, dependências, RF e próximo BK canónicos.
+- O backend filtra sempre por empresa ativa resolvida na sessão.
+- Roles e permissões são aplicadas no backend antes de ler ou alterar dados.
+- O frontend usa o cliente HTTP existente com cookies HttpOnly e não guarda credenciais no browser.
+- Cada resposta relevante inclui fonte, explicação ou erro controlado.
+- Os cenários negativos definidos nos passos foram executados e registados em evidence.
+
+#### Validação final
+
+- Executar `npm run prisma:validate` em `real_dev/api` depois de editar o schema.
+- Executar `npm run syntax:check` em `real_dev/api` depois de criar routes/services.
+- Executar `npm run typecheck` em `real_dev/web` depois de criar páginas TypeScript.
+- Executar smoke HTTP autenticado para o endpoint principal deste BK.
+- Executar negativos de sessão ausente, role sem acesso e dados de outra empresa.
+
+#### Evidence para PR/defesa
+
+- `pr`: link ou referência do commit/PR com o BK.
+- `proof`: request/response ou screenshot do fluxo principal.
+- `neg`: pelo menos dois cenários negativos com código HTTP, mensagem e comportamento observado.
+- `fonte`: prova de que o resultado usa dados reais da empresa ativa.
+
+#### Handoff
+
+- Entrega para `BK-MF4-05`: endpoint, modelos, campos e riscos indicados neste guia.
+- Decisão `CANONICO`: RF42 define o requisito funcional deste BK.
+- Decisão `DERIVADO`: os nomes técnicos dos novos módulos seguem a estrutura real `real_dev/api/src/modules/*` e `real_dev/web/src/*`.
+- Risco restante: se a implementação real já tiver divergido, registar drift no PR antes de adaptar caminhos.
+
+#### Changelog
+
+- `2026-06-16`: explicações do código e comentários didáticos reforçados para clarificar fontes, limiares, idempotência, autorização e diferença entre alerta e ação automática.
+- `2026-06-15`: guia reestruturado e completado para a estrutura final da MF4, com teoria, passos técnicos, código integrado, segurança multiempresa, validações e evidence.

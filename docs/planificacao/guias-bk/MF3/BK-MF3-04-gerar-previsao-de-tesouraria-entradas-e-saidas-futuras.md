@@ -16,7 +16,7 @@
 - `core_or_reforco`: `Core`
 - `proximo_bk`: `BK-MF3-05`
 - `guia_path`: `docs/planificacao/guias-bk/MF3/BK-MF3-04-gerar-previsao-de-tesouraria-entradas-e-saidas-futuras.md`
-- `last_updated`: `2026-06-13`
+- `last_updated`: `2026-06-15`
 
 #### Objetivo
 
@@ -73,14 +73,14 @@ RF34 ajuda o gestor a antecipar falta ou excesso de caixa. A previsão é uma an
 
 #### Ficheiros a criar/editar/rever
 
-- CRIAR: `apps/api/src/modules/treasury/cashflowForecastFilters.js`
-- CRIAR: `apps/api/src/modules/treasury/cashflowForecastService.js`
-- CRIAR: `apps/api/src/modules/treasury/cashflowForecastRoutes.js`
-- CRIAR: `apps/web/src/lib/forecastApi.ts`
-- CRIAR: `apps/web/src/pages/CashflowForecastPage.tsx`
-- EDITAR: `apps/api/prisma/schema.prisma`
-- EDITAR: `apps/api/src/server.js`
-- EDITAR: `apps/web/src/App.tsx`
+- CRIAR: `real_dev/api/src/modules/treasury/cashflowForecastFilters.js`
+- CRIAR: `real_dev/api/src/modules/treasury/cashflowForecastService.js`
+- CRIAR: `real_dev/api/src/modules/treasury/cashflowForecastRoutes.js`
+- CRIAR: `real_dev/web/src/lib/forecastApi.ts`
+- CRIAR: `real_dev/web/src/pages/CashflowForecastPage.tsx`
+- EDITAR: `real_dev/api/prisma/schema.prisma`
+- EDITAR: `real_dev/api/src/server.js`
+- EDITAR: `real_dev/web/src/App.tsx`
 - REVER: BK-MF3-02, BK-MF1-02, BK-MF1-03, BK-MF1-07, BK-MF1-08.
 
 #### Tutorial técnico linear
@@ -129,7 +129,7 @@ Guardar previsões geradas para evidence.
 
 2. Ficheiros envolvidos:
     - CRIAR: nenhum.
-    - EDITAR: `apps/api/prisma/schema.prisma`
+    - EDITAR: `real_dev/api/prisma/schema.prisma`
     - REVER: `Company`, `User`.
     - LOCALIZAÇÃO: modelos de tesouraria.
 
@@ -177,7 +177,7 @@ Sem execução gravada, a defesa depende apenas do ecrã.
 Normalizar datas e bloquear horizonte excessivo.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `apps/api/src/modules/treasury/cashflowForecastFilters.js`
+    - CRIAR: `real_dev/api/src/modules/treasury/cashflowForecastFilters.js`
     - EDITAR: nenhum.
     - REVER: `httpErrors.js`.
     - LOCALIZAÇÃO: ficheiro completo.
@@ -189,7 +189,7 @@ Cria validator próprio para previsão.
 4. Código completo, correto e integrado com a app final.
 
 ```js
-// apps/api/src/modules/treasury/cashflowForecastFilters.js
+// real_dev/api/src/modules/treasury/cashflowForecastFilters.js
 import { httpError } from "../../lib/httpErrors.js";
 
 /**
@@ -244,7 +244,7 @@ Intervalo superior a 180 dias devolve `400 FORECAST_RANGE_TOO_LONG`.
 Calcular entradas, saídas e saldo projetado.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `apps/api/src/modules/treasury/cashflowForecastService.js`
+    - CRIAR: `real_dev/api/src/modules/treasury/cashflowForecastService.js`
     - EDITAR: nenhum.
     - REVER: `SaleDocument`, `PurchaseDocument`, `TreasuryBalanceSnapshot`.
     - LOCALIZAÇÃO: ficheiro completo.
@@ -256,7 +256,7 @@ Agrega por data e grava execução.
 4. Código completo, correto e integrado com a app final.
 
 ```js
-// apps/api/src/modules/treasury/cashflowForecastService.js
+// real_dev/api/src/modules/treasury/cashflowForecastService.js
 import { httpError } from "../../lib/httpErrors.js";
 
 /**
@@ -379,8 +379,8 @@ Sem empresa ativa devolve `401`.
 Permitir ao gestor consultar previsão.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `apps/api/src/modules/treasury/cashflowForecastRoutes.js`
-    - EDITAR: `apps/api/src/server.js`
+    - CRIAR: `real_dev/api/src/modules/treasury/cashflowForecastRoutes.js`
+    - EDITAR: `real_dev/api/src/server.js`
     - REVER: middlewares.
     - LOCALIZAÇÃO: ficheiro completo e montagem.
 
@@ -391,7 +391,7 @@ Cria `GET /api/treasury/forecast`.
 4. Código completo, correto e integrado com a app final.
 
 ```js
-// apps/api/src/modules/treasury/cashflowForecastRoutes.js
+// real_dev/api/src/modules/treasury/cashflowForecastRoutes.js
 import { Router } from "express";
 import { requireAuth } from "../auth/authMiddleware.js";
 import { requireCompanyContext } from "../companies/companyContext.js";
@@ -424,7 +424,7 @@ export function buildCashflowForecastRoutes({ prisma }) {
 ```
 
 ```js
-// apps/api/src/server.js
+// real_dev/api/src/server.js
 import { buildCashflowForecastRoutes } from "./modules/treasury/cashflowForecastRoutes.js";
 
 app.use("/api/treasury/forecast", buildCashflowForecastRoutes({ prisma }));
@@ -449,7 +449,7 @@ Operacional recebe `403`.
 Tipar chamada de forecast.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `apps/web/src/lib/forecastApi.ts`
+    - CRIAR: `real_dev/web/src/lib/forecastApi.ts`
     - EDITAR: nenhum.
     - REVER: cliente comum.
     - LOCALIZAÇÃO: ficheiro completo.
@@ -461,7 +461,7 @@ Usa nomes de tesouraria claros.
 4. Código completo, correto e integrado com a app final.
 
 ```ts
-// apps/web/src/lib/forecastApi.ts
+// real_dev/web/src/lib/forecastApi.ts
 import { apiClient } from "./apiClient";
 
 /**
@@ -510,8 +510,8 @@ Erro `FORECAST_RANGE_TOO_LONG` aparece na UI.
 Mostrar forecast com resumo e linhas por dia.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `apps/web/src/pages/CashflowForecastPage.tsx`
-    - EDITAR: `apps/web/src/App.tsx`
+    - CRIAR: `real_dev/web/src/pages/CashflowForecastPage.tsx`
+    - EDITAR: `real_dev/web/src/App.tsx`
     - REVER: `forecastApi.ts`.
     - LOCALIZAÇÃO: ficheiro completo e menu.
 
@@ -522,7 +522,7 @@ Cria formulario de datas e tabela.
 4. Código completo, correto e integrado com a app final.
 
 ```tsx
-// apps/web/src/pages/CashflowForecastPage.tsx
+// real_dev/web/src/pages/CashflowForecastPage.tsx
 import { FormEvent, useState } from "react";
 import { fetchCashflowForecast, type CashflowForecast } from "../lib/forecastApi";
 
@@ -657,5 +657,6 @@ BK-MF3-05 deve manter dados mestres limpos para melhorar importações e relató
 
 ## Changelog
 
+- `2026-06-15`: alinhados caminhos técnicos da MF3 com `real_dev/api` e `real_dev/web`, preservando contratos RF/RNF, dependências e escopo.
 - `2026-06-13`: corrigido para calcular previsão real com entradas, saídas, saldo projetado, fontes, JSDoc, `apiClient` e comentários didáticos.
 - `2026-06-13`: alinhado com MF1, declarando dependências `BK-MF1-03` e `BK-MF1-08` para `amountPaidCents`.

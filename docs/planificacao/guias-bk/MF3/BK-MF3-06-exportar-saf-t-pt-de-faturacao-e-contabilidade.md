@@ -16,7 +16,7 @@
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF3-07`
 - `guia_path`: `docs/planificacao/guias-bk/MF3/BK-MF3-06-exportar-saf-t-pt-de-faturacao-e-contabilidade.md`
-- `last_updated`: `2026-06-13`
+- `last_updated`: `2026-06-15`
 
 #### Objetivo
 
@@ -74,14 +74,14 @@ RF36 exige exportação SAF-T. Como é artefacto legal português, o BK deve ser
 
 #### Ficheiros a criar/editar/rever
 
-- CRIAR: `apps/api/src/modules/compliance/saftValidators.js`
-- CRIAR: `apps/api/src/modules/compliance/saftService.js`
-- CRIAR: `apps/api/src/modules/compliance/saftRoutes.js`
-- CRIAR: `apps/web/src/lib/complianceApi.ts`
-- CRIAR: `apps/web/src/pages/SaftExportPage.tsx`
-- EDITAR: `apps/api/prisma/schema.prisma`
-- EDITAR: `apps/api/src/server.js`
-- EDITAR: `apps/web/src/App.tsx`
+- CRIAR: `real_dev/api/src/modules/compliance/saftValidators.js`
+- CRIAR: `real_dev/api/src/modules/compliance/saftService.js`
+- CRIAR: `real_dev/api/src/modules/compliance/saftRoutes.js`
+- CRIAR: `real_dev/web/src/lib/complianceApi.ts`
+- CRIAR: `real_dev/web/src/pages/SaftExportPage.tsx`
+- EDITAR: `real_dev/api/prisma/schema.prisma`
+- EDITAR: `real_dev/api/src/server.js`
+- EDITAR: `real_dev/web/src/App.tsx`
 - REVER: RF36, RNF24, BK-MF0-06, BK-MF0-09, BK-MF0-10, BK-MF1-02, BK-MF1-04, BK-MF1-07, BK-MF1-09, BK-MF2-06, BK-MF7-07.
 
 #### Tutorial técnico linear
@@ -129,7 +129,7 @@ Guardar quem exportou, período e estado.
 
 2. Ficheiros envolvidos:
     - CRIAR: nenhum.
-    - EDITAR: `apps/api/prisma/schema.prisma`
+    - EDITAR: `real_dev/api/prisma/schema.prisma`
     - REVER: `Company`.
     - LOCALIZAÇÃO: modelos de compliance.
 
@@ -176,7 +176,7 @@ Sem run, não há rastreio de exportação.
 Bloquear exportação sem datas válidas.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `apps/api/src/modules/compliance/saftValidators.js`
+    - CRIAR: `real_dev/api/src/modules/compliance/saftValidators.js`
     - EDITAR: nenhum.
     - REVER: perfil de empresa de BK-MF0-06.
     - LOCALIZAÇÃO: ficheiro completo.
@@ -188,7 +188,7 @@ Valida datas e deixa perfil para o service confirmar.
 4. Código completo, correto e integrado com a app final.
 
 ```js
-// apps/api/src/modules/compliance/saftValidators.js
+// real_dev/api/src/modules/compliance/saftValidators.js
 import { httpError } from "../../lib/httpErrors.js";
 
 /**
@@ -239,7 +239,7 @@ Data inválida devolve `400 INVALID_SAFT_RANGE`.
 Gerar XML com dados reais e bloquear perfil incompleto.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `apps/api/src/modules/compliance/saftService.js`
+    - CRIAR: `real_dev/api/src/modules/compliance/saftService.js`
     - EDITAR: nenhum.
     - REVER: modelos de empresa, documentos e lançamentos.
     - LOCALIZAÇÃO: ficheiro completo.
@@ -251,7 +251,7 @@ Escapa XML e inclui fontes principais.
 4. Código completo, correto e integrado com a app final.
 
 ```js
-// apps/api/src/modules/compliance/saftService.js
+// real_dev/api/src/modules/compliance/saftService.js
 import { httpError } from "../../lib/httpErrors.js";
 
 /**
@@ -345,8 +345,8 @@ Empresa sem perfil fiscal completo devolve `422 COMPANY_PROFILE_INCOMPLETE`.
 Disponibilizar XML a contabilista e auditor.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `apps/api/src/modules/compliance/saftRoutes.js`
-    - EDITAR: `apps/api/src/server.js`
+    - CRIAR: `real_dev/api/src/modules/compliance/saftRoutes.js`
+    - EDITAR: `real_dev/api/src/server.js`
     - REVER: middlewares.
     - LOCALIZAÇÃO: ficheiro completo e montagem.
 
@@ -357,7 +357,7 @@ Cria `GET /api/compliance/saft`.
 4. Código completo, correto e integrado com a app final.
 
 ```js
-// apps/api/src/modules/compliance/saftRoutes.js
+// real_dev/api/src/modules/compliance/saftRoutes.js
 import { Router } from "express";
 import { requireAuth } from "../auth/authMiddleware.js";
 import { requireCompanyContext } from "../companies/companyContext.js";
@@ -390,7 +390,7 @@ export function buildSaftRoutes({ prisma }) {
 ```
 
 ```js
-// apps/api/src/server.js
+// real_dev/api/src/server.js
 import { buildSaftRoutes } from "./modules/compliance/saftRoutes.js";
 
 app.use("/api/compliance/saft", buildSaftRoutes({ prisma }));
@@ -415,7 +415,7 @@ Operacional recebe `403`.
 Obter XML SAF-T no frontend.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `apps/web/src/lib/complianceApi.ts`
+    - CRIAR: `real_dev/web/src/lib/complianceApi.ts`
     - EDITAR: nenhum.
     - REVER: cliente comum.
     - LOCALIZAÇÃO: ficheiro completo.
@@ -427,7 +427,7 @@ Tipa resposta.
 4. Código completo, correto e integrado com a app final.
 
 ```ts
-// apps/web/src/lib/complianceApi.ts
+// real_dev/web/src/lib/complianceApi.ts
 import { apiClient } from "./apiClient";
 
 /**
@@ -467,8 +467,8 @@ Perfil incompleto mostra mensagem do backend.
 Permitir gerar e descarregar XML.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `apps/web/src/pages/SaftExportPage.tsx`
-    - EDITAR: `apps/web/src/App.tsx`
+    - CRIAR: `real_dev/web/src/pages/SaftExportPage.tsx`
+    - EDITAR: `real_dev/web/src/App.tsx`
     - REVER: `complianceApi.ts`.
     - LOCALIZAÇÃO: ficheiro completo.
 
@@ -479,7 +479,7 @@ Mostra resumo e conteúdo XML.
 4. Código completo, correto e integrado com a app final.
 
 ```tsx
-// apps/web/src/pages/SaftExportPage.tsx
+// real_dev/web/src/pages/SaftExportPage.tsx
 import { FormEvent, useState } from "react";
 import { fetchSaftExport, type SaftExportResult } from "../lib/complianceApi";
 
@@ -599,5 +599,6 @@ BK-MF3-07 usa os mesmos documentos e dados mestres para relatórios operacionais
 
 ## Changelog
 
+- `2026-06-15`: alinhados caminhos técnicos da MF3 com `real_dev/api` e `real_dev/web`, preservando contratos RF/RNF, dependências e escopo.
 - `2026-06-13`: corrigido para gerar XML MVP, validar perfil fiscal, usar `apiClient`, documentar limite legal e registar exportação com JSDoc.
 - `2026-06-13`: alinhado com MF0/MF1, lendo `CompanyProfile` para dados fiscais e `supplierNumber` para documentos de compra.

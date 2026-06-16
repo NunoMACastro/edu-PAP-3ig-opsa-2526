@@ -16,7 +16,7 @@
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF3-04`
 - `guia_path`: `docs/planificacao/guias-bk/MF3/BK-MF3-03-importar-extratos-bancarios-csv-ofx-e-fazer-reconciliacao-automatica.md`
-- `last_updated`: `2026-06-13`
+- `last_updated`: `2026-06-15`
 
 #### Objetivo
 
@@ -75,14 +75,14 @@ RF33 liga bancos ao ciclo operacional. A reconciliação não confirma automatic
 
 #### Ficheiros a criar/editar/rever
 
-- CRIAR: `apps/api/src/modules/treasury/statementImportValidators.js`
-- CRIAR: `apps/api/src/modules/treasury/statementImportService.js`
-- CRIAR: `apps/api/src/modules/treasury/statementRoutes.js`
-- CRIAR: `apps/web/src/lib/statementApi.ts`
-- CRIAR: `apps/web/src/pages/StatementImportPage.tsx`
-- EDITAR: `apps/api/prisma/schema.prisma`
-- EDITAR: `apps/api/src/server.js`
-- EDITAR: `apps/web/src/App.tsx`
+- CRIAR: `real_dev/api/src/modules/treasury/statementImportValidators.js`
+- CRIAR: `real_dev/api/src/modules/treasury/statementImportService.js`
+- CRIAR: `real_dev/api/src/modules/treasury/statementRoutes.js`
+- CRIAR: `real_dev/web/src/lib/statementApi.ts`
+- CRIAR: `real_dev/web/src/pages/StatementImportPage.tsx`
+- EDITAR: `real_dev/api/prisma/schema.prisma`
+- EDITAR: `real_dev/api/src/server.js`
+- EDITAR: `real_dev/web/src/App.tsx`
 - REVER: BK-MF3-02, BK-MF1-02, BK-MF1-03, BK-MF1-07, BK-MF1-08.
 
 #### Tutorial técnico linear
@@ -130,7 +130,7 @@ Guardar importação, linhas e sugestões por empresa.
 
 2. Ficheiros envolvidos:
     - CRIAR: nenhum.
-    - EDITAR: `apps/api/prisma/schema.prisma`
+    - EDITAR: `real_dev/api/prisma/schema.prisma`
     - REVER: `TreasuryAccount`, `Receipt`, `Payment`.
     - LOCALIZAÇÃO: modelos de tesouraria.
 
@@ -218,7 +218,7 @@ Sem `companyId`, uma sugestão podia ligar linha de uma empresa a pagamento de o
 Transformar conteúdo textual em linhas normalizadas.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `apps/api/src/modules/treasury/statementImportValidators.js`
+    - CRIAR: `real_dev/api/src/modules/treasury/statementImportValidators.js`
     - EDITAR: nenhum.
     - REVER: `httpErrors.js`.
     - LOCALIZAÇÃO: ficheiro completo.
@@ -230,7 +230,7 @@ CSV usa `data;descricao;referencia;valor`. OFX simplificado usa linhas `DTPOSTED
 4. Código completo, correto e integrado com a app final.
 
 ```js
-// apps/api/src/modules/treasury/statementImportValidators.js
+// real_dev/api/src/modules/treasury/statementImportValidators.js
 import { httpError } from "../../lib/httpErrors.js";
 
 /**
@@ -333,7 +333,7 @@ Formato `PDF` devolve `400 INVALID_STATEMENT_FORMAT`.
 Gravar o extrato e sugerir correspondências por valor e proximidade de data.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `apps/api/src/modules/treasury/statementImportService.js`
+    - CRIAR: `real_dev/api/src/modules/treasury/statementImportService.js`
     - EDITAR: nenhum.
     - REVER: `Receipt`, `Payment`, `TreasuryAccount`.
     - LOCALIZAÇÃO: ficheiro completo.
@@ -345,7 +345,7 @@ Usa transação para criar importação, linhas e sugestões.
 4. Código completo, correto e integrado com a app final.
 
 ```js
-// apps/api/src/modules/treasury/statementImportService.js
+// real_dev/api/src/modules/treasury/statementImportService.js
 import { httpError } from "../../lib/httpErrors.js";
 
 /**
@@ -447,8 +447,8 @@ Conta inativa ou de outra empresa devolve `404 TREASURY_ACCOUNT_NOT_FOUND`.
 Receber ficheiro textual e devolver linhas importadas com sugestões.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `apps/api/src/modules/treasury/statementRoutes.js`
-    - EDITAR: `apps/api/src/server.js`
+    - CRIAR: `real_dev/api/src/modules/treasury/statementRoutes.js`
+    - EDITAR: `real_dev/api/src/server.js`
     - REVER: middlewares de segurança.
     - LOCALIZAÇÃO: ficheiro completo e montagem.
 
@@ -459,7 +459,7 @@ Cria `POST /api/treasury/statements/import`.
 4. Código completo, correto e integrado com a app final.
 
 ```js
-// apps/api/src/modules/treasury/statementRoutes.js
+// real_dev/api/src/modules/treasury/statementRoutes.js
 import { Router } from "express";
 import { requireAuth } from "../auth/authMiddleware.js";
 import { requireCompanyContext } from "../companies/companyContext.js";
@@ -495,7 +495,7 @@ export function buildStatementRoutes({ prisma }) {
 ```
 
 ```js
-// apps/api/src/server.js
+// real_dev/api/src/server.js
 import { buildStatementRoutes } from "./modules/treasury/statementRoutes.js";
 
 app.use("/api/treasury/statements", buildStatementRoutes({ prisma }));
@@ -520,7 +520,7 @@ Role `GESTOR` sem permissão operacional recebe `403`.
 Enviar extrato do frontend para o backend.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `apps/web/src/lib/statementApi.ts`
+    - CRIAR: `real_dev/web/src/lib/statementApi.ts`
     - EDITAR: nenhum.
     - REVER: `treasuryApi.ts`.
     - LOCALIZAÇÃO: ficheiro completo.
@@ -532,7 +532,7 @@ Tipa payload e resposta.
 4. Código completo, correto e integrado com a app final.
 
 ```ts
-// apps/web/src/lib/statementApi.ts
+// real_dev/web/src/lib/statementApi.ts
 import { apiClient } from "./apiClient";
 
 /**
@@ -589,8 +589,8 @@ Sessão expirada devolve erro controlado.
 Permitir colar/importar conteúdo textual e ver sugestões geradas.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `apps/web/src/pages/StatementImportPage.tsx`
-    - EDITAR: `apps/web/src/App.tsx`
+    - CRIAR: `real_dev/web/src/pages/StatementImportPage.tsx`
+    - EDITAR: `real_dev/web/src/App.tsx`
     - REVER: `statementApi.ts`.
     - LOCALIZAÇÃO: ficheiro completo e menu.
 
@@ -601,7 +601,7 @@ Cria formulario com conta, formato e conteúdo.
 4. Código completo, correto e integrado com a app final.
 
 ```tsx
-// apps/web/src/pages/StatementImportPage.tsx
+// real_dev/web/src/pages/StatementImportPage.tsx
 import { FormEvent, useEffect, useState } from "react";
 import { listTreasuryAccounts, type TreasuryAccount } from "../lib/treasuryApi";
 import { importStatement, type StatementImportResult } from "../lib/statementApi";
@@ -744,4 +744,5 @@ BK-MF3-04 usa extratos, saldos, recebimentos e pagamentos para previsão de teso
 
 ## Changelog
 
+- `2026-06-15`: alinhados caminhos técnicos da MF3 com `real_dev/api` e `real_dev/web`, preservando contratos RF/RNF, dependências e escopo.
 - `2026-06-13`: corrigido para parsear CSV/OFX simplificado, guardar linhas, criar sugestões reais de reconciliação, carregar contas reais, usar `apiClient`, JSDoc e comentários didáticos.

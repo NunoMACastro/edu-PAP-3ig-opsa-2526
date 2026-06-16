@@ -16,7 +16,7 @@
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF3-02`
 - `guia_path`: `docs/planificacao/guias-bk/MF3/BK-MF3-01-gerar-mapas-de-iva-liquidado-dedutivel.md`
-- `last_updated`: `2026-06-13`
+- `last_updated`: `2026-06-15`
 
 #### Objetivo
 
@@ -70,22 +70,22 @@ Este BK fecha RF31 e prepara relatórios fiscais internos. O mapa não submete d
 
 #### Arquitetura do BK
 
-- Backend: `apps/api/src/modules/tax`.
+- Backend: `real_dev/api/src/modules/tax`.
 - Endpoint: `GET /api/tax/vat-maps`.
 - Roles: `CONTABILISTA`, `AUDITOR`.
-- Frontend: `apps/web/src/lib/taxApi.ts` e `apps/web/src/pages/VatMapPage.tsx`.
+- Frontend: `real_dev/web/src/lib/taxApi.ts` e `real_dev/web/src/pages/VatMapPage.tsx`.
 - Modelos: `VatMapRun`, `Company`, `User`, `JournalEntry`, `JournalEntryLine`, `VatRate`, `SaleDocument`, `SaleDocumentLine`, `PurchaseDocument`, `PurchaseDocumentLine`.
 
 #### Ficheiros a criar/editar/rever
 
-- CRIAR: `apps/api/src/modules/tax/vatMapFilters.js`
-- CRIAR: `apps/api/src/modules/tax/vatMapService.js`
-- CRIAR: `apps/api/src/modules/tax/vatMapRoutes.js`
-- CRIAR: `apps/web/src/lib/taxApi.ts`
-- CRIAR: `apps/web/src/pages/VatMapPage.tsx`
-- EDITAR: `apps/api/prisma/schema.prisma`
-- EDITAR: `apps/api/src/server.js`
-- EDITAR: `apps/web/src/App.tsx`
+- CRIAR: `real_dev/api/src/modules/tax/vatMapFilters.js`
+- CRIAR: `real_dev/api/src/modules/tax/vatMapService.js`
+- CRIAR: `real_dev/api/src/modules/tax/vatMapRoutes.js`
+- CRIAR: `real_dev/web/src/lib/taxApi.ts`
+- CRIAR: `real_dev/web/src/pages/VatMapPage.tsx`
+- EDITAR: `real_dev/api/prisma/schema.prisma`
+- EDITAR: `real_dev/api/src/server.js`
+- EDITAR: `real_dev/web/src/App.tsx`
 - REVER: `BK-MF1-01`, `BK-MF1-02`, `BK-MF1-04`, `BK-MF1-07`, `BK-MF1-09`, `MATRIZ-CANONICA-BK.md`, `BACKLOG-MVP.md`
 
 #### Tutorial técnico linear
@@ -133,7 +133,7 @@ Guardar cada execução do mapa com empresa, utilizador, período e totais calcu
 
 2. Ficheiros envolvidos:
     - CRIAR: nenhum.
-    - EDITAR: `apps/api/prisma/schema.prisma`
+    - EDITAR: `real_dev/api/prisma/schema.prisma`
     - REVER: modelos `Company`, `User`, `SaleDocument`, `PurchaseDocument`.
     - LOCALIZAÇÃO: zona dos modelos fiscais/financeiros.
 
@@ -198,9 +198,9 @@ Sem campos inversos em `Company` e `User`, o Prisma rejeita a relação durante 
 Impedir intervalos vazios, inválidos ou demasiado grandes antes de consultar dados financeiros.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `apps/api/src/modules/tax/vatMapFilters.js`
+    - CRIAR: `real_dev/api/src/modules/tax/vatMapFilters.js`
     - EDITAR: nenhum.
-    - REVER: `apps/api/src/lib/httpErrors.js`
+    - REVER: `real_dev/api/src/lib/httpErrors.js`
     - LOCALIZAÇÃO: ficheiro completo.
 
 3. Instruções do que fazer.
@@ -210,7 +210,7 @@ Cria um validator que recebe `req.query` e devolve `fromDate` e `toDate`.
 4. Código completo, correto e integrado com a app final.
 
 ```js
-// apps/api/src/modules/tax/vatMapFilters.js
+// real_dev/api/src/modules/tax/vatMapFilters.js
 import { httpError } from "../../lib/httpErrors.js";
 
 /**
@@ -280,7 +280,7 @@ Testa `from=2026-01-01&to=2026-01-31` e depois `from=abc`.
 Calcular IVA liquidado, IVA dedutível e saldo por taxa, sempre filtrando pela empresa ativa.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `apps/api/src/modules/tax/vatMapService.js`
+    - CRIAR: `real_dev/api/src/modules/tax/vatMapService.js`
     - EDITAR: nenhum.
     - REVER: services de contabilização criados em `BK-MF1-04` e `BK-MF1-09`.
     - LOCALIZAÇÃO: ficheiro completo.
@@ -292,7 +292,7 @@ Implementa queries reais sobre `JournalEntry` de vendas e compras. Depois usa os
 4. Código completo, correto e integrado com a app final.
 
 ```js
-// apps/api/src/modules/tax/vatMapService.js
+// real_dev/api/src/modules/tax/vatMapService.js
 import { httpError } from "../../lib/httpErrors.js";
 
 /**
@@ -467,8 +467,8 @@ Sem empresa ativa, o service devolve `401 COMPANY_CONTEXT_REQUIRED`.
 Publicar o mapa de IVA apenas para roles financeiras.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `apps/api/src/modules/tax/vatMapRoutes.js`
-    - EDITAR: `apps/api/src/server.js`
+    - CRIAR: `real_dev/api/src/modules/tax/vatMapRoutes.js`
+    - EDITAR: `real_dev/api/src/server.js`
     - REVER: middlewares de autenticação, empresa e permissões.
     - LOCALIZAÇÃO: ficheiro completo e montagem em `server.js`.
 
@@ -479,7 +479,7 @@ Liga validator e service numa route `GET /`.
 4. Código completo, correto e integrado com a app final.
 
 ```js
-// apps/api/src/modules/tax/vatMapRoutes.js
+// real_dev/api/src/modules/tax/vatMapRoutes.js
 import { Router } from "express";
 import { requireAuth } from "../auth/authMiddleware.js";
 import { requireCompanyContext } from "../companies/companyContext.js";
@@ -519,7 +519,7 @@ export function buildVatMapRoutes({ prisma }) {
 ```
 
 ```js
-// apps/api/src/server.js
+// real_dev/api/src/server.js
 import { buildVatMapRoutes } from "./modules/tax/vatMapRoutes.js";
 
 app.use("/api/tax/vat-maps", buildVatMapRoutes({ prisma }));
@@ -544,9 +544,9 @@ Sem cookie de sessão, a route devolve `401 SESSION_REQUIRED`.
 Permitir que a página chame o endpoint real com tipos claros.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `apps/web/src/lib/taxApi.ts`
+    - CRIAR: `real_dev/web/src/lib/taxApi.ts`
     - EDITAR: nenhum.
-    - REVER: `apps/web/src/lib/apiClient.ts`
+    - REVER: `real_dev/web/src/lib/apiClient.ts`
     - LOCALIZAÇÃO: ficheiro completo.
 
 3. Instruções do que fazer.
@@ -556,7 +556,7 @@ Cria tipos de resposta com nomes fiscais, não nomes genericos.
 4. Código completo, correto e integrado com a app final.
 
 ```ts
-// apps/web/src/lib/taxApi.ts
+// real_dev/web/src/lib/taxApi.ts
 import { apiClient } from "./apiClient";
 
 /**
@@ -619,8 +619,8 @@ Se o backend devolver `403`, a função lança erro com mensagem controlada.
 Mostrar o mapa de IVA com formulario, estados e tabela por taxa.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `apps/web/src/pages/VatMapPage.tsx`
-    - EDITAR: `apps/web/src/App.tsx`
+    - CRIAR: `real_dev/web/src/pages/VatMapPage.tsx`
+    - EDITAR: `real_dev/web/src/App.tsx`
     - REVER: cliente `taxApi.ts`.
     - LOCALIZAÇÃO: ficheiro completo e registo da rota/menu.
 
@@ -631,7 +631,7 @@ Cria página com datas obrigatórias e mensagens em português de Portugal.
 4. Código completo, correto e integrado com a app final.
 
 ```tsx
-// apps/web/src/pages/VatMapPage.tsx
+// real_dev/web/src/pages/VatMapPage.tsx
 import { FormEvent, useState } from "react";
 import { fetchVatMap, type VatMapResult } from "../lib/taxApi";
 
@@ -792,4 +792,5 @@ BK-MF3-02 usa a mesma disciplina de multiempresa para criar contas bancárias e 
 
 ## Changelog
 
+- `2026-06-15`: alinhados caminhos técnicos da MF3 com `real_dev/api` e `real_dev/web`, preservando contratos RF/RNF, dependências e escopo.
 - `2026-06-13`: corrigido para implementar cálculo real de IVA liquidado/dedutível, fonte contabilística por `JournalEntry`, nomes fiscais, route protegida, página React, JSDoc, `apiClient` e evidence.

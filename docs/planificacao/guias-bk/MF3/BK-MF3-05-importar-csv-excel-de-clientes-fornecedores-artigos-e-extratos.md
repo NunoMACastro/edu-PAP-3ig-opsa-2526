@@ -16,7 +16,7 @@
 - `core_or_reforco`: `Core`
 - `proximo_bk`: `BK-MF3-06`
 - `guia_path`: `docs/planificacao/guias-bk/MF3/BK-MF3-05-importar-csv-excel-de-clientes-fornecedores-artigos-e-extratos.md`
-- `last_updated`: `2026-06-13`
+- `last_updated`: `2026-06-15`
 
 #### Objetivo
 
@@ -73,14 +73,14 @@ RF35 reduz entrada manual de dados, mas só é seguro se cada linha for validada
 
 #### Ficheiros a criar/editar/rever
 
-- CRIAR: `apps/api/src/modules/imports/businessImportValidators.js`
-- CRIAR: `apps/api/src/modules/imports/businessImportService.js`
-- CRIAR: `apps/api/src/modules/imports/businessImportRoutes.js`
-- CRIAR: `apps/web/src/lib/importApi.ts`
-- CRIAR: `apps/web/src/pages/BusinessImportPage.tsx`
-- EDITAR: `apps/api/prisma/schema.prisma`
-- EDITAR: `apps/api/src/server.js`
-- EDITAR: `apps/web/src/App.tsx`
+- CRIAR: `real_dev/api/src/modules/imports/businessImportValidators.js`
+- CRIAR: `real_dev/api/src/modules/imports/businessImportService.js`
+- CRIAR: `real_dev/api/src/modules/imports/businessImportRoutes.js`
+- CRIAR: `real_dev/web/src/lib/importApi.ts`
+- CRIAR: `real_dev/web/src/pages/BusinessImportPage.tsx`
+- EDITAR: `real_dev/api/prisma/schema.prisma`
+- EDITAR: `real_dev/api/src/server.js`
+- EDITAR: `real_dev/web/src/App.tsx`
 - REVER: BK-MF0-09, BK-MF0-10, BK-MF0-11, BK-MF3-02, BK-MF3-03.
 
 #### Tutorial técnico linear
@@ -128,7 +128,7 @@ Guardar totais e erros da importação.
 
 2. Ficheiros envolvidos:
     - CRIAR: nenhum.
-    - EDITAR: `apps/api/prisma/schema.prisma`
+    - EDITAR: `real_dev/api/prisma/schema.prisma`
     - REVER: modelos de dados mestre.
     - LOCALIZAÇÃO: zona de importações.
 
@@ -176,7 +176,7 @@ Sem resumo, a equipa não consegue provar que linhas falharam.
 Transformar CSV em objetos e validar campos obrigatórios.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `apps/api/src/modules/imports/businessImportValidators.js`
+    - CRIAR: `real_dev/api/src/modules/imports/businessImportValidators.js`
     - EDITAR: nenhum.
     - REVER: regras de NIF/SKU/IVA dos BKs anteriores.
     - LOCALIZAÇÃO: ficheiro completo.
@@ -188,7 +188,7 @@ CSV usa cabeçalho na primeira linha.
 4. Código completo, correto e integrado com a app final.
 
 ```js
-// apps/api/src/modules/imports/businessImportValidators.js
+// real_dev/api/src/modules/imports/businessImportValidators.js
 import { httpError } from "../../lib/httpErrors.js";
 
 const importTypes = new Set(["CUSTOMERS", "SUPPLIERS", "ITEMS", "STATEMENTS"]);
@@ -321,7 +321,7 @@ Tipo `PRODUCTS` devolve `400 INVALID_IMPORT_TYPE`.
 Gravar linhas válidas e rejeitar linhas com erro.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `apps/api/src/modules/imports/businessImportService.js`
+    - CRIAR: `real_dev/api/src/modules/imports/businessImportService.js`
     - EDITAR: nenhum.
     - REVER: services de dados mestre.
     - LOCALIZAÇÃO: ficheiro completo.
@@ -333,7 +333,7 @@ Usa transação e `companyId` da sessão.
 4. Código completo, correto e integrado com a app final.
 
 ```js
-// apps/api/src/modules/imports/businessImportService.js
+// real_dev/api/src/modules/imports/businessImportService.js
 import { httpError } from "../../lib/httpErrors.js";
 
 /**
@@ -525,8 +525,8 @@ Linha com NIF vazio aumenta `rejectedRows`. Artigo sem `priceCents` aumenta `rej
 Permitir importações apenas a roles autorizadas.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `apps/api/src/modules/imports/businessImportRoutes.js`
-    - EDITAR: `apps/api/src/server.js`
+    - CRIAR: `real_dev/api/src/modules/imports/businessImportRoutes.js`
+    - EDITAR: `real_dev/api/src/server.js`
     - REVER: middlewares.
     - LOCALIZAÇÃO: ficheiro completo e montagem.
 
@@ -537,7 +537,7 @@ Cria `POST /api/imports/business-data`.
 4. Código completo, correto e integrado com a app final.
 
 ```js
-// apps/api/src/modules/imports/businessImportRoutes.js
+// real_dev/api/src/modules/imports/businessImportRoutes.js
 import { Router } from "express";
 import { requireAuth } from "../auth/authMiddleware.js";
 import { requireCompanyContext } from "../companies/companyContext.js";
@@ -570,7 +570,7 @@ export function buildBusinessImportRoutes({ prisma }) {
 ```
 
 ```js
-// apps/api/src/server.js
+// real_dev/api/src/server.js
 import { buildBusinessImportRoutes } from "./modules/imports/businessImportRoutes.js";
 
 app.use("/api/imports/business-data", buildBusinessImportRoutes({ prisma }));
@@ -595,7 +595,7 @@ A route valida sessão, empresa e role. Depois valida o ficheiro e grava os dado
 Enviar CSV ao backend com tipo controlado.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `apps/web/src/lib/importApi.ts`
+    - CRIAR: `real_dev/web/src/lib/importApi.ts`
     - EDITAR: nenhum.
     - REVER: cliente frontend.
     - LOCALIZAÇÃO: ficheiro completo.
@@ -607,7 +607,7 @@ Cria payload tipado.
 4. Código completo, correto e integrado com a app final.
 
 ```ts
-// apps/web/src/lib/importApi.ts
+// real_dev/web/src/lib/importApi.ts
 import { apiClient } from "./apiClient";
 
 /**
@@ -647,8 +647,8 @@ Erro de role aparece como mensagem.
 Permitir escolher tipo, colar CSV e ver resultado.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `apps/web/src/pages/BusinessImportPage.tsx`
-    - EDITAR: `apps/web/src/App.tsx`
+    - CRIAR: `real_dev/web/src/pages/BusinessImportPage.tsx`
+    - EDITAR: `real_dev/web/src/App.tsx`
     - REVER: `importApi.ts`.
     - LOCALIZAÇÃO: ficheiro completo e menu.
 
@@ -659,7 +659,7 @@ Usa `textarea` para CSV e feedback de linhas.
 4. Código completo, correto e integrado com a app final.
 
 ```tsx
-// apps/web/src/pages/BusinessImportPage.tsx
+// real_dev/web/src/pages/BusinessImportPage.tsx
 import { FormEvent, useState } from "react";
 import { importBusinessData, type BusinessImportType } from "../lib/importApi";
 
@@ -788,5 +788,6 @@ BK-MF3-06 usa dados mestres consistentes para exportação SAF-T.
 
 ## Changelog
 
+- `2026-06-15`: alinhados caminhos técnicos da MF3 com `real_dev/api` e `real_dev/web`, preservando contratos RF/RNF, dependências e escopo.
 - `2026-06-13`: corrigido para validar CSV, gravar dados reais por tipo, usar `apiClient`, documentar limite Excel->CSV e registar erros por linha com JSDoc.
 - `2026-06-13`: alinhado com `BK-MF3-03`, passando a gravar importações de extratos em `BankStatementImport` e `BankStatementLine`.
