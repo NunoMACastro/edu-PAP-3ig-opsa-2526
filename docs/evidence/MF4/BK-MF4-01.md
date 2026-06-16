@@ -141,3 +141,53 @@ Teste positivo passou: margem negativa gerou insight com fonte.
 Teste negativo passou: sem fontes devolve lista vazia.
 
 Passo 5
+Ficheiros criados/editados:
+- criado apps/api/src/modules/ai/aiInsightRoutes.js;
+- editado apps/api/src/server.js.
+
+Endpoint criado:
+- GET /api/ai/insights
+
+Regras implementadas:
+- rota montada em /api/ai;
+- endpoint final disponível em /api/ai/insights;
+- route protegida com requireAuth;
+- route protegida com requireCompanyContext;
+- route protegida com requirePermission(Permission.REPORTS_READ);
+- acesso limitado a ADMIN, GESTOR e CONTABILISTA;
+- query validada com validateInsightQuery;
+- geração delegada para generateAiInsights;
+- companyId vem de req.companyId;
+- userId vem de req.user.id;
+- frontend não escolhe companyId;
+- erros devolvidos em formato controlado com error e message.
+
+Smoke previsto/validado:
+- GESTOR autenticado recebe 200;
+- resposta devolve { insights: [...] };
+- cada insight contém type, severity, title, summary, explanation e fonte.
+
+Negativos previstos/validados:
+- pedido sem sessão devolve 401 SESSION_REQUIRED;
+- utilizador sem empresa ativa devolve erro controlado do middleware de contexto;
+- role sem permissão devolve 403 ROLE_FORBIDDEN;
+- sem Permission.REPORTS_READ devolve 403;
+- período inválido devolve 400 INVALID_INSIGHT_RANGE.
+
+Comandos executados:
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> npm --prefix apps/api run test:contracts
+
+> @opsa/api@1.0.0 test:contracts
+> node --test tests/contracts/*.test.js
+
+✔ BK01: resolveSession não propaga passwordHash na sessão nem no utilizador público (3.5068ms)
+✔ BK04/BK05: adapters mock não registam tokens, URLs secretas ou email completo (1.4329ms)
+✔ BK05: rate limit em memória falha explicitamente em produção sem opt-in (3.2138ms)
+✔ BK06: conflito de NIF é mapeado para NIF_ALREADY_EXISTS (1.4166ms)
+✔ BK09/BK10: pesquisa usa nome ou NIF sem alterar listagem base (3.1646ms)
+✔ BK12: nome de armazém duplicado é rejeitado (1.2069ms)
+✔ MF1: permissões backend separam escrita operacional, aprovação e contabilidade (3.5523ms)
+✔ MF1: routers principais montam sem dependências inexistentes (12.8926ms)
+✔ MF1 HTTP: criar venda sem sessão devolve erro de autenticação (7.7775ms)
+✔ MF1 HTTP: operacional não pode aprovar venda (3.5516ms)
+✔ MF1 HTTP: pagamento em compra rascunho devolve regra de estado (3.7276ms)

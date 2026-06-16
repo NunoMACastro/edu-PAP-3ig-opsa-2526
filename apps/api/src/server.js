@@ -44,6 +44,7 @@ import { buildBusinessImportRoutes } from "./modules/imports/businessImportRoute
 import { buildSaftRoutes } from "./modules/compliance/saftRoutes.js";
 import { buildOperationalReportRoutes } from "./modules/reports/operationalReportRoutes.js";
 import { buildExecutiveKpiRoutes } from "./modules/reports/executiveKpiRoutes.js";
+import { buildAiInsightRoutes } from "./modules/ai/aiInsightRoutes.js";
 
 const prisma = new PrismaClient();
 const app = express();
@@ -98,6 +99,7 @@ app.use("/api/imports", buildBusinessImportRoutes({ prisma }));
 app.use("/api/compliance", buildSaftRoutes({ prisma }));
 app.use("/api/reports", buildOperationalReportRoutes({ prisma }));
 app.use("/api/reports", buildExecutiveKpiRoutes({ prisma }));
+app.use("/api/ai", buildAiInsightRoutes({ prisma }));
 
 /**
  * Arranca o servidor HTTP.
