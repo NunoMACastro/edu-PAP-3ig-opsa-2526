@@ -1098,3 +1098,28 @@ model AiActionSuggestion {
   @@index([companyId, insightId])
   @@unique([companyId, insightId, actionType])
 }
+// campos a acrescentar em modelos existentes
+model Company {
+  aiQuestionRuns AiQuestionRun[]
+}
+
+model User {
+  aiQuestionRuns AiQuestionRun[] @relation("UserAiQuestionRuns")
+}
+
+/// Pergunta em linguagem natural respondida com fontes rastreáveis.
+model AiQuestionRun {
+  id            String   @id @default(uuid())
+  companyId     String
+  question      String
+  answer        String
+  intent        String
+  sources       Json
+  askedById     String
+  askedAt       DateTime @default(now())
+
+  company Company @relation(fields: [companyId], references: [id])
+  askedBy User    @relation("UserAiQuestionRuns", fields: [askedById], references: [id])
+
+  @@index([companyId, intent, askedAt])
+}

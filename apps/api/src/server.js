@@ -50,6 +50,11 @@ import { buildAiSuggestionRoutes } from "./modules/ai/aiSuggestionRoutes.js";
 
 app.use("/api/ai", buildAiSuggestionRoutes({ prisma }));
 
+// apps/api/src/server.js
+import { buildAiQuestionRoutes } from "./modules/ai/aiQuestionRoutes.js";
+
+app.use("/api/ai", buildAiQuestionRoutes({ prisma }));
+
 const prisma = new PrismaClient();
 const app = express();
 const port = Number.parseInt(process.env.PORT ?? "3000", 10);
