@@ -46,6 +46,10 @@ import { buildOperationalReportRoutes } from "./modules/reports/operationalRepor
 import { buildExecutiveKpiRoutes } from "./modules/reports/executiveKpiRoutes.js";
 import { buildAiInsightRoutes } from "./modules/ai/aiInsightRoutes.js";
 
+import { buildAiSuggestionRoutes } from "./modules/ai/aiSuggestionRoutes.js";
+
+app.use("/api/ai", buildAiSuggestionRoutes({ prisma }));
+
 const prisma = new PrismaClient();
 const app = express();
 const port = Number.parseInt(process.env.PORT ?? "3000", 10);
@@ -119,3 +123,4 @@ function startServer() {
 startServer();
 
 export { app, prisma };
+

@@ -24,3 +24,19 @@ export function getAiInsights(from: string, to: string) {
   const query = "?from=" + encodeURIComponent(from) + "&to=" + encodeURIComponent(to);
   return client.request<{ insights: AiInsight[] }>("GET", "/ai/insights" + query);
 }
+export interface AiActionSuggestion {
+  id: string;
+  insightId: string;
+  actionType: string;
+  title: string;
+  rationale: string;
+  sourceLabel: string;
+  status: string;
+}
+
+/** Consulta sugestões de ação geradas a partir dos insights abertos. */
+export function getAiSuggestions() {
+  // O endpoint não recebe filtros por empresa. O backend usa a empresa ativa
+  // guardada na sessão para escolher os insights e sugestões corretos.
+  return client.request<{ suggestions: AiActionSuggestion[] }>("GET", "/ai/suggestions");
+}
