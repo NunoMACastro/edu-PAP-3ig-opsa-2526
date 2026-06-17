@@ -49,7 +49,7 @@ import { buildSmartAlertRoutes } from "./modules/ai/smartAlertRoutes.js";
 import { buildAiSuggestionRoutes } from "./modules/ai/aiSuggestionRoutes.js";
 
 app.use("/api/ai", buildAiSuggestionRoutes({ prisma }));
-
+app.use("/api/ai", buildSmartAlertRoutes({ prisma }));
 // apps/api/src/server.js
 import { buildAiQuestionRoutes } from "./modules/ai/aiQuestionRoutes.js";
 
