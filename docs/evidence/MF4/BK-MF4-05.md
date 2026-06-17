@@ -2,9 +2,9 @@ Passo 1
 * BK: BK-MF4-05
 * Macrofase: MF4
 * Requisito funcional: RF43
-* Dependência: BK-MF3-07 - CANONICO
+* Dependência: BK-MF4-01
 * Sprint: S08-S09
-* Próximo BK: BK-MF4-05
+* Próximo BK: BK-MF4-06
 * Endpoint previsto: GET /api/ai/insights/:id/explanation
 
 Passo 2
