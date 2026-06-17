@@ -45,7 +45,7 @@ import { buildSaftRoutes } from "./modules/compliance/saftRoutes.js";
 import { buildOperationalReportRoutes } from "./modules/reports/operationalReportRoutes.js";
 import { buildExecutiveKpiRoutes } from "./modules/reports/executiveKpiRoutes.js";
 import { buildAiInsightRoutes } from "./modules/ai/aiInsightRoutes.js";
-
+import { buildSmartAlertRoutes } from "./modules/ai/smartAlertRoutes.js";
 import { buildAiSuggestionRoutes } from "./modules/ai/aiSuggestionRoutes.js";
 
 app.use("/api/ai", buildAiSuggestionRoutes({ prisma }));
