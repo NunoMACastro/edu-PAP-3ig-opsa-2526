@@ -1,5 +1,3 @@
-import { client } from "./client";
-
 export interface SmartAlert {
     id: string;
     type: string;
@@ -11,15 +9,37 @@ export interface SmartAlert {
     status: string;
 }
 
-/** Resposta da API de alertas */
 export interface SmartAlertsResponse {
     alerts: SmartAlert[];
 }
 
+/**
+ * Cliente HTTP simples baseado em fetch.
+ * (Substitui o "client" inexistente no teu projeto)
+ */
+async function request<T>(
+    method: string,
+    url: string,
+    body?: unknown
+): Promise<T> {
+    const res = await fetch(url, {
+        method,
+        headers: {
+            "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: body ? JSON.stringify(body) : undefined,
+    });
+
+    if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || "Erro na API");
+    }
+
+    return res.json();
+}
+
 /** Consulta alertas inteligentes da empresa ativa */
 export function getSmartAlerts() {
-    return client.request<SmartAlertsResponse>(
-        "GET",
-        "/ai/alerts"
-    );
+    return request<SmartAlertsResponse>("GET", "/ai/alerts");
 }
