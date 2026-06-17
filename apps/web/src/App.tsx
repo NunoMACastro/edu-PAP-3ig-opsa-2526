@@ -34,6 +34,7 @@ import {
   VatMapPage,
 } from "./pages/mf3Pages";
 import { AiInsightsPage } from "./pages/AiInsightsPage";
+import { AiInsightExplanationPage } from "./pages/AiInsightExplanationPage";
 
 type ApiObject = Record<string, unknown>;
 type FieldKind = "text" | "email" | "password" | "number" | "textarea" | "select";
@@ -873,6 +874,11 @@ export function App() {
         id: "ai-insights",
         title: "Insights automáticos",
         render: () => <AiInsightsPage />,
+      },
+      {
+        id: "ai-insight-explanation",
+        title: "Explicação do insight",
+        render: () => <AiInsightExplanationPage />,
       },
     ],
     [],

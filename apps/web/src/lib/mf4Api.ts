@@ -43,3 +43,24 @@ async function request<T>(
 export function getSmartAlerts() {
     return request<SmartAlertsResponse>("GET", "/ai/alerts");
 }
+
+// função a adicionar em apps/web/src/lib/mf4Api.ts
+export interface InsightExplanation {
+  id: string;
+  title: string;
+  summary: string;
+  explanation: string;
+  source: AiSourceReference;
+  suggestedAction: string | null;
+  guardrail: string;
+}
+
+/** Consulta explicação e fonte de um insight. */
+export function getInsightExplanation(id: string) {
+  // O id entra no caminho da URL, por isso é codificado para evitar caracteres
+  // problemáticos e manter o pedido HTTP previsível.
+  return client.request<{ explanation: InsightExplanation }>(
+    "GET",
+    "/ai/insights/" + encodeURIComponent(id) + "/explanation",
+  );
+}

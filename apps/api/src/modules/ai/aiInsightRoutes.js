@@ -7,6 +7,7 @@ import { requirePermission, requireRole } from "../permissions/permissionMiddlew
 import { Permission } from "../permissions/permissions.js";
 import { validateInsightQuery } from "./aiInsightFilters.js";
 import { generateAiInsights } from "./aiInsightService.js";
+import { getInsightExplanation } from "./aiExplanationService.js";
 
 function sendError(res, error) {
     const response = toHttpError(error);
@@ -44,5 +45,16 @@ export function buildAiInsightRoutes({ prisma }) {
         }
     });
 
+    // adicionar dentro de buildAiInsightRoutes, antes de `return router`
+    router.get("/insights/:id/explanation", guards, async (req, res) => {
+        try {
+            // `req.params.id` identifica o insight; `req.companyId` confirma ownership.
+            // O aluno deve evitar endpoints que procuram apenas por id global.
+            const explanation = await getInsightExplanation(prisma, { companyId: req.companyId, insightId: req.params.id });
+            return res.status(200).json({ explanation });
+        } catch (error) {
+            return sendError(res, error);
+        }
+    });
     return router;
 }
