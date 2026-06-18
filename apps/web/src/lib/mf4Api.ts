@@ -64,6 +64,19 @@ export interface InsightExplanation {
   guardrail: string;
 }
 
+export interface IntegrationLogItem {
+  id: string;
+  integrationType: string;
+  sourceType: string;
+  sourceId: string | null;
+  status: "SUCCESS" | "FAILED" | "PARTIAL";
+  totalCount: number;
+  successCount: number;
+  errorCount: number;
+  message: string | null;
+  createdAt: string;
+}
+
 /** Consulta explicação e fonte de um insight. */
 export function getInsightExplanation(id: string) {
   return request<{ explanation: InsightExplanation }>(
@@ -112,6 +125,10 @@ export function createReminder(body: ReminderInput) {
     body
   );
 }
+
+/** Consulta logs de integração da empresa ativa. */
+export function getIntegrationLogs() {
+  return client.request<{ logs: IntegrationLogItem[] }>("GET", "/integrations/logs");
 
 /** Atualiza estado de um lembrete existente. */
 export function updateReminderStatus(
