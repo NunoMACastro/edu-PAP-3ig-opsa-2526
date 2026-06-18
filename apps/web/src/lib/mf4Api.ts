@@ -221,3 +221,21 @@ export function markNotificationAsRead(id: string) {
     "/notifications/" + encodeURIComponent(id) + "/read"
   );
 }
+// função a adicionar em apps/web/src/lib/mf4Api.ts
+export interface AuditLogItem {
+  id: string;
+  userId: string;
+  action: string;
+  entity: string;
+  entityId: string;
+  details: Record<string, string | number | boolean | null>;
+  createdAt: string;
+}
+
+/** Consulta logs de auditoria da empresa ativa. */
+export function getAuditLogs() {
+  return request<{ logs: AuditLogItem[] }>(
+    "GET",
+    "/audit/logs"
+  );
+}
