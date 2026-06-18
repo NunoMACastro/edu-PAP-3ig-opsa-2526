@@ -100,3 +100,39 @@ export function updateReminderStatus(id: string, status: ReminderStatus) {
     body: { status },
   });
 }
+
+// função a adicionar em apps/web/src/lib/mf4Api.ts
+export type OperationalTaskStatus = "OPEN" | "IN_PROGRESS" | "DONE" | "CANCELLED";
+
+export interface OperationalTask {
+  id: string;
+  title: string;
+  description: string | null;
+  dueDate: string;
+  status: OperationalTaskStatus;
+  assignedToId: string;
+}
+
+export interface OperationalTaskInput {
+  title: string;
+  description?: string;
+  dueDate: string;
+  assignedToId: string;
+}
+
+/** Lista tarefas operacionais. */
+export function loadOperationalTasks() {
+  return client.request<{ items: OperationalTask[] }>("GET", "/tasks");
+}
+
+/** Cria tarefa atribuída a um membro ativo da empresa. */
+export function createOperationalTask(body: OperationalTaskInput) {
+  return client.request<{ item: OperationalTask }>("POST", "/tasks", { body });
+}
+
+/** Atualiza estado de uma tarefa operacional. */
+export function updateOperationalTaskStatus(id: string, status: OperationalTaskStatus) {
+  return client.request<{ item: OperationalTask }>("PATCH", "/tasks/" + encodeURIComponent(id) + "/status", {
+    body: { status },
+  });
+}
