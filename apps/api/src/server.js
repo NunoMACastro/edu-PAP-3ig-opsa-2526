@@ -48,25 +48,18 @@ import { buildAiInsightRoutes } from "./modules/ai/aiInsightRoutes.js";
 import { buildSmartAlertRoutes } from "./modules/ai/smartAlertRoutes.js";
 import { buildAiSuggestionRoutes } from "./modules/ai/aiSuggestionRoutes.js";
 import { buildNotificationRoutes } from "./modules/notifications/notificationRoutes.js";
-
+import { buildAiQuestionRoutes } from "./modules/ai/aiQuestionRoutes.js";
+import { buildReminderRoutes } from "./modules/reminders/reminderRoutes.js";
+import { buildOperationalTaskRoutes } from "./modules/tasks/taskRoutes.js";
+import { buildAuditLogRoutes } from "./modules/audit/auditLogRoutes.js";
 
 app.use("/api/ai", buildAiSuggestionRoutes({ prisma }));
 app.use("/api/ai", buildSmartAlertRoutes({ prisma }));
 app.use("/api/notifications", buildNotificationRoutes({ prisma }));
-// apps/api/src/server.js
-import { buildAiQuestionRoutes } from "./modules/ai/aiQuestionRoutes.js";
-
 app.use("/api/ai", buildAiQuestionRoutes({ prisma }));
-
-// apps/api/src/server.js
-import { buildReminderRoutes } from "./modules/reminders/reminderRoutes.js";
-
 app.use("/api/reminders", buildReminderRoutes({ prisma }));
-
-// apps/api/src/server.js
-import { buildOperationalTaskRoutes } from "./modules/tasks/taskRoutes.js";
-
 app.use("/api/tasks", buildOperationalTaskRoutes({ prisma }));
+app.use("/api/audit", buildAuditLogRoutes({ prisma }));
 
 const prisma = new PrismaClient();
 const app = express();
