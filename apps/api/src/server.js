@@ -47,9 +47,12 @@ import { buildExecutiveKpiRoutes } from "./modules/reports/executiveKpiRoutes.js
 import { buildAiInsightRoutes } from "./modules/ai/aiInsightRoutes.js";
 import { buildSmartAlertRoutes } from "./modules/ai/smartAlertRoutes.js";
 import { buildAiSuggestionRoutes } from "./modules/ai/aiSuggestionRoutes.js";
+import { buildNotificationRoutes } from "./modules/notifications/notificationRoutes.js";
+
 
 app.use("/api/ai", buildAiSuggestionRoutes({ prisma }));
 app.use("/api/ai", buildSmartAlertRoutes({ prisma }));
+app.use("/api/notifications", buildNotificationRoutes({ prisma }));
 // apps/api/src/server.js
 import { buildAiQuestionRoutes } from "./modules/ai/aiQuestionRoutes.js";
 

@@ -184,6 +184,34 @@ model PasswordResetToken {
   @@index([expiresAt])
 }
 
+// campos a acrescentar em modelos existentes
+model Company {
+  inAppNotifications InAppNotification[]
+}
+
+model User {
+  inAppNotifications InAppNotification[]
+}
+
+/// Notificação interna mostrada na aplicação.
+model InAppNotification {
+  id          String    @id @default(uuid())
+  companyId   String
+  userId      String
+  sourceType  String
+  sourceId    String
+  title       String
+  message     String
+  readAt      DateTime?
+  createdAt   DateTime  @default(now())
+
+  company Company @relation(fields: [companyId], references: [id])
+  user    User    @relation(fields: [userId], references: [id])
+
+  @@index([companyId, userId, readAt])
+  @@unique([companyId, userId, sourceType, sourceId])
+}
+
 model Company {
   id                String              @id @default(uuid())
   name              String
