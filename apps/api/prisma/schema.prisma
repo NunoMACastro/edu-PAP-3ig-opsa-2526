@@ -2227,7 +2227,46 @@ model AiActionSuggestion {
   @@index([companyId, insightId])
   @@unique([companyId, insightId, actionType])
 }
+
 // campos a acrescentar em modelos existentes
+model Company {
+  integrationLogs IntegrationLog[]
+}
+
+model User {
+  integrationLogsCreated IntegrationLog[] @relation("UserIntegrationLogs")
+}
+
+/// Log funcional de processos de integração: uploads, SAF-T e reconciliações.
+model IntegrationLog {
+  id              String   @id @default(uuid())
+  // companyId garante isolamento multiempresa em todas as consultas.
+  companyId       String
+  // Tipo de integração: BUSINESS_IMPORT, SAFT_EXPORT, BANK_RECONCILIATION, etc.
+  integrationType String
+  // Origem interna que produziu o log, por exemplo BusinessImportRun.
+  sourceType      String
+  sourceId        String?
+  // Resultado resumido do processo.
+  status          String
+  // Contagens dão contexto sem guardar o ficheiro completo.
+  totalCount      Int      @default(0)
+  successCount    Int      @default(0)
+  errorCount      Int      @default(0)
+  // Mensagem curta e sanitizada, própria para UI e evidence.
+  message         String?
+  createdById     String
+  createdAt       DateTime @default(now())
+
+  company   Company @relation(fields: [companyId], references: [id])
+  createdBy User    @relation("UserIntegrationLogs", fields: [createdById], references: [id])
+
+  @@index([companyId, integrationType, createdAt])
+  @@index([companyId, status])
+}
+
+// campos a acrescentar em modelos existentes
+
 model Company {
   aiQuestionRuns AiQuestionRun[]
 }
