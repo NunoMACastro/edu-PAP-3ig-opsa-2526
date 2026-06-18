@@ -136,3 +136,32 @@ export function updateOperationalTaskStatus(id: string, status: OperationalTaskS
     body: { status },
   });
 }
+
+// função a adicionar em apps/web/src/lib/mf4Api.ts
+export interface InAppNotification {
+  id: string;
+  sourceType: string;
+  sourceId: string;
+  title: string;
+  message: string;
+  readAt: string | null;
+  createdAt: string;
+}
+
+/** Lista notificações do utilizador autenticado. */
+export function loadNotifications() {
+  return client.request<{ notifications: InAppNotification[] }>("GET", "/notifications");
+}
+
+/** Sincroniza notificações a partir de lembretes e alertas. */
+export function syncNotifications() {
+  return client.request<{ notifications: InAppNotification[] }>("POST", "/notifications/sync");
+}
+
+/** Marca uma notificação como lida. */
+export function markNotificationAsRead(id: string) {
+  return client.request<{ notification: InAppNotification }>(
+    "PATCH",
+    "/notifications/" + encodeURIComponent(id) + "/read",
+  );
+}
