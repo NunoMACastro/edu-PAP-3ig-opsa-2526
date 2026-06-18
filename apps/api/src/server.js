@@ -55,6 +55,11 @@ import { buildAiQuestionRoutes } from "./modules/ai/aiQuestionRoutes.js";
 
 app.use("/api/ai", buildAiQuestionRoutes({ prisma }));
 
+// apps/api/src/server.js
+import { buildReminderRoutes } from "./modules/reminders/reminderRoutes.js";
+
+app.use("/api/reminders", buildReminderRoutes({ prisma }));
+
 const prisma = new PrismaClient();
 const app = express();
 const port = Number.parseInt(process.env.PORT ?? "3000", 10);
