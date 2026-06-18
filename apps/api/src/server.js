@@ -60,6 +60,11 @@ import { buildReminderRoutes } from "./modules/reminders/reminderRoutes.js";
 
 app.use("/api/reminders", buildReminderRoutes({ prisma }));
 
+// apps/api/src/server.js
+import { buildOperationalTaskRoutes } from "./modules/tasks/taskRoutes.js";
+
+app.use("/api/tasks", buildOperationalTaskRoutes({ prisma }));
+
 const prisma = new PrismaClient();
 const app = express();
 const port = Number.parseInt(process.env.PORT ?? "3000", 10);

@@ -2308,3 +2308,34 @@ model Reminder {
   @@index([companyId, status])
   @@index([companyId, createdAt])
 }
+// campos a acrescentar em modelos existentes
+model Company {
+  operationalTasks OperationalTask[]
+}
+
+model User {
+  createdOperationalTasks  OperationalTask[] @relation("UserCreatedOperationalTasks")
+  assignedOperationalTasks OperationalTask[] @relation("UserAssignedOperationalTasks")
+}
+
+/// Registo operacional da MF4 ligado à empresa ativa.
+model OperationalTask {
+  id            String   @id @default(uuid())
+  companyId     String
+  title         String
+  description   String?
+  dueDate       DateTime
+  status        String   @default("OPEN")
+  assignedToId  String
+  createdById   String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  company    Company @relation(fields: [companyId], references: [id])
+  createdBy  User    @relation("UserCreatedOperationalTasks", fields: [createdById], references: [id])
+  assignedTo User    @relation("UserAssignedOperationalTasks", fields: [assignedToId], references: [id])
+
+  @@index([companyId, status])
+  @@index([companyId, assignedToId])
+  @@index([companyId, createdAt])
+}
