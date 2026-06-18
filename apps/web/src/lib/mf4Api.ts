@@ -38,6 +38,11 @@ async function request<T>(
   return res.json();
 }
 
+/* ============================================================
+ * SMART ALERTS
+ * ============================================================
+ */
+
 /** Consulta alertas inteligentes da empresa ativa */
 export function getSmartAlerts() {
   return request<SmartAlertsResponse>("GET", "/ai/alerts");
@@ -64,7 +69,7 @@ export interface InsightExplanation {
   guardrail: string;
 }
 
-/** Consulta explicação e fonte de um insight. */
+/** Consulta explicação e fonte de um insight */
 export function getInsightExplanation(id: string) {
   return request<{ explanation: InsightExplanation }>(
     "GET",
@@ -96,28 +101,18 @@ export interface ReminderInput {
   notes?: string;
 }
 
-/** Lista lembretes da empresa ativa. */
+/** Lista lembretes da empresa ativa */
 export function loadReminders() {
-  return request<{ items: ReminderItem[] }>(
-    "GET",
-    "/reminders"
-  );
+  return request<{ items: ReminderItem[] }>("GET", "/reminders");
 }
 
-/** Cria lembrete operacional. */
+/** Cria lembrete operacional */
 export function createReminder(body: ReminderInput) {
-  return request<{ item: ReminderItem }>(
-    "POST",
-    "/reminders",
-    body
-  );
+  return request<{ item: ReminderItem }>("POST", "/reminders", body);
 }
 
-/** Atualiza estado de um lembrete existente. */
-export function updateReminderStatus(
-  id: string,
-  status: ReminderStatus
-) {
+/** Atualiza estado de um lembrete */
+export function updateReminderStatus(id: string, status: ReminderStatus) {
   return request<{ item: ReminderItem }>(
     "PATCH",
     "/reminders/" + encodeURIComponent(id) + "/status",
@@ -126,7 +121,7 @@ export function updateReminderStatus(
 }
 
 /* ============================================================
- * TAREFAS
+ * TASKS
  * ============================================================
  */
 
@@ -152,26 +147,17 @@ export interface OperationalTaskInput {
   assignedToId: string;
 }
 
-/** Lista tarefas operacionais. */
+/** Lista tarefas operacionais */
 export function loadOperationalTasks() {
-  return request<{ items: OperationalTask[] }>(
-    "GET",
-    "/tasks"
-  );
+  return request<{ items: OperationalTask[] }>("GET", "/tasks");
 }
 
-/** Cria tarefa atribuída a um membro ativo da empresa. */
-export function createOperationalTask(
-  body: OperationalTaskInput
-) {
-  return request<{ item: OperationalTask }>(
-    "POST",
-    "/tasks",
-    body
-  );
+/** Cria tarefa operacional */
+export function createOperationalTask(body: OperationalTaskInput) {
+  return request<{ item: OperationalTask }>("POST", "/tasks", body);
 }
 
-/** Atualiza estado de uma tarefa operacional. */
+/** Atualiza estado de uma tarefa */
 export function updateOperationalTaskStatus(
   id: string,
   status: OperationalTaskStatus
@@ -198,7 +184,7 @@ export interface InAppNotification {
   createdAt: string;
 }
 
-/** Lista notificações do utilizador autenticado. */
+/** Lista notificações */
 export function loadNotifications() {
   return request<{ notifications: InAppNotification[] }>(
     "GET",
@@ -206,7 +192,7 @@ export function loadNotifications() {
   );
 }
 
-/** Sincroniza notificações a partir de lembretes e alertas. */
+/** Sincroniza notificações */
 export function syncNotifications() {
   return request<{ notifications: InAppNotification[] }>(
     "POST",
@@ -214,14 +200,19 @@ export function syncNotifications() {
   );
 }
 
-/** Marca uma notificação como lida. */
+/** Marca como lida */
 export function markNotificationAsRead(id: string) {
   return request<{ notification: InAppNotification }>(
     "PATCH",
     "/notifications/" + encodeURIComponent(id) + "/read"
   );
 }
-// função a adicionar em apps/web/src/lib/mf4Api.ts
+
+/* ============================================================
+ * AUDIT LOGS
+ * ============================================================
+ */
+
 export interface AuditLogItem {
   id: string;
   userId: string;
@@ -232,10 +223,33 @@ export interface AuditLogItem {
   createdAt: string;
 }
 
-/** Consulta logs de auditoria da empresa ativa. */
+/** Consulta logs de auditoria */
 export function getAuditLogs() {
-  return request<{ logs: AuditLogItem[] }>(
+  return request<{ logs: AuditLogItem[] }>("GET", "/audit/logs");
+}
+
+/* ============================================================
+ * INTEGRATION LOGS (BK-MF4-10)
+ * ============================================================
+ */
+
+export interface IntegrationLogItem {
+  id: string;
+  integrationType: string;
+  sourceType: string;
+  sourceId: string | null;
+  status: "SUCCESS" | "FAILED" | "PARTIAL";
+  totalCount: number;
+  successCount: number;
+  errorCount: number;
+  message: string | null;
+  createdAt: string;
+}
+
+/** Consulta logs de integração */
+export function getIntegrationLogs() {
+  return request<{ logs: IntegrationLogItem[] }>(
     "GET",
-    "/audit/logs"
+    "/integrations/logs"
   );
 }
