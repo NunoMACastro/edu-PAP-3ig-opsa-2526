@@ -52,6 +52,7 @@ import { buildAiQuestionRoutes } from "./modules/ai/aiQuestionRoutes.js";
 import { buildReminderRoutes } from "./modules/reminders/reminderRoutes.js";
 import { buildOperationalTaskRoutes } from "./modules/tasks/taskRoutes.js";
 import { buildAuditLogRoutes } from "./modules/audit/auditLogRoutes.js";
+import { buildIntegrationLogRoutes } from "./modules/integrations/integrationLogRoutes.js";
 
 app.use("/api/ai", buildAiSuggestionRoutes({ prisma }));
 app.use("/api/ai", buildSmartAlertRoutes({ prisma }));
@@ -60,6 +61,7 @@ app.use("/api/ai", buildAiQuestionRoutes({ prisma }));
 app.use("/api/reminders", buildReminderRoutes({ prisma }));
 app.use("/api/tasks", buildOperationalTaskRoutes({ prisma }));
 app.use("/api/audit", buildAuditLogRoutes({ prisma }));
+app.use("/api/integrations", buildIntegrationLogRoutes({ prisma }));
 
 const prisma = new PrismaClient();
 const app = express();
