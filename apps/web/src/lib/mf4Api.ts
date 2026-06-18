@@ -107,3 +107,39 @@ export function AiQuestionsPage() {
     </section>
   );
 }
+// função a adicionar em apps/web/src/lib/mf4Api.ts
+export type ReminderType = "DEADLINE" | "PAYMENT" | "TAX";
+export type ReminderStatus = "OPEN" | "DONE" | "CANCELLED";
+
+export interface ReminderItem {
+  id: string;
+  type: ReminderType;
+  title: string;
+  dueDate: string;
+  status: ReminderStatus;
+  notes: string | null;
+}
+
+export interface ReminderInput {
+  type: ReminderType;
+  title: string;
+  dueDate: string;
+  notes?: string;
+}
+
+/** Lista lembretes da empresa ativa. */
+export function loadReminders() {
+  return client.request<{ items: ReminderItem[] }>("GET", "/reminders");
+}
+
+/** Cria lembrete operacional. */
+export function createReminder(body: ReminderInput) {
+  return client.request<{ item: ReminderItem }>("POST", "/reminders", { body });
+}
+
+/** Atualiza estado de um lembrete existente. */
+export function updateReminderStatus(id: string, status: ReminderStatus) {
+  return client.request<{ item: ReminderItem }>("PATCH", "/reminders/" + encodeURIComponent(id) + "/status", {
+    body: { status },
+  });
+}
