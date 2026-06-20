@@ -39,8 +39,8 @@ Este BK prepara `BK-MF5-05`, porque formulários com validação antes da submis
 - Reforçar semântica de `PageFrame` e `StatusMessage`, criados em `BK-MF5-01`.
 - Documentar a dependência técnica derivada em relação a `BK-MF5-01` e `BK-MF5-03`, sem alterar metadados canónicos.
 - Acrescentar regras CSS para foco visível, contraste, legibilidade, mensagens e preferência de movimento reduzido.
-- Criar `real_dev/web/scripts/check-mf5-accessibility.mjs`.
-- Atualizar `real_dev/web/package.json` com `test:mf5:a11y`.
+- Criar `apps/web/scripts/check-mf5-accessibility.mjs`.
+- Atualizar `apps/web/package.json` com `test:mf5:a11y`.
 - Definir validação manual por teclado e cenários negativos de acessibilidade.
 
 #### Scope-out
@@ -61,9 +61,9 @@ Este BK prepara `BK-MF5-05`, porque formulários com validação antes da submis
 
 - Ler `RNF04` em `docs/RNF.md`.
 - Confirmar em `MATRIZ-CANONICA-BK.md`, `BACKLOG-MVP.md`, `CONTRATO-CAMPOS-BK.md`, `MF-VIEWS.md` e `PLANO-SPRINTS.md` que este BK pertence à `MF5`, tem prioridade `P1`, owner `Pedro`, apoio `Andre` e sprint `S09-S10`.
-- `DERIVADO`: ter concluído `BK-MF5-01`, porque este BK reutiliza `PageFrame` e `StatusMessage` de `real_dev/web/src/ui/opsaUi.tsx`.
+- `DERIVADO`: ter concluído `BK-MF5-01`, porque este BK reutiliza `PageFrame` e `StatusMessage` de `apps/web/src/ui/opsaUi.tsx`.
 - `DERIVADO`: ter concluído `BK-MF5-03`, porque este BK melhora a semântica e a legibilidade das mensagens de feedback.
-- Confirmar que `real_dev/web/src/lib/apiClient.ts` usa `credentials: "include"`.
+- Confirmar que `apps/web/src/lib/apiClient.ts` usa `credentials: "include"`.
 - Confirmar que o backend continua responsável por autenticação, permissões, empresa ativa, validação final e auditoria de operações sensíveis.
 
 #### Glossário
@@ -83,7 +83,7 @@ Este BK prepara `BK-MF5-05`, porque formulários com validação antes da submis
 #### Conceitos teóricos essenciais
 
 - `CANONICO`: `RNF04` exige regras básicas de acessibilidade: contraste, headings e legibilidade.
-- `CANONICO`: a stack validada para o frontend OPSA é React, Vite e TypeScript em `real_dev/web`.
+- `CANONICO`: a stack validada para o frontend OPSA é React, Vite e TypeScript em `apps/web`.
 - `CANONICO`: autenticação e sessão usam cookies HttpOnly; o frontend envia pedidos com `credentials: "include"` e não assume autoridade sobre permissões.
 - `DERIVADO`: como `RNF04` é transversal de UI, a solução vive sobretudo em componentes React, CSS e checks textuais, sem criar persistência nova.
 - Um heading semântico não é apenas texto grande. Um `h2` dentro de uma `section` com `aria-labelledby` permite saltar entre regiões da app e perceber o contexto atual.
@@ -95,26 +95,26 @@ Este BK prepara `BK-MF5-05`, porque formulários com validação antes da submis
 
 #### Arquitetura do BK
 
-- `real_dev/web/src/ui/opsaUi.tsx` concentra os contratos visuais transversais criados em `BK-MF5-01`.
+- `apps/web/src/ui/opsaUi.tsx` concentra os contratos visuais transversais criados em `BK-MF5-01`.
 - `PageFrame` liga cada página a um heading semântico e continua a ser reutilizado pelas páginas MF1-MF4.
 - `StatusMessage` apresenta mensagens com `role`, `aria-live` e texto legível, preparando `BK-MF5-06`.
-- `real_dev/web/src/styles.css` define foco visível, legibilidade, contraste e movimento reduzido.
-- `real_dev/web/scripts/check-mf5-accessibility.mjs` valida os contratos textuais de `RNF04`.
-- `real_dev/web/package.json` expõe `test:mf5:a11y`.
-- `real_dev/web/src/App.tsx` e as páginas MF1-MF4 são revistos para confirmar que consomem `PageFrame` e `StatusMessage` após os BKs anteriores.
+- `apps/web/src/styles.css` define foco visível, legibilidade, contraste e movimento reduzido.
+- `apps/web/scripts/check-mf5-accessibility.mjs` valida os contratos textuais de `RNF04`.
+- `apps/web/package.json` expõe `test:mf5:a11y`.
+- `apps/web/src/App.tsx` e as páginas MF1-MF4 são revistos para confirmar que consomem `PageFrame` e `StatusMessage` após os BKs anteriores.
 
 #### Ficheiros a criar/editar/rever
 
-- EDITAR: `real_dev/web/src/ui/opsaUi.tsx`
-- EDITAR: `real_dev/web/src/styles.css`
-- CRIAR: `real_dev/web/scripts/check-mf5-accessibility.mjs`
-- EDITAR: `real_dev/web/package.json`
-- REVER: `real_dev/web/src/App.tsx`
-- REVER: `real_dev/web/src/pages/mf1Pages.tsx`
-- REVER: `real_dev/web/src/pages/mf2Pages.tsx`
-- REVER: `real_dev/web/src/pages/mf3Pages.tsx`
-- REVER: `real_dev/web/src/pages/mf4Pages.tsx`
-- REVER: `real_dev/web/src/lib/apiClient.ts`
+- EDITAR: `apps/web/src/ui/opsaUi.tsx`
+- EDITAR: `apps/web/src/styles.css`
+- CRIAR: `apps/web/scripts/check-mf5-accessibility.mjs`
+- EDITAR: `apps/web/package.json`
+- REVER: `apps/web/src/App.tsx`
+- REVER: `apps/web/src/pages/mf1Pages.tsx`
+- REVER: `apps/web/src/pages/mf2Pages.tsx`
+- REVER: `apps/web/src/pages/mf3Pages.tsx`
+- REVER: `apps/web/src/pages/mf4Pages.tsx`
+- REVER: `apps/web/src/lib/apiClient.ts`
 
 #### Tutorial técnico linear
 
@@ -127,17 +127,17 @@ Confirmar que vais melhorar contratos já criados na MF5 em vez de criar uma seg
 `BK-MF5-01` entrega `PageFrame` e `StatusMessage`. `BK-MF5-03` faz as ações assíncronas usarem mensagens comuns. Este BK reforça a acessibilidade desses contratos.
 
 2. Ficheiros envolvidos:
-    - REVER: `real_dev/web/src/ui/opsaUi.tsx`
-    - REVER: `real_dev/web/src/App.tsx`
-    - REVER: `real_dev/web/src/pages/mf1Pages.tsx`
-    - REVER: `real_dev/web/src/pages/mf2Pages.tsx`
-    - REVER: `real_dev/web/src/pages/mf3Pages.tsx`
-    - REVER: `real_dev/web/src/pages/mf4Pages.tsx`
+    - REVER: `apps/web/src/ui/opsaUi.tsx`
+    - REVER: `apps/web/src/App.tsx`
+    - REVER: `apps/web/src/pages/mf1Pages.tsx`
+    - REVER: `apps/web/src/pages/mf2Pages.tsx`
+    - REVER: `apps/web/src/pages/mf3Pages.tsx`
+    - REVER: `apps/web/src/pages/mf4Pages.tsx`
     - LOCALIZAÇÃO: imports de `PageFrame`, uso de `StatusMessage` e títulos de páginas.
 
 3. Instruções do que fazer.
 
-Verifica se `PageFrame` e `StatusMessage` existem em `real_dev/web/src/ui/opsaUi.tsx`. Depois confirma que as páginas MF1-MF4 usam `PageFrame` importado desse ficheiro. Se ainda houver funções locais `PageFrame`, termina primeiro a migração indicada por `BK-MF5-01`.
+Verifica se `PageFrame` e `StatusMessage` existem em `apps/web/src/ui/opsaUi.tsx`. Depois confirma que as páginas MF1-MF4 usam `PageFrame` importado desse ficheiro. Se ainda houver funções locais `PageFrame`, termina primeiro a migração indicada por `BK-MF5-01`.
 
 Confirma também que as mensagens de feedback criadas em `BK-MF5-03` usam `StatusMessage`, para que a melhoria semântica feita neste BK beneficie todos os módulos.
 
@@ -151,7 +151,7 @@ Não há código novo neste passo porque a decisão principal é de integração
 
 6. Validação do passo.
 
-Executa estas pesquisas dentro de `real_dev/web` depois de aplicar `BK-MF5-01` e `BK-MF5-03`:
+Executa estas pesquisas dentro de `apps/web` depois de aplicar `BK-MF5-01` e `BK-MF5-03`:
 
 ```bash
 rg -n "export function PageFrame|export function StatusMessage" src/ui/opsaUi.tsx
@@ -174,17 +174,17 @@ Garantir que a moldura de página e as mensagens comuns têm semântica acessív
 Este passo liga cada página ao seu heading e faz as mensagens serem anunciadas com a prioridade certa.
 
 2. Ficheiros envolvidos:
-    - EDITAR: `real_dev/web/src/ui/opsaUi.tsx`
+    - EDITAR: `apps/web/src/ui/opsaUi.tsx`
     - LOCALIZAÇÃO: exports `PageFrame`, `StatusMessage` e tipos relacionados.
 
 3. Instruções do que fazer.
 
-No ficheiro `real_dev/web/src/ui/opsaUi.tsx`, confirma ou substitui os exports abaixo. Mantém outros exports existentes, como `ActionToolbar` e `ModuleBadge`, porque vieram de `BK-MF5-01` e são usados por BKs seguintes.
+No ficheiro `apps/web/src/ui/opsaUi.tsx`, confirma ou substitui os exports abaixo. Mantém outros exports existentes, como `ActionToolbar` e `ModuleBadge`, porque vieram de `BK-MF5-01` e são usados por BKs seguintes.
 
 4. Código completo, correto e integrado com a app final.
 
 ```tsx
-// real_dev/web/src/ui/opsaUi.tsx
+// apps/web/src/ui/opsaUi.tsx
 import type { ReactNode } from "react";
 
 export type StatusTone = "neutral" | "success" | "danger" | "warning";
@@ -275,7 +275,7 @@ Este passo consome `PageFrame` e `StatusMessage` de `BK-MF5-01`, melhora as mens
 Executa:
 
 ```bash
-cd real_dev/web
+cd apps/web
 npm run typecheck
 rg -n "aria-labelledby|aria-live|role=\\{role\\}|statusMessage__title" src/ui/opsaUi.tsx
 ```
@@ -295,12 +295,12 @@ Tornar foco por teclado, texto, listas, mensagens e regiões de página mais fá
 Este passo aplica regras visuais transversais sem mudar lógica de negócio.
 
 2. Ficheiros envolvidos:
-    - EDITAR: `real_dev/web/src/styles.css`
+    - EDITAR: `apps/web/src/styles.css`
     - LOCALIZAÇÃO: fim do ficheiro, numa zona marcada como `MF5-04`.
 
 3. Instruções do que fazer.
 
-Copia o bloco abaixo para o fim de `real_dev/web/src/styles.css`. Se já existirem regras iguais, mantém apenas uma versão para evitar duplicação.
+Copia o bloco abaixo para o fim de `apps/web/src/styles.css`. Se já existirem regras iguais, mantém apenas uma versão para evitar duplicação.
 
 4. Código completo, correto e integrado com a app final.
 
@@ -391,7 +391,7 @@ A media query de movimento reduzido respeita a preferência do sistema e reduz a
 Executa:
 
 ```bash
-cd real_dev/web
+cd apps/web
 rg -n ":focus-visible|prefers-reduced-motion|statusMessage__title|line-height" src/styles.css
 npm run typecheck
 ```
@@ -411,7 +411,7 @@ Criar um comando rápido que falha se alguém remover os contratos mínimos de `
 Este smoke não substitui validação manual, mas protege a app contra regressões óbvias.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `real_dev/web/scripts/check-mf5-accessibility.mjs`
+    - CRIAR: `apps/web/scripts/check-mf5-accessibility.mjs`
     - LOCALIZAÇÃO: ficheiro completo.
 
 3. Instruções do que fazer.
@@ -487,7 +487,7 @@ O script confirma `PageFrame` em `App.tsx` porque a aplicação precisa de consu
 Depois de atualizares `package.json` no passo seguinte, executa:
 
 ```bash
-cd real_dev/web
+cd apps/web
 npm run test:mf5:a11y
 ```
 
@@ -510,7 +510,7 @@ Tornar o smoke de acessibilidade fácil de executar durante PR, revisão e defes
 O comando fica junto dos smokes MF1, MF2, MF3 e MF5 já previstos.
 
 2. Ficheiros envolvidos:
-    - EDITAR: `real_dev/web/package.json`
+    - EDITAR: `apps/web/package.json`
     - LOCALIZAÇÃO: ficheiro completo.
 
 3. Instruções do que fazer.
@@ -561,7 +561,7 @@ A entrada do script é o comando `npm run test:mf5:a11y`. A saída esperada é u
 Executa:
 
 ```bash
-cd real_dev/web
+cd apps/web
 npm run test:mf5:a11y
 npm run typecheck
 ```
@@ -581,11 +581,11 @@ Confirmar que a melhoria técnica é observável por uma pessoa a usar a interfa
 Este passo fecha `RNF04` com evidence manual e comandos locais.
 
 2. Ficheiros envolvidos:
-    - REVER: `real_dev/web/src/App.tsx`
-    - REVER: `real_dev/web/src/pages/mf1Pages.tsx`
-    - REVER: `real_dev/web/src/pages/mf2Pages.tsx`
-    - REVER: `real_dev/web/src/pages/mf3Pages.tsx`
-    - REVER: `real_dev/web/src/pages/mf4Pages.tsx`
+    - REVER: `apps/web/src/App.tsx`
+    - REVER: `apps/web/src/pages/mf1Pages.tsx`
+    - REVER: `apps/web/src/pages/mf2Pages.tsx`
+    - REVER: `apps/web/src/pages/mf3Pages.tsx`
+    - REVER: `apps/web/src/pages/mf4Pages.tsx`
     - LOCALIZAÇÃO: ecrãs principais de vendas, compras, inventário, contabilidade, tesouraria, IA e tarefas.
 
 3. Instruções do que fazer.
@@ -614,7 +614,7 @@ Esta verificação não muda regras de domínio. Se uma operação falhar por pe
 Executa:
 
 ```bash
-cd real_dev/web
+cd apps/web
 npm run test:mf1
 npm run test:mf2
 npm run test:mf3
@@ -643,7 +643,7 @@ Se uma página tiver texto visualmente grande mas não tiver heading semântico,
 
 #### Validação final
 
-Executar em `real_dev/web`:
+Executar em `apps/web`:
 
 ```bash
 npm run test:mf1

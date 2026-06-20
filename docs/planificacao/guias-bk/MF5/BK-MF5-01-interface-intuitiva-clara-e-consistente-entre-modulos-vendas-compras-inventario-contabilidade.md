@@ -30,7 +30,7 @@ Sem uma linguagem visual comum, cada módulo parece uma aplicação diferente e 
 #### Scope-in
 
 - Normalizar a moldura visual comum dos ecrãs principais e preparar componentes reutilizáveis para os BKs seguintes da MF5.
-- Ligar essa moldura aos painéis genéricos e às páginas dedicadas de MF1, MF2, MF3 e MF4 já existentes em `real_dev/web`.
+- Ligar essa moldura aos painéis genéricos e às páginas dedicadas de MF1, MF2, MF3 e MF4 já existentes em `apps/web`.
 - Manter React, Vite, TypeScript e o cliente API existente.
 - Produzir evidence observável para PR e defesa PAP.
 - Preservar autenticação por cookie HttpOnly e validação backend.
@@ -46,13 +46,13 @@ Sem uma linguagem visual comum, cada módulo parece uma aplicação diferente e 
 #### Estado antes e depois
 
 - Antes: os ecrãs principais reutilizam classes visuais, mas ainda têm molduras locais e repetidas em páginas de Vendas, Compras, Inventário, Contabilidade e módulos posteriores.
-- Depois: `PageFrame`, `StatusMessage`, `ActionToolbar` e `ModuleBadge` ficam definidos em `real_dev/web/src/ui/opsaUi.tsx`; `ResourcePanel` e as páginas dedicadas passam a usar a mesma moldura visual.
+- Depois: `PageFrame`, `StatusMessage`, `ActionToolbar` e `ModuleBadge` ficam definidos em `apps/web/src/ui/opsaUi.tsx`; `ResourcePanel` e as páginas dedicadas passam a usar a mesma moldura visual.
 
 #### Pre-requisitos
 
 - Ler `RNF01` em `docs/RNF.md`.
 - Rever `BACKLOG-MVP.md`, `MATRIZ-CANONICA-BK.md`, `CONTRATO-CAMPOS-BK.md`, `MF-VIEWS.md` e `PLANO-SPRINTS.md`.
-- Confirmar que `real_dev/web/src/lib/apiClient.ts` usa `credentials: "include"`.
+- Confirmar que `apps/web/src/lib/apiClient.ts` usa `credentials: "include"`.
 - Confirmar que o backend continua responsável por permissões, empresa ativa, validação final e auditoria de operações sensíveis.
 
 #### Glossário
@@ -70,7 +70,7 @@ Sem uma linguagem visual comum, cada módulo parece uma aplicação diferente e 
 #### Conceitos teóricos essenciais
 
 - `CANONICO`: RNF01 a RNF07 definem a MF5 como camada transversal de usabilidade, acessibilidade e performance.
-- `CANONICO`: a stack validada é React, Vite e TypeScript em `real_dev/web`, com API Express em `real_dev/api`.
+- `CANONICO`: a stack validada é React, Vite e TypeScript em `apps/web`, com API Express em `apps/api`.
 - `CANONICO`: o cliente HTTP existente usa cookies HttpOnly com `credentials: "include"`; o frontend não guarda credenciais no browser.
 - `DERIVADO`: os artefactos MF5 são componentes, utilitários e scripts de verificação porque os requisitos RNF01-RNF07 não exigem novas entidades Prisma.
 - Neste BK, o foco é normalizar a moldura visual comum dos ecrãs principais e preparar componentes reutilizáveis para os BKs seguintes da MF5.
@@ -80,23 +80,23 @@ Sem uma linguagem visual comum, cada módulo parece uma aplicação diferente e 
 
 #### Arquitetura do BK
 
-- `real_dev/web/src/App.tsx` continua a compor navegação, autenticação e painéis genéricos.
-- `real_dev/web/src/lib/apiClient.ts` continua a ser o único cliente HTTP base.
-- `real_dev/web/src/ui/opsaUi.tsx` passa a concentrar componentes transversais criados pela MF5.
-- `real_dev/web/src/pages/mf1Pages.tsx`, `mf2Pages.tsx`, `mf3Pages.tsx` e `mf4Pages.tsx` passam a consumir `PageFrame` em vez de manter uma moldura local.
-- `real_dev/web/src/styles.css` recebe apenas estilos globais de suporte aos componentes novos.
+- `apps/web/src/App.tsx` continua a compor navegação, autenticação e painéis genéricos.
+- `apps/web/src/lib/apiClient.ts` continua a ser o único cliente HTTP base.
+- `apps/web/src/ui/opsaUi.tsx` passa a concentrar componentes transversais criados pela MF5.
+- `apps/web/src/pages/mf1Pages.tsx`, `mf2Pages.tsx`, `mf3Pages.tsx` e `mf4Pages.tsx` passam a consumir `PageFrame` em vez de manter uma moldura local.
+- `apps/web/src/styles.css` recebe apenas estilos globais de suporte aos componentes novos.
 - O handoff deste BK prepara `BK-MF5-02`.
 
 #### Ficheiros a criar/editar/rever
 
-- CRIAR: `real_dev/web/src/ui/opsaUi.tsx`
-- EDITAR: `real_dev/web/src/App.tsx`
-- EDITAR: `real_dev/web/src/pages/mf1Pages.tsx`
-- EDITAR: `real_dev/web/src/pages/mf2Pages.tsx`
-- EDITAR: `real_dev/web/src/pages/mf3Pages.tsx`
-- EDITAR: `real_dev/web/src/pages/mf4Pages.tsx`
-- EDITAR: `real_dev/web/src/styles.css`
-- REVER: `real_dev/web/src/lib/apiClient.ts`
+- CRIAR: `apps/web/src/ui/opsaUi.tsx`
+- EDITAR: `apps/web/src/App.tsx`
+- EDITAR: `apps/web/src/pages/mf1Pages.tsx`
+- EDITAR: `apps/web/src/pages/mf2Pages.tsx`
+- EDITAR: `apps/web/src/pages/mf3Pages.tsx`
+- EDITAR: `apps/web/src/pages/mf4Pages.tsx`
+- EDITAR: `apps/web/src/styles.css`
+- REVER: `apps/web/src/lib/apiClient.ts`
 
 #### Tutorial técnico linear
 
@@ -110,12 +110,12 @@ Confirma que RNF01 pede consistência entre módulos e que a aplicação já tem
 
 2. Ficheiros envolvidos:
     - REVER: `docs/RNF.md`
-    - REVER: `real_dev/web/src/App.tsx`
-    - REVER: `real_dev/web/src/styles.css`
-    - REVER: `real_dev/web/src/pages/mf1Pages.tsx`
-    - REVER: `real_dev/web/src/pages/mf2Pages.tsx`
-    - REVER: `real_dev/web/src/pages/mf3Pages.tsx`
-    - REVER: `real_dev/web/src/pages/mf4Pages.tsx`
+    - REVER: `apps/web/src/App.tsx`
+    - REVER: `apps/web/src/styles.css`
+    - REVER: `apps/web/src/pages/mf1Pages.tsx`
+    - REVER: `apps/web/src/pages/mf2Pages.tsx`
+    - REVER: `apps/web/src/pages/mf3Pages.tsx`
+    - REVER: `apps/web/src/pages/mf4Pages.tsx`
     - LOCALIZAÇÃO: cabeçalhos, mensagens e painéis já existentes
 
 3. Instruções do que fazer.
@@ -147,7 +147,7 @@ Criar uma base comum para páginas, mensagens e barras de ações.
 Cria um ficheiro de UI transversal que pode ser importado por páginas de vendas, compras, inventário, contabilidade, tesouraria e IA.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `real_dev/web/src/ui/opsaUi.tsx`
+    - CRIAR: `apps/web/src/ui/opsaUi.tsx`
     - LOCALIZAÇÃO: ficheiro completo
 
 3. Instruções do que fazer.
@@ -323,7 +323,7 @@ Aplicar a interface comum ao painel configurável usado por recursos CRUD.
 Atualiza a função `ResourcePanel` para usar `PageFrame`, `ActionToolbar` e `StatusMessage`. Mantém a lógica de `apiClient` e o envio automático de cookies já existente.
 
 2. Ficheiros envolvidos:
-    - EDITAR: `real_dev/web/src/App.tsx`
+    - EDITAR: `apps/web/src/App.tsx`
     - LOCALIZAÇÃO: função completa `ResourcePanel` e imports no topo
 
 3. Instruções do que fazer.
@@ -457,8 +457,8 @@ Garantir que RNF01 fica visível nas páginas reais de Vendas, Compras e Invent�
 As páginas dedicadas de MF1 e MF2 já têm uma função local chamada `PageFrame`. Remove essa função local e importa o `PageFrame` transversal criado no passo 2. Mantém todo o restante código funcional sem alterações.
 
 2. Ficheiros envolvidos:
-    - EDITAR: `real_dev/web/src/pages/mf1Pages.tsx`
-    - EDITAR: `real_dev/web/src/pages/mf2Pages.tsx`
+    - EDITAR: `apps/web/src/pages/mf1Pages.tsx`
+    - EDITAR: `apps/web/src/pages/mf2Pages.tsx`
     - LOCALIZAÇÃO: imports no topo e função local `PageFrame`
 
 3. Instruções do que fazer.
@@ -470,7 +470,7 @@ Depois dos imports, remove por completo a função local `PageFrame` em cada fic
 4. Código completo, correto e integrado com a app final.
 
 ```tsx
-// real_dev/web/src/pages/mf1Pages.tsx - bloco de imports final
+// apps/web/src/pages/mf1Pages.tsx - bloco de imports final
 import { FormEvent, ReactNode, useEffect, useState } from "react";
 import { ApiError, JsonBody } from "../lib/apiClient";
 import { accountingApi } from "../lib/accountingApi";
@@ -494,7 +494,7 @@ import { PageFrame } from "../ui/opsaUi";
 ```
 
 ```tsx
-// real_dev/web/src/pages/mf2Pages.tsx - bloco de imports final
+// apps/web/src/pages/mf2Pages.tsx - bloco de imports final
 import { FormEvent, useEffect, useState } from "react";
 import { ApiError, apiClient, JsonBody } from "../lib/apiClient";
 import {
@@ -542,13 +542,13 @@ O contrato de segurança não muda: as páginas continuam a chamar as mesmas API
 Executa:
 
 ```bash
-rg -n "function PageFrame" real_dev/web/src/pages/mf1Pages.tsx real_dev/web/src/pages/mf2Pages.tsx
+rg -n "function PageFrame" apps/web/src/pages/mf1Pages.tsx apps/web/src/pages/mf2Pages.tsx
 ```
 
 O comando não deve encontrar funções locais. Depois confirma os imports:
 
 ```bash
-rg -n "../ui/opsaUi" real_dev/web/src/pages/mf1Pages.tsx real_dev/web/src/pages/mf2Pages.tsx
+rg -n "../ui/opsaUi" apps/web/src/pages/mf1Pages.tsx apps/web/src/pages/mf2Pages.tsx
 ```
 
 O comando deve encontrar o import nos dois ficheiros.
@@ -566,8 +566,8 @@ Completar a cobertura transversal de RNF01 nas áreas de Contabilidade, IA assis
 MF3 e MF4 também usam uma função local `PageFrame`. A migração deve seguir a mesma regra do passo anterior: importar o componente transversal, remover a função local e preservar o conteúdo funcional das páginas.
 
 2. Ficheiros envolvidos:
-    - EDITAR: `real_dev/web/src/pages/mf3Pages.tsx`
-    - EDITAR: `real_dev/web/src/pages/mf4Pages.tsx`
+    - EDITAR: `apps/web/src/pages/mf3Pages.tsx`
+    - EDITAR: `apps/web/src/pages/mf4Pages.tsx`
     - LOCALIZAÇÃO: imports no topo e função local `PageFrame`
 
 3. Instruções do que fazer.
@@ -579,14 +579,14 @@ Não alteres os componentes exportados de MF3 nem de MF4. O objetivo é mudar ap
 4. Código completo, correto e integrado com a app final.
 
 ```tsx
-// real_dev/web/src/pages/mf3Pages.tsx - bloco de imports final
+// apps/web/src/pages/mf3Pages.tsx - bloco de imports final
 import { FormEvent, useState } from "react";
 import { ApiError, apiClient, JsonBody } from "../lib/apiClient";
 import { PageFrame } from "../ui/opsaUi";
 ```
 
 ```tsx
-// real_dev/web/src/pages/mf4Pages.tsx - bloco de imports final
+// apps/web/src/pages/mf4Pages.tsx - bloco de imports final
 import { FormEvent, ReactNode, useState } from "react";
 import { ApiError, JsonBody } from "../lib/apiClient";
 import {
@@ -654,13 +654,13 @@ Este passo é a ligação principal entre MF4 e MF5: o aluno consegue confirmar 
 Executa:
 
 ```bash
-rg -n "function PageFrame" real_dev/web/src/pages/mf3Pages.tsx real_dev/web/src/pages/mf4Pages.tsx
+rg -n "function PageFrame" apps/web/src/pages/mf3Pages.tsx apps/web/src/pages/mf4Pages.tsx
 ```
 
 O comando não deve encontrar funções locais. Depois confirma os imports:
 
 ```bash
-rg -n "../ui/opsaUi" real_dev/web/src/pages/mf3Pages.tsx real_dev/web/src/pages/mf4Pages.tsx
+rg -n "../ui/opsaUi" apps/web/src/pages/mf3Pages.tsx apps/web/src/pages/mf4Pages.tsx
 ```
 
 O comando deve encontrar o import nos dois ficheiros.
@@ -678,7 +678,7 @@ Dar suporte visual aos componentes sem alterar o tema base.
 Acrescenta estilos no fim do CSS global para os componentes novos.
 
 2. Ficheiros envolvidos:
-    - EDITAR: `real_dev/web/src/styles.css`
+    - EDITAR: `apps/web/src/styles.css`
     - LOCALIZAÇÃO: fim do ficheiro
 
 3. Instruções do que fazer.
@@ -786,14 +786,14 @@ Se o CSS quebrar `.sidebar`, `.content` ou `.operationGrid`, a alteração saiu 
 
 Fechar a validação técnica do BK com comandos objetivos e com uma verificação explícita de MF4.
 
-MF4 ainda não tem script dedicado em `real_dev/web/package.json`, por isso a validação combina typecheck, scripts existentes e smoke manual documentado para as páginas MF4.
+MF4 ainda não tem script dedicado em `apps/web/package.json`, por isso a validação combina typecheck, scripts existentes e smoke manual documentado para as páginas MF4.
 
 2. Ficheiros envolvidos:
-    - REVER: `real_dev/web/package.json`
-    - REVER: `real_dev/web/src/pages/mf1Pages.tsx`
-    - REVER: `real_dev/web/src/pages/mf2Pages.tsx`
-    - REVER: `real_dev/web/src/pages/mf3Pages.tsx`
-    - REVER: `real_dev/web/src/pages/mf4Pages.tsx`
+    - REVER: `apps/web/package.json`
+    - REVER: `apps/web/src/pages/mf1Pages.tsx`
+    - REVER: `apps/web/src/pages/mf2Pages.tsx`
+    - REVER: `apps/web/src/pages/mf3Pages.tsx`
+    - REVER: `apps/web/src/pages/mf4Pages.tsx`
 
 3. Instruções do que fazer.
 
@@ -802,7 +802,7 @@ Executa os comandos de validação a partir da raiz do projeto. Regista o output
 4. Código completo, correto e integrado com a app final.
 
 ```bash
-cd real_dev/web
+cd apps/web
 npm run typecheck
 npm run test:mf1
 npm run test:mf2
@@ -846,13 +846,13 @@ Deixar prova objetiva para PR, defesa e continuação segura para `BK-MF5-02`.
 O fim deste BK deve mostrar que a base visual transversal existe, foi aplicada aos módulos reais e pode ser reutilizada pelos BKs seguintes da MF5.
 
 2. Ficheiros envolvidos:
-    - REVER: `real_dev/web/src/ui/opsaUi.tsx`
-    - REVER: `real_dev/web/src/App.tsx`
-    - REVER: `real_dev/web/src/pages/mf1Pages.tsx`
-    - REVER: `real_dev/web/src/pages/mf2Pages.tsx`
-    - REVER: `real_dev/web/src/pages/mf3Pages.tsx`
-    - REVER: `real_dev/web/src/pages/mf4Pages.tsx`
-    - REVER: `real_dev/web/src/styles.css`
+    - REVER: `apps/web/src/ui/opsaUi.tsx`
+    - REVER: `apps/web/src/App.tsx`
+    - REVER: `apps/web/src/pages/mf1Pages.tsx`
+    - REVER: `apps/web/src/pages/mf2Pages.tsx`
+    - REVER: `apps/web/src/pages/mf3Pages.tsx`
+    - REVER: `apps/web/src/pages/mf4Pages.tsx`
+    - REVER: `apps/web/src/styles.css`
 
 3. Instruções do que fazer.
 
@@ -891,10 +891,10 @@ Se o handoff disser apenas "interface melhorada" sem nomes de componentes, fiche
 
 #### Validação final
 
-- Executar `cd real_dev/web && npm run typecheck` depois de aplicar o BK no código.
-- Executar `cd real_dev/web && npm run test:mf1`.
-- Executar `cd real_dev/web && npm run test:mf2`.
-- Executar `cd real_dev/web && npm run test:mf3`.
+- Executar `cd apps/web && npm run typecheck` depois de aplicar o BK no código.
+- Executar `cd apps/web && npm run test:mf1`.
+- Executar `cd apps/web && npm run test:mf2`.
+- Executar `cd apps/web && npm run test:mf3`.
 - Executar smoke MF4 documentado para `AiInsightsPage`, `AiSuggestionsPage`, `NotificationsPage`, `AuditLogsPage` e `IntegrationLogsPage`, porque ainda não existe script `test:mf4`.
 - Executar a pesquisa das funções locais `PageFrame` indicada nos passos 4 e 5.
 - Executar a pesquisa de imports `../ui/opsaUi` indicada nos passos 4 e 5.

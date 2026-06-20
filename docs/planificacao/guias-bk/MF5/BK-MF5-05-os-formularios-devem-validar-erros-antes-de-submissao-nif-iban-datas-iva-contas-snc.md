@@ -53,7 +53,7 @@ Validação antecipada reduz erros repetidos, evita pedidos desnecessários à A
 
 - Ler `RNF05` em `docs/RNF.md`.
 - Rever `BACKLOG-MVP.md`, `MATRIZ-CANONICA-BK.md`, `CONTRATO-CAMPOS-BK.md`, `MF-VIEWS.md` e `PLANO-SPRINTS.md`.
-- Confirmar que `real_dev/web/src/lib/apiClient.ts` usa cookies HttpOnly com `credentials: "include"`.
+- Confirmar que `apps/web/src/lib/apiClient.ts` usa cookies HttpOnly com `credentials: "include"`.
 - Confirmar que `BK-MF5-03` já definiu `useActionFeedback` com `fail(error: Error, fallback?)`.
 - Confirmar que `BK-MF5-04` já disponibilizou padrões de foco, legibilidade e mensagens acessíveis.
 - Rever validadores backend existentes antes de escolher mensagens e formatos.
@@ -73,7 +73,7 @@ Validação antecipada reduz erros repetidos, evita pedidos desnecessários à A
 #### Conceitos teóricos essenciais
 
 - `CANONICO`: `RNF05` exige que formulários validem erros antes da submissão.
-- `CANONICO`: a stack validada é React, Vite e TypeScript em `real_dev/web`, com API Express em `real_dev/api`.
+- `CANONICO`: a stack validada é React, Vite e TypeScript em `apps/web`, com API Express em `apps/api`.
 - `CANONICO`: o cliente HTTP existente usa cookies HttpOnly com `credentials: "include"`; o frontend não guarda credenciais persistentes no browser.
 - `DERIVADO`: os artefactos deste BK são utilitários frontend, integrações em formulários e smoke textual, porque `RNF05` não exige novas entidades Prisma.
 - `DERIVADO`: validação local deve ser explícita por campo, para não confundir identificadores, percentagens e unidades técnicas.
@@ -84,25 +84,25 @@ Validação antecipada reduz erros repetidos, evita pedidos desnecessários à A
 
 #### Arquitetura do BK
 
-- `real_dev/web/src/lib/mf5FormValidators.ts` concentra validadores puros e mensagens reutilizáveis.
-- `real_dev/web/src/App.tsx` integra validação no `OperationForm` genérico.
-- `real_dev/web/src/pages/mf1Pages.tsx`, `mf2Pages.tsx`, `mf3Pages.tsx` e `mf4Pages.tsx` passam a validar campos críticos em formulários dedicados.
-- `real_dev/web/scripts/check-mf5-form-validation.mjs` confirma contratos textuais de `RNF05`.
-- `real_dev/web/package.json` expõe `test:mf5:forms`.
-- `real_dev/api/src/modules/*` é apenas revisto para manter alinhamento com validação backend já existente.
+- `apps/web/src/lib/mf5FormValidators.ts` concentra validadores puros e mensagens reutilizáveis.
+- `apps/web/src/App.tsx` integra validação no `OperationForm` genérico.
+- `apps/web/src/pages/mf1Pages.tsx`, `mf2Pages.tsx`, `mf3Pages.tsx` e `mf4Pages.tsx` passam a validar campos críticos em formulários dedicados.
+- `apps/web/scripts/check-mf5-form-validation.mjs` confirma contratos textuais de `RNF05`.
+- `apps/web/package.json` expõe `test:mf5:forms`.
+- `apps/api/src/modules/*` é apenas revisto para manter alinhamento com validação backend já existente.
 
 #### Ficheiros a criar/editar/rever
 
-- CRIAR: `real_dev/web/src/lib/mf5FormValidators.ts`
-- CRIAR: `real_dev/web/scripts/check-mf5-form-validation.mjs`
-- EDITAR: `real_dev/web/src/App.tsx`
-- EDITAR: `real_dev/web/src/pages/mf1Pages.tsx`
-- EDITAR: `real_dev/web/src/pages/mf2Pages.tsx`
-- EDITAR: `real_dev/web/src/pages/mf3Pages.tsx`
-- EDITAR: `real_dev/web/src/pages/mf4Pages.tsx`
-- EDITAR: `real_dev/web/package.json`
-- REVER: `real_dev/api/src/modules/company-profile/companyProfileValidators.js`
-- REVER: `real_dev/api/src/modules/treasury/bankAccountValidators.js`
+- CRIAR: `apps/web/src/lib/mf5FormValidators.ts`
+- CRIAR: `apps/web/scripts/check-mf5-form-validation.mjs`
+- EDITAR: `apps/web/src/App.tsx`
+- EDITAR: `apps/web/src/pages/mf1Pages.tsx`
+- EDITAR: `apps/web/src/pages/mf2Pages.tsx`
+- EDITAR: `apps/web/src/pages/mf3Pages.tsx`
+- EDITAR: `apps/web/src/pages/mf4Pages.tsx`
+- EDITAR: `apps/web/package.json`
+- REVER: `apps/api/src/modules/company-profile/companyProfileValidators.js`
+- REVER: `apps/api/src/modules/treasury/bankAccountValidators.js`
 - REVER: validators backend relacionados com datas, IVA e contas SNC.
 
 #### Tutorial técnico linear
@@ -114,11 +114,11 @@ Validação antecipada reduz erros repetidos, evita pedidos desnecessários à A
 Identificar onde existem NIF, IBAN, datas, IVA e contas SNC para não criar validação genérica que bloqueia campos válidos.
 
 2. Ficheiros envolvidos:
-    - REVER: `real_dev/web/src/App.tsx`
-    - REVER: `real_dev/web/src/pages/mf1Pages.tsx`
-    - REVER: `real_dev/web/src/pages/mf2Pages.tsx`
-    - REVER: `real_dev/web/src/pages/mf3Pages.tsx`
-    - REVER: `real_dev/web/src/pages/mf4Pages.tsx`
+    - REVER: `apps/web/src/App.tsx`
+    - REVER: `apps/web/src/pages/mf1Pages.tsx`
+    - REVER: `apps/web/src/pages/mf2Pages.tsx`
+    - REVER: `apps/web/src/pages/mf3Pages.tsx`
+    - REVER: `apps/web/src/pages/mf4Pages.tsx`
 
 3. Instruções do que fazer.
 
@@ -161,8 +161,8 @@ Se validares `vatRateId` como percentagem, uma linha de venda válida pode ficar
 Garantir que o frontend melhora UX sem substituir validação de segurança e domínio.
 
 2. Ficheiros envolvidos:
-    - REVER: `real_dev/api/src/modules/company-profile/companyProfileValidators.js`
-    - REVER: `real_dev/api/src/modules/treasury/bankAccountValidators.js`
+    - REVER: `apps/api/src/modules/company-profile/companyProfileValidators.js`
+    - REVER: `apps/api/src/modules/treasury/bankAccountValidators.js`
     - REVER: validators backend de módulos que recebem datas, IVA e contas SNC
 
 3. Instruções do que fazer.
@@ -211,7 +211,7 @@ Se a API aceitar um NIF inválido apenas porque a UI normalmente o bloqueia, a a
 Centralizar validações de formato em funções puras, testáveis e reutilizáveis.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `real_dev/web/src/lib/mf5FormValidators.ts`
+    - CRIAR: `apps/web/src/lib/mf5FormValidators.ts`
 
 3. Instruções do que fazer.
 
@@ -490,7 +490,7 @@ Um campo `vatRateBps` com `2300` deve passar. Um campo `vatRateId` não pode ser
 Bloquear submissão local no formulário genérico com mensagem compatível com os BKs anteriores.
 
 2. Ficheiros envolvidos:
-    - EDITAR: `real_dev/web/src/App.tsx`
+    - EDITAR: `apps/web/src/App.tsx`
 
 3. Instruções do que fazer.
 
@@ -553,7 +553,7 @@ Se `action.fail` receber texto simples, o typecheck deve falhar ou o contrato de
 Aplicar `RNF05` aos formulários MF1 que recolhem datas e IVA fora do formulário genérico.
 
 2. Ficheiros envolvidos:
-    - EDITAR: `real_dev/web/src/pages/mf1Pages.tsx`
+    - EDITAR: `apps/web/src/pages/mf1Pages.tsx`
 
 3. Instruções do que fazer.
 
@@ -645,9 +645,9 @@ Uma compra com data impossível não pode chamar a API. Uma linha com taxa selec
 Cobrir NIF, IBAN, datas e contas SNC em formulários dedicados fora de MF1.
 
 2. Ficheiros envolvidos:
-    - EDITAR: `real_dev/web/src/pages/mf2Pages.tsx`
-    - EDITAR: `real_dev/web/src/pages/mf3Pages.tsx`
-    - EDITAR: `real_dev/web/src/pages/mf4Pages.tsx`
+    - EDITAR: `apps/web/src/pages/mf2Pages.tsx`
+    - EDITAR: `apps/web/src/pages/mf3Pages.tsx`
+    - EDITAR: `apps/web/src/pages/mf4Pages.tsx`
 
 3. Instruções do que fazer.
 
@@ -738,8 +738,8 @@ Um formulário sem campo IBAN não deve tentar validar IBAN. A lista de campos p
 Dar ao aluno e à defesa um comando objetivo para provar que os contratos principais deste BK existem.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `real_dev/web/scripts/check-mf5-form-validation.mjs`
-    - EDITAR: `real_dev/web/package.json`
+    - CRIAR: `apps/web/scripts/check-mf5-form-validation.mjs`
+    - EDITAR: `apps/web/package.json`
 
 3. Instruções do que fazer.
 
@@ -791,7 +791,7 @@ assertIncludes(packageJson, "\"test:mf5:forms\"", "package expõe comando RNF05"
 console.log("MF5 form validation smoke OK");
 ```
 
-Atualiza `real_dev/web/package.json` mantendo os scripts existentes:
+Atualiza `apps/web/package.json` mantendo os scripts existentes:
 
 ```json
 {
@@ -813,7 +813,7 @@ O smoke não substitui testes unitários nem validação manual. Ele confirma ra
 
 6. Validação do passo.
 
-Executa `cd real_dev/web && npm run test:mf5:forms`. O output esperado é `MF5 form validation smoke OK`.
+Executa `cd apps/web && npm run test:mf5:forms`. O output esperado é `MF5 form validation smoke OK`.
 
 7. Cenário negativo/erro esperado.
 
@@ -826,7 +826,7 @@ Se alguém trocar o roundtrip ISO por `Date.parse`, o smoke deve falhar por falt
 Fechar o BK com provas reproduzíveis e handoff claro para `BK-MF5-06`.
 
 2. Ficheiros envolvidos:
-    - VALIDAR: `real_dev/web`
+    - VALIDAR: `apps/web`
     - REGISTAR: PR ou relatório de defesa PAP
 
 3. Instruções do que fazer.
@@ -836,7 +836,7 @@ Executa typecheck, smoke novo e cenários manuais positivos/negativos. Guarda ou
 4. Código completo, correto e integrado com a app final.
 
 ```bash
-cd real_dev/web
+cd apps/web
 npm run typecheck
 npm run test:mf5:forms
 ```
@@ -868,14 +868,14 @@ Se o smoke passar mas o browser ainda enviar uma data impossível para a API, a 
 - `vatRateId`, `vatRateBps` e `vatRatePercent` são tratados como contratos diferentes.
 - Conta SNC com letras é bloqueada antes da submissão.
 - O contrato `action.fail(error: Error, fallback?)` dos BKs anteriores é respeitado.
-- `real_dev/web/package.json` expõe `test:mf5:forms`.
+- `apps/web/package.json` expõe `test:mf5:forms`.
 - Nenhuma validação backend existente é removida.
 - Nenhum endpoint, schema, service ou modelo Prisma novo é criado.
 
 #### Validação final
 
-- Executar `cd real_dev/web && npm run typecheck`.
-- Executar `cd real_dev/web && npm run test:mf5:forms`.
+- Executar `cd apps/web && npm run typecheck`.
+- Executar `cd apps/web && npm run test:mf5:forms`.
 - Testar NIF inválido e confirmar que não há chamada à API.
 - Testar IBAN inválido e confirmar mensagem local.
 - Testar `issuedAt=2026-02-30` e confirmar rejeição local.

@@ -29,9 +29,9 @@ A OPSA trabalha com dados administrativos e financeiros que aparecem muitas veze
 
 #### Scope-in
 
-- Criar um componente `ResponsiveDataTable` em `real_dev/web/src/ui/ResponsiveDataTable.tsx`.
-- Atualizar a função `DataTable` em `real_dev/web/src/App.tsx` para usar o componente novo.
-- Acrescentar CSS responsivo em `real_dev/web/src/styles.css`.
+- Criar um componente `ResponsiveDataTable` em `apps/web/src/ui/ResponsiveDataTable.tsx`.
+- Atualizar a função `DataTable` em `apps/web/src/App.tsx` para usar o componente novo.
+- Acrescentar CSS responsivo em `apps/web/src/styles.css`.
 - Preservar a navegação, `ResourcePanel`, loaders existentes e autenticação por cookie HttpOnly.
 - Validar desktop, tablet e mobile com critérios observáveis.
 - Produzir evidence simples para PR e defesa PAP.
@@ -54,10 +54,10 @@ A OPSA trabalha com dados administrativos e financeiros que aparecem muitas veze
 
 - Ler `RNF02` em `docs/RNF.md`.
 - Rever `BACKLOG-MVP.md`, `MATRIZ-CANONICA-BK.md`, `CONTRATO-CAMPOS-BK.md`, `MF-VIEWS.md` e `PLANO-SPRINTS.md`.
-- Confirmar que `real_dev/web/src/App.tsx` ainda contém `ResourcePanel` e `DataTable`.
-- Confirmar que `real_dev/web/src/styles.css` ainda contém `.tableWrap` e a media query principal da shell.
-- Confirmar que `real_dev/web/src/lib/apiClient.ts` usa `credentials: "include"`.
-- Confirmar que o BK-MF5-01 deixou preparada a pasta `real_dev/web/src/ui` para componentes transversais.
+- Confirmar que `apps/web/src/App.tsx` ainda contém `ResourcePanel` e `DataTable`.
+- Confirmar que `apps/web/src/styles.css` ainda contém `.tableWrap` e a media query principal da shell.
+- Confirmar que `apps/web/src/lib/apiClient.ts` usa `credentials: "include"`.
+- Confirmar que o BK-MF5-01 deixou preparada a pasta `apps/web/src/ui` para componentes transversais.
 
 #### Glossário
 
@@ -73,7 +73,7 @@ A OPSA trabalha com dados administrativos e financeiros que aparecem muitas veze
 #### Conceitos teóricos essenciais
 
 - `CANONICO`: RNF02 pede layout responsivo em desktop, tablet e mobile.
-- `CANONICO`: a stack validada é React, Vite e TypeScript em `real_dev/web`.
+- `CANONICO`: a stack validada é React, Vite e TypeScript em `apps/web`.
 - `CANONICO`: o cliente HTTP existente usa cookies HttpOnly com `credentials: "include"`; o frontend não guarda credenciais no browser.
 - `DERIVADO`: como RNF02 é transversal e visual, a solução deve ficar no frontend e não em novos modelos de dados.
 - Uma tabela é boa para comparação horizontal em desktop, mas fica fraca quando a largura disponível deixa de comportar várias colunas.
@@ -84,18 +84,18 @@ A OPSA trabalha com dados administrativos e financeiros que aparecem muitas veze
 
 #### Arquitetura do BK
 
-- `real_dev/web/src/App.tsx` continua a compor autenticação, navegação, `ResourcePanel` e chamadas à API.
-- `real_dev/web/src/ui/ResponsiveDataTable.tsx` fica responsável por apresentar a mesma lista como tabela ou cartões.
-- `real_dev/web/src/styles.css` controla a troca visual entre `.responsiveTable` e `.mobileList`.
-- `real_dev/web/src/lib/apiClient.ts` continua a ser o único cliente HTTP base.
+- `apps/web/src/App.tsx` continua a compor autenticação, navegação, `ResourcePanel` e chamadas à API.
+- `apps/web/src/ui/ResponsiveDataTable.tsx` fica responsável por apresentar a mesma lista como tabela ou cartões.
+- `apps/web/src/styles.css` controla a troca visual entre `.responsiveTable` e `.mobileList`.
+- `apps/web/src/lib/apiClient.ts` continua a ser o único cliente HTTP base.
 - O handoff deste BK prepara o `BK-MF5-03`, que acrescenta feedback imediato às ações.
 
 #### Ficheiros a criar/editar/rever
 
-- CRIAR: `real_dev/web/src/ui/ResponsiveDataTable.tsx`
-- EDITAR: `real_dev/web/src/App.tsx`
-- EDITAR: `real_dev/web/src/styles.css`
-- REVER: `real_dev/web/src/lib/apiClient.ts`
+- CRIAR: `apps/web/src/ui/ResponsiveDataTable.tsx`
+- EDITAR: `apps/web/src/App.tsx`
+- EDITAR: `apps/web/src/styles.css`
+- REVER: `apps/web/src/lib/apiClient.ts`
 - REVER: `docs/RNF.md`
 
 #### Tutorial técnico linear
@@ -108,8 +108,8 @@ Garantir que a alteração resolve responsividade sem mudar domínio, API ou per
 
 2. Ficheiros envolvidos:
     - REVER: `docs/RNF.md`
-    - REVER: `real_dev/web/src/App.tsx`
-    - REVER: `real_dev/web/src/styles.css`
+    - REVER: `apps/web/src/App.tsx`
+    - REVER: `apps/web/src/styles.css`
     - LOCALIZAÇÃO: `ResourcePanel`, `DataTable`, `.tableWrap`, `@media (max-width: 860px)`
 
 3. Instruções do que fazer.
@@ -144,14 +144,14 @@ Se a proposta exigir endpoint novo ou modelo Prisma novo, está fora do RNF02. R
 Perceber que partes da UI já existem para não duplicar estilos ou componentes.
 
 2. Ficheiros envolvidos:
-    - REVER: `real_dev/web/src/App.tsx`
-    - REVER: `real_dev/web/src/styles.css`
-    - REVER: `real_dev/web/src/ui/opsaUi.tsx`
+    - REVER: `apps/web/src/App.tsx`
+    - REVER: `apps/web/src/styles.css`
+    - REVER: `apps/web/src/ui/opsaUi.tsx`
     - LOCALIZAÇÃO: imports, `ResourcePanel`, `DataTable`, estilos de painel e tabela
 
 3. Instruções do que fazer.
 
-Verifica se o BK-MF5-01 já criou `real_dev/web/src/ui/opsaUi.tsx`. Este BK não depende diretamente de `PageFrame`, mas deve seguir a mesma decisão arquitetural: componentes transversais da MF5 ficam em `src/ui`.
+Verifica se o BK-MF5-01 já criou `apps/web/src/ui/opsaUi.tsx`. Este BK não depende diretamente de `PageFrame`, mas deve seguir a mesma decisão arquitetural: componentes transversais da MF5 ficam em `src/ui`.
 
 4. Código completo, correto e integrado com a app final.
 
@@ -165,7 +165,7 @@ O BK-MF5-01 prepara consistência visual geral. Este BK continua esse padrão co
 
 O resultado esperado é uma decisão clara:
 
-- `ResponsiveDataTable` fica em `real_dev/web/src/ui/ResponsiveDataTable.tsx`.
+- `ResponsiveDataTable` fica em `apps/web/src/ui/ResponsiveDataTable.tsx`.
 - `App.tsx` importa o componente e preserva a assinatura externa de `DataTable`.
 - `styles.css` recebe apenas estilos necessários para tabela e cartões.
 
@@ -180,12 +180,12 @@ Se cada página receber uma tabela diferente, a manutenção fica pior e RNF02 d
 Criar o componente que mostra os mesmos dados como tabela em ecrãs largos e como cartões em ecrãs estreitos.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `real_dev/web/src/ui/ResponsiveDataTable.tsx`
+    - CRIAR: `apps/web/src/ui/ResponsiveDataTable.tsx`
     - LOCALIZAÇÃO: ficheiro completo
 
 3. Instruções do que fazer.
 
-Cria a pasta `real_dev/web/src/ui` se ainda não existir. Depois adiciona o ficheiro completo abaixo. Não removas campos no formato mobile; os cartões devem percorrer as mesmas colunas calculadas para a tabela.
+Cria a pasta `apps/web/src/ui` se ainda não existir. Depois adiciona o ficheiro completo abaixo. Não removas campos no formato mobile; os cartões devem percorrer as mesmas colunas calculadas para a tabela.
 
 4. Código completo, correto e integrado com a app final.
 
@@ -309,7 +309,7 @@ Se os cartões mobile usarem uma lista manual de campos, é provável que um cam
 Preparar os dados da API para a tabela responsiva sem passar objetos complexos diretamente para JSX.
 
 2. Ficheiros envolvidos:
-    - EDITAR: `real_dev/web/src/App.tsx`
+    - EDITAR: `apps/web/src/App.tsx`
     - LOCALIZAÇÃO: imports do topo, tipos utilitários perto de `ApiObject`, função `DataTable`
 
 3. Instruções do que fazer.
@@ -392,7 +392,7 @@ Se `DataTable` passar objetos diretamente para `ResponsiveDataTable`, o browser 
 Controlar quando a tabela aparece e quando os cartões mobile substituem a leitura tabular.
 
 2. Ficheiros envolvidos:
-    - EDITAR: `real_dev/web/src/styles.css`
+    - EDITAR: `apps/web/src/styles.css`
     - LOCALIZAÇÃO: fim do ficheiro, depois dos estilos existentes de tabela e media queries
 
 3. Instruções do que fazer.
@@ -484,18 +484,18 @@ Se a media query esconder a tabela mas não mostrar `.mobileList`, a listagem fi
 Garantir que a alteração visual não quebra módulos anteriores.
 
 2. Ficheiros envolvidos:
-    - REVER: `real_dev/web/package.json`
+    - REVER: `apps/web/package.json`
     - EXECUTAR: comandos de validação do frontend
     - LOCALIZAÇÃO: scripts `typecheck`, `test:mf1`, `test:mf2`, `test:mf3`
 
 3. Instruções do que fazer.
 
-Executa os comandos a partir de `real_dev/web`. Se algum comando falhar, corrige primeiro o erro relacionado com este BK antes de avançar para evidence visual.
+Executa os comandos a partir de `apps/web`. Se algum comando falhar, corrige primeiro o erro relacionado com este BK antes de avançar para evidence visual.
 
 4. Código completo, correto e integrado com a app final.
 
 ```bash
-cd real_dev/web
+cd apps/web
 npm run typecheck
 npm run test:mf1
 npm run test:mf2
@@ -562,9 +562,9 @@ Se um campo aparecer na tabela desktop e não aparecer no cartão mobile, a font
 Fechar o BK com provas objetivas e deixar o próximo BK com contexto claro.
 
 2. Ficheiros envolvidos:
-    - REVER: `real_dev/web/src/ui/ResponsiveDataTable.tsx`
-    - REVER: `real_dev/web/src/App.tsx`
-    - REVER: `real_dev/web/src/styles.css`
+    - REVER: `apps/web/src/ui/ResponsiveDataTable.tsx`
+    - REVER: `apps/web/src/App.tsx`
+    - REVER: `apps/web/src/styles.css`
     - REVER: `docs/planificacao/guias-bk/MF5/BK-MF5-03-a-interface-deve-usar-feedback-imediato-em-todas-as-acoes-guardar-validar-uploads.md`
 
 3. Instruções do que fazer.
@@ -602,7 +602,7 @@ Se não houver screenshot mobile ou se o mobile ainda depender de scroll horizon
 
 #### Critérios de aceite
 
-- `ResponsiveDataTable.tsx` existe em `real_dev/web/src/ui`.
+- `ResponsiveDataTable.tsx` existe em `apps/web/src/ui`.
 - `DataTable` em `App.tsx` delega no novo componente sem alterar a chamada feita por `ResourcePanel`.
 - A tabela desktop e os cartões mobile usam a mesma fonte de dados.
 - O CSS mostra `.responsiveTable` em ecrãs largos e `.mobileList` em ecrãs até `640px`.
@@ -616,7 +616,7 @@ Se não houver screenshot mobile ou se o mobile ainda depender de scroll horizon
 Executa:
 
 ```bash
-cd real_dev/web
+cd apps/web
 npm run typecheck
 npm run test:mf1
 npm run test:mf2

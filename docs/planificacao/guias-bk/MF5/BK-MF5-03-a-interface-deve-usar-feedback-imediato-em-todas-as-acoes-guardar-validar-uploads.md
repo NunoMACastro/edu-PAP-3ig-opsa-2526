@@ -33,7 +33,7 @@ Uma ação sem feedback cria incerteza: o utilizador pode repetir cliques, pensa
 - Aplicar feedback a carregamento, atualização e pesquisa de listagens no `ResourcePanel`.
 - Aplicar feedback a páginas dedicadas que ainda usam mensagens locais, incluindo importações.
 - Criar um smoke MF5 textual para confirmar o contrato mínimo de RNF03.
-- Manter React, Vite, TypeScript e o cliente API existente em `real_dev/web`.
+- Manter React, Vite, TypeScript e o cliente API existente em `apps/web`.
 - Preservar autenticação por cookie HttpOnly e validação final no backend.
 
 #### Scope-out
@@ -54,8 +54,8 @@ Uma ação sem feedback cria incerteza: o utilizador pode repetir cliques, pensa
 
 - Ler `RNF03` em `docs/RNF.md`.
 - Confirmar em `MATRIZ-CANONICA-BK.md`, `BACKLOG-MVP.md`, `CONTRATO-CAMPOS-BK.md`, `MF-VIEWS.md` e `PLANO-SPRINTS.md` que este BK pertence à `MF5`, tem prioridade `P0`, owner `Pedro`, apoio `Andre` e sprint `S09-S10`.
-- `DERIVADO`: ter concluído `BK-MF5-01`, porque este BK reutiliza `StatusMessage` de `real_dev/web/src/ui/opsaUi.tsx`.
-- Confirmar que `real_dev/web/src/lib/apiClient.ts` continua a usar `credentials: "include"`.
+- `DERIVADO`: ter concluído `BK-MF5-01`, porque este BK reutiliza `StatusMessage` de `apps/web/src/ui/opsaUi.tsx`.
+- Confirmar que `apps/web/src/lib/apiClient.ts` continua a usar `credentials: "include"`.
 - Confirmar que o backend continua responsável por permissões, empresa ativa, validação final e auditoria de operações sensíveis.
 
 #### Glossário
@@ -73,7 +73,7 @@ Uma ação sem feedback cria incerteza: o utilizador pode repetir cliques, pensa
 #### Conceitos teóricos essenciais
 
 - `CANONICO`: `RNF03` exige feedback imediato em todas as ações de guardar, validar e uploads.
-- `CANONICO`: a stack validada é React, Vite e TypeScript em `real_dev/web`, com API Express em `real_dev/api`.
+- `CANONICO`: a stack validada é React, Vite e TypeScript em `apps/web`, com API Express em `apps/api`.
 - `CANONICO`: o cliente HTTP existente envia cookies HttpOnly com `credentials: "include"`; o frontend não deve guardar credenciais.
 - `DERIVADO`: como `RNF03` é transversal de UI/UX, a solução deve ficar no frontend e não criar tabelas, endpoints ou regras fiscais novas.
 - Um feedback consistente reduz cliques duplicados, melhora a confiança do utilizador e prepara o caminho para mensagens acessíveis no BK seguinte.
@@ -83,24 +83,24 @@ Uma ação sem feedback cria incerteza: o utilizador pode repetir cliques, pensa
 
 #### Arquitetura do BK
 
-- `real_dev/web/src/ui/useActionFeedback.ts` concentra o ciclo de feedback.
-- `real_dev/web/src/App.tsx` consome o hook em `OperationForm` e `ResourcePanel`.
-- `real_dev/web/src/pages/mf3Pages.tsx` e `real_dev/web/src/pages/mf4Pages.tsx` passam a usar feedback comum nas páginas dedicadas.
-- `real_dev/web/src/ui/opsaUi.tsx`, criado em `BK-MF5-01`, fornece `StatusMessage`.
-- `real_dev/web/scripts/check-mf5-feedback.mjs` valida que os pontos centrais do contrato existem.
-- `real_dev/web/package.json` ganha um script MF5 para executar o smoke.
+- `apps/web/src/ui/useActionFeedback.ts` concentra o ciclo de feedback.
+- `apps/web/src/App.tsx` consome o hook em `OperationForm` e `ResourcePanel`.
+- `apps/web/src/pages/mf3Pages.tsx` e `apps/web/src/pages/mf4Pages.tsx` passam a usar feedback comum nas páginas dedicadas.
+- `apps/web/src/ui/opsaUi.tsx`, criado em `BK-MF5-01`, fornece `StatusMessage`.
+- `apps/web/scripts/check-mf5-feedback.mjs` valida que os pontos centrais do contrato existem.
+- `apps/web/package.json` ganha um script MF5 para executar o smoke.
 - `BK-MF5-04` recebe feedback já organizado para evoluir semântica, contraste e legibilidade.
 
 #### Ficheiros a criar/editar/rever
 
-- CRIAR: `real_dev/web/src/ui/useActionFeedback.ts`
-- CRIAR: `real_dev/web/scripts/check-mf5-feedback.mjs`
-- EDITAR: `real_dev/web/src/App.tsx`
-- EDITAR: `real_dev/web/src/pages/mf3Pages.tsx`
-- EDITAR: `real_dev/web/src/pages/mf4Pages.tsx`
-- EDITAR: `real_dev/web/package.json`
-- REVER: `real_dev/web/src/ui/opsaUi.tsx`
-- REVER: `real_dev/web/src/lib/apiClient.ts`
+- CRIAR: `apps/web/src/ui/useActionFeedback.ts`
+- CRIAR: `apps/web/scripts/check-mf5-feedback.mjs`
+- EDITAR: `apps/web/src/App.tsx`
+- EDITAR: `apps/web/src/pages/mf3Pages.tsx`
+- EDITAR: `apps/web/src/pages/mf4Pages.tsx`
+- EDITAR: `apps/web/package.json`
+- REVER: `apps/web/src/ui/opsaUi.tsx`
+- REVER: `apps/web/src/lib/apiClient.ts`
 
 #### Tutorial técnico linear
 
@@ -111,10 +111,10 @@ Uma ação sem feedback cria incerteza: o utilizador pode repetir cliques, pensa
 Identificar os pontos da interface que precisam de feedback antes de escrever código. O objetivo é evitar uma correção parcial centrada apenas num formulário.
 
 2. Ficheiros envolvidos:
-    - REVER: `real_dev/web/src/App.tsx`
-    - REVER: `real_dev/web/src/pages/mf3Pages.tsx`
-    - REVER: `real_dev/web/src/pages/mf4Pages.tsx`
-    - REVER: `real_dev/web/src/lib/apiClient.ts`
+    - REVER: `apps/web/src/App.tsx`
+    - REVER: `apps/web/src/pages/mf3Pages.tsx`
+    - REVER: `apps/web/src/pages/mf4Pages.tsx`
+    - REVER: `apps/web/src/lib/apiClient.ts`
 
 3. Instruções do que fazer.
 
@@ -143,12 +143,12 @@ Se a lista só mencionar `OperationForm`, o BK continua incompleto porque import
 Criar um estado reutilizável para representar execução, sucesso e erro em qualquer ação assíncrona da interface.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `real_dev/web/src/ui/useActionFeedback.ts`
+    - CRIAR: `apps/web/src/ui/useActionFeedback.ts`
     - LOCALIZAÇÃO: ficheiro completo
 
 3. Instruções do que fazer.
 
-Cria o ficheiro abaixo em `real_dev/web/src/ui/useActionFeedback.ts`. Mantém os nomes exportados porque os passos seguintes dependem deles.
+Cria o ficheiro abaixo em `apps/web/src/ui/useActionFeedback.ts`. Mantém os nomes exportados porque os passos seguintes dependem deles.
 
 4. Código completo, correto e integrado com a app final.
 
@@ -293,7 +293,7 @@ Se `run` capturar um erro e não o voltar a lançar, o componente chamador pode 
 Garantir feedback imediato em operações de guardar e validar que passam pelo formulário genérico da aplicação.
 
 2. Ficheiros envolvidos:
-    - EDITAR: `real_dev/web/src/App.tsx`
+    - EDITAR: `apps/web/src/App.tsx`
     - LOCALIZAÇÃO: imports e função completa `OperationForm`
 
 3. Instruções do que fazer.
@@ -431,7 +431,7 @@ Se a API falhar, o formulário não deve ser limpo e o botão deve voltar a fica
 Dar feedback imediato a ações de leitura, como atualizar listas e pesquisar dados.
 
 2. Ficheiros envolvidos:
-    - EDITAR: `real_dev/web/src/App.tsx`
+    - EDITAR: `apps/web/src/App.tsx`
     - LOCALIZAÇÃO: função completa `ResourcePanel`
 
 3. Instruções do que fazer.
@@ -556,8 +556,8 @@ Se `resource.load` falhar, a tabela deve ficar vazia, a mensagem de erro deve ap
 Remover mensagens locais inconsistentes nas páginas dedicadas e usar o mesmo componente visual da MF5.
 
 2. Ficheiros envolvidos:
-    - EDITAR: `real_dev/web/src/pages/mf3Pages.tsx`
-    - EDITAR: `real_dev/web/src/pages/mf4Pages.tsx`
+    - EDITAR: `apps/web/src/pages/mf3Pages.tsx`
+    - EDITAR: `apps/web/src/pages/mf4Pages.tsx`
     - LOCALIZAÇÃO: imports e função local `Feedback`
 
 3. Instruções do que fazer.
@@ -612,7 +612,7 @@ Este passo garante que páginas dedicadas não ficam com um segundo padrão de f
 
 6. Validação do passo.
 
-A pesquisa `rg -n "StatusMessage" real_dev/web/src/pages/mf3Pages.tsx real_dev/web/src/pages/mf4Pages.tsx` deve devolver ocorrências nos dois ficheiros.
+A pesquisa `rg -n "StatusMessage" apps/web/src/pages/mf3Pages.tsx apps/web/src/pages/mf4Pages.tsx` deve devolver ocorrências nos dois ficheiros.
 
 7. Cenário negativo/erro esperado.
 
@@ -625,7 +625,7 @@ Se `Feedback` continuar a renderizar `<p className="error">`, a página fica for
 Garantir que ações de importação têm feedback imediato antes, durante e depois da submissão.
 
 2. Ficheiros envolvidos:
-    - EDITAR: `real_dev/web/src/pages/mf3Pages.tsx`
+    - EDITAR: `apps/web/src/pages/mf3Pages.tsx`
     - LOCALIZAÇÃO: imports, `StatementImportPage` e `BusinessImportPage`
 
 3. Instruções do que fazer.
@@ -844,12 +844,12 @@ Submete o formulário com `content` vazio. O erro deve aparecer no `StatusMessag
 Criar uma validação repetível para provar que o contrato mínimo de feedback existe no código.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `real_dev/web/scripts/check-mf5-feedback.mjs`
-    - EDITAR: `real_dev/web/package.json`
+    - CRIAR: `apps/web/scripts/check-mf5-feedback.mjs`
+    - EDITAR: `apps/web/package.json`
 
 3. Instruções do que fazer.
 
-Cria o script completo abaixo e adiciona `"test:mf5:feedback": "node scripts/check-mf5-feedback.mjs"` à secção `scripts` de `real_dev/web/package.json`.
+Cria o script completo abaixo e adiciona `"test:mf5:feedback": "node scripts/check-mf5-feedback.mjs"` à secção `scripts` de `apps/web/package.json`.
 
 4. Código completo, correto e integrado com a app final.
 
@@ -940,7 +940,7 @@ Este smoke não tenta substituir testes de UI completos. Ele verifica contratos 
 
 6. Validação do passo.
 
-Executa `cd real_dev/web && npm run test:mf5:feedback`. O output esperado é `MF5 feedback smoke OK`.
+Executa `cd apps/web && npm run test:mf5:feedback`. O output esperado é `MF5 feedback smoke OK`.
 
 7. Cenário negativo/erro esperado.
 
@@ -953,10 +953,10 @@ Remove temporariamente a palavra `StatusMessage` de uma página dedicada e confi
 Confirmar que a implementação continua estável e deixar evidence clara para PR ou defesa.
 
 2. Ficheiros envolvidos:
-    - REVER: `real_dev/web/package.json`
-    - REVER: `real_dev/web/src/App.tsx`
-    - REVER: `real_dev/web/src/pages/mf3Pages.tsx`
-    - REVER: `real_dev/web/src/pages/mf4Pages.tsx`
+    - REVER: `apps/web/package.json`
+    - REVER: `apps/web/src/App.tsx`
+    - REVER: `apps/web/src/pages/mf3Pages.tsx`
+    - REVER: `apps/web/src/pages/mf4Pages.tsx`
 
 3. Instruções do que fazer.
 
@@ -965,7 +965,7 @@ Executa os comandos de validação, testa manualmente um cenário positivo e um 
 4. Código completo, correto e integrado com a app final.
 
 ```bash
-cd real_dev/web
+cd apps/web
 npm run typecheck
 npm run test:mf1
 npm run test:mf2
@@ -992,7 +992,7 @@ Se `npm run test:mf5:feedback` falhar, corrige primeiro o contrato indicado pelo
 - `ResourcePanel` mostra feedback em atualização e pesquisa.
 - `StatementImportPage` e `BusinessImportPage` mostram feedback em importações.
 - Páginas dedicadas de MF3 e MF4 usam `StatusMessage` em vez de mensagens locais soltas.
-- `real_dev/web/package.json` expõe `test:mf5:feedback`.
+- `apps/web/package.json` expõe `test:mf5:feedback`.
 - O frontend continua a usar o cliente API existente e cookies HttpOnly.
 - Nenhuma regra de domínio, permissão, empresa ativa ou validação final passa a ser decidida apenas no frontend.
 - O aluno consegue seguir o BK sem inventar ficheiros, imports ou comandos.
@@ -1000,11 +1000,11 @@ Se `npm run test:mf5:feedback` falhar, corrige primeiro o contrato indicado pelo
 
 #### Validação final
 
-- Executar `cd real_dev/web && npm run typecheck`.
-- Executar `cd real_dev/web && npm run test:mf1`.
-- Executar `cd real_dev/web && npm run test:mf2`.
-- Executar `cd real_dev/web && npm run test:mf3`.
-- Executar `cd real_dev/web && npm run test:mf5:feedback`.
+- Executar `cd apps/web && npm run typecheck`.
+- Executar `cd apps/web && npm run test:mf1`.
+- Executar `cd apps/web && npm run test:mf2`.
+- Executar `cd apps/web && npm run test:mf3`.
+- Executar `cd apps/web && npm run test:mf5:feedback`.
 - Executar pesquisa por `StatusMessage` nos ficheiros alterados.
 - Testar manualmente sucesso e erro em guardar, atualizar, pesquisar e importar.
 
