@@ -1,37 +1,35 @@
-/**
- * @file Páginas React dos fluxos MF4 de IA assistiva, lembretes, tarefas, notificações e auditoria.
- */
-
+// apps/web/src/pages/mf4Pages.tsx - bloco de imports final
 import { FormEvent, ReactNode, useState } from "react";
 import { ApiError, JsonBody } from "../lib/apiClient";
 import {
-  AiActionSuggestion,
-  AiInsight,
-  AiQuestionAnswer,
-  AuditLogItem,
-  createReminder,
-  createTask,
-  getAiInsights,
-  getAiSuggestions,
-  getAuditLogs,
-  getInsightExplanation,
-  getIntegrationLogs,
-  getNotifications,
-  getReminders,
-  getSmartAlerts,
-  getTasks,
-  InAppNotificationItem,
-  InsightExplanation,
-  IntegrationLogItem,
-  markNotificationRead,
-  OperationalTaskItem,
-  ReminderItem,
-  SmartAlert,
-  syncNotifications,
-  updateReminderStatus,
-  updateTaskStatus,
-  askAiQuestion,
+    AiActionSuggestion,
+    AiInsight,
+    AiQuestionAnswer,
+    AuditLogItem,
+    createReminder,
+    createTask,
+    getAiInsights,
+    getAiSuggestions,
+    getAuditLogs,
+    getInsightExplanation,
+    getIntegrationLogs,
+    getNotifications,
+    getReminders,
+    getSmartAlerts,
+    getTasks,
+    InAppNotificationItem,
+    InsightExplanation,
+    IntegrationLogItem,
+    markNotificationRead,
+    OperationalTaskItem,
+    ReminderItem,
+    SmartAlert,
+    syncNotifications,
+    updateReminderStatus,
+    updateTaskStatus,
+    askAiQuestion,
 } from "../lib/mf4Api";
+import { PageFrame } from "../ui/opsaUi";
 
 /**
  * Formata erros da API para feedback em português.
@@ -87,23 +85,6 @@ function requiredText(value: FormDataEntryValue | null, label: string) {
 function optionalText(value: FormDataEntryValue | null) {
   const text = String(value ?? "").trim();
   return text || undefined;
-}
-
-/**
- * Moldura visual comum das páginas MF4.
- *
- * @param props - Propriedades React.
- * @returns Elemento React.
- */
-function PageFrame({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <section className="panel">
-      <div className="sectionHeader">
-        <h2>{title}</h2>
-      </div>
-      {children}
-    </section>
-  );
 }
 
 /**

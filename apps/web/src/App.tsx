@@ -46,6 +46,7 @@ import {
   SmartAlertsPage,
   TasksPage,
 } from "./pages/mf4Pages";
+import { ActionToolbar, PageFrame, StatusMessage } from "./ui/opsaUi";
 
 type ApiObject = Record<string, unknown>;
 type FieldKind = "text" | "email" | "password" | "number" | "textarea" | "select";
@@ -373,81 +374,99 @@ function AuthPanel({
 }
 
 /**
- * Renderiza um recurso CRUD configurável, incluindo pesquisa, tabela e operações associadas.
+ * Renderiza um recurso CRUD configurável com moldura visual consistente entre módulos.
  *
- * @param props - Propriedades recebidas pelo componente React.
- * @returns Elemento React renderizado para um recurso CRUD.
+ * @param props - Recurso com loader, pesquisa e operações.
+ * @returns Elemento React com lista, ações e feedback.
  */
 function ResourcePanel({ resource }: { resource: ResourceConfig }) {
-  const [rows, setRows] = useState<ApiObject[]>([]);
-  const [search, setSearch] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<unknown>(null);
-  const [busy, setBusy] = useState(false);
+    const [rows, setRows] = useState<ApiObject[]>([]);
+    const [search, setSearch] = useState("");
+    const [error, setError] = useState<string | null>(null);
+    const [result, setResult] = useState<unknown>(null);
+    const [busy, setBusy] = useState(false);
 
-  /**
-   * Carrega dados da API para atualizar o estado visível do ecrã.
-   *
-   * @returns Promise resolvida depois de atualizar os dados visíveis.
-   */
-  async function load() {
-    setBusy(true);
-    setError(null);
-    try {
-      setRows(await resource.load(resource.searchable ? search : undefined));
-    } catch (caught) {
-      setError(formatError(caught));
-      setRows([]);
-    } finally {
-      setBusy(false);
+    /**
+     * Carrega dados do módulo ativo e mantém feedback previsível para o utilizador.
+     *
+     * @returns Promise resolvida quando os dados visíveis são atualizados.
+     */
+    async function load() {
+        setBusy(true);
+        setError(null);
+        try {
+            // A pesquisa é enviada apenas quando o recurso a suporta, evitando parâmetros sem contrato.
+            setRows(
+                await resource.load(resource.searchable ? search : undefined),
+            );
+        } catch (caught) {
+            setError(formatError(caught));
+            setRows([]);
+        } finally {
+            setBusy(false);
+        }
     }
-  }
 
-  useEffect(() => {
-    void load();
-  }, [resource.id]);
+    useEffect(() => {
+        // A mudança de recurso obriga a novo carregamento sem depender da posição visual no menu.
+        void load();
+    }, [resource.id]);
 
-  return (
-    <section className="panel">
-      <div className="sectionHeader">
-        <h2>{resource.title}</h2>
-        <button type="button" onClick={load} disabled={busy}>
-          {busy ? "A carregar..." : "Atualizar"}
-        </button>
-      </div>
-      {resource.searchable ? (
-        <form
-          className="search"
-          onSubmit={(event) => {
-            event.preventDefault();
-            void load();
-          }}
+    return (
+        <PageFrame
+            eyebrow="OPSA"
+            title={resource.title}
+            description="Consulta e operação do módulo ativo com a mesma estrutura visual usada nos restantes módulos."
+            actions={
+                <ActionToolbar>
+                    <button type="button" onClick={load} disabled={busy}>
+                        {busy ? "A carregar..." : "Atualizar"}
+                    </button>
+                </ActionToolbar>
+            }
         >
-          <input
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Pesquisar por nome ou NIF"
-          />
-          <button type="submit">Pesquisar</button>
-        </form>
-      ) : null}
-      {error ? <p className="error">{error}</p> : null}
-      <DataTable rows={rows} />
-      <div className="operationGrid">
-        {resource.operations.map((operation) => (
-          <OperationForm
-            key={operation.title}
-            operation={operation}
-            onDone={async (value) => {
-              setResult(value);
-              await load();
-            }}
-          />
-        ))}
-      </div>
-      <pre className="result">{JSON.stringify(result, null, 2)}</pre>
-    </section>
-  );
+            {resource.searchable ? (
+                <form
+                    className="search"
+                    onSubmit={(event) => {
+                        event.preventDefault();
+                        void load();
+                    }}
+                >
+                    <input
+                        type="search"
+                        value={search}
+                        aria-label="Pesquisar por nome ou NIF"
+                        onChange={(event) => setSearch(event.target.value)}
+                    />
+                    <button type="submit">Pesquisar</button>
+                </form>
+            ) : null}
+            {error ? (
+                <StatusMessage
+                    tone="danger"
+                    title="Não foi possível carregar os dados"
+                >
+                    {error}
+                </StatusMessage>
+            ) : null}
+            <DataTable rows={rows} />
+            <div className="operationGrid">
+                {resource.operations.map((operation) => (
+                    <OperationForm
+                        key={operation.title}
+                        operation={operation}
+                        onDone={async (value) => {
+                            setResult(value);
+                            // Depois de criar ou alterar dados, a lista volta a ser lida pela API.
+                            await load();
+                        }}
+                    />
+                ))}
+            </div>
+            <pre className="result">{JSON.stringify(result, null, 2)}</pre>
+        </PageFrame>
+    );
 }
 
 const roleOptions = [
