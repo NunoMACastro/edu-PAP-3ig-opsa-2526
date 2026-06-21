@@ -1,17 +1,14 @@
-/**
- * @file Páginas React dos fluxos MF2 de inventário, FIFO, contagens, alertas, lançamentos e relatórios contabilísticos.
- */
-
-import { FormEvent, ReactNode, useEffect, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { ApiError, apiClient, JsonBody } from "../lib/apiClient";
 import {
-  ApiObject,
-  asObject,
-  formatValue,
-  optionalText,
-  pickArray,
-  requiredText,
+    ApiObject,
+    asObject,
+    formatValue,
+    optionalText,
+    pickArray,
+    requiredText,
 } from "../lib/mf1FormUtils";
+import { PageFrame } from "../ui/opsaUi";
 
 type StockMovementType = "ENTRY" | "EXIT" | "TRANSFER" | "RETURN" | "ADJUSTMENT";
 
@@ -115,23 +112,6 @@ function fileToBase64(file: File) {
     });
     reader.readAsDataURL(file);
   });
-}
-
-/**
- * Fornece a moldura visual comum das páginas funcionais do frontend.
- *
- * @param props - Propriedades recebidas pelo componente React.
- * @returns Elemento React renderizado com a moldura visual comum.
- */
-function PageFrame({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <section className="panel">
-      <div className="sectionHeader">
-        <h2>{title}</h2>
-      </div>
-      {children}
-    </section>
-  );
 }
 
 /**
