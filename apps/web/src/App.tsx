@@ -189,6 +189,12 @@ function OperationForm({
 }
 
 /**
+ * Renderiza um recurso CRUD configurável, incluindo pesquisa, tabela e operações associadas.
+ *
+ * @param props - Configuração do recurso a apresentar.
+ * @returns Elemento React renderizado para um recurso CRUD.
+ */
+/**
  * Converte um valor desconhecido num objeto indexável, devolvendo objeto vazio quando o formato não é seguro.
  *
  * @param value - Valor a normalizar ou formatar.
