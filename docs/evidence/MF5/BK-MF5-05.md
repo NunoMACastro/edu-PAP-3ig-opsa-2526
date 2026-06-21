@@ -127,3 +127,28 @@ Negativo validado:
 - objetos e listas não são validados no frontend;
 - validações backend não foram removidas.
 
+Passo 5
+Ficheiros editados:
+- apps/web/src/pages/mf1Pages.tsx
+
+Regras implementadas:
+- importado validateMf5FormData;
+- importado formatMf5FormErrors;
+- criada função assertMf5Form;
+- parseSaleDocumentForm valida issuedAt, dueDate e vatRateId antes de criar payload;
+- parsePurchaseDocumentForm valida issuedAt, dueDate e vatRateId antes de criar payload;
+- vatRateId é validado como identificador obrigatório, não como percentagem;
+- validação local bloqueia datas impossíveis antes da chamada à API;
+- backend continua a ser autoridade final.
+
+Smoke validado:
+- venda com issuedAt=2026-02-30 gerou erro local;
+- compra com data impossível gerou erro local;
+- venda com vatRateId preenchido não foi bloqueada como percentagem.
+
+Negativos validados:
+- compra com data impossível não chamou a API;
+- vatRateId não foi tratado como vatRatePercent;
+- validações backend não foram removidas.
+
+Passo 6
