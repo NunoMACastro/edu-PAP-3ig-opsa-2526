@@ -259,6 +259,7 @@ th {
     grid-template-columns: 1fr;
   }
 }
+
 /* MF5-02 - listagens responsivas */
 .responsiveTable caption {
   position: absolute;
@@ -318,5 +319,75 @@ th {
   .mobileList {
     display: grid;
     gap: 0.85rem;
+  }
+}
+
+/* MF5-04 - acessibilidade base para navegação, leitura e mensagens */
+:root {
+  --opsa-text-strong: #17201a;
+  --opsa-focus-ring: #0f766e;
+  --opsa-focus-ring-soft: rgba(15, 118, 110, 0.18);
+  --opsa-danger-text: #991b1b;
+  --opsa-success-text: #166534;
+  --opsa-warning-text: #854d0e;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 3px solid var(--opsa-focus-ring);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 4px var(--opsa-focus-ring-soft);
+}
+
+.pageFrame {
+  color: var(--opsa-text-strong);
+}
+
+.pageFrame__description,
+p,
+li,
+label,
+input,
+select,
+textarea {
+  line-height: 1.55;
+}
+
+.statusMessage {
+  border-left: 4px solid currentColor;
+  color: var(--opsa-text-strong);
+  line-height: 1.5;
+  padding: 0.85rem 1rem;
+}
+
+.statusMessage--danger {
+  color: var(--opsa-danger-text);
+}
+
+.statusMessage--success {
+  color: var(--opsa-success-text);
+}
+
+.statusMessage--warning {
+  color: var(--opsa-warning-text);
+}
+
+.statusMessage__title {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms;
+    animation-iteration-count: 1;
+    scroll-behavior: auto;
+    transition-duration: 0.01ms;
   }
 }
