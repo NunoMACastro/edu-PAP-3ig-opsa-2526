@@ -18,6 +18,7 @@ import { salesApi } from "../lib/salesApi";
 import { salesOpenItemsApi } from "../lib/salesOpenItemsApi";
 import { vatRateApi } from "../lib/vatRateApi";
 import { PageFrame } from "../ui/opsaUi";
+import { formatMf5FormErrors, validateMf5FormData } from "../lib/mf5FormValidators";
 
 type Method = "CASH" | "BANK_TRANSFER" | "CARD" | "OTHER";
 type SaleDocumentKind = "INVOICE" | "INVOICE_RECEIPT" | "CREDIT_NOTE";
@@ -39,6 +40,19 @@ function formatError(error: unknown): string {
   if (error instanceof ApiError) return `${error.code}: ${error.message}`;
   if (error instanceof Error) return error.message;
   return "Erro inesperado";
+}
+
+/**
+ * Lança erro se o formulário tiver campos críticos inválidos.
+ *
+ * @param form - Dados recolhidos no submit.
+ * @param fieldNames - Campos críticos deste formulário.
+ */
+function assertMf5Form(form: FormData, fieldNames: string[]) {
+  const errors = validateMf5FormData(form, fieldNames);
+  if (errors.length > 0) {
+    throw new Error(formatMf5FormErrors(errors));
+  }
 }
 
 /**
@@ -244,49 +258,48 @@ function Feedback({
 }
 
 /**
- * Constrói o payload de documento de venda com uma linha normalizada para a API.
+ * Constrói o pedido de venda depois de validar datas e IVA.
  *
- * @param form - Dados submetidos pelo formulário.
- * @returns Payload normalizado de documento de venda.
+ * @param form - Dados submetidos no formulário de venda.
+ * @returns Corpo pronto para o cliente API.
  */
-function parseSaleDocument(form: FormData): JsonBody {
+function parseSaleDocumentForm(form: FormData) {
+  assertMf5Form(form, ["issuedAt", "dueDate", "vatRateId"]);
+
   return {
-    kind: requiredText(form.get("kind"), "Tipo") as SaleDocumentKind,
-    customerId: requiredText(form.get("customerId"), "Cliente"),
-    issuedAt: requiredText(form.get("issuedAt"), "Data"),
-    dueDate: optionalText(form.get("dueDate")),
+    customerId: String(form.get("customerId") ?? ""),
+    issuedAt: String(form.get("issuedAt") ?? ""),
+    dueDate: String(form.get("dueDate") ?? ""),
     lines: [
       {
-        itemId: requiredText(form.get("itemId"), "Artigo"),
-        vatRateId: requiredText(form.get("vatRateId"), "Taxa de IVA"),
-        description: optionalText(form.get("description")),
-        quantity: toPositiveInteger(form.get("quantity"), "Quantidade"),
-        unitPriceCents: toPositiveInteger(form.get("unitPriceCents"), "Preco"),
+        description: String(form.get("description") ?? ""),
+        quantity: Number(form.get("quantity") ?? 1),
+        unitPriceCents: Number(form.get("unitPriceCents") ?? 0),
+        vatRateId: String(form.get("vatRateId") ?? ""),
       },
     ],
   };
 }
 
 /**
- * Constrói o payload de documento de compra com uma linha normalizada para a API.
+ * Constrói o pedido de compra depois de validar datas e IVA.
  *
- * @param form - Dados submetidos pelo formulário.
- * @returns Payload normalizado de documento de compra.
+ * @param form - Dados submetidos no formulário de compra.
+ * @returns Corpo pronto para o cliente API.
  */
-function parsePurchaseDocument(form: FormData): JsonBody {
+function parsePurchaseDocumentForm(form: FormData) {
+  assertMf5Form(form, ["issuedAt", "dueDate", "vatRateId"]);
+
   return {
-    kind: requiredText(form.get("kind"), "Tipo") as PurchaseDocumentKind,
-    supplierId: requiredText(form.get("supplierId"), "Fornecedor"),
-    supplierNumber: requiredText(form.get("supplierNumber"), "Numero do fornecedor"),
-    issuedAt: requiredText(form.get("issuedAt"), "Data"),
-    dueDate: optionalText(form.get("dueDate")),
+    supplierId: String(form.get("supplierId") ?? ""),
+    issuedAt: String(form.get("issuedAt") ?? ""),
+    dueDate: String(form.get("dueDate") ?? ""),
     lines: [
       {
-        itemId: requiredText(form.get("itemId"), "Artigo"),
-        vatRateId: requiredText(form.get("vatRateId"), "Taxa de IVA"),
-        description: optionalText(form.get("description")),
-        quantity: toPositiveInteger(form.get("quantity"), "Quantidade"),
-        unitCostCents: toPositiveInteger(form.get("unitCostCents"), "Custo"),
+        description: String(form.get("description") ?? ""),
+        quantity: Number(form.get("quantity") ?? 1),
+        unitPriceCents: Number(form.get("unitPriceCents") ?? 0),
+        vatRateId: String(form.get("vatRateId") ?? ""),
       },
     ],
   };
