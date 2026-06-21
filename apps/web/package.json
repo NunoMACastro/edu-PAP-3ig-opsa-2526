@@ -26,3 +26,15 @@
     "vite": "^8.0.14"
   }
 }
+
+{
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "test:mf1": "node scripts/check-mf1-contracts.mjs",
+    "test:mf2": "node scripts/check-mf2-workflows.mjs",
+    "test:mf3": "node scripts/check-mf3-evidence.mjs",
+    "test:mf5:forms": "node scripts/check-mf5-form-validation.mjs",
+    "typecheck": "tsc --noEmit"
+  }
+}

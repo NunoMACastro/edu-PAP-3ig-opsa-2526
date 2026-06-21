@@ -180,3 +180,22 @@ Negativos validados:
 - formulário sem campo IBAN não tentou validar IBAN;
 - formulário sem campo NIF não tentou validar NIF;
 - validação local não substituiu validação backend.
+
+Passo 7
+Ficheiros criados/editados:
+- criado apps/web/scripts/check-mf5-form-validation.mjs;
+- editado apps/web/package.json.
+
+Script criado:
+- test:mf5:forms
+
+Contratos verificados pelo smoke:
+- validatePortugueseIban existe;
+- datas usam roundtrip ISO com toISOString().slice(0, 10);
+- validateVatBps existe;
+- validateKnownId existe;
+- validateMf5FormData existe;
+- OperationForm usa validateMf5Form antes da API;
+- feedback recebe new Error(formatMf5FormErrors(...));
+- MF1 usa validateMf5FormData;
+- package.json expõe test:mf5:forms.
