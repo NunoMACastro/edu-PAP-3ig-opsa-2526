@@ -217,3 +217,75 @@ Scope respeitado:
 - não foi criado novo cliente HTTP;
 - apiClient e cookies HttpOnly foram preservados;
 - frontend continua sem ser fonte de autorização.
+
+10) Evidencia obrigatoria
+pr
+BK-MF5-01 - Base visual transversal para módulos OPSA.
+
+proof
+- Componente transversal PageFrame criado em apps/web/src/ui/opsaUi.tsx.
+- Componentes transversais StatusMessage, ActionToolbar e ModuleBadge criados.
+- ResourcePanel migrado para utilizar os componentes transversais.
+- Páginas MF1, MF2, MF3 e MF4 migradas para o novo PageFrame.
+- CSS transversal adicionado em apps/web/src/styles.css.
+- TypeScript compilou sem erros após a migração.
+- Navegação e renderização dos módulos mantiveram funcionamento normal.
+
+neg
+1. Import incorreto de PageFrame:
+   Resultado esperado: erro de typecheck.
+   Resultado observado: erro identificado e corrigido.
+
+2. ReactNode removido indevidamente em MF1:
+   Resultado esperado: erro TypeScript.
+   Resultado observado: dependência mantida apenas em MF1.
+
+3. ReactNode mantido sem utilização em MF2:
+   Resultado esperado: aviso de import não utilizado.
+   Resultado observado: removido após migração.
+
+4. Ausência de reload após operações no ResourcePanel:
+   Resultado esperado: lista desatualizada.
+   Resultado observado: load() mantido após operações.
+
+files
+- apps/web/src/ui/opsaUi.tsx
+- apps/web/src/App.tsx
+- apps/web/src/pages/mf1Pages.tsx
+- apps/web/src/pages/mf2Pages.tsx
+- apps/web/src/pages/mf3Pages.tsx
+- apps/web/src/pages/mf4Pages.tsx
+- apps/web/src/styles.css
+
+commands
+Select-String -Path apps/web/src/pages/mf1Pages.tsx,apps/web/src/pages/mf2Pages.tsx -Pattern "function PageFrame"
+Select-String -Path apps/web/src/pages/mf1Pages.tsx,apps/web/src/pages/mf2Pages.tsx -Pattern "../ui/opsaUi"
+Select-String -Path apps/web/src/pages/mf3Pages.tsx,apps/web/src/pages/mf4Pages.tsx -Pattern "function PageFrame"
+npm --prefix apps/web run typecheck;
+npm --prefix apps/web run build;
+npm --prefix apps/web run test:mf1;
+npm --prefix apps/web run test:mf2;
+npm --prefix apps/web run test:mf3.
+
+accessibility
+- Estrutura comum de cabeçalhos aplicada através de PageFrame.
+- StatusMessage diferencia estados através de texto e estrutura visual, não apenas cor.
+- Campos de pesquisa mantiveram aria-label existente.
+- Componentes reutilizáveis reduzem inconsistências de navegação entre módulos.
+- Não foram removidos elementos de acessibilidade existentes.
+
+performance
+- Não foram adicionadas chamadas HTTP adicionais.
+- Não foram criadas consultas extra ao backend.
+- ResourcePanel mantém carregamento apenas quando necessário.
+- Reutilização de componentes reduz duplicação de renderização e manutenção futura.
+- Impacto de performance considerado neutro.
+
+notes
+- BK limitado à camada visual (RNF01).
+- Nenhuma regra de negócio foi alterada.
+- Nenhum endpoint backend foi modificado.
+- Nenhum modelo Prisma foi criado ou alterado.
+- Permissões, autenticação e contexto multiempresa permaneceram inalterados.
+- Os componentes PageFrame, StatusMessage, ActionToolbar e ModuleBadge devem ser reutilizados nos restantes BK da MF5.
+- Os comandos rg do guia foram substituídos por verificações equivalentes em PowerShell devido à ausência do ripgrep no ambiente local.
