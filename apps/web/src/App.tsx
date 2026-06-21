@@ -48,6 +48,7 @@ import {
   TasksPage,
 } from "./pages/mf4Pages";
 import { ActionToolbar, PageFrame, StatusMessage } from "./ui/opsaUi";
+import { formatMf5FormErrors, toPrimitiveValidationValues, validateMf5Form } from "./lib/mf5FormValidators";
 
 type ApiObject = Record<string, unknown>;
 type FieldKind = "text" | "email" | "password" | "number" | "textarea" | "select";
@@ -101,39 +102,35 @@ function OperationForm({
     const action = useActionFeedback();
 
     /**
-     * Submete a operação, atualiza a lista dependente e apresenta feedback em cada estado.
+     * Submete a operação apenas depois de validar campos críticos no frontend.
      *
      * @param event - Evento do formulário submetido.
-     * @returns Promise resolvida depois de terminar a submissão.
+     * @returns Promise resolvida depois de processar a submissão.
      */
     async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-        event.preventDefault();
-        const formElement = event.currentTarget;
+      event.preventDefault();
+      const formElement = event.currentTarget;
+      action.start("A validar dados do formulário...");
 
-        try {
-            await action.run(
-                async () => {
-                    const values = normalizeFormValues(
-                        operation.fields,
-                        new FormData(formElement),
-                    );
-                    const result = await operation.run(values);
-                    await operation.afterSuccess?.();
-                    await onDone(result);
-                    return result;
-                },
-                {
-                    startMessage: "A validar e enviar dados...",
-                    successMessage: "Dados guardados e lista atualizada.",
-                    errorMessage: "Não foi possível guardar os dados.",
-                },
-            );
+      try {
+        const values = normalizeFormValues(operation.fields, new FormData(formElement));
+        const validationErrors = validateMf5Form(toPrimitiveValidationValues(values));
 
-            // O formulário só é limpo depois de a operação terminar com sucesso.
-            formElement.reset();
-        } catch {
-            // A mensagem de erro já foi colocada no estado pelo hook.
+        if (validationErrors.length > 0) {
+          // O contrato do BK-MF5-03 recebe Error, permitindo manter fallback e acessibilidade consistentes.
+          action.fail(new Error(formatMf5FormErrors(validationErrors)));
+          return;
         }
+
+        const result = await operation.run(values);
+        await operation.afterSuccess?.();
+        await onDone(result);
+        formElement.reset();
+        action.succeed("Dados guardados e lista atualizada.");
+      } catch (caught) {
+        const error = caught instanceof Error ? caught : new Error(formatError(caught));
+        action.fail(error, "Não foi possível guardar os dados.");
+      }
     }
 
     return (
