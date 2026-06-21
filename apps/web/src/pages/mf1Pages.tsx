@@ -1,18 +1,14 @@
-/**
- * @file Páginas React dos fluxos MF1 de IVA, vendas, compras, recebimentos, pagamentos e aprovações.
- */
-
 import { FormEvent, ReactNode, useEffect, useState } from "react";
 import { ApiError, JsonBody } from "../lib/apiClient";
 import { accountingApi } from "../lib/accountingApi";
 import {
-  ApiObject,
-  asObject,
-  formatValue,
-  optionalText,
-  pickArray,
-  requiredText,
-  toPositiveInteger,
+    ApiObject,
+    asObject,
+    formatValue,
+    optionalText,
+    pickArray,
+    requiredText,
+    toPositiveInteger,
 } from "../lib/mf1FormUtils";
 import { paymentApi } from "../lib/paymentApi";
 import { purchaseApprovalApi } from "../lib/purchaseApprovalApi";
@@ -21,6 +17,7 @@ import { receiptApi } from "../lib/receiptApi";
 import { salesApi } from "../lib/salesApi";
 import { salesOpenItemsApi } from "../lib/salesOpenItemsApi";
 import { vatRateApi } from "../lib/vatRateApi";
+import { PageFrame } from "../ui/opsaUi";
 
 type Method = "CASH" | "BANK_TRANSFER" | "CARD" | "OTHER";
 type SaleDocumentKind = "INVOICE" | "INVOICE_RECEIPT" | "CREDIT_NOTE";
@@ -51,23 +48,6 @@ function formatError(error: unknown): string {
  */
 function today() {
   return new Date().toISOString().slice(0, 10);
-}
-
-/**
- * Fornece a moldura visual comum das páginas funcionais do frontend.
- *
- * @param props - Propriedades recebidas pelo componente React.
- * @returns Elemento React renderizado com a moldura visual comum.
- */
-function PageFrame({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <section className="panel">
-      <div className="sectionHeader">
-        <h2>{title}</h2>
-      </div>
-      {children}
-    </section>
-  );
 }
 
 /**
