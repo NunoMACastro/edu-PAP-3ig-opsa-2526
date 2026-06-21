@@ -1,9 +1,6 @@
-/**
- * @file Páginas React dos fluxos MF3 de IVA, tesouraria, importações, SAF-T, relatórios e KPIs.
- */
-
-import { FormEvent, ReactNode, useState } from "react";
+import { FormEvent, useState } from "react";
 import { ApiError, apiClient, JsonBody } from "../lib/apiClient";
+import { PageFrame } from "../ui/opsaUi";
 
 type ApiObject = Record<string, unknown>;
 
@@ -75,23 +72,6 @@ function integerValue(value: FormDataEntryValue | null, label: string) {
   const parsed = Number(String(value ?? "").trim() || "0");
   if (!Number.isInteger(parsed)) throw new Error(`${label} deve estar em centimos`);
   return parsed;
-}
-
-/**
- * Fornece a moldura visual comum das páginas funcionais do frontend.
- *
- * @param props - Propriedades recebidas pelo componente React.
- * @returns Elemento React renderizado com a moldura visual comum.
- */
-function PageFrame({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <section className="panel">
-      <div className="sectionHeader">
-        <h2>{title}</h2>
-      </div>
-      {children}
-    </section>
-  );
 }
 
 /**
