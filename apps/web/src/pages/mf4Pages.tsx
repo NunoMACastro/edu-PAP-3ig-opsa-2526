@@ -29,7 +29,7 @@ import {
     updateTaskStatus,
     askAiQuestion,
 } from "../lib/mf4Api";
-import { PageFrame } from "../ui/opsaUi";
+import { PageFrame, StatusMessage } from "../ui/opsaUi";
 
 /**
  * Formata erros da API para feedback em português.
@@ -104,13 +104,26 @@ function Feedback({
 }) {
   return (
     <>
-      {busy ? <p className="empty">A carregar...</p> : null}
-      {error ? <p className="error">{error}</p> : null}
-      {message ? <p className="success">{message}</p> : null}
+      {busy ? (
+        <StatusMessage tone="neutral" title="Operação em curso">
+          A executar operação...
+        </StatusMessage>
+      ) : null}
+
+      {error ? (
+        <StatusMessage tone="danger" title="Operação não concluída">
+          {error}
+        </StatusMessage>
+      ) : null}
+
+      {message ? (
+        <StatusMessage tone="success" title="Operação concluída">
+          {message}
+        </StatusMessage>
+      ) : null}
     </>
   );
 }
-
 /**
  * Mostra dados estruturados sem recorrer a tipos inseguros na página.
  *

@@ -1,6 +1,7 @@
 import { FormEvent, useState } from "react";
 import { ApiError, apiClient, JsonBody } from "../lib/apiClient";
-import { PageFrame } from "../ui/opsaUi";
+import { PageFrame, StatusMessage } from "../ui/opsaUi";
+import { useActionFeedback } from "../ui/useActionFeedback";
 
 type ApiObject = Record<string, unknown>;
 
@@ -91,9 +92,23 @@ function Feedback({
 }) {
   return (
     <>
-      {busy ? <p className="empty">A carregar...</p> : null}
-      {error ? <p className="error">{error}</p> : null}
-      {message ? <p className="success">{message}</p> : null}
+      {busy ? (
+        <StatusMessage tone="neutral" title="Operação em curso">
+          A executar operação...
+        </StatusMessage>
+      ) : null}
+
+      {error ? (
+        <StatusMessage tone="danger" title="Operação não concluída">
+          {error}
+        </StatusMessage>
+      ) : null}
+
+      {message ? (
+        <StatusMessage tone="success" title="Operação concluída">
+          {message}
+        </StatusMessage>
+      ) : null}
     </>
   );
 }
@@ -273,61 +288,98 @@ export function TreasuryAccountsPage() {
  * @returns Elemento React renderizado para importação de extratos.
  */
 export function StatementImportPage() {
-  const [result, setResult] = useState<unknown>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
+    const [result, setResult] = useState<
+        Awaited<ReturnType<typeof apiClient.treasury.importStatement>> | null
+    >(null);
 
-  /**
-   * Processa a submissão do formulário, valida campos locais e delega a operação na API.
-   *
-   * @param event - Evento do formulário submetido.
-   * @returns Promise resolvida depois de processar a submissão do formulário.
-   */
-  async function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const form = new FormData(event.currentTarget);
-    setBusy(true);
-    setError(null);
-    try {
-      setResult(
-        await apiClient.treasury.importStatement({
-          treasuryAccountId: requiredText(form.get("treasuryAccountId"), "Conta"),
-          format: requiredText(form.get("format"), "Formato"),
-          fileName: optionalText(form.get("fileName")) ?? "extrato.csv",
-          content: requiredText(form.get("content"), "Conteudo"),
-        }),
-      );
-    } catch (caught) {
-      setError(formatError(caught));
-    } finally {
-      setBusy(false);
+    const action = useActionFeedback();
+
+    async function submit(event: FormEvent<HTMLFormElement>) {
+        event.preventDefault();
+        const formElement = event.currentTarget;
+
+        try {
+            await action.run(
+                async () => {
+                    const form = new FormData(formElement);
+
+                    const response = await apiClient.treasury.importStatement({
+                        treasuryAccountId: requiredText(
+                            form.get("treasuryAccountId"),
+                            "Conta",
+                        ),
+                        format: requiredText(form.get("format"), "Formato"),
+                        fileName:
+                            optionalText(form.get("fileName")) ?? "extrato.csv",
+                        content: requiredText(form.get("content"), "Conteúdo"),
+                    });
+
+                    setResult(response);
+                    return response;
+                },
+                {
+                    startMessage: "A validar e importar extrato...",
+                    successMessage: "Extrato importado com sucesso.",
+                    errorMessage: "Não foi possível importar o extrato.",
+                },
+            );
+        } catch {
+            // erro já tratado pelo hook
+        }
     }
-  }
 
-  return (
-    <PageFrame title="Importar extrato">
-      <Feedback busy={busy} error={error} />
-      <form className="operation" onSubmit={submit}>
-        <div className="fields">
-          <label><span>Conta de tesouraria ID</span><input name="treasuryAccountId" required /></label>
-          <label>
-            <span>Formato</span>
-            <select name="format" required defaultValue="CSV">
-              <option value="CSV">CSV</option>
-              <option value="OFX">OFX simplificado</option>
-            </select>
-          </label>
-          <label><span>Nome do ficheiro</span><input name="fileName" defaultValue="extrato.csv" /></label>
-          <label>
-            <span>Conteudo</span>
-            <textarea name="content" required rows={8} defaultValue={"data;descricao;referencia;valor\n2026-06-01;Recebimento cliente;REC-1;125,00"} />
-          </label>
-        </div>
-        <button type="submit" disabled={busy}>Importar</button>
-      </form>
-      <JsonResult value={result} />
-    </PageFrame>
-  );
+    return (
+        <PageFrame title="Importar extrato">
+            {action.feedback.message ? (
+                <StatusMessage
+                    tone={action.feedback.tone}
+                    title={action.feedback.title}
+                >
+                    {action.feedback.message}
+                </StatusMessage>
+            ) : null}
+
+            <form className="operation" onSubmit={submit}>
+                <div className="fields">
+                    <label>
+                        <span>Conta de tesouraria ID</span>
+                        <input name="treasuryAccountId" required />
+                    </label>
+
+                    <label>
+                        <span>Formato</span>
+                        <select name="format" required defaultValue="CSV">
+                            <option value="CSV">CSV</option>
+                            <option value="OFX">OFX simplificado</option>
+                        </select>
+                    </label>
+
+                    <label>
+                        <span>Nome do ficheiro</span>
+                        <input name="fileName" defaultValue="extrato.csv" />
+                    </label>
+
+                    <label>
+                        <span>Conteúdo</span>
+                        <textarea
+                            name="content"
+                            required
+                            rows={8}
+                            defaultValue={
+                                "data;descricao;referencia;valor\n2026-06-01;Recebimento cliente;REC-1;125,00"
+                            }
+                        />
+                    </label>
+                </div>
+
+                <button type="submit" disabled={action.busy}>
+                    {action.busy ? "A importar..." : "Importar"}
+                </button>
+            </form>
+
+            <JsonResult value={result} />
+        </PageFrame>
+    );
 }
 
 /**
@@ -356,63 +408,99 @@ export function CashflowForecastPage() {
  * @returns Elemento React renderizado para importação de dados.
  */
 export function BusinessImportPage() {
-  const [result, setResult] = useState<unknown>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
+    const [result, setResult] = useState<
+        Awaited<ReturnType<typeof apiClient.imports.businessData>> | null
+    >(null);
 
-  /**
-   * Processa a submissão do formulário, valida campos locais e delega a operação na API.
-   *
-   * @param event - Evento do formulário submetido.
-   * @returns Promise resolvida depois de processar a submissão do formulário.
-   */
-  async function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const form = new FormData(event.currentTarget);
-    setBusy(true);
-    setError(null);
-    try {
-      setResult(
-        await apiClient.imports.businessData({
-          type: requiredText(form.get("type"), "Tipo"),
-          fileName: optionalText(form.get("fileName")) ?? "import.csv",
-          treasuryAccountId: optionalText(form.get("treasuryAccountId")),
-          content: requiredText(form.get("content"), "CSV"),
-        }),
-      );
-    } catch (caught) {
-      setError(formatError(caught));
-    } finally {
-      setBusy(false);
+    const action = useActionFeedback();
+
+    async function submit(event: FormEvent<HTMLFormElement>) {
+        event.preventDefault();
+        const formElement = event.currentTarget;
+
+        try {
+            await action.run(
+                async () => {
+                    const form = new FormData(formElement);
+
+                    const response = await apiClient.imports.businessData({
+                        type: requiredText(form.get("type"), "Tipo"),
+                        fileName:
+                            optionalText(form.get("fileName")) ?? "import.csv",
+                        treasuryAccountId: optionalText(
+                            form.get("treasuryAccountId"),
+                        ),
+                        content: requiredText(form.get("content"), "CSV"),
+                    });
+
+                    setResult(response);
+                    return response;
+                },
+                {
+                    startMessage: "A validar e importar dados...",
+                    successMessage: "Dados importados com sucesso.",
+                    errorMessage: "Não foi possível importar os dados.",
+                },
+            );
+        } catch {
+            // erro tratado pelo hook
+        }
     }
-  }
 
-  return (
-    <PageFrame title="Importar dados">
-      <Feedback busy={busy} error={error} />
-      <form className="operation" onSubmit={submit}>
-        <div className="fields">
-          <label>
-            <span>Tipo</span>
-            <select name="type" required defaultValue="CUSTOMERS">
-              <option value="CUSTOMERS">Clientes</option>
-              <option value="SUPPLIERS">Fornecedores</option>
-              <option value="ITEMS">Artigos</option>
-              <option value="STATEMENTS">Extratos</option>
-            </select>
-          </label>
-          <label><span>Nome do ficheiro</span><input name="fileName" defaultValue="import.csv" /></label>
-          <label><span>Conta ID para extratos</span><input name="treasuryAccountId" /></label>
-          <label>
-            <span>CSV</span>
-            <textarea name="content" required rows={8} defaultValue={"name;nif;email\nCliente Demo;509442013;cliente@example.test"} />
-          </label>
-        </div>
-        <button type="submit" disabled={busy}>Importar</button>
-      </form>
-      <JsonResult value={result} />
-    </PageFrame>
-  );
+    return (
+        <PageFrame title="Importar dados">
+            {action.feedback.message ? (
+                <StatusMessage
+                    tone={action.feedback.tone}
+                    title={action.feedback.title}
+                >
+                    {action.feedback.message}
+                </StatusMessage>
+            ) : null}
+
+            <form className="operation" onSubmit={submit}>
+                <div className="fields">
+                    <label>
+                        <span>Tipo</span>
+                        <select name="type" required defaultValue="CUSTOMERS">
+                            <option value="CUSTOMERS">Clientes</option>
+                            <option value="SUPPLIERS">Fornecedores</option>
+                            <option value="ITEMS">Artigos</option>
+                            <option value="STATEMENTS">Extratos</option>
+                        </select>
+                    </label>
+
+                    <label>
+                        <span>Nome do ficheiro</span>
+                        <input name="fileName" defaultValue="import.csv" />
+                    </label>
+
+                    <label>
+                        <span>Conta ID para extratos</span>
+                        <input name="treasuryAccountId" />
+                    </label>
+
+                    <label>
+                        <span>CSV</span>
+                        <textarea
+                            name="content"
+                            required
+                            rows={8}
+                            defaultValue={
+                                "name;nif;email\nCliente Demo;509442013;cliente@example.test"
+                            }
+                        />
+                    </label>
+                </div>
+
+                <button type="submit" disabled={action.busy}>
+                    {action.busy ? "A importar..." : "Importar"}
+                </button>
+            </form>
+
+            <JsonResult value={result} />
+        </PageFrame>
+    );
 }
 
 /**
@@ -474,3 +562,5 @@ export function ExecutiveKpisPage() {
     </PageFrame>
   );
 }
+
+

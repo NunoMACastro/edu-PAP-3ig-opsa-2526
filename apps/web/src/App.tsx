@@ -16,6 +16,7 @@ import { SalesOpenItemsPage } from "./pages/SalesOpenItemsPage";
 import { VatRatesPage } from "./pages/VatRatesPage";
 import { ResponsiveDataTable } from "./ui/ResponsiveDataTable";
 import type { TableCellValue, TableRow } from "./ui/ResponsiveDataTable";
+import { useActionFeedback } from "./ui/useActionFeedback";
 import {
   AccountingReportsPage,
   FifoCostPage,
@@ -50,6 +51,7 @@ import { ActionToolbar, PageFrame, StatusMessage } from "./ui/opsaUi";
 
 type ApiObject = Record<string, unknown>;
 type FieldKind = "text" | "email" | "password" | "number" | "textarea" | "select";
+type OperationResult = Awaited<ReturnType<OperationConfig["run"]>>;
 
 interface FieldConfig {
   name: string;
@@ -83,6 +85,115 @@ interface PageConfig {
   render: () => ReactNode;
 }
 
+/**
+ * Renderiza uma operação configurável com feedback imediato de submissão.
+ *
+ * @param props - Operação e callback executado depois de a API responder.
+ * @returns Formulário React com estados visíveis de execução, sucesso e erro.
+ */
+function OperationForm({
+    operation,
+    onDone,
+}: {
+    operation: OperationConfig;
+    onDone: (result: OperationResult) => Promise<void>;
+}) {
+    const action = useActionFeedback();
+
+    /**
+     * Submete a operação, atualiza a lista dependente e apresenta feedback em cada estado.
+     *
+     * @param event - Evento do formulário submetido.
+     * @returns Promise resolvida depois de terminar a submissão.
+     */
+    async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+        event.preventDefault();
+        const formElement = event.currentTarget;
+
+        try {
+            await action.run(
+                async () => {
+                    const values = normalizeFormValues(
+                        operation.fields,
+                        new FormData(formElement),
+                    );
+                    const result = await operation.run(values);
+                    await operation.afterSuccess?.();
+                    await onDone(result);
+                    return result;
+                },
+                {
+                    startMessage: "A validar e enviar dados...",
+                    successMessage: "Dados guardados e lista atualizada.",
+                    errorMessage: "Não foi possível guardar os dados.",
+                },
+            );
+
+            // O formulário só é limpo depois de a operação terminar com sucesso.
+            formElement.reset();
+        } catch {
+            // A mensagem de erro já foi colocada no estado pelo hook.
+        }
+    }
+
+    return (
+        <form className="operation" onSubmit={handleSubmit}>
+            <h3>{operation.title}</h3>
+            <div className="fields">
+                {operation.fields.map((field) => (
+                    <label key={field.name}>
+                        <span>{field.label}</span>
+                        {field.kind === "textarea" ? (
+                            <textarea
+                                name={field.name}
+                                required={field.required}
+                                defaultValue={field.defaultValue}
+                                rows={4}
+                            />
+                        ) : field.kind === "select" ? (
+                            <select
+                                name={field.name}
+                                required={field.required}
+                                defaultValue={field.defaultValue ?? ""}
+                            >
+                                <option value="" disabled={field.required}>
+                                    Selecionar
+                                </option>
+                                {field.options?.map((option) => (
+                                    <option key={option.value} value={option.value}>
+                                        {option.label}
+                                    </option>
+                                ))}
+                            </select>
+                        ) : (
+                            <input
+                                name={field.name}
+                                required={field.required}
+                                type={field.kind ?? "text"}
+                                defaultValue={field.defaultValue}
+                            />
+                        )}
+                    </label>
+                ))}
+            </div>
+            {action.feedback.message ? (
+                <StatusMessage tone={action.feedback.tone} title={action.feedback.title}>
+                    {action.feedback.message}
+                </StatusMessage>
+            ) : null}
+            <button type="submit" disabled={action.busy}>
+                {action.busy ? "A executar..." : operation.submitLabel}
+            </button>
+        </form>
+    );
+}
+
+/**
+ * Renderiza um recurso CRUD configurável, incluindo pesquisa, tabela e operações associadas.
+ *
+ * @param props - Configuração do recurso a apresentar.
+ * @returns Elemento React renderizado para um recurso CRUD.
+ */
 /**
  * Converte um valor desconhecido num objeto indexável, devolvendo objeto vazio quando o formato não é seguro.
  *
@@ -181,97 +292,6 @@ function normalizeFormValues(fields: FieldConfig[], form: FormData): ApiObject {
 }
 
 
-
-/**
- * Documenta a função OperationForm no contexto deste módulo.
- *
- * @param props - Propriedades recebidas pelo componente React.
- * @returns Elemento React renderizado para uma operação configurável.
- */
-function OperationForm({
-  operation,
-  onDone,
-}: {
-  operation: OperationConfig;
-  onDone: (result: unknown) => Promise<void>;
-}) {
-  const [error, setError] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
-
-  /**
-   * Documenta a função handleSubmit no contexto deste módulo.
-   *
-   * @param event - Evento do formulário submetido.
-   * @returns Promise resolvida depois de processar a submissão do formulário.
-   */
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setBusy(true);
-    setError(null);
-
-    try {
-      const values = normalizeFormValues(
-        operation.fields,
-        new FormData(event.currentTarget),
-      );
-      const result = await operation.run(values);
-      await operation.afterSuccess?.();
-      await onDone(result);
-      event.currentTarget.reset();
-    } catch (caught) {
-      setError(formatError(caught));
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  return (
-    <form className="operation" onSubmit={handleSubmit}>
-      <h3>{operation.title}</h3>
-      <div className="fields">
-        {operation.fields.map((field) => (
-          <label key={field.name}>
-            <span>{field.label}</span>
-            {field.kind === "textarea" ? (
-              <textarea
-                name={field.name}
-                required={field.required}
-                defaultValue={field.defaultValue}
-                rows={4}
-              />
-            ) : field.kind === "select" ? (
-              <select
-                name={field.name}
-                required={field.required}
-                defaultValue={field.defaultValue ?? ""}
-              >
-                <option value="" disabled={field.required}>
-                  Selecionar
-                </option>
-                {field.options?.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            ) : (
-              <input
-                name={field.name}
-                required={field.required}
-                type={field.kind ?? "text"}
-                defaultValue={field.defaultValue}
-              />
-            )}
-          </label>
-        ))}
-      </div>
-      {error ? <p className="error">{error}</p> : null}
-      <button type="submit" disabled={busy}>
-        {busy ? "A executar..." : operation.submitLabel}
-      </button>
-    </form>
-  );
-}
 
 /**
  * Documenta a função AuthPanel no contexto deste módulo.
@@ -1123,3 +1143,4 @@ function DataTable({ rows }: { rows: ApiObject[] }) {
     />
   );
 }
+
