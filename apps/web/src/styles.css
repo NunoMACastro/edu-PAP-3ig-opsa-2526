@@ -259,3 +259,78 @@ th {
     grid-template-columns: 1fr;
   }
 }
+
+/* MF5 - base visual transversal */
+.pageFrame {
+    /* O espaçamento fica no contentor para todas as páginas herdarem a mesma cadência visual. */
+    gap: 1rem;
+}
+
+.pageFrame__header {
+    align-items: flex-start;
+}
+
+.pageFrame__description {
+    max-width: 72ch;
+    margin: 0.35rem 0 0;
+    color: #4b5a50;
+    line-height: 1.5;
+}
+
+.pageFrame__actions,
+.actionToolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: flex-end;
+}
+
+.statusMessage {
+    /* A linha lateral diferencia estados sem depender apenas da cor do texto. */
+    border: 1px solid #d8dfd8;
+    border-left-width: 4px;
+    border-radius: 6px;
+    background: #fff;
+    padding: 0.75rem;
+}
+
+.statusMessage--success {
+    border-left-color: #1f7a4d;
+}
+.statusMessage--warning {
+    border-left-color: #9a6b12;
+}
+.statusMessage--danger {
+    border-left-color: #a63131;
+}
+.statusMessage--neutral {
+    border-left-color: #4b5a50;
+}
+
+.moduleBadge {
+    /* O distintivo é pequeno para apoiar a leitura, não para competir com o título do módulo. */
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid #c9d2ca;
+    border-radius: 999px;
+    padding: 0.15rem 0.5rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
+.moduleBadge--success {
+    color: #174538;
+    background: #edf7f1;
+}
+.moduleBadge--warning {
+    color: #6d4b0b;
+    background: #fff8e8;
+}
+.moduleBadge--danger {
+    color: #7c2323;
+    background: #fff2f2;
+}
+.moduleBadge--neutral {
+    color: #4b5a50;
+    background: #f7f9f7;
+}
