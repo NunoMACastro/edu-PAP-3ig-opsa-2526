@@ -48,4 +48,4 @@ for (const [expected, context] of styleContracts) {
 assertIncludes(app, "PageFrame", "App usa a moldura comum");
 assertIncludes(packageJson, "\"test:mf5:a11y\"", "Package expõe smoke de acessibilidade");
 
-console.info("MF5 accessibility contract OK");''
+console.info("MF5 accessibility contract OK");
