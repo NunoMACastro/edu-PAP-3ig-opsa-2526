@@ -11,6 +11,7 @@
     "test:mf2": "node scripts/check-mf2-pages.mjs",
     "test:mf3": "node scripts/check-mf3-pages.mjs",
     "test:mf5:feedback": "node scripts/check-mf5-feedback.mjs",
+    "test:mf5:a11y": "node scripts/check-mf5-accessibility.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
