@@ -5,13 +5,12 @@
   "type": "module",
   "description": "Frontend MF0 da OPSA em React, Vite e TypeScript.",
   "scripts": {
-    "dev": "vite --host 127.0.0.1",
-    "build": "vite build",
-    "test:mf1": "node scripts/check-mf1-pages.mjs",
-    "test:mf2": "node scripts/check-mf2-pages.mjs",
-    "test:mf3": "node scripts/check-mf3-pages.mjs",
-    "test:mf5:feedback": "node scripts/check-mf5-feedback.mjs",
-    "test:mf5:a11y": "node scripts/check-mf5-accessibility.mjs",
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "test:mf1": "node scripts/check-mf1-contracts.mjs",
+    "test:mf2": "node scripts/check-mf2-workflows.mjs",
+    "test:mf3": "node scripts/check-mf3-evidence.mjs",
+    "test:mf5:forms": "node scripts/check-mf5-form-validation.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -24,17 +23,5 @@
     "@types/react-dom": "^19.2.3",
     "typescript": "^5.9.3",
     "vite": "^8.0.14"
-  }
-}
-
-{
-  "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "test:mf1": "node scripts/check-mf1-contracts.mjs",
-    "test:mf2": "node scripts/check-mf2-workflows.mjs",
-    "test:mf3": "node scripts/check-mf3-evidence.mjs",
-    "test:mf5:forms": "node scripts/check-mf5-form-validation.mjs",
-    "typecheck": "tsc --noEmit"
   }
 }

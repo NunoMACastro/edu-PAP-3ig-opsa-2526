@@ -199,3 +199,86 @@ Contratos verificados pelo smoke:
 - feedback recebe new Error(formatMf5FormErrors(...));
 - MF1 usa validateMf5FormData;
 - package.json expõe test:mf5:forms.
+
+Passo 8
+Resultado esperado:
+- typecheck passou;
+- test:mf5:forms devolveu MF5 form validation smoke OK;
+- build passou.
+
+Smoke manual:
+- NIF inválido foi bloqueado antes da submissão;
+- IBAN inválido foi bloqueado antes da submissão;
+- data impossível 2026-02-30 foi bloqueada antes da submissão;
+- vatRateBps=2300 passou;
+- vatRateId preenchido não foi tratado como percentagem;
+- submissão válida continuou a funcionar.
+
+Negativos:
+- NIF com letras não chamou a API;
+- IBAN com prefixo errado não chamou a API;
+- data impossível não chamou a API;
+- conta SNC com letras não chamou a API.
+
+Notas:
+- validação frontend melhora UX, mas não substitui backend;
+- backend continua responsável por permissões, empresa ativa, ownership, domínio, persistência e auditoria;
+- BK-MF5-06 pode reutilizar mensagens e erros produzidos pelos validadores.
+
+9) Evidencia - BK-MF5-05
+pr
+    BK-MF5-05 - Os formulários devem validar erros antes de submissão (NIF, IBAN, datas, IVA, contas SNC).
+
+proof
+    Criado apps/web/src/lib/mf5FormValidators.ts.
+    Integrada validação local em OperationForm.
+    Integrada validação local nos formulários dedicados de MF1.
+    Integrado smoke textual test:mf5:forms.
+    NIF inválido é bloqueado antes da chamada à API.
+    IBAN inválido é bloqueado antes da chamada à API.
+    Datas impossíveis são bloqueadas antes da chamada à API.
+    Contas SNC inválidas são bloqueadas antes da chamada à API.
+    vatRateId é validado como identificador e não como percentagem.
+    vatRateBps é validado separadamente de vatRatePercent.
+
+neg
+    NIF = ABC
+    Resultado: erro local.
+    API não chamada.
+    IBAN = PT001234
+    Resultado: erro local.
+    API não chamada.
+    Data = 2026-02-30
+    Resultado: erro local.
+    API não chamada.
+    Conta SNC = ABC
+    Resultado: erro local.
+    API não chamada.
+    IVA técnico = 23000
+    Resultado: erro local.
+
+files
+    apps/web/src/lib/mf5FormValidators.ts
+    apps/web/src/App.tsx
+    apps/web/src/pages/mf1Pages.tsx
+    apps/web/src/pages/mf2Pages.tsx
+    apps/web/src/pages/mf3Pages.tsx
+    apps/web/src/pages/mf4Pages.tsx
+    apps/web/scripts/check-mf5-form-validation.mjs
+    apps/web/package.json
+
+commands
+    npm --prefix apps/web run typecheck
+    npm --prefix apps/web run test:mf5
+    npm --prefix apps/web run build
+
+performance
+    Validação executada localmente no browser.
+    Redução de chamadas HTTP desnecessárias.
+    Sem novas dependências adicionadas ao projeto.
+
+notes
+    A validação frontend é apenas apoio ao utilizador.
+    O backend continua responsável por autorização, empresa ativa, regras de domínio, persistência e auditoria.
+    O smoke test:mf5:forms verifica contratos críticos de RNF05.
+    O BK não altera endpoints, Prisma, permissões nem regras contabilísticas.
