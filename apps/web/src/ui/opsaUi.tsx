@@ -35,7 +35,6 @@ function toHeadingId(title: string) {
         .replace(/[^a-z0-9]+/g, "-")
         .replace(/^-+|-+$/g, "");
 
-    // O fallback mantém a acessibilidade mesmo quando o título não tem letras ou números.
     return `${normalized || "opsa-page"}-heading`;
 }
 
@@ -56,19 +55,28 @@ export function PageFrame({
     const safeHeadingId = headingId ?? toHeadingId(title);
 
     return (
-        <section className="panel pageFrame" aria-labelledby={safeHeadingId}>
+        <section
+            className="panel pageFrame"
+            aria-labelledby={safeHeadingId}
+        >
             <header className="sectionHeader pageFrame__header">
                 <div>
                     <p className="eyebrow">{eyebrow}</p>
+
                     <h2 id={safeHeadingId}>{title}</h2>
+
                     {description ? (
-                        <p className="pageFrame__description">{description}</p>
+                        <p className="pageFrame__description">
+                            {description}
+                        </p>
                     ) : null}
                 </div>
+
                 {actions ? (
                     <div className="pageFrame__actions">{actions}</div>
                 ) : null}
             </header>
+
             {/* O conteúdo continua a vir da página concreta; a moldura só normaliza estrutura visual. */}
             {children}
         </section>
@@ -90,14 +98,27 @@ export interface StatusMessageProps {
  * @param props - Tom visual, título curto e conteúdo explicativo.
  * @returns Caixa de estado com role acessível.
  */
-export function StatusMessage({ tone, title, children }: StatusMessageProps) {
-    // Erros usam alert para serem anunciados com prioridade por tecnologias de apoio.
+export function StatusMessage({
+    tone,
+    title,
+    children,
+}: StatusMessageProps) {
     const role = tone === "danger" ? "alert" : "status";
+    const live = tone === "danger" ? "assertive" : "polite";
 
     return (
-        <div className={`statusMessage statusMessage--${tone}`} role={role}>
-            <strong>{title}</strong>
-            <div>{children}</div>
+        <div
+            className={`statusMessage statusMessage--${tone}`}
+            role={role}
+            aria-live={live}
+        >
+            <strong className="statusMessage__title">
+                {title}
+            </strong>
+
+            <div className="statusMessage__body">
+                {children}
+            </div>
         </div>
     );
 }
@@ -111,9 +132,6 @@ export interface ActionToolbarProps {
 
 /**
  * Agrupa comandos primários e secundários sem mudar a ordem visual entre módulos.
- *
- * @param props - Botões ou ligações de ação.
- * @returns Barra de ações reutilizável.
  */
 export function ActionToolbar({ children }: ActionToolbarProps) {
     return <div className="actionToolbar">{children}</div>;
@@ -129,11 +147,14 @@ export interface ModuleBadgeProps {
 
 /**
  * Mostra estado ou categoria de módulo sem obrigar cada página a criar estilos próprios.
- *
- * @param props - Texto do distintivo e tom visual.
- * @returns Distintivo textual pequeno.
  */
-export function ModuleBadge({ label, tone = "neutral" }: ModuleBadgeProps) {
-    // O tom fica limitado a valores conhecidos para evitar classes CSS inventadas por engano.
-    return <span className={`moduleBadge moduleBadge--${tone}`}>{label}</span>;
+export function ModuleBadge({
+    label,
+    tone = "neutral",
+}: ModuleBadgeProps) {
+    return (
+        <span className={`moduleBadge moduleBadge--${tone}`}>
+            {label}
+        </span>
+    );
 }
