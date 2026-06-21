@@ -103,3 +103,27 @@ Smoke validado:
 - vatRateId rate-1 passa como identificador.
 
 Passo 4
+Ficheiros editados:
+- apps/web/src/App.tsx
+
+Regras implementadas:
+- OperationForm passou a usar validateMf5Form;
+- valores do formulário são normalizados com toPrimitiveValidationValues;
+- erros locais são formatados com formatMf5FormErrors;
+- submissão é bloqueada antes da API quando há erros formais;
+- action.fail recebe Error, respeitando BK-MF5-03;
+- operation.run só é chamado quando validação local passa;
+- operation.afterSuccess e onDone continuam preservados;
+- formElement.reset continua após sucesso;
+- backend continua a ser autoridade final.
+
+Smoke validado:
+- campo NIF com valor ABC gerou erro local;
+- API não foi chamada quando validação local falhou;
+- submissão com dados válidos continuou a funcionar.
+
+Negativo validado:
+- action.fail não recebe string simples;
+- objetos e listas não são validados no frontend;
+- validações backend não foram removidas.
+
