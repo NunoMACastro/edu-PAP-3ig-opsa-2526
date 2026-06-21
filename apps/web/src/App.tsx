@@ -14,6 +14,8 @@ import { SaleDocumentsPage } from "./pages/SaleDocumentsPage";
 import { SalePostingsPage } from "./pages/SalePostingsPage";
 import { SalesOpenItemsPage } from "./pages/SalesOpenItemsPage";
 import { VatRatesPage } from "./pages/VatRatesPage";
+import { ResponsiveDataTable } from "./ui/ResponsiveDataTable";
+import type { TableCellValue, TableRow } from "./ui/ResponsiveDataTable";
 import {
   AccountingReportsPage,
   FifoCostPage,
@@ -177,47 +179,7 @@ function normalizeFormValues(fields: FieldConfig[], form: FormData): ApiObject {
   return values;
 }
 
-/**
- * Renderiza uma tabela simples a partir das chaves presentes nas linhas devolvidas pela API.
- *
- * @param props - Propriedades recebidas pelo componente React.
- * @returns Elemento React renderizado com a tabela de dados.
- */
-function DataTable({ rows }: { rows: ApiObject[] }) {
-  if (rows.length === 0) {
-    return <p className="empty">Sem registos para apresentar.</p>;
-  }
 
-  const columns = Array.from(
-    rows.reduce((keys, row) => {
-      Object.keys(row).forEach((key) => keys.add(key));
-      return keys;
-    }, new Set<string>()),
-  );
-
-  return (
-    <div className="tableWrap">
-      <table>
-        <thead>
-          <tr>
-            {columns.map((column) => (
-              <th key={column}>{column}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row, index) => (
-            <tr key={String(row.id ?? index)}>
-              {columns.map((column) => (
-                <td key={column}>{formatValue(row[column])}</td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
 
 /**
  * Documenta a função OperationForm no contexto deste módulo.
@@ -1091,4 +1053,54 @@ function itemFields(): FieldConfig[] {
     { name: "priceCents", label: "Preco em centimos", kind: "number", required: true },
     { name: "vatRateBps", label: "IVA bps", kind: "number", required: true },
   ];
+}
+
+type SafeTableRow = TableRow;
+
+/**
+ * Converte qualquer valor recebido da API num valor simples para tabela.
+ *
+ * @param value - Valor bruto vindo de uma linha da API.
+ * @returns Valor seguro para a tabela responsiva.
+ */
+function toSafeCell(value: unknown): TableCellValue {
+  if (value === null || value === undefined) return value;
+  if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+    return value;
+  }
+
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return "[valor não serializável]";
+  }
+}
+
+/**
+ * Renderiza dados tabulares com adaptação automática para mobile.
+ *
+ * @param props - Linhas devolvidas pela API para o recurso ativo.
+ * @returns Tabela desktop ou cartões mobile com os mesmos dados.
+ */
+function DataTable({ rows }: { rows: ApiObject[] }) {
+  const safeRows: SafeTableRow[] = rows.map((row) => {
+    const safeRow: SafeTableRow = {};
+
+    for (const [key, value] of Object.entries(row)) {
+      // A normalização fica no wrapper para o componente de UI receber apenas valores simples.
+      safeRow[key] = toSafeCell(value);
+    }
+
+    return safeRow;
+  });
+
+  return (
+    <ResponsiveDataTable
+      rows={safeRows}
+      caption="Registos do módulo ativo"
+      renderMobileTitle={(row, index) =>
+        String(row.name ?? row.title ?? row.number ?? row.reference ?? `Registo ${index + 1}`)
+      }
+    />
+  );
 }
