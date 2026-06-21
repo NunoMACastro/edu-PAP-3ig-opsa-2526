@@ -30,6 +30,7 @@ import {
     askAiQuestion,
 } from "../lib/mf4Api";
 import { PageFrame, StatusMessage } from "../ui/opsaUi";
+import { formatMf5FormErrors, validateMf5FormData } from "../lib/mf5FormValidators";
 
 /**
  * Formata erros da API para feedback em português.
@@ -507,4 +508,64 @@ export function IntegrationLogsPage() {
       <JsonResult value={logs} />
     </PageFrame>
   );
+}
+
+/**
+ * Valida campos críticos de um formulário dedicado antes de enviar para a API.
+ *
+ * @param form - Dados submetidos pelo utilizador.
+ * @param fieldNames - Campos cobertos pelo RNF05 neste ecrã.
+ */
+function assertMf5DedicatedForm(form: FormData, fieldNames: string[]) {
+  const errors = validateMf5FormData(form, fieldNames);
+  if (errors.length > 0) {
+    throw new Error(formatMf5FormErrors(errors));
+  }
+}
+
+/**
+ * Constrói dados de entidade com NIF validado localmente.
+ *
+ * @param form - Dados do formulário de entidade.
+ * @returns Corpo pronto para submissão.
+ */
+function parseBusinessEntityForm(form: FormData) {
+  assertMf5DedicatedForm(form, ["nif"]);
+
+  return {
+    name: String(form.get("name") ?? ""),
+    nif: String(form.get("nif") ?? ""),
+    email: String(form.get("email") ?? ""),
+  };
+}
+
+/**
+ * Constrói dados de conta bancária com IBAN validado localmente.
+ *
+ * @param form - Dados do formulário bancário.
+ * @returns Corpo pronto para submissão.
+ */
+function parseBankAccountForm(form: FormData) {
+  assertMf5DedicatedForm(form, ["iban"]);
+
+  return {
+    name: String(form.get("name") ?? ""),
+    iban: String(form.get("iban") ?? ""),
+  };
+}
+
+/**
+ * Constrói dados de lançamento/tarefa com data e conta SNC validadas localmente.
+ *
+ * @param form - Dados do formulário contabilístico ou operacional.
+ * @returns Corpo pronto para submissão.
+ */
+function parseAccountingOperationForm(form: FormData) {
+  assertMf5DedicatedForm(form, ["entryDate", "accountCode"]);
+
+  return {
+    entryDate: String(form.get("entryDate") ?? ""),
+    accountCode: String(form.get("accountCode") ?? ""),
+    description: String(form.get("description") ?? ""),
+  };
 }

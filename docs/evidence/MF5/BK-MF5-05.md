@@ -152,3 +152,31 @@ Negativos validados:
 - validações backend não foram removidas.
 
 Passo 6
+Ficheiros editados:
+- apps/web/src/pages/mf2Pages.tsx
+- apps/web/src/pages/mf3Pages.tsx
+- apps/web/src/pages/mf4Pages.tsx
+
+Regras implementadas:
+- importado validateMf5FormData onde necessário;
+- importado formatMf5FormErrors onde necessário;
+- criado helper assertMf5DedicatedForm nos ficheiros com formulários dedicados;
+- validação aplicada apenas a campos existentes em cada formulário;
+- NIF inválido é bloqueado antes da API;
+- IBAN inválido é bloqueado antes da API;
+- data impossível é bloqueada antes da API;
+- conta SNC com letras é bloqueada antes da API;
+- formulários sem IBAN não validam IBAN;
+- formulários sem NIF não validam NIF;
+- backend continua a ser autoridade final.
+
+Smoke validado:
+- NIF com letras devolve erro local;
+- IBAN com prefixo errado devolve erro local;
+- data 2026-02-30 devolve erro local;
+- conta SNC ABC devolve erro local.
+
+Negativos validados:
+- formulário sem campo IBAN não tentou validar IBAN;
+- formulário sem campo NIF não tentou validar NIF;
+- validação local não substituiu validação backend.
