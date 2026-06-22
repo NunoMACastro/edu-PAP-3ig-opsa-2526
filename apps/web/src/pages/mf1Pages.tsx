@@ -1,5 +1,6 @@
 import { FormEvent, ReactNode, useEffect, useState } from "react";
-import { ApiError, JsonBody } from "../lib/apiClient";
+import { JsonBody } from "../lib/apiClient";
+import { formatUiError } from "../lib/mf5ErrorMessages";
 import { accountingApi } from "../lib/accountingApi";
 import {
     ApiObject,
@@ -31,15 +32,14 @@ interface ListState {
 }
 
 /**
- * Converte erros da API ou erros nativos numa mensagem curta para apresentar ao utilizador.
+ * Converte erros de MF1 numa mensagem clara para o utilizador.
  *
- * @param error - Erro capturado durante a operação.
- * @returns Mensagem de erro pronta a apresentar ao utilizador.
+ * @param error - Erro capturado durante listagem, submissão ou atualização.
+ * @returns Mensagem de erro com causa e próxima ação.
  */
 function formatError(error: unknown): string {
-  if (error instanceof ApiError) return `${error.code}: ${error.message}`;
-  if (error instanceof Error) return error.message;
-  return "Erro inesperado";
+  // MF1 usa o tradutor comum para não voltar a mostrar apenas "CODE: mensagem".
+  return formatUiError(error);
 }
 
 /**
@@ -473,7 +473,7 @@ export function SaleDocumentsPage() {
    */
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const payload = parseSaleDocument(new FormData(event.currentTarget));
+    const payload = parseSaleDocumentForm(new FormData(event.currentTarget));
     await action.run(
       () => salesApi.createDocument(payload),
       "Documento de venda criado.",
@@ -754,7 +754,7 @@ export function PurchaseDocumentsPage() {
    */
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const payload = parsePurchaseDocument(new FormData(event.currentTarget));
+    const payload = parsePurchaseDocumentForm(new FormData(event.currentTarget));
     await action.run(
       () => purchasesApi.createDocument(payload),
       "Documento de compra criado.",

@@ -48,7 +48,8 @@ import {
   TasksPage,
 } from "./pages/mf4Pages";
 import { ActionToolbar, PageFrame, StatusMessage } from "./ui/opsaUi";
-import { formatMf5FormErrors, toPrimitiveValidationValues, validateMf5Form } from "./lib/mf5FormValidators";
+import { formatMf5ValidationUiError, formatUiError } from "./lib/mf5ErrorMessages";
+import { toPrimitiveValidationValues, validateMf5Form } from "./lib/mf5FormValidators";
 
 type ApiObject = Record<string, unknown>;
 type FieldKind = "text" | "email" | "password" | "number" | "textarea" | "select";
@@ -117,8 +118,8 @@ function OperationForm({
         const validationErrors = validateMf5Form(toPrimitiveValidationValues(values));
 
         if (validationErrors.length > 0) {
-          // O contrato do BK-MF5-03 recebe Error, permitindo manter fallback e acessibilidade consistentes.
-          action.fail(new Error(formatMf5FormErrors(validationErrors)));
+          // O BK-MF5-06 acrescenta próxima ação sem apagar as mensagens criadas no BK-MF5-05.
+          action.fail(new Error(formatMf5ValidationUiError(validationErrors)));
           return;
         }
 
@@ -128,7 +129,8 @@ function OperationForm({
         formElement.reset();
         action.succeed("Dados guardados e lista atualizada.");
       } catch (caught) {
-        const error = caught instanceof Error ? caught : new Error(formatError(caught));
+        // Mesmo quando a API lança ApiError, o texto passa por RNF06 antes de chegar ao feedback visual.
+        const error = new Error(formatUiError(caught));
         action.fail(error, "Não foi possível guardar os dados.");
       }
     }
@@ -234,13 +236,7 @@ function pickSingle(response: unknown, key: string): ApiObject[] {
  * @returns Mensagem de erro pronta a apresentar ao utilizador.
  */
 function formatError(error: unknown): string {
-  if (error instanceof ApiError) {
-    return `${error.code}: ${error.message}`;
-  }
-  if (error instanceof Error) {
-    return error.message;
-  }
-  return "Erro inesperado";
+  return formatUiError(error);
 }
 
 /**
