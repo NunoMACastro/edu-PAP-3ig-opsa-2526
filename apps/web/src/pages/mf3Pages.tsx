@@ -1,5 +1,6 @@
 import { FormEvent, useState } from "react";
-import { ApiError, apiClient, JsonBody } from "../lib/apiClient";
+import { apiClient, JsonBody } from "../lib/apiClient";
+import { formatUiError } from "../lib/mf5ErrorMessages";
 import { PageFrame, StatusMessage } from "../ui/opsaUi";
 import { useActionFeedback } from "../ui/useActionFeedback";
 import { formatMf5FormErrors, validateMf5FormData } from "../lib/mf5FormValidators";
@@ -7,15 +8,14 @@ import { formatMf5FormErrors, validateMf5FormData } from "../lib/mf5FormValidato
 type ApiObject = Record<string, unknown>;
 
 /**
- * Converte erros da API ou erros nativos numa mensagem curta para apresentar ao utilizador.
+ * Converte erros de MF3 numa mensagem clara para o utilizador.
  *
- * @param error - Erro capturado durante a operação.
- * @returns Mensagem de erro pronta a apresentar ao utilizador.
+ * @param error - Erro capturado em tesouraria, importações, SAF-T, relatórios ou KPIs.
+ * @returns Mensagem de erro com causa e próxima ação.
  */
 function formatError(error: unknown): string {
-  if (error instanceof ApiError) return `${error.code}: ${error.message}`;
-  if (error instanceof Error) return error.message;
-  return "Erro inesperado";
+  // Importações e relatórios precisam de erro claro sem expor dados financeiros desnecessários.
+  return formatUiError(error);
 }
 
 /**

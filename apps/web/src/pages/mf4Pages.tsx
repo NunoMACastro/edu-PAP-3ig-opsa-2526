@@ -1,6 +1,7 @@
 // apps/web/src/pages/mf4Pages.tsx - bloco de imports final
 import { FormEvent, ReactNode, useState } from "react";
-import { ApiError, JsonBody } from "../lib/apiClient";
+import { JsonBody } from "../lib/apiClient";
+import { formatUiError } from "../lib/mf5ErrorMessages";
 import {
     AiActionSuggestion,
     AiInsight,
@@ -33,14 +34,14 @@ import { PageFrame, StatusMessage } from "../ui/opsaUi";
 import { formatMf5FormErrors, validateMf5FormData } from "../lib/mf5FormValidators";
 
 /**
- * Formata erros da API para feedback em português.
+ * Converte erros de MF4 numa mensagem clara para o utilizador.
  *
- * @param error - Erro capturado.
- * @returns Mensagem curta para UI.
+ * @param error - Erro capturado em IA assistiva, lembretes, tarefas, notificações ou auditoria.
+ * @returns Mensagem de erro com causa e próxima ação.
  */
-function formatError(error: Error | ApiError): string {
-  if (error instanceof ApiError) return `${error.code}: ${error.message}`;
-  return error.message;
+function formatError(error: unknown): string {
+  // A IA continua apenas recomendação explicável; a mensagem não transforma erro em ação automática.
+  return formatUiError(error);
 }
 
 /**

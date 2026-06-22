@@ -11,6 +11,7 @@
     "test:mf2": "node scripts/check-mf2-workflows.mjs",
     "test:mf3": "node scripts/check-mf3-evidence.mjs",
     "test:mf5:forms": "node scripts/check-mf5-form-validation.mjs",
+    "test:mf5:errors": "node scripts/check-mf5-error-messages.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

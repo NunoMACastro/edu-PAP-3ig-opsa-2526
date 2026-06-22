@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useState } from "react";
-import { ApiError, apiClient, JsonBody } from "../lib/apiClient";
+import { apiClient, JsonBody } from "../lib/apiClient";
+import { formatUiError } from "../lib/mf5ErrorMessages";
 import {
     ApiObject,
     asObject,
@@ -20,15 +21,14 @@ interface ListState {
 }
 
 /**
- * Converte erros da API ou erros nativos numa mensagem curta para apresentar ao utilizador.
+ * Converte erros de MF2 numa mensagem clara para o utilizador.
  *
- * @param error - Erro capturado durante a operação.
- * @returns Mensagem de erro pronta a apresentar ao utilizador.
+ * @param error - Erro capturado durante operações de inventário, FIFO ou relatórios.
+ * @returns Mensagem de erro com causa e próxima ação.
  */
 function formatError(error: unknown): string {
-  if (error instanceof ApiError) return `${error.code}: ${error.message}`;
-  if (error instanceof Error) return error.message;
-  return "Erro inesperado";
+  // O detalhe financeiro continua validado no backend; a UI só melhora a orientação do erro.
+  return formatUiError(error);
 }
 
 /**
