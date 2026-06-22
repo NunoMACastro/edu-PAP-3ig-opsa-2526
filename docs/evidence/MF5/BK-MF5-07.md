@@ -42,3 +42,31 @@ MF5 error messages smoke OK
 > node scripts/check-mf5-performance.mjs
 
 MF5 performance budget contract OK
+
+10) Evidencia obrigatoria
+pr
+Ainda não criado
+
+proof
+Transformado o RNF07 numa regra observável: dashboards e listagens da OPSA devem carregar em até 2 segundos.
+
+A aplicação fica preparada para medir carregamentos no frontend, avisar quando um ecrã ultrapassa o orçamento de performance e produzir evidence para PR ou defesa PAP. Este BK não cria endpoints, não muda regras financeiras e não decide permissões no browser.
+
+files
+apps/web/src/lib/mf5PerformanceBudget.ts
+apps/web/src/App.tsx
+apps/web/src/pages/mf3Pages.tsx
+apps/web/scripts/check-mf5-performance.mjs
+apps/web/package.json
+
+commands
+cd apps/web
+npm run typecheck
+npm run test:mf1
+npm run test:mf2
+npm run test:mf3
+npm run test:mf5:feedback
+npm run test:mf5:a11y
+npm run test:mf5:forms
+npm run test:mf5:errors
+npm run test:mf5:performance
