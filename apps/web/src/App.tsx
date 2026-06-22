@@ -50,6 +50,7 @@ import {
 import { ActionToolbar, PageFrame, StatusMessage } from "./ui/opsaUi";
 import { formatMf5ValidationUiError, formatUiError } from "./lib/mf5ErrorMessages";
 import { toPrimitiveValidationValues, validateMf5Form } from "./lib/mf5FormValidators";
+import { formatPerformanceWarning, measureListingLoad } from "./lib/mf5PerformanceBudget";
 
 type ApiObject = Record<string, unknown>;
 type FieldKind = "text" | "email" | "password" | "number" | "textarea" | "select";
@@ -396,6 +397,8 @@ function ResourcePanel({ resource }: { resource: ResourceConfig }) {
     const [rows, setRows] = useState<ApiObject[]>([]);
     const [search, setSearch] = useState("");
     const [error, setError] = useState<string | null>(null);
+    // O aviso fica separado do erro para manter RNF06 e RNF07 com responsabilidades diferentes.
+    const [performanceWarning, setPerformanceWarning] = useState<string | null>(null);
     const [result, setResult] = useState<unknown>(null);
     const [busy, setBusy] = useState(false);
 
@@ -418,6 +421,31 @@ function ResourcePanel({ resource }: { resource: ResourceConfig }) {
         } finally {
             setBusy(false);
         }
+    }
+
+    /**
+     * Carrega dados da API, mede a duração e atualiza a listagem visível.
+     *
+     * @returns Promise resolvida depois de atualizar dados, erro ou aviso de performance.
+     */
+    async function load() {
+      setBusy(true);
+      setError(null);
+      setPerformanceWarning(null);
+      try {
+        const measured = await measureListingLoad(resource.title, () =>
+          resource.load(resource.searchable ? search : undefined),
+        );
+
+        setRows(measured.result);
+        setPerformanceWarning(formatPerformanceWarning(measured.sample));
+      } catch (caught) {
+        // Erros reais continuam no contrato RNF06; performance lenta é aviso separado.
+        setError(formatError(caught));
+        setRows([]);
+      } finally {
+        setBusy(false);
+      }
     }
 
     useEffect(() => {
@@ -462,6 +490,10 @@ function ResourcePanel({ resource }: { resource: ResourceConfig }) {
                 >
                     {error}
                 </StatusMessage>
+            ) : null}
+            {/* aria-live informa a alteração sem interromper a leitura do ecrã. */}
+            {performanceWarning ? (
+              <p className="warning" aria-live="polite">{performanceWarning}</p>
             ) : null}
             <DataTable rows={rows} />
             <div className="operationGrid">
