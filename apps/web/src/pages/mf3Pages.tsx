@@ -4,6 +4,7 @@ import { formatUiError } from "../lib/mf5ErrorMessages";
 import { PageFrame, StatusMessage } from "../ui/opsaUi";
 import { useActionFeedback } from "../ui/useActionFeedback";
 import { formatMf5FormErrors, validateMf5FormData } from "../lib/mf5FormValidators";
+import { formatPerformanceWarning, measureDashboardLoad } from "../lib/mf5PerformanceBudget";
 
 type ApiObject = Record<string, unknown>;
 
@@ -622,4 +623,122 @@ function parseAccountingOperationForm(form: FormData) {
     accountCode: String(form.get("accountCode") ?? ""),
     description: String(form.get("description") ?? ""),
   };
+}
+
+/**
+ * Renderiza um formulário reutilizável de intervalo de datas para relatórios MF3.
+ *
+ * @param props - Propriedades recebidas pelo componente React.
+ * @returns Elemento React renderizado com campos de intervalo de datas.
+ */
+function DateRangeForm({
+  label,
+  performanceLabel,
+  onSubmit,
+}: {
+  label: string;
+  performanceLabel?: string;
+  onSubmit: (from: string, to: string) => Promise<void>;
+}) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  // O aviso de performance não substitui a mensagem de erro; são estados diferentes da UI.
+  const [performanceWarning, setPerformanceWarning] = useState<string | null>(null);
+
+  /**
+   * Processa a submissão do formulário, valida datas locais e mede dashboards MF3.
+   *
+   * @param event - Evento do formulário submetido.
+   * @returns Promise resolvida depois de processar a submissão do formulário.
+   */
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    setBusy(true);
+    setError(null);
+    setPerformanceWarning(null);
+    try {
+      const runDashboardQuery = () =>
+        onSubmit(
+          requiredText(form.get("from"), "Data inicial"),
+          requiredText(form.get("to"), "Data final"),
+        );
+
+      // performanceLabel limita a medição aos ecrãs que representam dashboards RNF07.
+      if (performanceLabel) {
+        const measured = await measureDashboardLoad(performanceLabel, runDashboardQuery);
+        setPerformanceWarning(formatPerformanceWarning(measured.sample));
+      } else {
+        await runDashboardQuery();
+      }
+    } catch (caught) {
+      // O BK-MF5-06 continua responsável pela mensagem clara de erros reais.
+      setError(formatError(caught));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <form className="operation" onSubmit={submit}>
+      <h3>{label}</h3>
+      <div className="fields">
+        <label>
+          <span>Data inicial</span>
+          <input name="from" required defaultValue={firstDayOfMonth()} />
+        </label>
+        <label>
+          <span>Data final</span>
+          <input name="to" required defaultValue={today()} />
+        </label>
+      </div>
+      {performanceWarning ? (
+        <p className="warning" aria-live="polite">{performanceWarning}</p>
+      ) : null}
+      <Feedback busy={busy} error={error} />
+      <button type="submit" disabled={busy}>Consultar</button>
+    </form>
+  );
+}
+
+/**
+ * Renderiza o ecrã Operational Reports e mede a duração da consulta.
+ *
+ * @returns Elemento React renderizado para relatórios operacionais.
+ */
+export function OperationalReportsPage() {
+  const [result, setResult] = useState<unknown>(null);
+  return (
+    <PageFrame title="Relatórios operacionais">
+      <DateRangeForm
+        label="Consultar relatório"
+        performanceLabel="Relatórios operacionais"
+        onSubmit={async (from, to) =>
+          setResult(await apiClient.reports.operational(from, to))
+        }
+      />
+      <JsonResult value={result} />
+    </PageFrame>
+  );
+}
+
+/**
+ * Renderiza o ecrã Executive KPIs e mede a duração da consulta.
+ *
+ * @returns Elemento React renderizado para KPIs executivos.
+ */
+export function ExecutiveKpisPage() {
+  const [result, setResult] = useState<unknown>(null);
+  return (
+    <PageFrame title="KPIs executivos">
+      <DateRangeForm
+        label="Consultar KPIs"
+        performanceLabel="KPIs executivos"
+        onSubmit={async (from, to) =>
+          setResult(await apiClient.reports.executiveKpis(from, to))
+        }
+      />
+      <JsonResult value={result} />
+    </PageFrame>
+  );
 }
