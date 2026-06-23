@@ -14,6 +14,10 @@ import {
     getManualJournal,
     updateManualJournal,
 } from "./manualJournalService.js";
+import {
+    measureDocumentInsert,
+    toDocumentInsertLog,
+} from "../performance/documentPerformance.js";
 
 /**
  * Envia erros HTTP num formato JSON consistente com o contrato da API.
@@ -48,14 +52,27 @@ export function buildManualJournalRoutes({ prisma }) {
         requirePermission(Permission.ACCOUNTING_WRITE),
     ];
 
+    /**
+     * Cria um lançamento manual e mede a duração preservando validações contabilísticas.
+     *
+     * @param {import("express").Request} req - Pedido autenticado com empresa ativa, utilizador e payload do lançamento.
+     * @param {import("express").Response} res - Resposta HTTP que mantém o contrato `{ journalEntry }` e acrescenta cabeçalhos de performance.
+     * @returns {Promise<import("express").Response>} Resposta `201` ou erro normalizado sem expor dados contabilísticos sensíveis.
+     */
     router.post("/", writeGuards, async (req, res) => {
         try {
-            const journalEntry = await createManualJournal(
-                prisma,
-                req.companyId,
-                req.user.id,
-                req.body,
+            const { result: journalEntry, metric } = await measureDocumentInsert(
+                "accounting.manualJournal.create",
+                async () =>
+                    // O lançamento manual continua a validar contas SNC, equilíbrio e período fiscal no backend.
+                    createManualJournal(prisma, req.companyId, req.user.id, req.body),
             );
+
+            console.info(toDocumentInsertLog(metric));
+            // A métrica mede a criação, mas não substitui a auditoria contabilística do service.
+            res.set("X-OPSA-Duration-Ms", String(metric.durationMs));
+            res.set("X-OPSA-Within-Budget", String(metric.withinBudget));
+
             return res.status(201).json({ journalEntry });
         } catch (error) {
             return sendError(res, error);
