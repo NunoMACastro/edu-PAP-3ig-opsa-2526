@@ -38,3 +38,24 @@ Scope-out confirmado:
 - não alterar regras fiscais, IVA, SNC, numeração ou período fiscal.
 
 Passo 2
+Ficheiros criados:
+- apps/api/src/modules/performance/documentPerformance.js
+
+Exports criados:
+- DOCUMENT_INSERT_BUDGET_MS
+- measureDocumentInsert
+- toDocumentInsertLog
+
+Regras implementadas:
+- orçamento centralizado de 1000 ms;
+- medição usa performance.now();
+- operação real é executada dentro do helper;
+- resultado original é preservado;
+- métrica devolve operationName, durationMs e withinBudget;
+- log sanitizado não inclui valores financeiros, NIF, IBAN, linhas, payloads ou dados pessoais;
+- erros lançados pela operação continuam a subir para o controller.
+
+Validação executada:
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> cd apps/api
+- PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> node --check src/modules/performance/documentPerformance.js
+
