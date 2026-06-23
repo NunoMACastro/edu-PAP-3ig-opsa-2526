@@ -59,3 +59,23 @@ Validação executada:
 - PS D:\PAP\edu-PAP-3ig-opsa-2526> cd apps/api
 - PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> node --check src/modules/performance/documentPerformance.js
 
+Passo 3
+Ficheiros editados:
+- apps/api/src/modules/sales/saleDocumentRoutes.js
+
+Regras implementadas:
+- importado measureDocumentInsert;
+- importado toDocumentInsertLog;
+- POST /api/sales/documents mede createSaleDocument;
+- medição envolve o service real;
+- resposta mantém contrato JSON { saleDocument };
+- adicionados headers X-OPSA-Duration-Ms e X-OPSA-Within-Budget;
+- log sanitizado não expõe NIF, valores, linhas, cliente ou payload;
+- empresa ativa continua a vir de req.companyId;
+- frontend não escolhe ownership;
+- validações do service não foram alteradas.
+
+Comandos executados:
+- PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> node --check src/modules/sales/saleDocumentRoutes.js
+
+Passo 4
