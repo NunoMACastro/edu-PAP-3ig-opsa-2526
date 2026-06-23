@@ -13,6 +13,10 @@ import {
     issueSaleDocument,
     listSaleDocuments,
 } from "./saleDocumentService.js";
+import {
+    measureDocumentInsert,
+    toDocumentInsertLog,
+} from "../performance/documentPerformance.js";
 
 /**
  * Envia erro JSON seguro.
@@ -58,14 +62,27 @@ export function buildSaleDocumentRoutes({ prisma }) {
         }
     });
 
+    /**
+     * Cria um documento de venda e mede se a operação cumpre o orçamento de 1 segundo.
+     *
+     * @param {import("express").Request} req - Pedido autenticado com `req.companyId`, `req.user.id` e payload de venda validado pelo service.
+     * @param {import("express").Response} res - Resposta HTTP que mantém o contrato `{ saleDocument }` e acrescenta cabeçalhos de performance.
+     * @returns {Promise<import("express").Response>} Resposta `201` com o documento criado ou erro normalizado por `sendError`.
+     */
     router.post("/", writeGuards, async (req, res) => {
         try {
-            const saleDocument = await createSaleDocument(
-                prisma,
-                req.companyId,
-                req.user.id,
-                req.body,
+            const { result: saleDocument, metric } = await measureDocumentInsert(
+                "sales.document.create",
+                async () =>
+                    // A empresa ativa vem de `req.companyId`; o frontend nunca escolhe ownership.
+                    createSaleDocument(prisma, req.companyId, req.user.id, req.body),
             );
+
+            console.info(toDocumentInsertLog(metric));
+            // Os cabeçalhos dão evidence sem alterar o JSON que o frontend já consome.
+            res.set("X-OPSA-Duration-Ms", String(metric.durationMs));
+            res.set("X-OPSA-Within-Budget", String(metric.withinBudget));
+
             return res.status(201).json({ saleDocument });
         } catch (error) {
             return sendError(res, error);
