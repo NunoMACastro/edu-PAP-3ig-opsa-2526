@@ -26,3 +26,9 @@ Error: São necessárias 25 sessões de teste válidas.
 Node.js v24.16.0
 
 Passo 4
+Percentil 95 é mais útil do que média porque mostra a experiência dos pedidos mais lentos sem depender de um caso isolado.
+
+O output mostra users: 25, failures: 0, baselineP95, concurrentP95 e allowedP95.
+
+Passo 5
+Cada endpoint devolve failures: 0 e concurrentP95 <= allowedP95.
