@@ -1,6 +1,7 @@
 # BK-MF6-09 - Chaves de API e credenciais apenas em variáveis de ambiente.
 
 ## Header
+
 - `doc_id`: `GUIA-BK-MF6-09`
 - `bk_id`: `BK-MF6-09`
 - `macro`: `MF6`
@@ -16,101 +17,463 @@
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF6-10`
 - `guia_path`: `docs/planificacao/guias-bk/MF6/BK-MF6-09-chaves-de-api-e-credenciais-apenas-em-variaveis-de-ambiente.md`
-- `last_updated`: `2026-04-19`
+- `last_updated`: `2026-06-22`
 
-## Contexto do BK
-- Entrega alvo: implementar `Chaves de API e credenciais apenas em variáveis de ambiente.` com rastreabilidade direta ao requisito `RNF16`.
-- Foco tecnico da macro: desempenho, seguranca e robustez tecnica.
-- Regra de governanca: nao alterar IDs nem contratos de dados (`bk_id/mf/sprint/owner/rf_rnf/deps/guia_path/core_or_reforco`).
+#### Objetivo
 
-## Bloco pedagogico
-### Objetivo
-Executar `Chaves de API e credenciais apenas em variáveis de ambiente.` com autonomia técnica, garantindo cobertura do requisito `RNF16` e evidência objetiva para avaliação.
-- Intenção pedagógica da macro `MF6`: Assegurar robustez tecnica de performance, seguranca e continuidade..
+Neste BK vais impedir que chaves de API e credenciais fiquem escritas no código. O `RNF16` exige variáveis de ambiente para valores sensíveis.
 
-### Pre-requisitos
-- Ler o requisito `RNF16` e rever o contexto em `MATRIZ-CANONICA-BK.md` e `BACKLOG-MVP.md`.
-- Validar dependencias declaradas: `-`.
-- Preparar ambiente para smoke test e validacao negativa.
+O aluno vai criar um módulo de configuração, exemplos sem valores reais e um scanner simples que falha se encontrar padrões perigosos.
 
-### Erros comuns
-- Fechar o BK sem validar cenario negativo.
-- Alterar metadados no guia sem refletir backlog/matriz.
-- Submeter evidence sem provas objetivas (ex.: output real, screenshot, log, teste).
+#### Importância
 
-### Check de compreensao
-- [ ] Sei justificar porque este BK existe no fluxo da macro `MF6`.
-- [ ] Sei mostrar onde esta o requisito `RNF16` no sistema.
-- [ ] Sei demonstrar pelo menos 1 negativo relevante do BK.
+Credenciais no repositório podem ser copiadas, expostas em prints ou enviadas para a defesa por acidente. Mesmo numa PAP, é importante aprender a separar código e configuração.
 
-### Tempo estimado
-- `Core`: `60-90 min`.
-- `Reforco`: `+20-40 min`.
+Este BK prepara auditoria e operação segura: a aplicação pode mudar ambiente sem alterar ficheiros de código.
 
-## Bloco operacional
-### Entrada
-- BK: `BK-MF6-09`
-- Requisito: `RNF16`
-- Dependencias: `-`
-- Artefactos de referencia: `MATRIZ-CANONICA-BK.md`, `BACKLOG-MVP.md`, `PLANO-SPRINTS.md`
+#### Scope-in
 
-### Passos
-1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do `BK-MF6-09` e o requisito `RNF16`.
-2. Validar dependencias técnicas (`-`) e preparar dados de teste mínimos para `Chaves de API e credenciais apenas em variáveis de ambiente.`.
-3. Aplicar hardening/performance no ponto crítico do BK com medição objetiva do limiar definido.
-4. Executar teste negativo de segurança/performance e registar evidência comparativa antes/depois.
-5. Executar pelo menos 1 teste de smoke orientado ao caso principal do BK.
-6. Executar cenários negativos obrigatórios e registar resultado observado (mensagem/código/efeito).
-7. Aplicar reforço técnico (robustez/performance/segurança) no risco principal identificado para este BK.
-8. Atualizar evidence (`pr`, `proof`, `neg`) com artefactos concretos e verificaveis.
+- Criar módulo `env.js` para ler configuração.
+- Criar `.env.example` sem valores reais.
+- Validar variáveis obrigatórias.
+- Criar scanner textual contra padrões perigosos.
+- Definir negativos para ausência de variável e valor escrito no código.
 
-### Cenarios negativos recomendados
-- entrada obrigatoria em falta
-- estado de negocio invalido
-- tentativa sem permissoes/contexto valido
+#### Scope-out
 
-### Validacao
-- [ ] Smoke: fluxo principal executa sem erro bloqueante.
-- [ ] Negativos: minimo `3` cenarios com resultado controlado.
-- [ ] Tecnico: metadados e contratos de dados estao alinhados entre backlog/matriz/guia.
-- [ ] Evidencia: `pr`, `proof`, `neg` preenchidos com artefactos reais.
+- Criar gestor externo de cofres.
+- Guardar credenciais reais em documentos.
+- Inventar fornecedor externo obrigatório.
+- Fazer deploy.
+- Alterar regras de autenticação.
 
-### Handoff
-- Proximo BK recomendado: `BK-MF6-10`
-- Registar no handoff: estado de dependencias, risco aberto e decisao tomada.
-- Se houver bloqueio >48h, escalar no scorecard da sprint.
+#### Estado antes e depois
 
-## Snippet tecnico aplicavel
-**Hardening basico de seguranca**
+- Antes: a app pode ler configuração, mas MF6 ainda não tem guia de credenciais.
+- Depois: valores sensíveis ficam fora do código e a validação falha cedo quando faltam.
 
-Contexto de rastreabilidade: `BK-MF6-09` -> `RNF16`.
+#### Pre-requisitos
 
-```ts
-import bcrypt from 'bcryptjs';
+- Ler `RNF16`.
+- Rever `BK-MF0-05` para email de recuperação.
+- Rever `BK-MF4` se houver providers de IA.
+- Confirmar scripts e `.env.example` em `apps/api`.
 
-export async function hashPasswordSegura(password: string) {
-  if (password.length < 12) throw new Error('Password abaixo do minimo');
-  const hash = await bcrypt.hash(password, 12);
-  return { bk: 'BK-MF6-09', hash };
+#### Glossário
+
+- Variável de ambiente: valor fornecido fora do código.
+- Credencial: dado que permite acesso a serviço ou recurso.
+- `.env.example`: ficheiro com nomes esperados, sem valores reais.
+- Configuração obrigatória: valor sem o qual a app não deve arrancar.
+- Scanner: script que procura padrões inseguros.
+- Rotação: troca de credencial sem alterar código.
+
+#### Conceitos teóricos essenciais
+
+- `CANONICO`: `RNF16` exige credenciais em variáveis de ambiente.
+- `DERIVADO`: `.env.example` pode listar nomes e valores fictícios seguros.
+- `DERIVADO`: a API deve falhar cedo quando configuração obrigatória falta.
+- `DERIVADO`: neste BK, só devem ficar obrigatórias variáveis já consumidas pelo fluxo apresentado; novas chaves de API entram quando existir o adapter que as usa.
+
+Variável de ambiente não é mágica: se o aluno escrever o valor real no `.env.example`, continua exposto. O exemplo deve ensinar o nome da variável, não revelar o valor.
+
+#### Arquitetura do BK
+
+- Endpoint(s): não aplicável diretamente.
+- Modelo/schema Prisma: não aplicável.
+- Service(s): serviços que precisam de configuração importam `env`.
+- Controller/route: sem alteração obrigatória.
+- Guard/middleware: sem alteração obrigatória.
+- Cliente API: usa variável pública apenas para URL da API.
+- Testes: scanner textual.
+- Handoff para o próximo BK: auditoria de operações sensíveis.
+
+#### Ficheiros a criar/editar/rever
+
+- CRIAR: `apps/api/src/config/env.js`
+- CRIAR: `apps/api/.env.example`
+- REVER: serviços de email, IA ou integrações.
+- CRIAR: `apps/api/scripts/check-mf6-env-safety.mjs`
+- EDITAR: `apps/api/package.json`
+- REVER: `apps/web/.env.example`
+
+#### Tutorial técnico linear
+
+### Passo 1 - Inventariar configuração sensível
+
+1. Objetivo funcional do passo no contexto da app.
+
+Saber que valores não podem estar no código.
+
+2. Ficheiros envolvidos:
+    - REVER: `apps/api/src`
+    - REVER: `apps/api/scripts`
+    - LOCALIZAÇÃO: serviços que chamam email, IA ou integrações.
+
+3. Instruções do que fazer.
+
+Lista nomes de variáveis necessárias sem escrever valores reais. Neste BK, começa por `DATABASE_URL` como credencial obrigatória da API e mantém `APP_BASE_URL` como configuração operacional com valor local seguro. Não cries segredos obrigatórios para sessão ou providers que este BK não consome.
+
+4. Código completo, correto e integrado com a app final.
+
+Sem código neste passo. É inventário de configuração.
+
+5. Explicação do código.
+
+Sem inventário, a equipa tende a espalhar valores por services.
+
+6. Validação do passo.
+
+Lista contém nome, uso e se é obrigatória.
+
+7. Cenário negativo/erro esperado.
+
+Encontrar valor real num ficheiro de código exige remoção imediata.
+
+### Passo 2 - Criar módulo de ambiente
+
+1. Objetivo funcional do passo no contexto da app.
+
+Centralizar leitura e validação.
+
+2. Ficheiros envolvidos:
+    - CRIAR: `apps/api/src/config/env.js`
+    - LOCALIZAÇÃO: ficheiro completo.
+
+3. Instruções do que fazer.
+
+Cria o módulo abaixo.
+
+4. Código completo, correto e integrado com a app final.
+
+```js
+/**
+ * @file Configuração da API OPSA lida a partir do ambiente.
+ */
+
+const requiredVariables = ["DATABASE_URL"];
+
+/**
+ * Lê uma variável obrigatória e falha cedo quando está ausente.
+ *
+ * @param {string} name - Nome da variável.
+ * @returns {string} Valor configurado no ambiente.
+ */
+function requireEnv(name) {
+    const value = process.env[name];
+    if (!value) {
+        throw new Error(`Variável obrigatória em falta: ${name}`);
+    }
+
+    return value;
 }
 
-export function exigirTLS(proto: string) {
-  if (proto !== 'https') throw new Error('Canal nao seguro');
+/**
+ * Valida a configuração obrigatória da API.
+ *
+ * @returns {{ databaseUrl: string, appBaseUrl: string }}
+ */
+export function loadEnv() {
+    for (const name of requiredVariables) {
+        requireEnv(name);
+    }
+
+    // O ficheiro central evita credenciais espalhadas por services e scripts.
+    return {
+        databaseUrl: requireEnv("DATABASE_URL"),
+        appBaseUrl: process.env.APP_BASE_URL ?? "http://localhost:5173",
+    };
 }
 ```
 
-Integrar no fluxo do BK para garantir requisitos minimos de seguranca (hash forte + transporte seguro).
+5. Explicação do código.
 
-## Criterios de aceite
-- BK implementado no scope definido, sem romper dependencias.
-- Validacao de smoke e negativos concluida.
-- Contrato de dados canónico mantido (`bk_id/mf/sprint/owner/rf_rnf/deps/guia_path/core_or_reforco`).
-- Evidence pronta para revisao tecnica e defesa PAP.
+O módulo valida valores obrigatórios e dá nomes claros para o resto da app. Falhar cedo evita arrancar com configuração incompleta.
 
-## Evidence para PR/defesa
-- `pr`: link do commit/PR com resumo objetivo da alteracao.
-- `proof`: prova funcional (output, screenshot, log, ou teste automatizado).
-- `neg`: cenario negativo executado com resultado esperado.
+6. Validação do passo.
 
-## Changelog
-- `2026-04-17`: guia migrado para naming com slug e template pedagogico-operacional executavel.
+Executa `cd apps/api && node --check src/config/env.js`.
+
+7. Cenário negativo/erro esperado.
+
+Sem `DATABASE_URL`, a app deve falhar no arranque controlado.
+
+### Passo 3 - Criar exemplo seguro
+
+1. Objetivo funcional do passo no contexto da app.
+
+Ensinar configuração sem divulgar valores reais.
+
+2. Ficheiros envolvidos:
+    - CRIAR: `apps/api/.env.example`
+    - LOCALIZAÇÃO: ficheiro completo.
+
+3. Instruções do que fazer.
+
+Escreve nomes e valores fictícios.
+
+4. Código completo, correto e integrado com a app final.
+
+```dotenv
+DATABASE_URL=postgresql://user:pass@localhost:5432/opsa_dev
+APP_BASE_URL=http://localhost:5173
+```
+
+5. Explicação do código.
+
+O exemplo mostra formato, não segredo real. Em produção, estes valores são definidos no ambiente do servidor. Se uma integração futura precisar de uma chave de API, essa variável só deve entrar aqui quando o respetivo BK ou adapter também mostrar onde ela é consumida.
+
+6. Validação do passo.
+
+O ficheiro não contém credenciais reais.
+
+7. Cenário negativo/erro esperado.
+
+Valor real copiado para `.env.example` deve ser removido.
+
+### Passo 4 - Usar o módulo no servidor
+
+1. Objetivo funcional do passo no contexto da app.
+
+Evitar leituras dispersas de configuração.
+
+2. Ficheiros envolvidos:
+    - EDITAR: `apps/api/src/server.js`
+    - LOCALIZAÇÃO: arranque da API.
+
+3. Instruções do que fazer.
+
+Adiciona o import de `loadEnv` no topo de `apps/api/src/server.js`, imediatamente depois dos imports de bibliotecas externas, e substitui a leitura direta de `APP_BASE_URL` pelo valor centralizado. Não removas os restantes imports nem a montagem dos routers.
+
+4. Código completo, correto e integrado com a app final.
+
+```js
+// apps/api/src/server.js
+import express from "express";
+import { PrismaClient } from "@prisma/client";
+import { loadEnv } from "./config/env.js";
+import { buildAuthRoutes } from "./modules/auth/authRoutes.js";
+
+// Mantém neste ponto os imports de routers e módulos já criados nos BKs anteriores.
+const env = loadEnv();
+const prisma = new PrismaClient();
+const app = express();
+const port = Number.parseInt(process.env.PORT ?? "3000", 10);
+const isProduction = process.env.NODE_ENV === "production";
+const appBaseUrl = env.appBaseUrl;
+
+// A validação acontece antes dos routers para a API falhar cedo se faltar configuração obrigatória.
+app.use(express.json());
+
+app.use("/api/auth", buildAuthRoutes({ prisma, isProduction, appBaseUrl }));
+```
+
+5. Explicação do código.
+
+O servidor passa a ler a configuração obrigatória através de `loadEnv`, mas continua a preservar `port`, `isProduction`, `appBaseUrl`, `PrismaClient`, `express.json()` e a montagem de autenticação criada em BKs anteriores. Assim, o hardening de `APP_BASE_URL` usado em autenticação e CSRF fica ligado ao mesmo contrato de configuração, sem espalhar nomes de variáveis pelo arranque da API.
+
+6. Validação do passo.
+
+`node --check src/server.js` deve passar.
+
+7. Cenário negativo/erro esperado.
+
+Se o servidor arrancar sem variável obrigatória, a validação não foi aplicada.
+
+### Passo 5 - Rever frontend
+
+1. Objetivo funcional do passo no contexto da app.
+
+Separar variáveis públicas de valores sensíveis.
+
+2. Ficheiros envolvidos:
+    - REVER: `apps/web/.env.example`
+    - REVER: `apps/web/src/lib/apiClient.ts`
+    - LOCALIZAÇÃO: URL da API.
+
+3. Instruções do que fazer.
+
+No frontend, usa apenas variáveis públicas de URL, nunca credenciais.
+
+4. Código completo, correto e integrado com a app final.
+
+Sem código neste passo. É revisão de configuração.
+
+5. Explicação do código.
+
+Tudo o que vai para o frontend pode ser visto pelo utilizador. Não coloques credenciais aí.
+
+6. Validação do passo.
+
+`apps/web/.env.example` contém apenas URL pública da API.
+
+7. Cenário negativo/erro esperado.
+
+Credencial no frontend deve ser removida.
+
+### Passo 6 - Criar scanner textual
+
+1. Objetivo funcional do passo no contexto da app.
+
+Detetar padrões inseguros antes do PR.
+
+2. Ficheiros envolvidos:
+    - CRIAR: `apps/api/scripts/check-mf6-env-safety.mjs`
+    - EDITAR: `apps/api/package.json`
+    - LOCALIZAÇÃO: script e entrada `test:mf6:env`.
+
+3. Instruções do que fazer.
+
+Cria o script abaixo.
+
+4. Código completo, correto e integrado com a app final.
+
+```js
+/**
+ * @file Scanner textual do BK-MF6-09.
+ */
+
+import { readFileSync } from "node:fs";
+import { readdirSync, statSync } from "node:fs";
+import { join } from "node:path";
+
+const checkedFiles = [
+    "src/config/env.js",
+    "src/server.js",
+    ".env.example",
+];
+
+for (const file of checkedFiles) {
+    const content = readFileSync(file, "utf8");
+    if (content.includes("LIVE_VALUE_DO_NOT_COMMIT")) {
+        throw new Error(`Valor real detetado em ${file}`);
+    }
+}
+
+function listJavaScriptFiles(directory) {
+    return readdirSync(directory)
+        .flatMap((entry) => {
+            const fullPath = join(directory, entry);
+            if (statSync(fullPath).isDirectory()) {
+                // A recursão percorre módulos novos sem obrigar a manter a lista manualmente.
+                return listJavaScriptFiles(fullPath);
+            }
+
+            return fullPath.endsWith(".js") ? [fullPath] : [];
+        });
+}
+
+const sourceFiles = listJavaScriptFiles("src");
+for (const file of sourceFiles) {
+    const content = readFileSync(file, "utf8");
+    if (content.includes("sk_live_") || content.includes("pk_live_")) {
+        // O scanner não substitui revisão humana, mas bloqueia padrões óbvios antes do PR.
+        throw new Error(`Credencial provável no código: ${file}`);
+    }
+}
+```
+
+5. Explicação do código.
+
+O scanner é simples e educativo. Procura padrões comuns e força revisão manual quando encontra algo suspeito.
+
+6. Validação do passo.
+
+Executa `cd apps/api && node scripts/check-mf6-env-safety.mjs`.
+
+7. Cenário negativo/erro esperado.
+
+Se houver valor real no código, o script falha.
+
+### Passo 7 - Testar variável ausente
+
+1. Objetivo funcional do passo no contexto da app.
+
+Provar que a app falha cedo.
+
+2. Ficheiros envolvidos:
+    - REVER: `apps/api/src/config/env.js`
+    - LOCALIZAÇÃO: arranque sem variável.
+
+3. Instruções do que fazer.
+
+Executa o módulo sem `DATABASE_URL` num ambiente controlado.
+
+4. Código completo, correto e integrado com a app final.
+
+Sem código neste passo. É teste manual de ambiente.
+
+5. Explicação do código.
+
+Falhar cedo evita erros mais perigosos durante um pedido real.
+
+6. Validação do passo.
+
+Erro esperado: `Variável obrigatória em falta`.
+
+7. Cenário negativo/erro esperado.
+
+Se a app arrancar sem valor obrigatório, o contrato não está ativo.
+
+### Passo 8 - Recolher evidence
+
+1. Objetivo funcional do passo no contexto da app.
+
+Fechar o BK sem divulgar credenciais.
+
+2. Ficheiros envolvidos:
+    - REVER: outputs de smoke e scanner.
+    - LOCALIZAÇÃO: PR ou relatório.
+
+3. Instruções do que fazer.
+
+Guarda outputs e máscara qualquer valor sensível.
+
+4. Código completo, correto e integrado com a app final.
+
+Sem código neste passo. É evidence.
+
+5. Explicação do código.
+
+Evidence deve provar nomes de variáveis e validação, não valores reais.
+
+6. Validação do passo.
+
+Outputs anexados ao PR.
+
+7. Cenário negativo/erro esperado.
+
+Se o PR mostrar valor sensível, revoga esse valor e substitui evidence.
+
+#### Critérios de aceite
+
+- Configuração sensível é lida por `env.js`.
+- `.env.example` não contém valores reais.
+- App falha cedo sem variáveis obrigatórias realmente consumidas pela API.
+- Scanner deteta padrões perigosos.
+- Negativos: mínimo `3`: variável ausente, valor real no exemplo e credencial no código.
+
+#### Validação final
+
+- `cd apps/api && node --check src/config/env.js`
+- `cd apps/api && node scripts/check-mf6-env-safety.mjs`
+- `cd apps/api && npm run test:contracts`
+- Revisão manual de `.env.example`.
+
+#### Evidence para PR/defesa
+
+- `pr`: link ou identificador do PR.
+- `proof`: output do scanner.
+- `neg`: variável ausente e padrão perigoso.
+- `fonte`: `RNF16`.
+- `multiempresa`: configuração não substitui isolamento por empresa.
+
+#### Handoff
+
+- Entrega configuração segura para auditoria e operação.
+- O próximo BK regista operações sensíveis sem expor credenciais.
+- Próximo BK recomendado: `BK-MF6-10`
+
+#### Changelog
+
+- `2026-06-22`: guia revisto com módulo de ambiente, exemplo seguro, scanner, negativos e evidence.
