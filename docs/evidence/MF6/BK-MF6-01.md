@@ -277,3 +277,118 @@ test at tests\integration\mf3-persistence.test.js:296:1
       at Test.run (node:internal/test_runner/test:1306:25)
       at Test.start (node:internal/test_runner/test:1177:17)
       at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17)
+
+10) Evidencia obrigatoria
+pr
+Ainda não criado
+
+proof
+- Venda válida devolveu 201 com cabeçalhos:
+  - X-OPSA-Duration-Ms
+  - X-OPSA-Within-Budget
+
+- Compra válida devolveu 201 com cabeçalhos:
+  - X-OPSA-Duration-Ms
+  - X-OPSA-Within-Budget
+
+- Lançamento manual válido devolveu 201 com cabeçalhos:
+  - X-OPSA-Duration-Ms
+  - X-OPSA-Within-Budget
+
+- Contrato JSON original preservado:
+  - { saleDocument }
+  - { purchaseDocument }
+  - { journalEntry }
+
+- Smoke RNF08 executado com sucesso:
+  - npm run test:mf6:documents
+
+neg
+1. Sessão ausente
+   Resultado: 401
+
+2. Cliente inválido em venda
+   Resultado: erro de validação
+   Persistência: não criada
+
+3. Fornecedor inválido em compra
+   Resultado: erro de validação
+   Persistência: não criada
+
+4. Período fiscal fechado em lançamento manual
+   Resultado: erro de domínio
+   Persistência: não criada
+
+5. Payload inválido
+   Resultado: 400/422
+   Persistência: não criada
+
+files
+apps/api/src/modules/performance/documentPerformance.js
+apps/api/src/modules/sales/saleDocumentRoutes.js
+apps/api/src/modules/purchases/purchaseDocumentRoutes.js
+apps/api/src/modules/accounting/manualJournalRoutes.js
+apps/api/scripts/check-mf6-document-performance.mjs
+apps/api/package.json
+
+commands
+cd apps/api
+node --check src/modules/performance/documentPerformance.js
+node --check src/modules/sales/saleDocumentRoutes.js
+node --check src/modules/purchases/purchaseDocumentRoutes.js
+node --check src/modules/accounting/manualJournalRoutes.js
+npm run test:contracts
+npm run test:integration
+
+performance
+RNF08 implementado.
+
+Orçamento:
+- DOCUMENT_INSERT_BUDGET_MS = 1000 ms
+
+Medição aplicada a:
+- sales.document.create
+- purchases.document.create
+- accounting.manualJournal.create
+
+Evidence:
+- cabeçalho X-OPSA-Duration-Ms
+- cabeçalho X-OPSA-Within-Budget
+
+A medição ocorre no backend envolvendo a operação real e respetivas validações, transações e auditoria.
+security
+- Empresa ativa continua resolvida por req.companyId.
+- Frontend continua a usar cookies HttpOnly.
+- Não foram alteradas autenticação, autorização ou validações de domínio.
+- Os cabeçalhos de performance não expõem:
+  - NIF
+  - IBAN
+  - valores monetários
+  - linhas de documentos
+  - dados pessoais
+  - tokens ou cookies
+  
+audit
+- Logs usam toDocumentInsertLog().
+- Apenas são registados:
+  - operationName
+  - durationMs
+  - withinBudget
+
+- Não são registados:
+  - valores financeiros
+  - payloads completos
+  - NIF
+  - IBAN
+  - contas SNC
+  - dados pessoais
+
+- Auditoria funcional existente nos services foi preservada.
+notes
+RNF08 foi implementado sem alterar regras de negócio.
+
+A medição foi aplicada nas routes para medir a operação completa, incluindo validações, transações e auditoria.
+
+O contrato JSON consumido pelo frontend foi preservado.
+
+O helper measureDocumentInsert pode ser reutilizado em BK-MF6-02 para avaliação de carga concorrente e múltiplos utilizadores.
