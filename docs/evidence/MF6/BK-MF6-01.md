@@ -142,11 +142,47 @@ Negativos confirmados:
 - período fiscal fechado não é transformado em sucesso rápido.
 
 Passo 6
+Ficheiros criados/editados:
+- criado apps/api/scripts/check-mf6-document-performance.mjs;
+
+Script criado:
+- test:mf6:documents
+
+Contratos verificados:
+- documentPerformance.js contém measureDocumentInsert;
+- saleDocumentRoutes.js contém measureDocumentInsert;
+- purchaseDocumentRoutes.js contém measureDocumentInsert;
+- manualJournalRoutes.js contém measureDocumentInsert;
+- as três routes devolvem X-OPSA-Duration-Ms;
+- as três routes devolvem X-OPSA-Within-Budget;
+- smoke cobre vendas, compras e lançamentos manuais.
+
+Comandos executados:
 - PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> node scripts/check-mf6-document-performance.mjs
 
 Passo 7 
+Regra confirmada:
+- performance não remove validação;
+- erro correto é preferível a sucesso rápido incorreto;
+- empresa ativa continua a vir do contexto autenticado;
+- regras de domínio continuam nos services.
 
 Passo 8
+Privacidade:
+- evidence não inclui NIF real;
+- evidence não inclui IBAN real;
+- evidence não inclui valores financeiros reais;
+- evidence não inclui linhas completas de documento;
+- evidence não inclui cookies, tokens ou headers sensíveis;
+- headers de performance mostram apenas duração e withinBudget.
+
+Handoff:
+- helper measureDocumentInsert criado;
+- orçamento DOCUMENT_INSERT_BUDGET_MS = 1000;
+- routes críticas medidas: vendas, compras e lançamentos manuais;
+- smoke test:mf6:documents criado;
+- BK-MF6-02 pode reutilizar a mesma métrica para avaliar simultaneidade.
+
 - PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> npm run test:contracts
 
 > @opsa/api@1.0.0 test:contracts
