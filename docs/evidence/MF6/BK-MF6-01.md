@@ -79,3 +79,33 @@ Comandos executados:
 - PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> node --check src/modules/sales/saleDocumentRoutes.js
 
 Passo 4
+Ficheiros editados:
+- apps/api/src/modules/purchases/purchaseDocumentRoutes.js
+- apps/api/src/modules/accounting/manualJournalRoutes.js
+
+Regras implementadas:
+- purchaseDocumentRoutes mede createPurchaseDocument;
+- manualJournalRoutes mede createManualJournal;
+- ambas as routes usam measureDocumentInsert;
+- ambas as routes usam toDocumentInsertLog;
+- respostas mantêm contratos JSON existentes;
+- compras continuam a devolver { purchaseDocument };
+- lançamentos manuais continuam a devolver { journalEntry };
+- headers X-OPSA-Duration-Ms e X-OPSA-Within-Budget adicionados;
+- logs não expõem linhas, valores, fornecedores, contas SNC, NIF, IBAN ou payloads;
+- validações dos services não foram alteradas;
+- empresa ativa continua a vir de req.companyId.
+
+Smoke validado:
+- compra válida devolveu 201 com X-OPSA-Duration-Ms;
+- compra válida devolveu X-OPSA-Within-Budget;
+- lançamento manual válido devolveu 201 com X-OPSA-Duration-Ms;
+- lançamento manual válido devolveu X-OPSA-Within-Budget.
+
+Negativo validado:
+- lançamento em período fiscal fechado devolveu erro de domínio;
+- erro de domínio não foi transformado em sucesso rápido;
+- documento inválido não foi persistido.
+
+Comandos executados:
+- PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> node --check src/modules/purchases/purchaseDocumentRoutes.js src/modules/accounting/manualJournalRoutes.js

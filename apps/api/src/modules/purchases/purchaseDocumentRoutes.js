@@ -12,6 +12,10 @@ import {
     createPurchaseDocument,
     listPurchaseDocuments,
 } from "./purchaseDocumentService.js";
+import {
+    measureDocumentInsert,
+    toDocumentInsertLog,
+} from "../performance/documentPerformance.js";
 
 /**
  * Envia erro JSON seguro.
@@ -60,14 +64,27 @@ export function buildPurchaseDocumentRoutes({ prisma }) {
         }
     });
 
+    /**
+     * Cria um documento de compra e mede a duração sem expor linhas ou valores nos logs.
+     *
+     * @param {import("express").Request} req - Pedido autenticado com empresa ativa resolvida no backend e payload de compra validado pelo service.
+     * @param {import("express").Response} res - Resposta HTTP que mantém o contrato `{ purchaseDocument }` e acrescenta cabeçalhos de performance.
+     * @returns {Promise<import("express").Response>} Resposta `201` com o documento criado ou erro normalizado por `sendError`.
+     */
     router.post("/", writeGuards, async (req, res) => {
         try {
-            const purchaseDocument = await createPurchaseDocument(
-                prisma,
-                req.companyId,
-                req.user.id,
-                req.body,
+            const { result: purchaseDocument, metric } = await measureDocumentInsert(
+                "purchases.document.create",
+                async () =>
+                    // O fornecedor e as linhas continuam validados dentro do service de compras.
+                    createPurchaseDocument(prisma, req.companyId, req.user.id, req.body),
             );
+
+            console.info(toDocumentInsertLog(metric));
+            // A route mantém o contrato `{ purchaseDocument }` e expõe a duração só por cabeçalho.
+            res.set("X-OPSA-Duration-Ms", String(metric.durationMs));
+            res.set("X-OPSA-Within-Budget", String(metric.withinBudget));
+
             return res.status(201).json({ purchaseDocument });
         } catch (error) {
             return sendError(res, error);
