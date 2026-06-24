@@ -15,7 +15,8 @@
     "test:unit": "node --test tests/unit/*.test.js",
     "test:contracts": "node --test tests/contracts/*.test.js",
     "test:integration": "node --test tests/integration/*.test.js",
-    "test:mf6:concurrency": "node scripts/check-mf6-concurrency.mjs"
+    "test:mf6:concurrency": "node scripts/check-mf6-concurrency.mjs",
+    "test:mf6:env": "node scripts/check-mf6-env-safety.mjs"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
