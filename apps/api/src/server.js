@@ -50,12 +50,22 @@ import { buildSaftRoutes } from "./modules/compliance/saftRoutes.js";
 import { buildOperationalReportRoutes } from "./modules/reports/operationalReportRoutes.js";
 import { buildExecutiveKpiRoutes } from "./modules/reports/executiveKpiRoutes.js";
 import { requireTrustedOrigin } from "./modules/security/requestHardening.js";
+import express from "express";
+import { PrismaClient } from "@prisma/client";
+import { loadEnv } from "./config/env.js";
+import { buildAuthRoutes } from "./modules/auth/authRoutes.js";
 
 const prisma = new PrismaClient();
 const app = express();
 const port = Number.parseInt(process.env.PORT ?? "3000", 10);
 const isProduction = process.env.NODE_ENV === "production";
 const appBaseUrl = process.env.APP_BASE_URL ?? "http://localhost:5173";
+const env = loadEnv();
+const prisma = new PrismaClient();
+const app = express();
+const port = Number.parseInt(process.env.PORT ?? "3000", 10);
+const isProduction = process.env.NODE_ENV === "production";
+const appBaseUrl = env.appBaseUrl;
 
 app.use(express.json());
 
@@ -111,6 +121,8 @@ app.use("/api/tasks", buildOperationalTaskRoutes({ prisma }));
 app.use("/api/notifications", buildNotificationRoutes({ prisma }));
 app.use("/api/audit", buildAuditLogRoutes({ prisma }));
 app.use("/api/integrations", buildIntegrationLogRoutes({ prisma }));
+app.use(express.json());
+app.use("/api/auth", buildAuthRoutes({ prisma, isProduction, appBaseUrl }));
 
 /**
  * Arranca o servidor HTTP.
