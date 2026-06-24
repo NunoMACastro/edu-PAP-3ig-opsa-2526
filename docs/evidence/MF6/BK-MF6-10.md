@@ -138,3 +138,37 @@ Critério confirmado:
 * alteração e auditoria pertencem à mesma transação;
 * não é guardado payload completo no audit log;
 * validações existentes continuam ativas.
+
+Passo 4
+Ficheiros editados:
+* apps/api/src/modules/fiscal-periods/fiscalPeriodService.js
+
+Import adicionado:
+* recordSensitiveAudit
+
+Fluxo integrado:
+* service procura o período fiscal pelo id e companyId;
+* valida se o período existe;
+* valida se o período ainda não está fechado;
+* fecha o período fiscal dentro de uma transação;
+* regista audit log dentro da mesma transação;
+* devolve o período fechado serializado.
+
+Ação auditada:
+* fiscalPeriod.close
+
+Entidade auditada:
+* FiscalPeriod
+
+Detalhes registados:
+* result: "success"
+* status
+* closedAt
+
+Critério confirmado:
+* fecho de período fiscal fica auditado;
+* auditoria usa actorUserId vindo do backend autenticado;
+* alteração e audit log pertencem à mesma transação;
+* não são guardados documentos financeiros completos no audit log;
+* regras de período fiscal continuam preservadas;
+* empresa ativa continua validada por companyId no backend.

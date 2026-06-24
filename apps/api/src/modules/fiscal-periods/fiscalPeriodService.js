@@ -3,6 +3,7 @@
  */
 
 import { httpError } from "../../lib/httpErrors.js";
+import { recordSensitiveAudit } from "../audit/auditLogService.js";
 
 /**
  * Serializa período fiscal para resposta pública.
@@ -84,45 +85,61 @@ export async function createFiscalPeriod(prisma, companyId, input) {
 }
 
 /**
- * Fecha período fiscal aberto.
+ * Fecha período fiscal aberto e audita a operação sensível.
  *
  * @param {import("@prisma/client").PrismaClient} prisma - Cliente Prisma.
  * @param {{ companyId: string, periodId: string, actorUserId: string, now?: Date }} input - Dados de fecho.
- * @param props - Propriedades recebidas pelo componente React.
  * @returns {Promise<object>} Período fechado.
  */
 export async function closeFiscalPeriod(
     prisma,
     { companyId, periodId, actorUserId, now = new Date() },
 ) {
-    const period = await prisma.fiscalPeriod.findFirst({
-        where: { id: periodId, companyId },
-    });
-    if (!period) {
-        throw httpError(
-            404,
-            "FISCAL_PERIOD_NOT_FOUND",
-            "Período fiscal não encontrado",
-        );
-    }
-    if (period.status === "CLOSED") {
-        throw httpError(
-            409,
-            "FISCAL_PERIOD_ALREADY_CLOSED",
-            "Período fiscal já está fechado",
-        );
-    }
+    return prisma.$transaction(async (tx) => {
+        const period = await tx.fiscalPeriod.findFirst({
+            where: { id: periodId, companyId },
+        });
 
-    const closed = await prisma.fiscalPeriod.update({
-        where: { id: period.id },
-        data: {
-            status: "CLOSED",
-            closedAt: now,
-            closedById: actorUserId,
-        },
-    });
+        if (!period) {
+            throw httpError(
+                404,
+                "FISCAL_PERIOD_NOT_FOUND",
+                "Período fiscal não encontrado",
+            );
+        }
+        if (period.status === "CLOSED") {
+            throw httpError(
+                409,
+                "FISCAL_PERIOD_ALREADY_CLOSED",
+                "Período fiscal já está fechado",
+            );
+        }
 
-    return serialize(closed);
+        const closed = await tx.fiscalPeriod.update({
+            where: { id: period.id },
+            data: {
+                status: "CLOSED",
+                closedAt: now,
+                closedById: actorUserId,
+            },
+        });
+
+        // Fechar um período muda bloqueios contabilísticos; por isso fica auditado.
+        await recordSensitiveAudit(tx, {
+            companyId,
+            userId: actorUserId,
+            action: "fiscalPeriod.close",
+            entity: "FiscalPeriod",
+            entityId: closed.id,
+            details: {
+                result: "success",
+                status: closed.status,
+                closedAt: closed.closedAt?.toISOString() ?? null,
+            },
+        });
+
+        return serialize(closed);
+    });
 }
 
 /**
