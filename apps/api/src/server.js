@@ -1,9 +1,8 @@
 /**
  * @file Ponto de entrada Express para a API OPSA MF0.
- * 
- * O servidor monta apenas routers de domínio. A regra de negócio fica nos
- * services e as validações ficam nos validators, conforme a separação indicada
- * nos guias BK da MF0.
+ *
+ * O servidor monta middlewares transversais antes dos routers de domínio para
+ * garantir que autenticação, validação e hardening se aplicam por omissão.
  */
 
 import express from "express";
@@ -50,6 +49,7 @@ import { buildIntegrationLogRoutes } from "./modules/integrations/integrationLog
 import { buildSaftRoutes } from "./modules/compliance/saftRoutes.js";
 import { buildOperationalReportRoutes } from "./modules/reports/operationalReportRoutes.js";
 import { buildExecutiveKpiRoutes } from "./modules/reports/executiveKpiRoutes.js";
+import { requireTrustedOrigin } from "./modules/security/requestHardening.js";
 
 const prisma = new PrismaClient();
 const app = express();
@@ -59,6 +59,7 @@ const appBaseUrl = process.env.APP_BASE_URL ?? "http://localhost:5173";
 
 app.use(express.json());
 
+app.use(requireTrustedOrigin({ appBaseUrl, isProduction }));
 app.use("/api/auth", buildAuthRoutes({ prisma, isProduction, appBaseUrl }));
 app.use("/api/permissions", buildPermissionsRoutes({ prisma }));
 app.use("/api", buildCompanyRoutes({ prisma }));
