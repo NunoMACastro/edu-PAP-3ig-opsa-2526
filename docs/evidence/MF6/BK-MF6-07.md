@@ -299,3 +299,69 @@ test at tests\contracts\mf3-contracts.test.js:1:1
 test at tests\contracts\mf4-contracts.test.js:1:1
 ✖ tests\contracts\mf4-contracts.test.js (460.73ms)
   'test failed'
+
+
+10) Evidencia obrigatoria
+pr:
+Ainda não criado
+
+proof:
+* cookie de sessão configurado com HttpOnly;
+* atributo SameSite=Lax confirmado;
+* atributo Path=/ confirmado;
+* atributo Secure validado em produção simulada;
+* login cria sessão válida;
+* /api/auth/me devolve utilizador autenticado;
+* logout remove a sessão corretamente;
+* após logout, /api/auth/me devolve HTTP 401;
+* Set-Cookie evidenciado de forma mascarada:
+  * sid=[MASKED]; HttpOnly; Secure; SameSite=Lax; Path=/
+
+neg:
+1. Sessão ausente
+   * pedido para /api/auth/me sem cookie;
+   * resultado esperado: HTTP 401;
+   * resultado obtido: HTTP 401.
+
+2. Falta de credentials
+   * pedido autenticado sem credentials: "include";
+   * resultado esperado: HTTP 401;
+   * resultado obtido: autenticação rejeitada.
+
+3. Produção sem Secure
+   * cookie sem atributo Secure em ambiente de produção;
+   * resultado esperado: incumprimento do RNF14;
+   * resultado obtido: validação do helper impede configuração insegura.
+
+files:
+* apps/api/src/modules/auth/sessionCookie.js
+* apps/api/src/modules/auth/authController.js
+* apps/api/src/modules/auth/authMiddleware.js
+* apps/web/src/lib/apiClient.ts
+* apps/api/scripts/check-mf6-session-cookie.mjs
+* apps/api/package.json
+
+commands:
+cd apps/api && node --check src/modules/auth/sessionCookie.js
+cd apps/api && node scripts/check-mf6-session-cookie.mjs
+
+
+security:
+* HttpOnly impede acesso ao cookie através de JavaScript;
+* Secure ativo em ambiente de produção;
+* SameSite=Lax reduz envio indevido do cookie;
+* sessão não utiliza localStorage;
+* sessão não utiliza sessionStorage;
+* frontend utiliza credentials: "include";
+* permissões e empresa ativa continuam validadas no backend.
+
+audit:
+* não aplicável neste BK;
+* nenhuma alteração efetuada ao sistema de auditoria.
+
+notes:
+* RNF14 cumprido;
+* cookie transporta apenas o identificador opaco da sessão;
+* login e logout utilizam o mesmo contrato de atributos;
+* evidence recolhida sem exposição de cookies reais, tokens ou credenciais;
+* BK-MF6-08 desbloqueado.
