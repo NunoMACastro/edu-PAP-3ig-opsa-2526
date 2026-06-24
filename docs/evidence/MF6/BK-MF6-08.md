@@ -194,4 +194,175 @@ Objetivo do smoke:
 Validação executada:
 - PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> node scripts/check-mf6-hardening.mjs
 
+Passo 7
+Endpoints revistos:
+* endpoints de autenticação;
+* endpoints de domínio com métodos mutáveis.
 
+Negativos executados:
+1. CSRF simulado
+
+   * pedido mutável com origem externa;
+   * resultado esperado: HTTP 403;
+   * resultado obtido: origem recusada.
+
+2. Brute force
+   * várias tentativas inválidas de login;
+   * resultado esperado: HTTP 429;
+   * resultado obtido: limite de autenticação aplicado.
+
+3. Input malicioso
+   * payload com string maliciosa ou operador inesperado;
+   * resultado esperado: HTTP 400 ou HTTP 422;
+   * resultado obtido: erro de validação backend.
+
+Critério confirmado:
+* origem não confiável é recusada em métodos mutáveis;
+* login repetido é limitado;
+* input malicioso é validado antes de chegar à operação Prisma;
+* proteção não depende apenas do frontend;
+* ataques básicos são recusados de forma controlada.
+
+Passo 8
+Evidence recolhida:
+* output do smoke de hardening;
+* output do CSRF simulado;
+* output do teste de brute force;
+* output do teste de input malicioso;
+* comandos finais executados.
+
+Critério confirmado:
+* evidence mostra códigos HTTP relevantes;
+* mensagens de erro são controladas;
+* outputs não expõem dados sensíveis;
+* cookies reais não são divulgados;
+* cabeçalhos completos não são publicados;
+* dados financeiros não são incluídos.
+
+Validação executada:
+- PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> node scripts/check-mf6-hardening.mjs
+- PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> npm run test:contracts
+
+> @opsa/api@1.0.0 test:contracts
+> node --test tests/contracts/*.test.js
+
+file:///D:/PAP/edu-PAP-3ig-opsa-2526/apps/api/src/modules/auth/authService.js:203
+export async function loginUser(prisma, input, now = new Date()) {
+       ^
+
+SyntaxError: Identifier 'loginUser' has already been declared
+    at compileSourceTextModule (node:internal/modules/esm/utils:318:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:90:18)
+    at #translate (node:internal/modules/esm/loader:435:20)
+    at afterLoad (node:internal/modules/esm/loader:491:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:496:12)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:549:36)
+    at afterResolve (node:internal/modules/esm/loader:597:52)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:603:12)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:163:33)
+    at ModuleJob.link (node:internal/modules/esm/module_job:253:17)
+
+Node.js v24.16.0
+✖ tests\contracts\mf0-contracts.test.js (550.2612ms)
+file:///D:/PAP/edu-PAP-3ig-opsa-2526/apps/api/src/modules/auth/authService.js:203
+export async function loginUser(prisma, input, now = new Date()) {
+       ^
+
+SyntaxError: Identifier 'loginUser' has already been declared
+    at compileSourceTextModule (node:internal/modules/esm/utils:318:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:90:18)
+    at #translate (node:internal/modules/esm/loader:435:20)
+    at afterLoad (node:internal/modules/esm/loader:491:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:496:12)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:549:36)
+    at afterResolve (node:internal/modules/esm/loader:597:52)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:603:12)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:163:33)
+    at ModuleJob.link (node:internal/modules/esm/module_job:253:17)
+
+Node.js v24.16.0
+✖ tests\contracts\mf1-contracts.test.js (859.9566ms)
+file:///D:/PAP/edu-PAP-3ig-opsa-2526/apps/api/src/modules/auth/authService.js:203
+export async function loginUser(prisma, input, now = new Date()) {
+       ^
+
+SyntaxError: Identifier 'loginUser' has already been declared
+    at compileSourceTextModule (node:internal/modules/esm/utils:318:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:90:18)
+    at #translate (node:internal/modules/esm/loader:435:20)
+    at afterLoad (node:internal/modules/esm/loader:491:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:496:12)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:549:36)
+    at afterResolve (node:internal/modules/esm/loader:597:52)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:603:12)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:163:33)
+    at ModuleJob.link (node:internal/modules/esm/module_job:253:17)
+
+Node.js v24.16.0
+✖ tests\contracts\mf2-contracts.test.js (505.6265ms)
+file:///D:/PAP/edu-PAP-3ig-opsa-2526/apps/api/src/modules/auth/authService.js:203
+export async function loginUser(prisma, input, now = new Date()) {
+       ^
+
+SyntaxError: Identifier 'loginUser' has already been declared
+    at compileSourceTextModule (node:internal/modules/esm/utils:318:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:90:18)
+    at #translate (node:internal/modules/esm/loader:435:20)
+    at afterLoad (node:internal/modules/esm/loader:491:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:496:12)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:549:36)
+    at afterResolve (node:internal/modules/esm/loader:597:52)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:603:12)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:163:33)
+    at ModuleJob.link (node:internal/modules/esm/module_job:253:17)
+
+Node.js v24.16.0
+✖ tests\contracts\mf3-contracts.test.js (434.6323ms)
+file:///D:/PAP/edu-PAP-3ig-opsa-2526/apps/api/src/modules/auth/authService.js:203
+export async function loginUser(prisma, input, now = new Date()) {
+       ^
+
+SyntaxError: Identifier 'loginUser' has already been declared
+    at compileSourceTextModule (node:internal/modules/esm/utils:318:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:90:18)
+    at #translate (node:internal/modules/esm/loader:435:20)
+    at afterLoad (node:internal/modules/esm/loader:491:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:496:12)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:549:36)
+    at afterResolve (node:internal/modules/esm/loader:597:52)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:603:12)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:163:33)
+    at ModuleJob.link (node:internal/modules/esm/module_job:253:17)
+
+Node.js v24.16.0
+✖ tests\contracts\mf4-contracts.test.js (452.117ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 0
+ℹ fail 5
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3034.3446
+
+✖ failing tests:
+
+test at tests\contracts\mf0-contracts.test.js:1:1
+✖ tests\contracts\mf0-contracts.test.js (550.2612ms)
+  'test failed'
+
+test at tests\contracts\mf1-contracts.test.js:1:1
+✖ tests\contracts\mf1-contracts.test.js (859.9566ms)
+  'test failed'
+
+test at tests\contracts\mf2-contracts.test.js:1:1
+✖ tests\contracts\mf2-contracts.test.js (505.6265ms)
+  'test failed'
+
+test at tests\contracts\mf3-contracts.test.js:1:1
+✖ tests\contracts\mf3-contracts.test.js (434.6323ms)
+  'test failed'
+
+test at tests\contracts\mf4-contracts.test.js:1:1
+✖ tests\contracts\mf4-contracts.test.js (452.117ms)
+  'test failed'
