@@ -139,6 +139,7 @@ Critério confirmado:
 * não é guardado payload completo no audit log;
 * validações existentes continuam ativas.
 
+
 Passo 4
 Ficheiros editados:
 * apps/api/src/modules/fiscal-periods/fiscalPeriodService.js
@@ -172,3 +173,53 @@ Critério confirmado:
 * não são guardados documentos financeiros completos no audit log;
 * regras de período fiscal continuam preservadas;
 * empresa ativa continua validada por companyId no backend.
+
+
+Passo 5
+Ficheiros editados:
+* apps/api/src/modules/sales/saleDocumentService.js
+
+Ficheiros revistos:
+* apps/api/src/modules/treasury/statementImportService.js
+
+Import adicionado:
+* recordSensitiveAudit
+
+Fluxo integrado:
+* service procura o documento de venda pelo id e companyId;
+* valida se o documento existe;
+* valida se o documento está aprovado;
+* valida se o documento ainda não foi emitido;
+* confirma período fiscal aberto;
+* protege contra emissão concorrente;
+* emite o documento dentro de uma transação;
+* regista audit log dentro da mesma transação.
+
+Ação auditada:
+* document.issue
+
+Entidade auditada:
+* SaleDocument
+
+Detalhes registados:
+* result: "success"
+* number
+* status
+* totalCents
+
+Critério confirmado:
+* emissão de documento financeiro fica auditada;
+* escrita direta em tx.auditLog.create foi substituída por recordSensitiveAudit;
+* auditoria mantém o contrato AuditLog existente;
+* audit log guarda identificadores e resumo mínimo;
+* linhas completas do documento não são guardadas em details;
+* payload completo não é guardado;
+* empresa ativa continua validada por companyId no backend;
+* emissão continua dependente de validações de domínio e período fiscal.
+
+Reconciliação revista:
+* apps/api/src/modules/treasury/statementImportService.js foi revisto;
+* fluxo continua limitado a sugestões de reconciliação;
+* sugestões não confirmam movimentos automaticamente;
+* sugestões não alteram saldos automaticamente;
+* nenhuma ação de confirmação foi inventada fora do contrato atual da MF6.
