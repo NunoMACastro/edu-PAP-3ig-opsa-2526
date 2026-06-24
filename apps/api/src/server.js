@@ -129,3 +129,11 @@ function startServer() {
 startServer();
 
 export { app, prisma };
+import {
+    applyStrictTransportSecurity,
+    enforceHttps,
+} from "./modules/security/transportSecurity.js";
+
+app.set("trust proxy", 1);
+app.use(enforceHttps({ isProduction }));
+app.use(applyStrictTransportSecurity({ isProduction }));
