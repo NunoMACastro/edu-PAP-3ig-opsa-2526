@@ -107,3 +107,91 @@ Resultado esperado:
 Resultado obtido:
 * middleware montado antes do primeiro router da API.
 
+
+Passo 4
+Ficheiros revistos:
+* apps/api/src/modules/auth/authRateLimit.js
+
+Proteção confirmada:
+* limite de tentativas de login;
+* bloqueio por IP ou identificador equivalente;
+* resposta controlada quando o limite é excedido;
+* devolução de HTTP 429 para tentativas repetidas.
+
+Critério confirmado:
+* brute force é limitado antes de múltiplas comparações bcrypt;
+* tentativas inválidas repetidas não são aceites sem controlo;
+* resposta de erro é controlada e não expõe detalhes sensíveis;
+* proteção de autenticação mantém-se no backend.
+
+Validação executada:
+* várias tentativas de login inválidas;
+* confirmação da resposta HTTP 429 após exceder o limite.
+
+Cenário negativo:
+* tentativas de login ilimitadas.
+
+Resultado esperado:
+* BK falha por ausência de proteção contra brute force.
+
+Resultado obtido:
+* rate limit de autenticação confirmado.
+
+
+Passo 5
+Ficheiros revistos:
+* validators dos módulos financeiros
+* services antes das chamadas Prisma
+
+Tipos de input revistos:
+* valores monetários;
+* datas;
+* IDs;
+* strings;
+* payloads de domínio financeiro.
+
+Critério confirmado:
+* inputs passam por validação backend antes de chamadas Prisma;
+* Prisma continua a ser usado com APIs estruturadas;
+* validação de domínio não é substituída pelo ORM;
+* input malicioso não deve chegar à query como operador inesperado;
+* segurança não depende apenas do frontend.
+
+Validação executada:
+* teste negativo com string maliciosa;
+* confirmação de erro de validação;
+* confirmação de que o input inválido não chega à operação Prisma.
+
+Cenário negativo:
+* input com operador inesperado ou payload malicioso.
+
+Resultado esperado:
+* erro de validação;
+* pedido rejeitado antes da query.
+
+Resultado obtido:
+* input inválido bloqueado pela validação backend.
+
+
+Passo 6
+Ficheiros criados:
+* apps/api/scripts/check-mf6-hardening.mjs
+
+Validações implementadas:
+* confirmação de UNTRUSTED_ORIGIN;
+* confirmação de escapeHtml;
+* confirmação de proteção para POST;
+* confirmação de proteção para DELETE;
+* confirmação da montagem de requireTrustedOrigin no servidor;
+* confirmação de resposta 429 no rate limit de autenticação.
+
+Objetivo do smoke:
+* detetar remoção acidental do hardening de origem;
+* detetar remoção de escapeHtml;
+* detetar ausência de rate limit de autenticação;
+* proteger contra regressões óbvias do RNF15.
+
+Validação executada:
+- PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> node scripts/check-mf6-hardening.mjs
+
+
