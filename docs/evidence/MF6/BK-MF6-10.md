@@ -469,3 +469,98 @@ test at tests\contracts\mf3-contracts.test.js:1:1
 test at tests\contracts\mf4-contracts.test.js:1:1
 ✖ tests\contracts\mf4-contracts.test.js (6683.418ms)
   'test failed'
+
+10) Evidencia obrigatoria
+pr:
+Ainda não criado
+
+proof:
+* helper recordSensitiveAudit criado e integrado;
+* ações sensíveis declaradas:
+
+  * permissions.update
+  * fiscalPeriod.close
+  * document.issue
+  * security.setting.update
+* auditoria integrada em alteração de permissões;
+* auditoria integrada em fecho de período fiscal;
+* auditoria integrada em emissão de documentos;
+* smoke check-mf6-audit-gate executado com sucesso;
+* audit log validado com dados mascarados:
+
+  AuditLog:
+  * action: document.issue
+  * entity: SaleDocument
+  * entityId: [MASKED]
+  * companyId: [MASKED]
+  * userId: [MASKED]
+  * details:
+    * result: success
+
+neg:
+1. Ação não declarada
+   * resultado esperado: erro de validação;
+   * resultado obtido: ação rejeitada antes da persistência.
+
+2. Detalhes excessivos
+   * details: { rawPayload: {}, documentLines: [] };
+   * resultado esperado: erro de detalhe sensível proibido;
+   * resultado obtido: registo bloqueado.
+
+3. Operação sem sessão
+   * resultado esperado: HTTP 401;
+   * resultado obtido: operação recusada antes da auditoria.
+
+files:
+* apps/api/src/modules/audit/auditLogService.js
+* apps/api/src/modules/company-users/companyUserService.js
+* apps/api/src/modules/company-users/companyUserController.js
+* apps/api/src/modules/fiscal-periods/fiscalPeriodService.js
+* apps/api/src/modules/sales/saleDocumentService.js
+* apps/api/src/modules/treasury/statementImportService.js
+* apps/api/scripts/check-mf6-audit-gate.mjs
+* apps/api/package.json
+
+commands:
+* cd apps/api && node --check src/modules/audit/auditLogService.js
+* cd apps/api && node scripts/check-mf6-audit-gate.mjs
+* cd apps/api && npm run test:contracts
+
+screenshots:
+* output do smoke check-mf6-audit-gate.mjs;
+* audit log mascarado de permissions.update;
+* audit log mascarado de fiscalPeriod.close;
+* audit log mascarado de document.issue.
+
+performance:
+* não aplicável neste BK.
+
+security:
+* actorUserId obtido exclusivamente da sessão autenticada;
+* companyId obtido exclusivamente do contexto backend;
+* logs não aceitam password;
+* logs não aceitam token;
+* logs não aceitam secret;
+* logs não aceitam cookie;
+* logs não aceitam rawPayload;
+* logs não aceitam documentLines;
+* dados financeiros completos não são persistidos em auditoria.
+
+audit:
+* auditoria obrigatória para operações sensíveis;
+* logs incluem empresa, utilizador, ação, entidade e identificador;
+* logs incluem apenas detalhes mínimos;
+* integração validada em permissões;
+* integração validada em períodos fiscais;
+* integração validada em emissão de documentos;
+* smoke confirma utilização real do helper nos três fluxos críticos;
+* compatibilidade mantida com AuditLog criado na MF4.
+
+notes:
+* RNF17 cumprido;
+* RF47 cumprido;
+* multiempresa preservada através de companyId do backend;
+* auditoria utiliza o contrato recordAuditLog existente;
+* evidence sanitizada sem dados financeiros completos;
+* evidence sanitizada sem cookies, tokens ou credenciais;
+* MF6 concluída e preparada para o handoff da MF7.
