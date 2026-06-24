@@ -1,32 +1,37 @@
 /**
- * @file Hash e verificação de passwords para o BK-MF0-01.
- * 
- * A password nunca é guardada em texto puro. Este módulo isola o detalhe do
- * bcrypt para que services de autenticação e recuperação reutilizem a mesma
- * política.
+ * @file Hash e verificação de palavras-passe com bcrypt.
  */
 
 import bcrypt from "bcrypt";
 
-const BCRYPT_ROUNDS = 12;
+export const BCRYPT_ROUNDS = 12;
 
 /**
- * Gera um hash bcrypt com salt seguro para a password recebida.
+ * Cria um hash bcrypt para uma palavra-passe recebida apenas em memória.
  *
- * @param {string} password - Password em texto claro recebida apenas em memória.
- * @returns {Promise<string>} Hash bcrypt persistível na base de dados.
+ * @param {string} plainPassword - Palavra-passe recebida no pedido atual.
+ * @returns {Promise<string>} Hash seguro para persistência.
  */
-export async function hashPassword(password) {
-    return bcrypt.hash(password, BCRYPT_ROUNDS);
+export async function hashPassword(plainPassword) {
+    if (!plainPassword || plainPassword.length < 10) {
+        throw new Error("A palavra-passe deve ter pelo menos 10 caracteres.");
+    }
+
+    // O bcrypt gera salt próprio por hash; nunca guardamos o valor original.
+    return bcrypt.hash(plainPassword, BCRYPT_ROUNDS);
 }
 
 /**
- * Compara uma password em texto claro com o hash guardado.
+ * Compara uma tentativa de login com o hash guardado.
  *
- * @param {string} password - Password fornecida pelo utilizador no login/reset.
- * @param {string} passwordHash - Hash bcrypt guardado na base de dados.
- * @returns {Promise<boolean>} `true` quando a password corresponde ao hash.
+ * @param {string} plainPassword - Palavra-passe recebida no login.
+ * @param {string} passwordHash - Hash guardado na base de dados.
+ * @returns {Promise<boolean>} Resultado da comparação bcrypt.
  */
-export async function verifyPassword(password, passwordHash) {
-    return bcrypt.compare(password, passwordHash);
+export async function verifyPassword(plainPassword, passwordHash) {
+    if (!passwordHash?.startsWith("$2")) {
+        return false;
+    }
+
+    return bcrypt.compare(plainPassword, passwordHash);
 }

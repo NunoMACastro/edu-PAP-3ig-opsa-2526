@@ -190,3 +190,39 @@ export async function logoutUser(prisma, sessionId, now = new Date()) {
         data: { revokedAt: now },
     });
 }
+
+/**
+ * Autentica um utilizador existente e cria uma nova sessão server-side.
+ *
+ * @param {import("@prisma/client").PrismaClient} prisma - Cliente Prisma.
+ * @param {{ email: string, password: string }} input - Credenciais já validadas pelo validator.
+ * @param {Date} [now] - Data atual injetável para testes.
+ * @returns {Promise<{ user: ReturnType<typeof publicUser>, sessionId: string, expiresAt: Date }>} Dados seguros para o controller.
+ * @throws {import("../../lib/httpErrors.js").HttpError} Quando as credenciais não são válidas.
+ */
+export async function loginUser(prisma, input, now = new Date()) {
+    const user = await prisma.user.findUnique({
+        where: { email: input.email },
+    });
+
+    if (!user || !user.isActive) {
+        // A mesma resposta para email inexistente e password errada evita enumeração de contas.
+        throw httpError(401, "INVALID_CREDENTIALS", "Credenciais inválidas");
+    }
+
+    const passwordMatches = await verifyPassword(
+        input.password,
+        user.passwordHash,
+    );
+    if (!passwordMatches) {
+        throw httpError(401, "INVALID_CREDENTIALS", "Credenciais inválidas");
+    }
+
+    // A sessão fica server-side; o browser recebe apenas o cookie opaco definido no controller.
+    const session = await createSession(prisma, user.id, now);
+    return {
+        user: publicUser(user),
+        sessionId: session.id,
+        expiresAt: session.expiresAt,
+    };
+}
