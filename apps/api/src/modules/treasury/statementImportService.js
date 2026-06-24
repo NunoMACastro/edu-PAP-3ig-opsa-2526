@@ -5,6 +5,11 @@
 import { httpError } from "../../lib/httpErrors.js";
 import { recordIntegrationLog } from "../integrations/integrationLogService.js";
 import { validateStatementImportPayload } from "./statementImportValidators.js";
+import {
+    RECONCILIATION_BUDGET_MS,
+    limitReconciliationCandidates,
+    measureReconciliation,
+} from "./reconciliationPerformance.js";
 
 /**
  * Calcula o limite inferior da janela de tolerância usada nas sugestões de reconciliação.
@@ -243,4 +248,155 @@ export async function importBankStatement(prisma, context) {
 
         return { import: statementImport, lines, suggestions };
     });
+}
+
+/**
+ * Normaliza o limite opcional de candidatos indicado pelo cliente.
+ *
+ * @param {string | number | null | undefined} value - Valor recebido no body.
+ * @returns {number | undefined} Limite normalizado ou undefined quando não existe.
+ */
+function normalizeCandidateLimit(value) {
+    if (value === undefined || value === null || value === "") return undefined;
+
+    const parsed = Number(value);
+    if (!Number.isInteger(parsed) || parsed < 1 || parsed > 250) {
+        throw httpError(400, "INVALID_RECONCILIATION_LIMIT", "O limite deve estar entre 1 e 250");
+    }
+
+    return parsed;
+}
+
+/**
+ * Calcula a pontuação de um recebimento candidato.
+ *
+ * @param {object} line - Linha de extrato usada como origem da sugestão.
+ * @param {object} receipt - Recebimento interno candidato.
+ * @returns {object} Sugestão pronta a devolver pela API.
+ */
+function scoreReceiptCandidate(line, receipt) {
+    const referenceMatched = referenceMatches(line.reference, receipt.reference);
+
+    return {
+        targetType: "RECEIPT",
+        targetId: receipt.id,
+        amountCents: receipt.amountCents,
+        confidenceBps: referenceMatched ? 9500 : 8000,
+        reason: referenceMatched
+            ? "Valor, data e referência coincidem com um recebimento."
+            : "Valor e data coincidem com um recebimento dentro da tolerância.",
+    };
+}
+
+/**
+ * Calcula a pontuação de um pagamento candidato.
+ *
+ * @param {object} line - Linha de extrato usada como origem da sugestão.
+ * @param {object} payment - Pagamento interno candidato.
+ * @returns {object} Sugestão pronta a devolver pela API.
+ */
+function scorePaymentCandidate(line, payment) {
+    const referenceMatched = referenceMatches(line.reference, payment.reference);
+
+    return {
+        targetType: "PAYMENT",
+        targetId: payment.id,
+        amountCents: payment.amountCents,
+        confidenceBps: referenceMatched ? 9500 : 8000,
+        reason: referenceMatched
+            ? "Valor, data e referência coincidem com um pagamento."
+            : "Valor e data coincidem com um pagamento dentro da tolerância.",
+    };
+}
+
+/**
+ * Procura candidatos financeiros compatíveis com uma linha de extrato.
+ *
+ * @param {import("@prisma/client").PrismaClient} prisma - Cliente Prisma.
+ * @param {{ companyId: string, line: object, candidateLimit?: number }} input - Pedido interno.
+ * @returns {Promise<object[]>} Candidatos ordenáveis por score.
+ */
+async function findReconciliationCandidates(prisma, input) {
+    const take = input.candidateLimit ?? 250;
+    const dateWindow = {
+        gte: startOfTolerance(input.line.entryDate),
+        lte: endOfTolerance(input.line.entryDate),
+    };
+
+    // Valores positivos representam entrada bancária; negativos representam saída bancária.
+    if (input.line.amountCents > 0) {
+        const receipts = await prisma.receipt.findMany({
+            where: {
+                companyId: input.companyId,
+                amountCents: input.line.amountCents,
+                receivedAt: dateWindow,
+            },
+            orderBy: { receivedAt: "asc" },
+            take,
+        });
+
+        return receipts.map((receipt) => scoreReceiptCandidate(input.line, receipt));
+    }
+
+    const payments = await prisma.payment.findMany({
+        where: {
+            companyId: input.companyId,
+            amountCents: Math.abs(input.line.amountCents),
+            paidAt: dateWindow,
+        },
+        orderBy: { paidAt: "asc" },
+        take,
+    });
+
+    return payments.map((payment) => scorePaymentCandidate(input.line, payment));
+}
+
+/**
+ * Sugere correspondências para uma linha de extrato sem confirmar reconciliação.
+ *
+ * @param {import("@prisma/client").PrismaClient} prisma - Cliente Prisma.
+ * @param {{ companyId: string, input: { statementLineId?: string, candidateLimit?: number } }} context - Contexto autenticado.
+ * @returns {Promise<{ statementLineId: string, suggestions: object[], status: string, durationMs: number, withinBudget: boolean, budgetMs: number }>}
+ */
+export async function suggestReconciliations(prisma, context) {
+    const statementLineId = String(context.input?.statementLineId ?? "").trim();
+    if (!statementLineId) {
+        throw httpError(400, "STATEMENT_LINE_REQUIRED", "Indica a linha de extrato a reconciliar");
+    }
+
+    const line = await prisma.bankStatementLine.findFirst({
+        where: {
+            id: statementLineId,
+            companyId: context.companyId,
+        },
+    });
+
+    if (!line) {
+        throw httpError(404, "BANK_STATEMENT_LINE_NOT_FOUND", "Linha de extrato não encontrada");
+    }
+
+    const candidates = await findReconciliationCandidates(prisma, {
+        companyId: context.companyId,
+        line,
+        candidateLimit: normalizeCandidateLimit(context.input?.candidateLimit),
+    });
+    const { selected, partial } = limitReconciliationCandidates(candidates);
+    const measured = await measureReconciliation(async () => {
+        // A sugestão apenas ordena candidatos; confirmar continua a ser ação do utilizador.
+        return selected
+            .sort((left, right) => right.confidenceBps - left.confidenceBps)
+            .map((candidate) => ({
+                statementLineId: line.id,
+                ...candidate,
+            }));
+    });
+
+    return {
+        statementLineId: line.id,
+        suggestions: measured.result,
+        status: partial ? "partial" : "complete",
+        durationMs: measured.durationMs,
+        withinBudget: measured.withinBudget,
+        budgetMs: RECONCILIATION_BUDGET_MS,
+    };
 }
