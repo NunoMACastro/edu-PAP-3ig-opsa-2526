@@ -1,5 +1,5 @@
 /**
- * @file Rotas de preview FIFO da MF2.
+ * @file Rotas de preview FIFO da MF2 com métrica de performance da MF6.
  */
 
 import { Router } from "express";
@@ -13,9 +13,9 @@ import { previewFifoCost } from "./fifoCostService.js";
 /**
  * Envia erros HTTP num formato JSON consistente com o contrato da API.
  *
- * @param res - Resposta Express usada para enviar o erro ao cliente.
- * @param error - Erro capturado durante a operação.
- * @returns Resposta HTTP de erro enviada no formato JSON contratado.
+ * @param {import("express").Response} res - Resposta Express usada para enviar o erro ao cliente.
+ * @param {Error | { code?: string, message?: string }} error - Erro capturado durante a operação.
+ * @returns {import("express").Response} Resposta HTTP de erro enviada no formato JSON contratado.
  */
 function sendError(res, error) {
     const response = toHttpError(error);
@@ -28,7 +28,6 @@ function sendError(res, error) {
  * Constrói router de custo FIFO.
  *
  * @param {{ prisma: import("@prisma/client").PrismaClient }} deps - Dependências.
- * @param props - Propriedades recebidas pelo componente React.
  * @returns {import("express").Router} Router Express.
  */
 export function buildFifoCostRoutes({ prisma }) {
@@ -41,12 +40,14 @@ export function buildFifoCostRoutes({ prisma }) {
 
     router.get("/fifo-cost/preview", guards, async (req, res) => {
         try {
+            // O preview usa a empresa autenticada e nunca consome camadas FIFO.
             const preview = await previewFifoCost(prisma, {
                 companyId: req.companyId,
                 itemId: String(req.query.itemId ?? ""),
                 warehouseId: String(req.query.warehouseId ?? ""),
                 quantity: Number(req.query.quantity),
             });
+
             return res.status(200).json({ preview });
         } catch (error) {
             return sendError(res, error);

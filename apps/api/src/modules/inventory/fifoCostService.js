@@ -1,18 +1,20 @@
 /**
- * @file Service FIFO para camadas de custo de inventário.
+ * @file Service FIFO para camadas de custo de inventário da MF2 com métrica de performance da MF6.
  */
 
 import { httpError } from "../../lib/httpErrors.js";
+import { assertEnoughFifoStock, measureFifoCost } from "./fifoPerformance.js";
 
 /**
  * Consome camadas FIFO sem permitir custo insuficiente.
+ * Quando write=false (preview), não grava consumos; quando write=true (padrão), persiste em BD.
  *
  * @param {import("@prisma/client").PrismaClient} tx - Cliente Prisma/transação.
  * @param {{ companyId: string, itemId: string, warehouseId: string, quantity: number, movementId?: string, write?: boolean }} input - Pedido FIFO.
- * @returns {Promise<{ totalCostCents: number, consumptions: object[] }>} Consumos.
+ * @returns {Promise<{ totalCostCents: number, consumptions: object[], durationMs: number, withinBudget: boolean }>} Consumos com métricas.
  */
 export async function consumeFifoLayers(tx, input) {
-    let remaining = Math.abs(Number(input.quantity));
+    const requestedQuantity = Math.abs(Number(input.quantity));
     const layers = await tx.stockCostLayer.findMany({
         where: {
             companyId: input.companyId,
@@ -22,52 +24,63 @@ export async function consumeFifoLayers(tx, input) {
         },
         orderBy: { createdAt: "asc" },
     });
-    const consumptions = [];
-    let totalCostCents = 0;
+    const availableQuantity = layers.reduce(
+        (total, layer) => Number((total + Number(layer.remainingQuantity)).toFixed(3)),
+        0,
+    );
 
-    for (const layer of layers) {
-        if (remaining <= 0) break;
-        const available = Number(layer.remainingQuantity);
-        const taken = Math.min(available, remaining);
-        const lineCost = Math.round(taken * layer.unitCostCents);
-        remaining = Number((remaining - taken).toFixed(3));
-        totalCostCents += lineCost;
-        consumptions.push({
-            layerId: layer.id,
-            quantity: taken,
-            unitCostCents: layer.unitCostCents,
-            totalCostCents: lineCost,
-        });
+    // Valida antes de atualizar camadas para evitar escritas parciais em stock insuficiente.
+    assertEnoughFifoStock(requestedQuantity, availableQuantity);
 
-        if (input.write !== false) {
-            await tx.stockCostLayer.update({
-                where: { id: layer.id },
-                data: {
-                    remainingQuantity: Number((available - taken).toFixed(3)),
-                },
+    const measured = await measureFifoCost(async () => {
+        let remaining = requestedQuantity;
+        const consumptions = [];
+        let totalCostCents = 0;
+
+        for (const layer of layers) {
+            if (remaining <= 0) break;
+
+            const available = Number(layer.remainingQuantity);
+            const taken = Math.min(available, remaining);
+            const lineCost = Math.round(taken * layer.unitCostCents);
+            remaining = Number((remaining - taken).toFixed(3));
+            totalCostCents += lineCost;
+            consumptions.push({
+                layerId: layer.id,
+                quantity: taken,
+                unitCostCents: layer.unitCostCents,
+                totalCostCents: lineCost,
             });
-            await tx.stockCostConsumption.create({
-                data: {
-                    companyId: input.companyId,
-                    movementId: input.movementId,
-                    layerId: layer.id,
-                    quantity: taken,
-                    unitCostCents: layer.unitCostCents,
-                    totalCostCents: lineCost,
-                },
-            });
+
+            if (input.write !== false) {
+                // Só o movimento definitivo consome camadas; o preview passa write: false.
+                await tx.stockCostLayer.update({
+                    where: { id: layer.id },
+                    data: {
+                        remainingQuantity: Number((available - taken).toFixed(3)),
+                    },
+                });
+                await tx.stockCostConsumption.create({
+                    data: {
+                        companyId: input.companyId,
+                        movementId: input.movementId,
+                        layerId: layer.id,
+                        quantity: taken,
+                        unitCostCents: layer.unitCostCents,
+                        totalCostCents: lineCost,
+                    },
+                });
+            }
         }
-    }
 
-    if (remaining > 0) {
-        throw httpError(
-            409,
-            "INSUFFICIENT_FIFO_LAYERS",
-            "Não existem camadas FIFO suficientes para este movimento",
-        );
-    }
+        return { totalCostCents, consumptions };
+    });
 
-    return { totalCostCents, consumptions };
+    return {
+        ...measured.result,
+        durationMs: measured.durationMs,
+        withinBudget: measured.withinBudget,
+    };
 }
 
 /**
@@ -92,11 +105,12 @@ export async function createCostLayer(tx, input) {
 }
 
 /**
- * Simula custo FIFO sem escrever dados.
+ * Simula custo FIFO sem escrever dados (consultivo/preview).
+ * Nunca grava consumos nem altera camadas existentes.
  *
  * @param {import("@prisma/client").PrismaClient} prisma - Cliente Prisma.
  * @param {{ companyId: string, itemId: string, warehouseId: string, quantity: number }} input - Pedido de preview.
- * @returns {Promise<object>} Resultado simulado.
+ * @returns {Promise<{ totalCostCents: number, consumptions: object[], durationMs: number, withinBudget: boolean }>} Resultado simulado com métricas.
  */
 export async function previewFifoCost(prisma, input) {
     if (!input.itemId || !input.warehouseId || !Number.isFinite(Number(input.quantity)) || Number(input.quantity) <= 0) {
