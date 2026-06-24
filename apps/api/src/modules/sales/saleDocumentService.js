@@ -4,6 +4,7 @@
 
 import { httpError } from "../../lib/httpErrors.js";
 import { assertOpenFiscalPeriod } from "../fiscal-periods/fiscalPeriodService.js";
+import { recordSensitiveAudit } from "../audit/auditLogService.js";
 
 const saleKinds = new Set(["INVOICE", "INVOICE_RECEIPT", "CREDIT_NOTE"]);
 
@@ -218,7 +219,7 @@ export async function createSaleDocument(prisma, companyId, userId, input) {
 }
 
 /**
- * Emite definitivamente um documento de venda aprovado.
+ * Emite definitivamente um documento de venda aprovado e audita a emissão.
  *
  * @param {import("@prisma/client").PrismaClient} prisma - Cliente Prisma.
  * @param {string} companyId - Empresa ativa.
@@ -232,6 +233,7 @@ export async function issueSaleDocument(prisma, companyId, userId, id) {
             where: { id, companyId },
             include: { lines: true },
         });
+
         if (!document) {
             throw httpError(
                 404,
@@ -278,6 +280,7 @@ export async function issueSaleDocument(prisma, companyId, userId, id) {
                 issuedDefinitiveAt: issuedAt,
             },
         });
+
         if (claimed.count !== 1) {
             throw httpError(
                 409,
@@ -298,18 +301,18 @@ export async function issueSaleDocument(prisma, companyId, userId, id) {
             include: { customer: true, lines: true },
         });
 
-        await tx.auditLog.create({
-            data: {
-                companyId,
-                userId,
-                action: "SALE_DOCUMENT_ISSUED",
-                entity: "SaleDocument",
-                entityId: issued.id,
-                details: {
-                    number,
-                    status: issued.status,
-                    totalCents: issued.totalCents,
-                },
+        // O audit log guarda identificadores e totais resumidos, não as linhas completas.
+        await recordSensitiveAudit(tx, {
+            companyId,
+            userId,
+            action: "document.issue",
+            entity: "SaleDocument",
+            entityId: issued.id,
+            details: {
+                result: "success",
+                number,
+                status: issued.status,
+                totalCents: issued.totalCents,
             },
         });
 

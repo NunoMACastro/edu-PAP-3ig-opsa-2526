@@ -86,6 +86,7 @@ export function buildCompanyUserController({ prisma, emailAdapter }) {
                 const input = validateRolePayload(req.body);
                 const result = await updateCompanyUserRole(prisma, {
                     companyId: req.companyId,
+                    actorUserId: req.user.id,
                     targetUserId: req.params.id,
                     role: input.role,
                 });
