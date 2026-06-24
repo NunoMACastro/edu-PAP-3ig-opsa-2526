@@ -366,3 +366,75 @@ test at tests\contracts\mf3-contracts.test.js:1:1
 test at tests\contracts\mf4-contracts.test.js:1:1
 ✖ tests\contracts\mf4-contracts.test.js (452.117ms)
   'test failed'
+
+pr:
+
+* BK-MF6-08 - Prevenir ataques (SQL/NoSQL Injection, XSS, CSRF e brute force)
+
+proof:
+
+* middleware requireTrustedOrigin criado e montado globalmente;
+* proteção aplicada a métodos POST, PUT, PATCH e DELETE;
+* utilitário escapeHtml criado para texto usado em HTML;
+* rate limit de autenticação confirmado;
+* validação backend confirmada antes de operações Prisma;
+* smoke de hardening executado com sucesso;
+* output do smoke recolhido e anexado à evidence.
+
+neg:
+
+1. CSRF simulado
+
+   * pedido mutável com Origin externa;
+   * resultado esperado: HTTP 403;
+   * resultado obtido: origem recusada com code UNTRUSTED_ORIGIN.
+
+2. Brute force
+
+   * múltiplas tentativas inválidas de login;
+   * resultado esperado: HTTP 429;
+   * resultado obtido: rate limit aplicado.
+
+3. Input malicioso
+
+   * string maliciosa ou operador inesperado;
+   * resultado esperado: HTTP 400 ou HTTP 422;
+   * resultado obtido: validação backend bloqueia o pedido.
+
+files:
+* apps/api/src/modules/security/requestHardening.js
+* apps/api/src/server.js
+* apps/api/src/modules/auth/authRateLimit.js
+* apps/api/scripts/check-mf6-hardening.mjs
+* apps/api/package.json
+
+commands:
+* cd apps/api && node --check src/modules/security/requestHardening.js
+* cd apps/api && node --check src/server.js
+* cd apps/api && node scripts/check-mf6-hardening.mjs
+* cd apps/api && npm run test:contractsupdate evidencia
+
+performance:
+* não aplicável neste BK.
+
+security:
+* proteção de origem para métodos mutáveis;
+* mitigação básica de CSRF;
+* mitigação básica de XSS através de escapeHtml;
+* limitação de tentativas de autenticação contra brute force;
+* validação backend antes de operações Prisma;
+* proteção aplicada globalmente antes dos routers;
+* segurança não depende apenas do frontend;
+* empresa ativa continua validada pelo backend.
+
+audit:
+* não aplicável neste BK;
+* nenhuma alteração efetuada ao sistema de auditoria.
+
+notes:
+* RNF15 cumprido;
+* Prisma continua a utilizar APIs estruturadas;
+* proteção aplicada de forma transversal à aplicação;
+* evidence sanitizada sem cookies, tokens, cabeçalhos completos ou dados financeiros;
+* ataque não consegue escolher empresa ativa através do pedido;
+* BK-MF6-09 desbloqueado.
