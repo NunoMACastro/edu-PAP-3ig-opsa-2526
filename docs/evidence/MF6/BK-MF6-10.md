@@ -101,3 +101,40 @@ Resultado esperado:
 
 Resultado obtido:
 * helper impede registo de dados sensíveis em auditoria.
+
+
+Passo 3
+Ficheiros editados:
+
+* apps/api/src/modules/company-users/companyUserService.js
+* apps/api/src/modules/company-users/companyUserController.js
+
+Import adicionado:
+* recordSensitiveAudit
+
+Fluxo integrado:
+* controller recebe o pedido de alteração de role;
+* actorUserId é obtido a partir de req.user.id;
+* companyId é obtido a partir de req.companyId;
+* targetUserId é obtido a partir de req.params.id;
+* service executa a alteração dentro de uma transação;
+* audit log é criado dentro da mesma transação da alteração de role.
+
+Ação auditada:
+* permissions.update
+
+Entidade auditada:
+* CompanyMembership
+
+Detalhes registados:
+* result: "success"
+* newRole
+
+Critério confirmado:
+* alteração de permissões fica auditada;
+* auditoria usa utilizador autenticado como ator;
+* frontend não decide actorUserId;
+* frontend não decide companyId;
+* alteração e auditoria pertencem à mesma transação;
+* não é guardado payload completo no audit log;
+* validações existentes continuam ativas.

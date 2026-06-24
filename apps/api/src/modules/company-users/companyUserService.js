@@ -4,6 +4,7 @@
 
 import crypto from "node:crypto";
 import { httpError } from "../../lib/httpErrors.js";
+import { recordSensitiveAudit } from "../audit/auditLogService.js";
 
 const INVITATION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -136,33 +137,44 @@ export async function inviteUser(
 }
 
 /**
- * Atualiza a role de um membro da empresa.
+ * Atualiza a role de um membro da empresa e audita a alteração sensível.
  *
  * @param {import("@prisma/client").PrismaClient} prisma - Cliente Prisma.
- * @param {{ companyId: string, targetUserId: string, role: string }} input - Dados da alteração.
- * @param props - Propriedades recebidas pelo componente React.
+ * @param {{ companyId: string, actorUserId: string, targetUserId: string, role: string }} input - Dados da alteração.
  * @returns {Promise<{ userId: string, role: string }>} Role atualizada.
  */
 export async function updateCompanyUserRole(
     prisma,
-    { companyId, targetUserId, role },
+    { companyId, actorUserId, targetUserId, role },
 ) {
-    await assertNotLastAdmin(prisma, { companyId, targetUserId });
+    return prisma.$transaction(async (tx) => {
+        await assertNotLastAdmin(tx, { companyId, targetUserId });
 
-    const updated = await prisma.companyMembership.updateMany({
-        where: { companyId, userId: targetUserId, isActive: true },
-        data: { role },
+        const updated = await tx.companyMembership.updateMany({
+            where: { companyId, userId: targetUserId, isActive: true },
+            data: { role },
+        });
+
+        if (updated.count === 0) {
+            throw httpError(
+                404,
+                "USER_NOT_IN_COMPANY",
+                "Utilizador não pertence à empresa",
+            );
+        }
+
+        // A auditoria usa a mesma transação para não ficar sucesso sem alteração real.
+        await recordSensitiveAudit(tx, {
+            companyId,
+            userId: actorUserId,
+            action: "permissions.update",
+            entity: "CompanyMembership",
+            entityId: targetUserId,
+            details: { result: "success", newRole: role },
+        });
+
+        return { userId: targetUserId, role };
     });
-
-    if (updated.count === 0) {
-        throw httpError(
-            404,
-            "USER_NOT_IN_COMPANY",
-            "Utilizador não pertence à empresa",
-        );
-    }
-
-    return { userId: targetUserId, role };
 }
 
 /**
