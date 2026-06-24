@@ -1,14 +1,22 @@
 /**
- * @file Service de auditoria consultavel MF4.
+ * @file Service de auditoria operacional da OPSA.
  */
 
-const SENSITIVE_DETAIL_KEYS = new Set([
+const SENSITIVE_ACTIONS = new Set([
+    "permissions.update",
+    "fiscalPeriod.close",
+    "document.issue",
+    "security.setting.update",
+]);
+
+const FORBIDDEN_DETAIL_KEYS = new Set([
     "password",
     "token",
-    "cookie",
+    "secret",
     "authorization",
-    "content",
-    "raw",
+    "cookie",
+    "rawpayload",
+    "documentlines",
 ]);
 
 /**
@@ -67,4 +75,57 @@ export async function listAuditLogs(prisma, input) {
         ...log,
         details: sanitizeDetails(log.details),
     }));
+}
+
+/**
+ * Confirma se a ação pertence ao contrato sensível de MF6.
+ *
+ * @param {string} action - Ação funcional a auditar.
+ * @returns {void}
+ */
+function assertSensitiveAction(action) {
+    if (!SENSITIVE_ACTIONS.has(action)) {
+        throw new Error(`Ação sensível não declarada: ${action}`);
+    }
+}
+
+/**
+ * Impede guardar payloads completos ou credenciais em `details`.
+ *
+ * @param {Record<string, unknown>} details - Detalhes mínimos da operação.
+ * @returns {Record<string, unknown>} Detalhes aprovados para auditoria.
+ */
+function assertSafeDetails(details) {
+    for (const key of Object.keys(details)) {
+        // O Set está em minúsculas para bloquear chaves perigosas em qualquer capitalização.
+        const normalizedKey = key.toLowerCase();
+        if (FORBIDDEN_DETAIL_KEYS.has(normalizedKey)) {
+            throw new Error(`Detalhe sensível proibido no audit log: ${key}`);
+        }
+    }
+
+    return details;
+}
+
+/**
+ * Regista uma operação sensível usando o contrato `AuditLog` já criado em MF4.
+ *
+ * @param {import("@prisma/client").PrismaClient} prisma - Cliente Prisma ou transação.
+ * @param {{ companyId: string, userId: string, action: string, entity: string, entityId: string, details?: Record<string, unknown> }} input - Dados mínimos de auditoria.
+ * @returns {Promise<object>} Log criado.
+ */
+export function recordSensitiveAudit(prisma, input) {
+    assertSensitiveAction(input.action);
+    const details = assertSafeDetails(input.details ?? {});
+
+    // A empresa e o utilizador vêm do backend autenticado; o frontend não decide ownership.
+    return recordAuditLog(prisma, {
+        companyId: input.companyId,
+        userId: input.userId,
+        action: input.action,
+        entity: input.entity,
+        entityId: input.entityId,
+        // O resultado fica dentro de details para não inventar colunas Prisma fora do schema.
+        details,
+    });
 }
