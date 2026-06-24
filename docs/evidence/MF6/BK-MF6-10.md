@@ -105,7 +105,6 @@ Resultado obtido:
 
 Passo 3
 Ficheiros editados:
-
 * apps/api/src/modules/company-users/companyUserService.js
 * apps/api/src/modules/company-users/companyUserController.js
 
@@ -223,3 +222,65 @@ Reconciliação revista:
 * sugestões não confirmam movimentos automaticamente;
 * sugestões não alteram saldos automaticamente;
 * nenhuma ação de confirmação foi inventada fora do contrato atual da MF6.
+
+
+Passo 6
+Ficheiros criados:
+* apps/api/scripts/check-mf6-audit-gate.mjs
+
+Ficheiros editados:
+* apps/api/package.json
+
+Validações implementadas:
+* confirmação das ações sensíveis permissions.update;
+* confirmação das ações sensíveis fiscalPeriod.close;
+* confirmação das ações sensíveis document.issue;
+* confirmação da existência de recordSensitiveAudit;
+* confirmação da normalização das chaves proibidas rawpayload e documentlines;
+* confirmação da ausência de campos incompatíveis com AuditLog;
+* confirmação da integração de auditoria em companyUserService;
+* confirmação da integração de auditoria em fiscalPeriodService;
+* confirmação da integração de auditoria em saleDocumentService.
+
+Cobertura validada:
+* permissões;
+* períodos fiscais;
+* emissão de documentos.
+
+Critério confirmado:
+* operações sensíveis estão declaradas no helper central;
+* helper continua compatível com o modelo AuditLog existente;
+* services críticos utilizam recordSensitiveAudit;
+* payloads completos continuam proibidos;
+* auditoria sensível não fica apenas definida, fica efetivamente utilizada.
+
+Validação executada:
+- PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> node scripts/check-mf6-audit-gate.mjs
+
+Resultado esperado:
+* script termina sem erros;
+* ações sensíveis declaradas;
+* cobertura mínima dos três fluxos críticos confirmada.
+
+Resultado obtido:
+* smoke confirma a integração da auditoria obrigatória.
+
+Cenário negativo:
+* remoção de recordSensitiveAudit de um dos services auditados.
+
+Resultado esperado:
+* erro durante a execução do smoke;
+* evidence não pode ser fechada.
+
+Resultado obtido:
+* script deteta ausência de auditoria no fluxo afetado.
+
+Cenário negativo adicional:
+* introdução de campos incompatíveis com AuditLog ou remoção das chaves proibidas.
+
+Resultado esperado:
+* falha do smoke.
+
+Resultado obtido:
+* validação protege o contrato de auditoria definido na MF4 e reforçado na MF6.
+
