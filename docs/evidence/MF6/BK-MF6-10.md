@@ -322,3 +322,150 @@ Resultado esperado:
 
 Resultado obtido:
 * detalhe sensível rejeitado pelo helper.
+
+Passo 8
+Ficheiros revistos:
+* outputs dos smokes MF6
+* evidence da MF6
+* relatório/PR do BK-MF6-10
+
+Áreas resumidas:
+* performance;
+* segurança;
+* credenciais;
+* auditoria.
+
+Critério confirmado:
+* operações sensíveis têm ação declarada;
+* audit log guarda ator, empresa, ação, entidade, identificador e detalhes mínimos;
+* logs não incluem documentos financeiros completos;
+* rawPayload e documentLines são bloqueados;
+* smoke textual prova helper e chamadas reais em três services críticos;
+* MF6 fica preparada para o handoff da MF7.
+
+Validação executada:
+- PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> npm run test:contracts
+
+> @opsa/api@1.0.0 test:contracts
+> node --test tests/contracts/*.test.js
+
+file:///D:/PAP/edu-PAP-3ig-opsa-2526/apps/api/src/modules/auth/authService.js:203
+export async function loginUser(prisma, input, now = new Date()) {
+       ^
+
+SyntaxError: Identifier 'loginUser' has already been declared
+    at compileSourceTextModule (node:internal/modules/esm/utils:318:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:90:18)
+    at #translate (node:internal/modules/esm/loader:435:20)
+    at afterLoad (node:internal/modules/esm/loader:491:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:496:12)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:549:36)
+    at afterResolve (node:internal/modules/esm/loader:597:52)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:603:12)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:163:33)
+    at ModuleJob.link (node:internal/modules/esm/module_job:253:17)
+
+Node.js v24.16.0
+✖ tests\contracts\mf0-contracts.test.js (3452.5757ms)
+file:///D:/PAP/edu-PAP-3ig-opsa-2526/apps/api/src/modules/auth/authService.js:203
+export async function loginUser(prisma, input, now = new Date()) {
+       ^
+
+SyntaxError: Identifier 'loginUser' has already been declared
+    at compileSourceTextModule (node:internal/modules/esm/utils:318:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:90:18)
+    at #translate (node:internal/modules/esm/loader:435:20)
+    at afterLoad (node:internal/modules/esm/loader:491:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:496:12)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:549:36)
+    at afterResolve (node:internal/modules/esm/loader:597:52)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:603:12)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:163:33)
+    at ModuleJob.link (node:internal/modules/esm/module_job:253:17)
+
+Node.js v24.16.0
+✖ tests\contracts\mf1-contracts.test.js (5441.3165ms)
+file:///D:/PAP/edu-PAP-3ig-opsa-2526/apps/api/src/modules/auth/authService.js:203
+export async function loginUser(prisma, input, now = new Date()) {
+       ^
+
+SyntaxError: Identifier 'loginUser' has already been declared
+    at compileSourceTextModule (node:internal/modules/esm/utils:318:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:90:18)
+    at #translate (node:internal/modules/esm/loader:435:20)
+    at afterLoad (node:internal/modules/esm/loader:491:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:496:12)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:549:36)
+    at afterResolve (node:internal/modules/esm/loader:597:52)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:603:12)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:163:33)
+    at ModuleJob.link (node:internal/modules/esm/module_job:253:17)
+
+Node.js v24.16.0
+✖ tests\contracts\mf2-contracts.test.js (1430.7932ms)
+file:///D:/PAP/edu-PAP-3ig-opsa-2526/apps/api/src/modules/auth/authService.js:203
+export async function loginUser(prisma, input, now = new Date()) {
+       ^
+
+SyntaxError: Identifier 'loginUser' has already been declared
+    at compileSourceTextModule (node:internal/modules/esm/utils:318:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:90:18)
+    at #translate (node:internal/modules/esm/loader:435:20)
+    at afterLoad (node:internal/modules/esm/loader:491:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:496:12)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:549:36)
+    at afterResolve (node:internal/modules/esm/loader:597:52)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:603:12)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:163:33)
+    at ModuleJob.link (node:internal/modules/esm/module_job:253:17)
+
+Node.js v24.16.0
+✖ tests\contracts\mf3-contracts.test.js (13076.1424ms)
+file:///D:/PAP/edu-PAP-3ig-opsa-2526/apps/api/src/modules/auth/authService.js:203
+export async function loginUser(prisma, input, now = new Date()) {
+       ^
+
+SyntaxError: Identifier 'loginUser' has already been declared
+    at compileSourceTextModule (node:internal/modules/esm/utils:318:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:90:18)
+    at #translate (node:internal/modules/esm/loader:435:20)
+    at afterLoad (node:internal/modules/esm/loader:491:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:496:12)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:549:36)
+    at afterResolve (node:internal/modules/esm/loader:597:52)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:603:12)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:163:33)
+    at ModuleJob.link (node:internal/modules/esm/module_job:253:17)
+
+Node.js v24.16.0
+✖ tests\contracts\mf4-contracts.test.js (6683.418ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 0
+ℹ fail 5
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 30513.2747
+
+✖ failing tests:
+
+test at tests\contracts\mf0-contracts.test.js:1:1
+✖ tests\contracts\mf0-contracts.test.js (3452.5757ms)
+  'test failed'
+
+test at tests\contracts\mf1-contracts.test.js:1:1
+✖ tests\contracts\mf1-contracts.test.js (5441.3165ms)
+  'test failed'
+
+test at tests\contracts\mf2-contracts.test.js:1:1
+✖ tests\contracts\mf2-contracts.test.js (1430.7932ms)
+  'test failed'
+
+test at tests\contracts\mf3-contracts.test.js:1:1
+✖ tests\contracts\mf3-contracts.test.js (13076.1424ms)
+  'test failed'
+
+test at tests\contracts\mf4-contracts.test.js:1:1
+✖ tests\contracts\mf4-contracts.test.js (6683.418ms)
+  'test failed'
