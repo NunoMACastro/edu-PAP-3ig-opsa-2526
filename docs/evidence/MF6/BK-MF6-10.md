@@ -284,3 +284,41 @@ Resultado esperado:
 Resultado obtido:
 * validação protege o contrato de auditoria definido na MF4 e reforçado na MF6.
 
+
+Passo 7
+Ficheiros revistos:
+* testes de services
+* audit log
+
+Negativos executados:
+1. Ação não declarada
+   * chamada a recordSensitiveAudit com action fora de SENSITIVE_ACTIONS;
+   * resultado esperado: erro de ação sensível não declarada;
+   * resultado obtido: operação rejeitada antes de criar audit log.
+
+2. Detalhes excessivos
+   * chamada com details: { rawPayload: {}, documentLines: [] };
+   * resultado esperado: erro de detalhe sensível proibido;
+   * resultado obtido: rawPayload e documentLines rejeitados antes de persistir.
+
+3. Operação sem sessão
+   * tentativa de operação sensível sem utilizador autenticado;
+   * resultado esperado: HTTP 401;
+   * resultado obtido: operação bloqueada antes do service.
+
+Critério confirmado:
+* audit log só aceita ações sensíveis declaradas;
+* details não aceita payload completo;
+* rawPayload é bloqueado mesmo em camelCase;
+* documentLines é bloqueado mesmo em camelCase;
+* operação sensível sem sessão não chega à auditoria de sucesso;
+* logs continuam úteis sem expor dados excessivos.
+
+Cenário negativo:
+* audit log com documento completo em rawPayload ou documentLines.
+
+Resultado esperado:
+* erro antes de persistir.
+
+Resultado obtido:
+* detalhe sensível rejeitado pelo helper.
