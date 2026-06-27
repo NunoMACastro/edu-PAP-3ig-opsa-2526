@@ -3,10 +3,20 @@
  */
 
 import assert from "node:assert/strict";
-import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
+import {
+    existsSync,
+    mkdtempSync,
+    readdirSync,
+    readFileSync,
+    rmSync,
+    statSync,
+    writeFileSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
 import { extname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadApiEnv } from "../src/config/env.js";
+import { loadLocalEnvFile } from "../src/config/envFile.js";
 
 const apiRoot = fileURLToPath(new URL("../", import.meta.url));
 const realDevRoot = fileURLToPath(new URL("../../", import.meta.url));
@@ -74,6 +84,35 @@ function assertNoHardcodedSecrets(files) {
     }
 }
 
+/**
+ * Confirma que o arranque consegue carregar um `.env` local sem segredos reais.
+ *
+ * @returns {void}
+ */
+function assertLocalEnvFileLoading() {
+    const previous = process.env.OPSA_ENV_FILE_SMOKE;
+    const tempDir = mkdtempSync(join(tmpdir(), "opsa-env-"));
+    const envPath = join(tempDir, ".env");
+
+    try {
+        delete process.env.OPSA_ENV_FILE_SMOKE;
+        writeFileSync(envPath, "OPSA_ENV_FILE_SMOKE=loaded\n", "utf8");
+
+        assert.equal(loadLocalEnvFile(envPath), true);
+        assert.equal(process.env.OPSA_ENV_FILE_SMOKE, "loaded");
+        assert.equal(loadLocalEnvFile(join(tempDir, "missing.env")), false);
+    } finally {
+        if (previous === undefined) {
+            delete process.env.OPSA_ENV_FILE_SMOKE;
+        } else {
+            process.env.OPSA_ENV_FILE_SMOKE = previous;
+        }
+        rmSync(tempDir, { recursive: true, force: true });
+    }
+}
+
+assertLocalEnvFileLoading();
+
 assert.throws(
     () =>
         loadApiEnv({
@@ -105,13 +144,23 @@ assert.equal(env.databaseUrlConfigured, true);
 
 const example = readFileSync(new URL("../.env.example", import.meta.url), "utf8");
 assert.match(example, /DATABASE_URL=/);
+assert.match(example, /OPSA_PRIVATE_STORAGE_ROOT=/);
 assert.doesNotMatch(example, /api[_-]?key\s*=\s*["'][^"']+["']/i);
+
+const testExample = readFileSync(
+    new URL("../.env.test.example", import.meta.url),
+    "utf8",
+);
+assert.match(testExample, /TEST_DATABASE_URL=/);
+assert.match(testExample, /OPSA_SKIP_PERSISTENCE_TESTS=/);
+assert.match(testExample, /OPSA_SESSION_COOKIES_JSON/);
 
 assertNoHardcodedSecrets(
     [
         join(apiRoot, "src"),
         join(apiRoot, "scripts"),
         join(apiRoot, ".env.example"),
+        join(apiRoot, ".env.test.example"),
         join(realDevRoot, "web", "src"),
         join(realDevRoot, "web", "scripts"),
         join(realDevRoot, "web", ".env.example"),

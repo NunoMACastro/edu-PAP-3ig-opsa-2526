@@ -9,6 +9,7 @@
 import express from "express";
 import { PrismaClient } from "@prisma/client";
 import { loadApiEnv } from "./config/env.js";
+import { loadLocalEnvFile } from "./config/envFile.js";
 import { buildAuthRoutes } from "./modules/auth/authRoutes.js";
 import { buildPermissionsRoutes } from "./modules/permissions/permissionsRoutes.js";
 import { buildCompanyRoutes } from "./modules/companies/companyRoutes.js";
@@ -56,6 +57,8 @@ import {
     enforceHttps,
 } from "./modules/security/transportSecurity.js";
 import { requireTrustedOrigin } from "./modules/security/requestHardening.js";
+
+loadLocalEnvFile();
 
 const prisma = new PrismaClient();
 const app = express();
