@@ -1,41 +1,56 @@
 /**
  * @file Adapter de email para recuperação de password.
- *
- * Enquanto o provider real de email não estiver decidido, o adapter escreve a
- * intenção no logger para permitir evidence sem acoplar o service ao provider.
  */
+
+import {
+  TransactionalEmailReason,
+  buildTransactionalEmailAdapter,
+} from "../notifications/transactionalEmailAdapter.js";
+
+/**
+ * Constrói a URL privada enviada apenas ao destinatário.
+ *
+ * @param {{ appBaseUrl: string, token: string }} input - Base pública e segredo temporário.
+ * @returns {string} URL de recuperação.
+ */
+function buildPasswordResetUrl({ appBaseUrl, token }) {
+  const baseUrl = String(appBaseUrl || "").replace(/\/$/, "");
+  const encodedToken = encodeURIComponent(token);
+  return `${baseUrl}/recuperar-password?token=${encodedToken}`;
+}
 
 /**
  * Cria adapter de email para recuperação de password.
  *
- * @param {{ appBaseUrl: string, logger?: Console }} options - Configuração backend do adapter.
- * @returns {{ sendPasswordReset(payload: { email: string, token: string }): Promise<void> }} Adapter assíncrono.
+ * @param {{ appBaseUrl: string, provider?: { send(message: object): Promise<object> }, logger?: Console }} options - Configuração backend.
+ * @returns {{ sendPasswordReset(input: { email: string, token: string }): Promise<object> }} Adapter assíncrono.
  */
 export function buildPasswordResetEmailAdapter({
-    appBaseUrl,
-    logger = console,
+  appBaseUrl,
+  provider,
+  logger = console,
 }) {
-    return {
-        /**
-         * Regista o link de recuperação a enviar por email.
-         *
-         * @param {{ email: string, token: string }} payload - Destino e token bruto.
-         * @returns {Promise<void>}
-         */
-        async sendPasswordReset({ email, token }) {
-            void token;
-            const emailDomain =
-                typeof email === "string" && email.includes("@")
-                    ? email.split("@").at(-1)
-                    : null;
+  const transactionalEmailAdapter = buildTransactionalEmailAdapter({
+    provider,
+    logger,
+  });
 
-            // Evidence segura: não regista token bruto nem URL de recuperação.
-            logger.info({
-                event: "password_reset_requested",
-                emailDomain,
-                delivery: "mock",
-                appBaseUrl,
-            });
-        },
-    };
+  return {
+    async sendPasswordReset({ email, token }) {
+      const resetUrl = buildPasswordResetUrl({ appBaseUrl, token });
+
+      // A URL fica apenas no corpo enviado ao destinatário; não entra nos logs.
+      return transactionalEmailAdapter.sendTransactionalEmail({
+        to: email,
+        reason: TransactionalEmailReason.PASSWORD_RESET,
+        subject: "Recuperação de acesso OPSA",
+        text: [
+          "Recebemos um pedido para recuperar o acesso ao OPSA.",
+          "Usa esta ligação para definir uma nova password:",
+          resetUrl,
+          "Se não pediste esta recuperação, ignora esta mensagem.",
+        ].join("\n"),
+      });
+    },
+  };
 }
