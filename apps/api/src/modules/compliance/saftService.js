@@ -1,15 +1,16 @@
+// apps/api/src/modules/compliance/saftService.js
 /**
- * @file Gerador SAF-T (PT) MVP da MF3.
+ * @file Gerador SAF-T (PT) MVP com readiness check de MF7.
  */
 
-import { httpError } from "../../lib/httpErrors.js";
 import { recordIntegrationLog } from "../integrations/integrationLogService.js";
+import { assertSaftReadiness } from "./saftComplianceChecklist.js";
 
 /**
  * Escapa caracteres especiais para impedir XML inválido no ficheiro SAF-T gerado.
  *
- * @param value - Valor a normalizar ou formatar.
- * @returns Texto escapado para ser usado em XML.
+ * @param {unknown} value - Valor a normalizar ou formatar.
+ * @returns {string} Texto escapado para ser usado em XML.
  */
 function escapeXml(value) {
     return String(value ?? "")
@@ -23,41 +24,19 @@ function escapeXml(value) {
 /**
  * Converte datas para o formato ISO curto exigido nos elementos SAF-T.
  *
- * @param value - Valor a normalizar ou formatar.
- * @returns Data no formato ISO curto.
+ * @param {Date} value - Data a normalizar.
+ * @returns {string} Data no formato ISO curto.
  */
 function dateOnly(value) {
     return value.toISOString().slice(0, 10);
 }
 
 /**
- * Valida os dados mínimos do perfil da empresa necessários para gerar o cabeçalho SAF-T.
+ * Gera o bloco XML de documentos comerciais do SAF-T a partir das vendas e compras.
  *
- * @param profile - Perfil da empresa usado no cabeçalho SAF-T.
- * @returns Perfil validado para geração do SAF-T.
- */
-function assertProfile(profile) {
-    if (
-        !profile?.legalName ||
-        !profile?.nif ||
-        !profile?.addressLine1 ||
-        !profile?.postalCode ||
-        !profile?.city
-    ) {
-        throw httpError(
-            422,
-            "COMPANY_PROFILE_INCOMPLETE",
-            "Perfil fiscal da empresa incompleto para exportação SAF-T",
-        );
-    }
-}
-
-/**
- * Gera o bloco XML de documentos comerciais do SAF-T a partir das vendas emitidas.
- *
- * @param saleDocuments - Documentos de venda a exportar.
- * @param purchaseDocuments - Documentos de compra a exportar.
- * @returns Bloco XML de documentos comerciais do SAF-T.
+ * @param {object[]} saleDocuments - Documentos de venda a exportar.
+ * @param {object[]} purchaseDocuments - Documentos de compra a exportar.
+ * @returns {string} Bloco XML de documentos comerciais do SAF-T.
  */
 function sourceDocumentsXml(saleDocuments, purchaseDocuments) {
     const salesXml = saleDocuments
@@ -72,6 +51,7 @@ function sourceDocumentsXml(saleDocuments, purchaseDocuments) {
       </Invoice>`,
         )
         .join("");
+
     const purchasesXml = purchaseDocuments
         .map(
             (document) => `
@@ -84,14 +64,15 @@ function sourceDocumentsXml(saleDocuments, purchaseDocuments) {
       </PurchaseDocument>`,
         )
         .join("");
+
     return `${salesXml}${purchasesXml}`;
 }
 
 /**
  * Gera o bloco XML de movimentos contabilísticos do SAF-T a partir dos lançamentos.
  *
- * @param journalEntries - Lançamentos contabilísticos a exportar.
- * @returns Bloco XML com lançamentos contabilísticos SAF-T.
+ * @param {object[]} journalEntries - Lançamentos contabilísticos a exportar.
+ * @returns {string} Bloco XML com lançamentos contabilísticos SAF-T.
  */
 function generalLedgerXml(journalEntries) {
     return journalEntries
@@ -108,10 +89,31 @@ function generalLedgerXml(journalEntries) {
 }
 
 /**
+ * Constrói o input de readiness a partir dos dados já lidos pelo service.
+ *
+ * @param {{ input: { fromDate: Date, toDate: Date }, profile: object | null, saleDocuments: object[], purchaseDocuments: object[], journalEntries: object[] }} params - Dados internos do exportador.
+ * @returns {{ profile: object | null, period: { fromDate: Date, toDate: Date }, counts: { saleDocuments: number, purchaseDocuments: number, journalEntries: number } }} Input para a checklist.
+ */
+function buildSaftReadinessInput({ input, profile, saleDocuments, purchaseDocuments, journalEntries }) {
+    return {
+        profile,
+        period: {
+            fromDate: input.fromDate,
+            toDate: input.toDate,
+        },
+        counts: {
+            saleDocuments: saleDocuments.length,
+            purchaseDocuments: purchaseDocuments.length,
+            journalEntries: journalEntries.length,
+        },
+    };
+}
+
+/**
  * Gera XML SAF-T MVP rastreável e regista a execução.
  *
  * @param {import("@prisma/client").PrismaClient} prisma - Cliente Prisma.
- * @param {{ companyId: string, userId: string, fromDate: Date, toDate: Date }} input - Contexto.
+ * @param {{ companyId: string, userId: string, fromDate: Date, toDate: Date }} input - Contexto autenticado.
  * @returns {Promise<object>} Exportação SAF-T MVP.
  */
 export async function buildSaftExport(prisma, input) {
@@ -141,7 +143,17 @@ export async function buildSaftExport(prisma, input) {
             }),
         ]);
 
-    assertProfile(profile);
+    const readiness = assertSaftReadiness(
+        buildSaftReadinessInput({
+            input,
+            profile,
+            saleDocuments,
+            purchaseDocuments,
+            journalEntries,
+        }),
+    );
+
+    // Só depois da readiness check criamos nomes, XML, run e log de sucesso.
     const fileName = `saft-${profile.nif}-${dateOnly(input.fromDate)}-${dateOnly(input.toDate)}.xml`;
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <AuditFile>
@@ -173,6 +185,7 @@ export async function buildSaftExport(prisma, input) {
             exportedById: input.userId,
         },
     });
+
     await recordIntegrationLog(prisma, {
         companyId: input.companyId,
         userId: input.userId,
@@ -181,10 +194,10 @@ export async function buildSaftExport(prisma, input) {
         status: "EXPORTED",
         sourceId: run.id,
         fileName,
-        totalRows: saleDocuments.length + purchaseDocuments.length + journalEntries.length,
-        successRows: saleDocuments.length + purchaseDocuments.length + journalEntries.length,
+        totalRows: readiness.totalRows,
+        successRows: readiness.totalRows,
         errorRows: 0,
-        message: "Exportacao SAF-T MVP registada sem guardar XML no log.",
+        message: "Exportação SAF-T MVP registada sem guardar XML no log.",
     });
 
     return {
@@ -196,6 +209,10 @@ export async function buildSaftExport(prisma, input) {
             purchaseDocuments: purchaseDocuments.length,
             journalEntries: journalEntries.length,
         },
-        note: "SAF-T MVP rastreável; não substitui validação legal completa da especificação oficial.",
+        readiness: {
+            checkedAt: readiness.checkedAt,
+            totalRows: readiness.totalRows,
+        },
+        note: "SAF-T MVP rastreável; não substitui validação legal oficial.",
     };
 }
