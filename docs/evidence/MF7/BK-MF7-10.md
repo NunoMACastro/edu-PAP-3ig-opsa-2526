@@ -179,3 +179,20 @@ apps\api\src\modules\treasury\statementImportService.js:398:                comp
 apps\api\src\modules\treasury\statementImportService.js:411:        await recordIntegrationLog(tx, {
 apps\api\src\modules\treasury\statementImportService.js:412:            companyId: context.companyId,
 
+## Comandos para o passo 3
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> cd apps/api
+
+- PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> node --check tests/contracts/mf7-critical-modules.test.js
+
+- PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> node --test tests/contracts/mf7-critical-modules.test.js
+✔ RNF27 mantém contratos críticos de faturação, IVA, balancetes e reconciliação (5.6875ms)
+✔ RNF27 mantém contexto multiempresa nos módulos críticos (4.9665ms)
+✔ RNF27 rejeita marcadores obsoletos que não existem nos services reais (4.0582ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 489.7724
