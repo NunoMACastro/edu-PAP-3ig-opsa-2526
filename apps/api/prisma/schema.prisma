@@ -115,6 +115,7 @@ enum TreasuryAccountType {
 enum BankStatementFormat {
   CSV
   OFX
+  XLSX
 }
 
 enum ReconciliationTargetType {

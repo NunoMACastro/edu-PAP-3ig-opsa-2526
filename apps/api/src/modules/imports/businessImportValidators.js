@@ -1,61 +1,59 @@
 /**
- * @file Validadores para importações CSV de dados mestre da MF3.
+ * @file Validadores para importações CSV e Excel de dados de negócio.
  */
 
 import { httpError } from "../../lib/httpErrors.js";
+import { parseCsvRows, parseImportRows } from "./importFileParser.js";
+
+export { parseCsvRows };
 
 const IMPORT_TYPES = new Set(["CUSTOMERS", "SUPPLIERS", "ITEMS", "STATEMENTS"]);
 
 /**
- * Normaliza texto opcional removendo espaços e devolvendo undefined quando fica vazio.
+ * Normaliza texto opcional removendo espaços exteriores.
  *
- * @param value - Valor a normalizar ou formatar.
- * @returns Texto normalizado, ou valor vazio quando aplicável.
+ * @param {unknown} value - Valor recebido do body JSON.
+ * @returns {string} Texto normalizado.
  */
 function normalizeText(value) {
-    return typeof value === "string" ? value.trim() : "";
+  return typeof value === "string" ? value.trim() : "";
 }
 
 /**
- * Converte CSV com cabeçalho em linhas de objetos simples.
+ * Valida payload base de importação de negócio.
  *
- * @param {string} content - Conteúdo textual CSV separado por `;`.
- * @returns {Array<Record<string, string>>} Linhas normalizadas por cabeçalho.
+ * @param {unknown} input - Body JSON recebido em `POST /api/imports/business-data`.
+ * @returns {Promise<{ type: string, fileName: string, content: string, contentBase64: string, treasuryAccountId: string | null, sourceFormat: string, rows: Array<Record<string, string>> }>} Payload normalizado e linhas parseadas.
  */
-export function parseCsvRows(content) {
-    const lines = content.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
-    if (lines.length < 2) {
-        throw httpError(400, "INVALID_IMPORT_CSV", "CSV deve ter cabeçalho e pelo menos uma linha");
-    }
-    const headers = lines[0].split(";").map((header) => header.trim());
-    return lines.slice(1).map((line) => {
-        const values = line.split(";").map((value) => value.trim());
-        return Object.fromEntries(headers.map((header, index) => [header, values[index] ?? ""]));
-    });
-}
+export async function validateBusinessImportPayload(input) {
+  if (!input || typeof input !== "object" || Array.isArray(input)) {
+    throw httpError(400, "INVALID_BODY", "O corpo do pedido deve ser JSON");
+  }
 
-/**
- * Valida payload base de importação.
- *
- * @param {unknown} input - Payload JSON.
- * @returns {object} Payload normalizado.
- */
-export function validateBusinessImportPayload(input) {
-    if (!input || typeof input !== "object" || Array.isArray(input)) {
-        throw httpError(400, "INVALID_BODY", "O corpo do pedido deve ser JSON");
-    }
+  const type = normalizeText(input.type).toUpperCase();
+  if (!IMPORT_TYPES.has(type)) {
+    throw httpError(400, "INVALID_IMPORT_TYPE", "Tipo de importação inválido");
+  }
 
-    const type = normalizeText(input.type).toUpperCase();
-    const fileName = normalizeText(input.fileName) || `${type.toLowerCase()}.csv`;
-    const content = normalizeText(input.content);
-    const treasuryAccountId = normalizeText(input.treasuryAccountId) || null;
+  const fileName = normalizeText(input.fileName) || `${type.toLowerCase()}.csv`;
+  const content = normalizeText(input.content);
+  const contentBase64 = normalizeText(input.contentBase64);
+  const treasuryAccountId = normalizeText(input.treasuryAccountId) || null;
 
-    if (!IMPORT_TYPES.has(type)) {
-        throw httpError(400, "INVALID_IMPORT_TYPE", "Tipo de importação inválido");
-    }
-    if (!content) {
-        throw httpError(400, "INVALID_IMPORT_CSV", "Conteúdo CSV obrigatório");
-    }
+  if (type === "STATEMENTS" && !treasuryAccountId) {
+    throw httpError(400, "TREASURY_ACCOUNT_REQUIRED", "Conta de tesouraria obrigatória");
+  }
 
-    return { type, fileName, content, treasuryAccountId };
+  // O parser é chamado no validator para falhar antes da transação e antes de qualquer escrita.
+  const parsed = await parseImportRows({ fileName, content, contentBase64 });
+
+  return {
+    type,
+    fileName,
+    content,
+    contentBase64,
+    treasuryAccountId,
+    sourceFormat: parsed.sourceFormat,
+    rows: parsed.rows,
+  };
 }

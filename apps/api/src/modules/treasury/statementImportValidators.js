@@ -163,3 +163,46 @@ export function validateStatementImportPayload(input) {
 
     return { treasuryAccountId, format, fileName, ...parsed };
 }
+
+/**
+ * Normaliza linhas de extrato vindas do parser comum de importações.
+ *
+ * @param {Array<Record<string, string>>} rows - Linhas lidas de CSV ou Excel.
+ * @returns {{ rows: Array<object>, errors: Array<object>, totalLines: number }} Resultado normalizado.
+ */
+export function normalizeStatementRowsFromImport(rows) {
+  const acceptedRows = [];
+  const errors = [];
+
+  for (const [index, row] of rows.entries()) {
+    try {
+      const date = row.date || row.data || row.entryDate;
+      const description = row.description || row.descricao || "Movimento bancário";
+      const reference = row.reference || row.referencia || null;
+      const amount = row.amount || row.valor || row.amountCents;
+
+      // A conversão mantém a regra de MF3: valores monetários entram como cêntimos inteiros.
+      acceptedRows.push({
+        lineNumber: index + 2,
+        entryDate: parseStatementDate(date),
+        description,
+        reference,
+        amountCents: parseMoneyToCents(amount),
+        raw: { rowNumber: index + 2 },
+      });
+    } catch (error) {
+      errors.push({ line: index + 2, message: error.message });
+    }
+  }
+
+  if (acceptedRows.length === 0) {
+    throw httpError(
+      400,
+      "INVALID_STATEMENT_FORMAT",
+      "Extrato sem linhas válidas para importar",
+      errors,
+    );
+  }
+
+  return { rows: acceptedRows, errors, totalLines: rows.length };
+}
