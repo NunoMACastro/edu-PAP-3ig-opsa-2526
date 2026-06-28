@@ -193,6 +193,8 @@ model PasswordResetToken {
   @@index([expiresAt])
 }
 
+// apps/api/prisma/schema.prisma
+// LOCALIZAÇÃO: substituir o model Company pela versão existente com a nova relação retentionHolds.
 model Company {
   id                String              @id @default(uuid())
   name              String
@@ -214,6 +216,8 @@ model Company {
   purchaseDocuments PurchaseDocument[]
   payments          Payment[]
   auditLogs         AuditLog[]
+  // A relação inversa deixa o Prisma ligar cada retenção legal à empresa ativa.
+  retentionHolds    RetentionHold[]
   purchaseApprovalHistories PurchaseApprovalHistory[]
   stockBalances     StockBalance[]
   stockMovements    StockMovement[]
@@ -622,6 +626,32 @@ model AuditLog {
 
   @@index([companyId, entity, entityId])
   @@index([companyId, createdAt])
+}
+
+// apps/api/prisma/schema.prisma
+// LOCALIZAÇÃO: acrescentar perto dos modelos de auditoria/compliance.
+model RetentionHold {
+  id        String   @id @default(cuid())
+  companyId String
+
+  /// Nome técnico da entidade protegida pela retenção contabilística.
+  entity   String
+  entityId String
+
+  /// Data contabilística usada como referência para calcular os 10 anos.
+  periodEndAt DateTime
+  retainUntil DateTime
+
+  reason    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // onDelete: Restrict impede apagar a empresa enquanto existirem retenções legais associadas.
+  company Company @relation(fields: [companyId], references: [id], onDelete: Restrict)
+
+  @@unique([companyId, entity, entityId])
+  @@index([companyId, entity])
+  @@index([companyId, retainUntil])
 }
 
 model Warehouse {
