@@ -1,0 +1,1 @@
+PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> node --check scripts/check-mf7-backend-modules.mjs
