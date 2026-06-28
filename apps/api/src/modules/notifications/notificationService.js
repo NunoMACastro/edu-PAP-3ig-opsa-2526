@@ -3,6 +3,7 @@
  */
 
 import { httpError } from "../../lib/httpErrors.js";
+import { TransactionalEmailReason } from "./transactionalEmailAdapter.js";
 
 /**
  * Cria ou atualiza uma notificacao idempotente para um utilizador.
@@ -121,4 +122,36 @@ export async function markNotificationRead(prisma, input) {
         where: { id: notification.id },
         data: { readAt: new Date() },
     });
+}
+
+
+/**
+ * Envia por email um conjunto de notificações já autorizadas pelo backend.
+ *
+ * @param {{ sendTransactionalEmail(message: object): Promise<object> }} emailAdapter - Adapter comum de MF7.
+ * @param {Array<{ recipientEmail: string, type: string, title: string, message: string }>} notifications - Notificações elegíveis.
+ * @returns {Promise<Array<{ status: string, reason: string }>>} Resultados seguros do envio.
+ */
+export async function sendNotificationEmails(emailAdapter, notifications) {
+  const results = [];
+
+  for (const notification of notifications) {
+    const reason =
+      notification.type === "SMART_ALERT"
+        ? TransactionalEmailReason.SMART_ALERT
+        : TransactionalEmailReason.PAYMENT_REMINDER;
+
+    // A autorização e a empresa ativa já foram resolvidas antes de chegar aqui.
+    const result = await emailAdapter.sendTransactionalEmail({
+      to: notification.recipientEmail,
+      reason,
+      subject: notification.title,
+      text: notification.message,
+    });
+
+    // O retorno é deliberadamente curto para não devolver conteúdo sensível ao caller.
+    results.push({ status: result.status, reason: result.reason });
+  }
+
+  return results;
 }
