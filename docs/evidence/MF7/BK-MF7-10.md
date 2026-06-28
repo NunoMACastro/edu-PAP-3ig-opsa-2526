@@ -197,7 +197,7 @@ apps\api\src\modules\treasury\statementImportService.js:412:            companyI
 ℹ todo 0
 ℹ duration_ms 489.7724
 
-## Passos 4-5
+## Passos 4-6
 - PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> npm run test:mf7:critical-modules
 
 > @opsa/api@1.0.0 test:mf7:critical-modules
