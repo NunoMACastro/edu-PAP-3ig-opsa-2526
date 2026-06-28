@@ -31,7 +31,8 @@
     "mf7:backup:verify": "node scripts/verify-backup-restore.mjs",
     "test:mf7:retention": "node --test tests/unit/retentionPolicy.test.js",
     "test:mf7:exports": "node --test tests/contracts/mf7-export-contracts.test.js",
-    "test:mf7": "npm run test:mf7:exports"
+    "test:mf7": "npm run test:mf7:exports",
+    "test:mf7:imports": "node --test tests/contracts/mf7-import-contracts.test.js"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
