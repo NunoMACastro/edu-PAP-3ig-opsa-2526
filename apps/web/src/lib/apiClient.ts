@@ -19,6 +19,39 @@ export interface RequestOptions {
   body?: JsonBody;
 }
 
+/**
+ * Identifica os relatórios contabilísticos que podem gerar ficheiro.
+ *
+ * Estes valores existem para impedir que a UI construa URLs para relatórios
+ * que o backend não expõe neste BK.
+ */
+export type AccountingReportExportKind = "trial-balance" | "ledger";
+
+/**
+ * Identifica os formatos de exportação aceites pelo backend.
+ *
+ * O formato continua a ser validado no backend; este tipo só evita erros
+ * simples na chamada feita pelo frontend.
+ */
+export type AccountingReportExportFormat = "csv" | "xlsx" | "pdf";
+
+/**
+ * Payload usado pelo cliente API para construir uma URL de exportação.
+ *
+ * @property report - Relatório contabilístico pedido pelo utilizador.
+ * @property format - Formato de ficheiro permitido por RNF22.
+ * @property from - Data inicial opcional do filtro já usado nos relatórios.
+ * @property to - Data final opcional do filtro já usado nos relatórios.
+ * @property accountId - Conta usada apenas no razão contabilístico.
+ */
+export interface AccountingReportExportUrlInput {
+  report: AccountingReportExportKind;
+  format: AccountingReportExportFormat;
+  from?: string;
+  to?: string;
+  accountId?: string;
+}
+
 const DEFAULT_BASE_URL = "/api";
 
 export class ApiError extends Error {
@@ -596,6 +629,7 @@ export function createApiClient(options: ApiClientOptions = {}) {
         request("POST", `/accounting/manual-journals/${id}/attachments`, { body }),
     },
     accountingReports: {
+      // As consultas antigas continuam a devolver JSON para os ecrãs já existentes.
       trialBalance: (from: string, to: string) =>
         request("GET", `/accounting/reports/trial-balance${queryString({ from, to })}`),
       ledger: (accountId: string, from: string, to: string) =>
@@ -603,10 +637,31 @@ export function createApiClient(options: ApiClientOptions = {}) {
           "GET",
           `/accounting/reports/ledger${queryString({ accountId, from, to })}`,
         ),
+
+      // Estes helpers preservam compatibilidade com páginas que já esperavam um formato fixo.
       trialBalanceExportUrl: (from: string, to: string) =>
         `${baseUrl}/accounting/reports/trial-balance.xlsx${queryString({ from, to })}`,
       ledgerExportUrl: (accountId: string, from: string, to: string) =>
         `${baseUrl}/accounting/reports/ledger.pdf${queryString({ accountId, from, to })}`,
+
+      /**
+       * Constrói uma URL de download para o endpoint de exportação contabilística.
+       *
+       * @param input - Relatório, formato e filtros selecionados na UI.
+       * @returns URL relativa à API central, sem companyId nem credenciais no query string.
+       */
+      exportUrl: (input: AccountingReportExportUrlInput) => {
+        const params: Record<string, string | undefined> = {
+          format: input.format,
+          from: input.from,
+          to: input.to,
+          // A conta só pertence ao razão; no balancete este campo não deve ser enviado.
+          accountId: input.report === "ledger" ? input.accountId : undefined,
+        };
+
+        // A URL usa o mesmo baseUrl do cliente autenticado; o browser envia o cookie HttpOnly.
+        return `${baseUrl}/accounting/reports/${input.report}/export${queryString(params)}`;
+      },
     },
     financialStatements: {
       incomeStatement: (from: string, to: string) =>
@@ -651,3 +706,4 @@ export function createApiClient(options: ApiClientOptions = {}) {
 }
 
 export const apiClient = createApiClient();
+
