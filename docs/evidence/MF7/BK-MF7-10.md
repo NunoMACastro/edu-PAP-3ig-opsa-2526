@@ -1,4 +1,4 @@
-## Comandos para os passos 1-2
+## Passo 1
 
 - PS D:\PAP\edu-PAP-3ig-opsa-2526> Select-String -Path "docs/RNF.md","docs/planificacao/backlogs/*" -Pattern "RNF27","BK-MF7-10","Testes automatizados"
 
@@ -36,7 +36,7 @@ docs\planificacao\guias-bk\MF7\BK-MF7-09-frontend-modular-com-componentes-reutil
 docs\planificacao\guias-bk\MF7\BK-MF7-09-frontend-modular-com-componentes-reutilizaveis.md:529:- Este BK entrega a `BK-MF7-10` um contrato validado: fica criado um gate de modularidade frontend para re
 utilizar UI, clientes API e páginas por domínio.
 
-
+## Passo 2
 - PS D:\PAP\edu-PAP-3ig-opsa-2526> Select-String -Path "apps/api/src/modules/sales/saleDocumentService.js" -Pattern "createSaleDocument","issueSaleDocument","totalCents","vatCents","auditLog.create","companyId"
 
 apps\api\src\modules\sales\saleDocumentService.js:66: * @param {string} companyId - Empresa ativa.
@@ -179,7 +179,7 @@ apps\api\src\modules\treasury\statementImportService.js:398:                comp
 apps\api\src\modules\treasury\statementImportService.js:411:        await recordIntegrationLog(tx, {
 apps\api\src\modules\treasury\statementImportService.js:412:            companyId: context.companyId,
 
-## Comandos para o passo 3
+## Passo 3
 - PS D:\PAP\edu-PAP-3ig-opsa-2526> cd apps/api
 
 - PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> node --check tests/contracts/mf7-critical-modules.test.js
@@ -196,3 +196,225 @@ apps\api\src\modules\treasury\statementImportService.js:412:            companyI
 ℹ skipped 0
 ℹ todo 0
 ℹ duration_ms 489.7724
+
+## Passos 4-5
+- PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> npm run test:mf7:critical-modules
+
+> @opsa/api@1.0.0 test:mf7:critical-modules
+> node --test tests/contracts/mf7-critical-modules.test.js
+
+✔ RNF27 mantém contratos críticos de faturação, IVA, balancetes e reconciliação (8.1398ms)
+✔ RNF27 rejeita marcadores obsoletos que não existem nos services reais (3.3872ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 832.9152
+
+- PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> npm run test:contracts
+
+> @opsa/api@1.0.0 test:contracts
+> node --test tests/contracts/*.test.js
+
+✔ BK01: resolveSession não propaga passwordHash na sessão nem no utilizador público (4.4748ms)
+✔ BK04/BK05: adapters mock não registam tokens, URLs secretas ou email completo (2.4139ms)
+✔ BK05: rate limit em memória falha explicitamente em produção sem opt-in (7.0786ms)
+✔ BK06: conflito de NIF é mapeado para NIF_ALREADY_EXISTS (1.1894ms)
+✔ BK09/BK10: pesquisa usa nome ou NIF sem alterar listagem base (3.7789ms)
+✔ BK12: nome de armazém duplicado é rejeitado (0.9858ms)
+file:///D:/PAP/edu-PAP-3ig-opsa-2526/apps/api/src/modules/audit/auditLogService.js:140
+const SENSITIVE_ACTIONS = new Set([
+      ^
+
+SyntaxError: Identifier 'SENSITIVE_ACTIONS' has already been declared
+    at compileSourceTextModule (node:internal/modules/esm/utils:318:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:90:18)
+    at #translate (node:internal/modules/esm/loader:435:20)
+    at afterLoad (node:internal/modules/esm/loader:491:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:496:12)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:549:36)
+    at afterResolve (node:internal/modules/esm/loader:597:52)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:603:12)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:163:33)
+    at ModuleJob.link (node:internal/modules/esm/module_job:253:17)
+
+Node.js v24.16.0
+✖ tests\contracts\mf1-contracts.test.js (694.7291ms)
+node:internal/modules/package_json_reader:301
+  throw new ERR_MODULE_NOT_FOUND(packageName, fileURLToPath(base), null);
+        ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'exceljs' imported from D:\PAP\edu-PAP-3ig-opsa-2526\apps\api\src\modules\accounting-reports\accountingReportExporters.js
+    at Object.getPackageJSONURL (node:internal/modules/package_json_reader:301:9)
+    at packageResolve (node:internal/modules/esm/resolve:768:81)
+    at moduleResolve (node:internal/modules/esm/resolve:859:18)
+    at defaultResolve (node:internal/modules/esm/resolve:992:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:691:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:708:38)
+    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:740:52)
+    at #resolve (node:internal/modules/esm/loader:673:17)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:593:35)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:163:33) {
+  code: 'ERR_MODULE_NOT_FOUND'
+}
+
+Node.js v24.16.0
+✖ tests\contracts\mf2-contracts.test.js (616.5446ms)
+node:internal/modules/package_json_reader:301
+  throw new ERR_MODULE_NOT_FOUND(packageName, fileURLToPath(base), null);
+        ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'exceljs' imported from D:\PAP\edu-PAP-3ig-opsa-2526\apps\api\src\modules\imports\importFileParser.js
+    at Object.getPackageJSONURL (node:internal/modules/package_json_reader:301:9)
+    at packageResolve (node:internal/modules/esm/resolve:768:81)
+    at moduleResolve (node:internal/modules/esm/resolve:859:18)
+    at defaultResolve (node:internal/modules/esm/resolve:992:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:691:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:708:38)
+    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:740:52)
+    at #resolve (node:internal/modules/esm/loader:673:17)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:593:35)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:163:33) {
+  code: 'ERR_MODULE_NOT_FOUND'
+}
+
+Node.js v24.16.0
+✖ tests\contracts\mf3-contracts.test.js (612.0305ms)
+file:///D:/PAP/edu-PAP-3ig-opsa-2526/apps/api/src/modules/audit/auditLogService.js:140
+const SENSITIVE_ACTIONS = new Set([
+      ^
+
+SyntaxError: Identifier 'SENSITIVE_ACTIONS' has already been declared
+    at compileSourceTextModule (node:internal/modules/esm/utils:318:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:90:18)
+    at #translate (node:internal/modules/esm/loader:435:20)
+    at afterLoad (node:internal/modules/esm/loader:491:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:496:12)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:549:36)
+    at afterResolve (node:internal/modules/esm/loader:597:52)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:603:12)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:163:33)
+    at ModuleJob.link (node:internal/modules/esm/module_job:253:17)
+
+Node.js v24.16.0
+✖ tests\contracts\mf4-contracts.test.js (571.7719ms)
+✔ MF6: router de tesouraria expõe sugestão de reconciliação medida (6.5617ms)
+✖ MF6: package expõe todos os gates test:mf6 (6.1686ms)
+✔ MF6: servidor monta hardening antes dos routers de domínio (18.3829ms)
+✔ MF6: smoke de concorrência suporta modo HTTP autenticado (46.9447ms)
+✔ RNF27 mantém contratos críticos de faturação, IVA, balancetes e reconciliação (6.1509ms)
+✔ RNF27 mantém contexto multiempresa nos módulos críticos (4.3781ms)
+✔ RNF27 rejeita marcadores obsoletos que não existem nos services reais (2.7402ms)
+▶ MF7 email transaccional
+  ✔ coloca email em fila técnica sem expor endereço completo (2.8497ms)
+  ✔ rejeita motivo fora do contrato (1.5985ms)
+  ✔ rejeita destinatário inválido antes de chamar provider (0.7667ms)
+  ✔ mantém sendPasswordReset e não escreve segredo nos logs (1.0739ms)
+  ✔ envia alertas e lembretes usando o adapter comum (2.6534ms)
+✔ MF7 email transaccional (12.7579ms)
+node:internal/modules/package_json_reader:301
+  throw new ERR_MODULE_NOT_FOUND(packageName, fileURLToPath(base), null);
+        ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'exceljs' imported from D:\PAP\edu-PAP-3ig-opsa-2526\apps\api\src\modules\exports\exportFormatService.js
+    at Object.getPackageJSONURL (node:internal/modules/package_json_reader:301:9)
+    at packageResolve (node:internal/modules/esm/resolve:768:81)
+    at moduleResolve (node:internal/modules/esm/resolve:859:18)
+    at defaultResolve (node:internal/modules/esm/resolve:992:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:691:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:708:38)
+    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:740:52)
+    at #resolve (node:internal/modules/esm/loader:673:17)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:593:35)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:163:33) {
+  code: 'ERR_MODULE_NOT_FOUND'
+}
+
+Node.js v24.16.0
+✖ tests\contracts\mf7-export-contracts.test.js (454.7402ms)
+node:internal/modules/package_json_reader:301
+  throw new ERR_MODULE_NOT_FOUND(packageName, fileURLToPath(base), null);
+        ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'exceljs' imported from D:\PAP\edu-PAP-3ig-opsa-2526\apps\api\tests\contracts\mf7-import-contracts.test.js
+    at Object.getPackageJSONURL (node:internal/modules/package_json_reader:301:9)
+    at packageResolve (node:internal/modules/esm/resolve:768:81)
+    at moduleResolve (node:internal/modules/esm/resolve:859:18)
+    at defaultResolve (node:internal/modules/esm/resolve:992:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:691:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:708:38)
+    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:740:52)
+    at #resolve (node:internal/modules/esm/loader:673:17)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:593:35)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:163:33) {
+  code: 'ERR_MODULE_NOT_FOUND'
+}
+
+Node.js v24.16.0
+✖ tests\contracts\mf7-import-contracts.test.js (398.2502ms)
+✔ aceita readiness SAF-T com perfil, período e movimentos (6.0432ms)
+✔ rejeita período SAF-T invertido (1.9991ms)
+✔ rejeita perfil fiscal sem NIF (0.6678ms)
+✔ rejeita período sem documentos nem lançamentos (0.6788ms)
+✔ service SAF-T chama readiness, cria run e regista log de integração (1.1043ms)
+ℹ tests 29
+ℹ suites 1
+ℹ pass 22
+ℹ fail 7
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 8665.6062
+
+✖ failing tests:
+
+test at tests\contracts\mf1-contracts.test.js:1:1
+✖ tests\contracts\mf1-contracts.test.js (694.7291ms)
+  'test failed'
+
+test at tests\contracts\mf2-contracts.test.js:1:1
+✖ tests\contracts\mf2-contracts.test.js (616.5446ms)
+  'test failed'
+
+test at tests\contracts\mf3-contracts.test.js:1:1
+✖ tests\contracts\mf3-contracts.test.js (612.0305ms)
+  'test failed'
+
+test at tests\contracts\mf4-contracts.test.js:1:1
+✖ tests\contracts\mf4-contracts.test.js (571.7719ms)
+  'test failed'
+
+test at tests\contracts\mf6-contracts.test.js:34:1
+✖ MF6: package expõe todos os gates test:mf6 (6.1686ms)
+  AssertionError [ERR_ASSERTION]: test:mf6:documents em falta
+  actual expected
+  
+  'undefstrinedg'
+  
+      at TestContext.<anonymous> (file:///D:/PAP/edu-PAP-3ig-opsa-2526/apps/api/tests/contracts/mf6-contracts.test.js:53:16)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'string',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\contracts\mf7-export-contracts.test.js:1:1
+✖ tests\contracts\mf7-export-contracts.test.js (454.7402ms)
+  'test failed'
+
+test at tests\contracts\mf7-import-contracts.test.js:1:1
+✖ tests\contracts\mf7-import-contracts.test.js (398.2502ms)
+  'test failed'
+
+# Passo 5
