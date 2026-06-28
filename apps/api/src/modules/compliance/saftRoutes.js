@@ -1,5 +1,6 @@
+// apps/api/src/modules/compliance/saftRoutes.js
 /**
- * @file Rotas de compliance fiscal da MF3.
+ * @file Rotas de compliance fiscal da MF3 reforçadas por MF7.
  */
 
 import { Router } from "express";
@@ -8,15 +9,15 @@ import { requireAuth } from "../auth/authMiddleware.js";
 import { requireCompanyContext } from "../companies/companyContext.js";
 import { requirePermission, requireRole } from "../permissions/permissionMiddleware.js";
 import { Permission } from "../permissions/permissions.js";
-import { validateSaftExportQuery } from "./saftValidators.js";
 import { buildSaftExport } from "./saftService.js";
+import { validateSaftExportQuery } from "./saftValidators.js";
 
 /**
  * Envia erros HTTP num formato JSON consistente com o contrato da API.
  *
- * @param res - Resposta Express usada para enviar o erro ao cliente.
- * @param error - Erro capturado durante a operação.
- * @returns Resposta HTTP de erro enviada no formato JSON contratado.
+ * @param {import("express").Response} res - Resposta Express usada para enviar o erro ao cliente.
+ * @param {unknown} error - Erro capturado durante a operação.
+ * @returns {import("express").Response} Resposta HTTP de erro enviada no formato JSON contratado.
  */
 function sendError(res, error) {
     const response = toHttpError(error);
@@ -46,6 +47,7 @@ export function buildSaftRoutes({ prisma }) {
                 userId: req.user.id,
                 ...range,
             });
+
             return res.status(200).json(exportResult);
         } catch (error) {
             return sendError(res, error);

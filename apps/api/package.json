@@ -26,6 +26,7 @@
     "test:mf6:env": "node scripts/check-mf6-env.mjs",
     "test:mf6:audit": "node scripts/check-mf6-audit-gate.mjs",
     "test:mf6": "npm run test:mf6:documents && npm run test:mf6:concurrency && npm run test:mf6:reconciliation && npm run test:mf6:fifo && npm run test:mf6:https && npm run test:mf6:bcrypt && npm run test:mf6:session-cookie && npm run test:mf6:hardening && npm run test:mf6:env && npm run test:mf6:audit",
+    "test:mf7:saft": "node --test tests/contracts/mf7-saft-contracts.test.js",
 
     "mf7:backup": "node scripts/run-daily-backup.mjs",
     "mf7:backup:verify": "node scripts/verify-backup-restore.mjs",
