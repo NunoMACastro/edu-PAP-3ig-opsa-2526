@@ -417,4 +417,6 @@ test at tests\contracts\mf7-import-contracts.test.js:1:1
 ✖ tests\contracts\mf7-import-contracts.test.js (398.2502ms)
   'test failed'
 
-# Passo 5
+# Passo 7
+- PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> node --check tests/contracts/mf7-critical-modules.test.js
+- PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> git diff --check
