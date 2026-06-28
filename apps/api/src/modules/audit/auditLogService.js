@@ -135,3 +135,13 @@ export async function listAuditLogs(prisma, input) {
         details: sanitizeDetails(log.details),
     }));
 }
+// apps/api/src/modules/audit/auditLogService.js
+// LOCALIZAÇÃO: substituir a constante SENSITIVE_ACTIONS existente.
+const SENSITIVE_ACTIONS = new Set([
+    "permissions.update",
+    "fiscalPeriod.close",
+    "document.issue",
+    "security.setting.update",
+    // Esta ação só é gravada quando o gate confirma que a retenção já terminou.
+    "retention.delete.allowed",
+]);

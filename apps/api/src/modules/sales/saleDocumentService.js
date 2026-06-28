@@ -5,6 +5,7 @@
 import { httpError } from "../../lib/httpErrors.js";
 import { recordSensitiveAudit } from "../audit/auditLogService.js";
 import { assertOpenFiscalPeriod } from "../fiscal-periods/fiscalPeriodService.js";
+import { assertSaleDocumentDeletionAllowed } from "../compliance/retentionDeletionGate.js";
 
 const saleKinds = new Set(["INVOICE", "INVOICE_RECEIPT", "CREDIT_NOTE"]);
 
@@ -315,4 +316,28 @@ export async function issueSaleDocument(prisma, companyId, userId, id) {
 
         return issued;
     });
+}
+// apps/api/src/modules/sales/saleDocumentService.js
+
+/**
+ * Remove um documento de venda depois de validar permissões e retenção legal.
+ *
+ * @param {import("@prisma/client").PrismaClient} prisma - Cliente Prisma da API.
+ * @param {{ companyId: string, userId: string, saleDocumentId: string }} input - Contexto da remoção.
+ * @returns {Promise<void>} Não devolve corpo quando a remoção termina.
+ */
+export async function deleteSaleDocument(prisma, input) {
+    await assertSaleDocumentDeletionAllowed(prisma, input);
+
+    const result = await prisma.saleDocument.deleteMany({
+        where: {
+            id: input.saleDocumentId,
+            // O filtro por empresa preserva multiempresa mesmo quando o id é conhecido.
+            companyId: input.companyId,
+        },
+    });
+
+    if (result.count !== 1) {
+        throw new Error("Documento de venda não encontrado para a empresa ativa.");
+    }
 }

@@ -28,7 +28,8 @@
     "test:mf6": "npm run test:mf6:documents && npm run test:mf6:concurrency && npm run test:mf6:reconciliation && npm run test:mf6:fifo && npm run test:mf6:https && npm run test:mf6:bcrypt && npm run test:mf6:session-cookie && npm run test:mf6:hardening && npm run test:mf6:env && npm run test:mf6:audit",
 
     "mf7:backup": "node scripts/run-daily-backup.mjs",
-    "mf7:backup:verify": "node scripts/verify-backup-restore.mjs"
+    "mf7:backup:verify": "node scripts/verify-backup-restore.mjs",
+    "test:mf7:retention": "node --test tests/unit/retentionPolicy.test.js"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
