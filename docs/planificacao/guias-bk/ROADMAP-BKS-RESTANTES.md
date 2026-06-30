@@ -6,7 +6,7 @@
 - `area`: `project`
 - `owner`: `Nuno`
 - `status`: `ativo`
-- `last_updated`: `2026-04-19`
+- `last_updated`: `2026-06-30`
 
 ## Roadmap por macro
 | Macro | BK da macro | Acumulado | Estado |
@@ -19,7 +19,9 @@
 | MF5 | 7 | 55 | Concluido (normalizacao documental) |
 | MF6 | 10 | 65 | Concluido (normalizacao documental) |
 | MF7 | 10 | 75 | Concluido (normalizacao documental) |
-| MF8 | 9 | 84 | Concluido (normalizacao documental) |
+| MF8 | 18 | 93 | Concluido (normalizacao documental) |
 
 ## Changelog
+- `2026-06-30`: roadmap atualizado para MF8 com 18 BK e total de 93 BK no escopo OPSA.
+- `2026-06-29`: roadmap atualizado para MF8 com 12 BK e total de 87 BK no escopo OPSA.
 - `2026-04-19`: roadmap atualizado para novo total de 84 BK no escopo OPSA.

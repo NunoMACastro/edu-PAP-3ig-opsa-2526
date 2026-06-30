@@ -6,7 +6,7 @@
 - `area`: `project`
 - `owner`: `Nuno`
 - `status`: `ativo`
-- `last_updated`: `2026-06-01`
+- `last_updated`: `2026-06-30`
 
 ## Objetivo
 Matriz unica validada para gerar backlog, MF views, sprints e guias BK sem ambiguidades.
@@ -96,19 +96,29 @@ Quando um campo nao estiver explicito nesta tabela, e derivado dos anexos canón
 | BK-MF7-09 | MF7 | Frontend modular com componentes reutilizáveis. | Andre | Sofia | P0 | TODO | M | - | RNF26 | Fase 3 | BK-MF7-10 |
 | BK-MF7-10 | MF7 | Testes automatizados para módulos críticos (faturação, IVA, balancetes, reconciliação). | Oleksii | Andre | P1 | TODO | S | - | RNF27 | Fase 3 | BK-MF8-01 |
 | BK-MF8-01 | MF8 | Logs estruturados (info, warn, error, audit). | Oleksii | Pedro | P0 | TODO | M | - | RNF28 | Fase 3 | BK-MF8-02 |
-| BK-MF8-02 | MF8 | Endpoint de health-check. | Pedro | Andre | P1 | TODO | S | - | RNF29 | Fase 3 | BK-MF8-03 |
-| BK-MF8-03 | MF8 | Documentação técnica mínima (arquitetura, modelos, fluxo contabilístico). | Sofia | Oleksii | P1 | TODO | S | - | RNF30 | Fase 3 | BK-MF8-04 |
-| BK-MF8-04 | MF8 | Insights devem incluir explicação e origem dos dados usados. | Andre | Oleksii | P0 | TODO | M | - | RNF31 | Fase 3 | BK-MF8-05 |
-| BK-MF8-05 | MF8 | IA não altera dados contabilísticos; apenas analisa e recomenda. | Oleksii | Pedro | P0 | TODO | M | - | RNF32 | Fase 3 | BK-MF8-06 |
-| BK-MF8-06 | MF8 | Alertas configuráveis (ativar/desativar tipos). | Andre | Oleksii | P1 | TODO | S | - | RNF33 | Fase 3 | BK-MF8-07 |
-| BK-MF8-07 | MF8 | IA deve evitar enviesamentos e sugerir ações baseadas em dados reais. | Pedro | Andre | P1 | TODO | S | - | RNF34 | Fase 3 | BK-MF8-08 |
-| BK-MF8-08 | MF8 | Interface em português de Portugal. | Sofia | Pedro | P0 | TODO | M | - | RNF35 | Fase 3 | BK-MF8-09 |
-| BK-MF8-09 | MF8 | Datas, moedas e separadores no padrão europeu. | Sofia | Pedro | P1 | TODO | S | - | RNF36 | Fase 3 | - |
+| BK-MF8-02 | MF8 | Endpoint de health-check. | Sofia | Oleksii | P1 | TODO | S | - | RNF29 | Fase 3 | BK-MF8-03 |
+| BK-MF8-03 | MF8 | Catálogo de planos de subscrição simulados. | Pedro | Andre | P0 | TODO | M | - | RF49 | Fase 3 | BK-MF8-04 |
+| BK-MF8-04 | MF8 | Subscrição por empresa ativa. | Oleksii | Andre | P0 | TODO | M | BK-MF8-03 | RF50 | Fase 3 | BK-MF8-05 |
+| BK-MF8-05 | MF8 | Ativação simulada de subscrição. | Andre | Pedro | P0 | TODO | M | BK-MF8-04 | RF50 | Fase 3 | BK-MF8-06 |
+| BK-MF8-06 | MF8 | Renovação, cancelamento e reativação simuladas. | Pedro | Andre | P0 | TODO | M | BK-MF8-05 | RF51 | Fase 3 | BK-MF8-07 |
+| BK-MF8-07 | MF8 | UI de planos e gestão da subscrição. | Andre | Pedro | P0 | TODO | M | BK-MF8-03, BK-MF8-04, BK-MF8-06 | RF49, RF50, RF51 | Fase 3 | BK-MF8-08 |
+| BK-MF8-08 | MF8 | Testes e evidência de subscrições simuladas. | Oleksii | Andre | P1 | TODO | S | BK-MF8-03, BK-MF8-04, BK-MF8-05, BK-MF8-06, BK-MF8-07 | RF49, RF50, RF51 | Fase 3 | BK-MF8-09 |
+| BK-MF8-09 | MF8 | Documentação técnica mínima (arquitetura, modelos, fluxo contabilístico). | Pedro | Oleksii | P1 | TODO | S | - | RNF30 | Fase 3 | BK-MF8-10 |
+| BK-MF8-10 | MF8 | Insights devem incluir explicação e origem dos dados usados. | Oleksii | Andre | P0 | TODO | M | - | RNF31 | Fase 3 | BK-MF8-11 |
+| BK-MF8-11 | MF8 | IA não altera dados contabilísticos; apenas analisa e recomenda. | Oleksii | Pedro | P0 | TODO | M | - | RNF32 | Fase 3 | BK-MF8-12 |
+| BK-MF8-12 | MF8 | Alertas configuráveis (ativar/desativar tipos). | Andre | Oleksii | P1 | TODO | S | - | RNF33 | Fase 3 | BK-MF8-13 |
+| BK-MF8-13 | MF8 | IA deve evitar enviesamentos e sugerir ações baseadas em dados reais. | Oleksii | Pedro | P1 | TODO | S | - | RNF34 | Fase 3 | BK-MF8-14 |
+| BK-MF8-14 | MF8 | Aproximação da UI à UI do mockup. | Pedro | Sofia | P0 | TODO | M | - | RNF35 | Fase 3 | BK-MF8-15 |
+| BK-MF8-15 | MF8 | Datas, moedas e separadores no padrão europeu. | Sofia | Pedro | P1 | TODO | S | - | RNF36 | Fase 3 | BK-MF8-16 |
+| BK-MF8-16 | MF8 | Verificação dos testes atuais e criação dos testes em falta. | Oleksii | Andre | P1 | TODO | S | - | RNF37 | Fase 3 | BK-MF8-17 |
+| BK-MF8-17 | MF8 | Execução final de testes. | Andre | Oleksii | P1 | TODO | S | BK-MF8-16 | RNF38 | Fase 3 | BK-MF8-18 |
+| BK-MF8-18 | MF8 | Correção dos erros encontrados e reexecução dos testes afetados. | Oleksii | Andre | P1 | TODO | S | BK-MF8-17 | RNF39 | Fase 3 | - |
 ## Validacao inicial
 - BK duplicado: nao detetado.
 - BK orfao: nao detetado.
 - Dependencias invalidas: nao detetadas.
 
 ## Changelog
+- `2026-06-30`: MF8 renumerada para 18 BK e integrada com RF49..RF51 de subscrições simuladas.
 - `2026-04-19`: Escopo reduzido com renumeração total e matriz canónica reconstruída.
 - `2026-06-01`: Dependências da MF1 atualizadas para refletir dependências técnicas bloqueantes e reduzir conflitos de PR.

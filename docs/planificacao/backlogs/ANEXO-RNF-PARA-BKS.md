@@ -6,7 +6,7 @@
 - `area`: `project`
 - `owner`: `Nuno`
 - `status`: `ativo`
-- `last_updated`: `2026-04-19`
+- `last_updated`: `2026-06-30`
 
 ## Objetivo
 Rastreabilidade bidirecional `RNF -> BKs`, gerada automaticamente a partir do backlog canónico.
@@ -43,13 +43,17 @@ Rastreabilidade bidirecional `RNF -> BKs`, gerada automaticamente a partir do ba
 | RNF27 | 1 | BK-MF7-10 |
 | RNF28 | 1 | BK-MF8-01 |
 | RNF29 | 1 | BK-MF8-02 |
-| RNF30 | 1 | BK-MF8-03 |
-| RNF31 | 1 | BK-MF8-04 |
-| RNF32 | 1 | BK-MF8-05 |
-| RNF33 | 1 | BK-MF8-06 |
-| RNF34 | 1 | BK-MF8-07 |
-| RNF35 | 1 | BK-MF8-08 |
-| RNF36 | 1 | BK-MF8-09 |
+| RNF30 | 1 | BK-MF8-09 |
+| RNF31 | 1 | BK-MF8-10 |
+| RNF32 | 1 | BK-MF8-11 |
+| RNF33 | 1 | BK-MF8-12 |
+| RNF34 | 1 | BK-MF8-13 |
+| RNF35 | 1 | BK-MF8-14 |
+| RNF36 | 1 | BK-MF8-15 |
+| RNF37 | 1 | BK-MF8-16 |
+| RNF38 | 1 | BK-MF8-17 |
+| RNF39 | 1 | BK-MF8-18 |
 
 ## Changelog
+- `2026-06-30`: RNF30..RNF39 realinhados aos BKs MF8 renumerados.
 - `2026-04-13`: Anexo canónico criado por geracao automatica.

@@ -7,7 +7,7 @@
 - `area`: `project`
 - `owner`: `Nuno`
 - `status`: `ativo`
-- `last_updated`: `2026-04-19`
+- `last_updated`: `2026-06-30`
 
 ## Objetivo
 
@@ -17,10 +17,10 @@ Formalizar ownership da Opsa no contrato comum das 4 PAPs, com carga, risco e go
 
 | Pessoa  | Papel principal            | Total BK | P0  | P1  | P2  |
 | ------- | -------------------------- | -------- | --- | --- | --- |
-| Andre   | Execucao tecnica e handoff | 22       | 14  | 8   | 0   |
-| Oleksii | Execucao tecnica e handoff | 36       | 32  | 4   | 0   |
-| Pedro   | Execucao tecnica e handoff | 16       | 8   | 8   | 0   |
-| Sofia   | Execucao tecnica e handoff | 10       | 2   | 8   | 0   |
+| Andre   | Execucao tecnica e handoff | 24       | 15  | 9   | 0   |
+| Oleksii | Execucao tecnica e handoff | 42       | 34  | 8   | 0   |
+| Pedro   | Execucao tecnica e handoff | 18       | 11  | 7   | 0   |
+| Sofia   | Execucao tecnica e handoff | 9        | 1   | 8   | 0   |
 
 ## Regras principais
 
@@ -28,6 +28,7 @@ Formalizar ownership da Opsa no contrato comum das 4 PAPs, com carga, risco e go
 2. BK so fecha com criterios de aceite e evidence (`pr/proof/neg`).
 3. BK `P0` com prioridade de suporte docente em caso de bloqueio >48h.
 4. Em sobrecarga, reduzir primeiro paralelismo de `P1/P2`.
+5. Em MF8, a carga segue autonomia tecnica: Oleksii assume os BKs mais complexos; Pedro e Andre ficam equilibrados; Sofia fica com BKs mais delimitados e apoio forte.
 
 ## Matriz por artefacto
 
@@ -52,6 +53,9 @@ Formalizar ownership da Opsa no contrato comum das 4 PAPs, com carga, risco e go
 - Fechar gates `S4/S8/S12` com parecer GO/NO-GO.
 
 ## Changelog
+- `2026-06-30`: MF8 redistribuida por autonomia tecnica: Oleksii 8 BKs, Andre 4, Pedro 4 e Sofia 2.
+- `2026-06-30`: distribuição atualizada após reforço da MF8 para 93 BK.
 
+- `2026-06-29`: distribuição atualizada após reforço da MF8 para 87 BK.
 - `2026-04-19`: distribuição recalculada após redução de escopo (84 BK).
 - `2026-04-19`: redistribuição deliberada com carga técnica reforçada em Oleksii.

@@ -6,7 +6,7 @@
 - `area`: `project`
 - `owner`: `Nuno`
 - `status`: `ativo`
-- `last_updated`: `2026-04-19`
+- `last_updated`: `2026-06-30`
 
 ## Sequencia macro
 MF0 -> MF1 -> MF2 -> MF3 -> MF4 -> MF5 -> MF6 -> MF7 -> MF8
@@ -233,20 +233,29 @@ BK-MF7-01, BK-MF7-02, BK-MF7-03, BK-MF7-04, BK-MF7-05, BK-MF7-06, BK-MF7-07, BK-
 - Todos os BK do macro com guia e evidence minima.
 - Sem dependencias invalidas para a macro seguinte.
 
-## MF8 - Integracoes, compatibilidade e fecho
+## MF8 - Integrações, subscrições simuladas, qualidade final e fecho
 ### Sequencia por macro
-BK-MF8-01, BK-MF8-02, BK-MF8-03, BK-MF8-04, BK-MF8-05, BK-MF8-06, BK-MF8-07, BK-MF8-08, BK-MF8-09
+BK-MF8-01, BK-MF8-02, BK-MF8-03, BK-MF8-04, BK-MF8-05, BK-MF8-06, BK-MF8-07, BK-MF8-08, BK-MF8-09, BK-MF8-10, BK-MF8-11, BK-MF8-12, BK-MF8-13, BK-MF8-14, BK-MF8-15, BK-MF8-16, BK-MF8-17, BK-MF8-18
 
 ### Guias disponiveis
 - [BK-MF8-01 - Logs estruturados (info, warn, error, audit).](../guias-bk/MF8/BK-MF8-01-logs-estruturados-info-warn-error-audit.md)
 - [BK-MF8-02 - Endpoint de health-check.](../guias-bk/MF8/BK-MF8-02-endpoint-de-health-check.md)
-- [BK-MF8-03 - Documentação técnica mínima (arquitetura, modelos, fluxo contabilístico).](../guias-bk/MF8/BK-MF8-03-documentacao-tecnica-minima-arquitetura-modelos-fluxo-contabilistico.md)
-- [BK-MF8-04 - Insights devem incluir explicação e origem dos dados usados.](../guias-bk/MF8/BK-MF8-04-insights-devem-incluir-explicacao-e-origem-dos-dados-usados.md)
-- [BK-MF8-05 - IA não altera dados contabilísticos; apenas analisa e recomenda.](../guias-bk/MF8/BK-MF8-05-ia-nao-altera-dados-contabilisticos-apenas-analisa-e-recomenda.md)
-- [BK-MF8-06 - Alertas configuráveis (ativar/desativar tipos).](../guias-bk/MF8/BK-MF8-06-alertas-configuraveis-ativar-desativar-tipos.md)
-- [BK-MF8-07 - IA deve evitar enviesamentos e sugerir ações baseadas em dados reais.](../guias-bk/MF8/BK-MF8-07-ia-deve-evitar-enviesamentos-e-sugerir-acoes-baseadas-em-dados-reais.md)
-- [BK-MF8-08 - Interface em português de Portugal.](../guias-bk/MF8/BK-MF8-08-interface-em-portugues-de-portugal.md)
-- [BK-MF8-09 - Datas, moedas e separadores no padrão europeu.](../guias-bk/MF8/BK-MF8-09-datas-moedas-e-separadores-no-padrao-europeu.md)
+- [BK-MF8-03 - Catálogo de planos de subscrição simulados.](../guias-bk/MF8/BK-MF8-03-catalogo-de-planos-de-subscricao-simulados.md)
+- [BK-MF8-04 - Subscrição por empresa ativa.](../guias-bk/MF8/BK-MF8-04-subscricao-por-empresa-ativa.md)
+- [BK-MF8-05 - Ativação simulada de subscrição.](../guias-bk/MF8/BK-MF8-05-ativacao-simulada-de-subscricao.md)
+- [BK-MF8-06 - Renovação, cancelamento e reativação simuladas.](../guias-bk/MF8/BK-MF8-06-renovacao-cancelamento-e-reativacao-simuladas.md)
+- [BK-MF8-07 - UI de planos e gestão da subscrição.](../guias-bk/MF8/BK-MF8-07-ui-de-planos-e-gestao-da-subscricao.md)
+- [BK-MF8-08 - Testes e evidência de subscrições simuladas.](../guias-bk/MF8/BK-MF8-08-testes-e-evidencia-de-subscricoes-simuladas.md)
+- [BK-MF8-09 - Documentação técnica mínima (arquitetura, modelos, fluxo contabilístico).](../guias-bk/MF8/BK-MF8-09-documentacao-tecnica-minima-arquitetura-modelos-fluxo-contabilistico.md)
+- [BK-MF8-10 - Insights devem incluir explicação e origem dos dados usados.](../guias-bk/MF8/BK-MF8-10-insights-devem-incluir-explicacao-e-origem-dos-dados-usados.md)
+- [BK-MF8-11 - IA não altera dados contabilísticos; apenas analisa e recomenda.](../guias-bk/MF8/BK-MF8-11-ia-nao-altera-dados-contabilisticos-apenas-analisa-e-recomenda.md)
+- [BK-MF8-12 - Alertas configuráveis (ativar/desativar tipos).](../guias-bk/MF8/BK-MF8-12-alertas-configuraveis-ativar-desativar-tipos.md)
+- [BK-MF8-13 - IA deve evitar enviesamentos e sugerir ações baseadas em dados reais.](../guias-bk/MF8/BK-MF8-13-ia-deve-evitar-enviesamentos-e-sugerir-acoes-baseadas-em-dados-reais.md)
+- [BK-MF8-14 - Aproximação da UI à UI do mockup.](../guias-bk/MF8/BK-MF8-14-aproximacao-da-ui-a-ui-do-mockup.md)
+- [BK-MF8-15 - Datas, moedas e separadores no padrão europeu.](../guias-bk/MF8/BK-MF8-15-datas-moedas-e-separadores-no-padrao-europeu.md)
+- [BK-MF8-16 - Verificação dos testes atuais e criação dos testes em falta.](../guias-bk/MF8/BK-MF8-16-verificacao-dos-testes-atuais-e-criacao-dos-testes-em-falta.md)
+- [BK-MF8-17 - Execução final de testes.](../guias-bk/MF8/BK-MF8-17-execucao-final-de-testes.md)
+- [BK-MF8-18 - Correção dos erros encontrados e reexecução dos testes afetados.](../guias-bk/MF8/BK-MF8-18-correcao-dos-erros-encontrados-e-reexecucao-dos-testes-afetados.md)
 
 ### Step-by-step macro
 1. Confirmar dependencias desbloqueadas antes de iniciar BK.
@@ -257,7 +266,9 @@ BK-MF8-01, BK-MF8-02, BK-MF8-03, BK-MF8-04, BK-MF8-05, BK-MF8-06, BK-MF8-07, BK-
 
 ### Pronto da macro
 - Todos os BK do macro com guia e evidence minima.
+- Subscrições simuladas documentadas como PAP sem pagamentos reais.
 - Sem dependencias invalidas para a macro seguinte.
 
 ## Changelog
+- `2026-06-30`: MF8 expandida para 18 BK com bloco de subscrições simuladas.
 - `2026-04-19`: MF-VIEWS regenerado após redução de escopo e renumeração total.

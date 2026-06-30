@@ -8,11 +8,12 @@
 4. [Compatibilidade e Integração](#rnf-4-compatibilidade-e-integracao)
 5. [Manutenção, Qualidade e Operação](#rnf-5-manutencao-qualidade-e-operacao)
 6. [Experiência de IA e Ética](#rnf-6-experiencia-de-ia-e-etica)
-7. [Localização e Internacionalização](#rnf-7-localizacao-e-internacionalizacao)
-8. [Resumo das Prioridades](#rnf-resumo-das-prioridades)
-9. [Stack Tecnológica Sugerida](#rnf-stack-tecnologica-sugerida)
-10. [Licença](#rnf-licenca)
-11. [Changelog](#rnf-changelog)
+7. [Localização, Mockup e Internacionalização](#rnf-7-localizacao-mockup-e-internacionalizacao)
+8. [Validação Final e Correção](#rnf-8-validacao-final-e-correcao)
+9. [Resumo das Prioridades](#rnf-resumo-das-prioridades)
+10. [Stack Tecnológica Sugerida](#rnf-stack-tecnologica-sugerida)
+11. [Licença](#rnf-licenca)
+12. [Changelog](#rnf-changelog)
 
 - [Voltar ao início](../README.md)
 
@@ -100,13 +101,24 @@
 
 ---
 
-<a id="rnf-7-localizacao-e-internacionalizacao"></a>
-## 7. Localização e Internacionalização
+<a id="rnf-7-localizacao-mockup-e-internacionalizacao"></a>
+## 7. Localização, Mockup e Internacionalização
 
 | Código | Requisito | Tipo | Prioridade |
 | ------ | --------- | ---- | ---------- |
-| RNF35 | Interface em português de Portugal. | Localização | Must |
+| RNF35 | A interface deve aproximar-se do mockup aprovado, mantendo consistência visual e textos em português de Portugal. | UX/Localização | Must |
 | RNF36 | Datas, moedas e separadores no padrão europeu. | Localização | Should |
+
+---
+
+<a id="rnf-8-validacao-final-e-correcao"></a>
+## 8. Validação Final e Correção
+
+| Código | Requisito | Tipo | Prioridade |
+| ------ | --------- | ---- | ---------- |
+| RNF37 | Devem ser revistos os testes existentes e criados testes em falta para fluxos críticos. | Qualidade | Must |
+| RNF38 | Deve existir uma execução final de testes antes da entrega/defesa. | Qualidade | Must |
+| RNF39 | Erros encontrados na execução final devem ser corrigidos e revalidados com os testes afetados. | Qualidade | Must |
 
 ---
 
@@ -121,8 +133,9 @@
 | Compatibilidade e Integração | 5 | 4 | 1 | 0 |
 | Manutenção, Qualidade e Operação | 6 | 3 | 3 | 0 |
 | Experiência de IA e Ética | 4 | 2 | 2 | 0 |
-| Localização e Internacionalização | 2 | 1 | 1 | 0 |
-| **Total** | **36** | **24** | **12** | **0** |
+| Localização, Mockup e Internacionalização | 2 | 1 | 1 | 0 |
+| Validação Final e Correção | 3 | 3 | 0 | 0 |
+| **Total** | **39** | **27** | **12** | **0** |
 
 ---
 
@@ -158,4 +171,5 @@ Projeto académico orientado a fins educativos no âmbito da PAP.
 <a id="rnf-changelog"></a>
 ## Changelog
 
+- **2026-06-29** - MF8 reforçada com aproximação ao mockup, criação/execução final de testes e correção de erros (`RNF37..RNF39`).
 - **2026-04-19** - Redução e simplificação do escopo com renumeração canónica contínua (`RNF01..RNF36`).

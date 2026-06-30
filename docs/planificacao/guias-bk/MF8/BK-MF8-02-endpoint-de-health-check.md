@@ -4,8 +4,8 @@
 - `doc_id`: `GUIA-BK-MF8-02`
 - `bk_id`: `BK-MF8-02`
 - `macro`: `MF8`
-- `owner`: `Pedro`
-- `apoio`: `Andre`
+- `owner`: `Sofia`
+- `apoio`: `Oleksii`
 - `prioridade`: `P1`
 - `estado`: `TODO`
 - `esforco`: `S`
@@ -16,7 +16,7 @@
 - `core_or_reforco`: `Core`
 - `proximo_bk`: `BK-MF8-03`
 - `guia_path`: `docs/planificacao/guias-bk/MF8/BK-MF8-02-endpoint-de-health-check.md`
-- `last_updated`: `2026-04-19`
+- `last_updated`: `2026-06-30`
 
 ## Contexto do BK
 - Entrega alvo: implementar `Endpoint de health-check.` com rastreabilidade direta ao requisito `RNF29`.

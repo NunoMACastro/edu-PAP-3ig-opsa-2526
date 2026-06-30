@@ -15,10 +15,11 @@
 11. [11 Assistente de IA (Análise e Estratégia)](#11-assistente-de-ia-anlise-e-estratgia)
 12. [12 Lembretes e Tarefas](#12-lembretes-e-tarefas)
 13. [13 Auditoria e Segurança Operacional](#13-auditoria-e-segurana-operacional)
-14. [Critérios de Aceitação](#critérios-de-aceitação)
-15. [Sugestão de MVP por fases](#sugestão-de-mvp-por-fases)
-16. [Licença](#licença)
-17. [Changelog](#changelog)
+14. [14 Subscrições Simuladas](#14-subscries-simuladas)
+15. [Critérios de Aceitação](#critérios-de-aceitação)
+16. [Sugestão de MVP por fases](#sugestão-de-mvp-por-fases)
+17. [Licença](#licença)
+18. [Changelog](#changelog)
 
 - [Voltar ao início](../README.md)
 
@@ -165,12 +166,23 @@
 
 ---
 
+### 14 Subscrições Simuladas
+
+| Código | Requisito                                                                 | Atores        | Prioridade | Dependências |
+| :----- | :------------------------------------------------------------------------ | :------------ | :--------- | :----------- |
+| RF49   | Consultar os três planos de subscrição simulados: mensal, trimestral e anual. | Admin, Gestor | Must       | -            |
+| RF50   | Gerir a subscrição simulada da empresa ativa.                             | Admin, Gestor | Must       | RF49         |
+| RF51   | Simular renovação, cancelamento e reativação da subscrição.               | Admin, Gestor | Must       | RF50         |
+
+---
+
 ## Critérios de Aceitação
 
 - O núcleo transacional (vendas, compras, inventário, contabilidade e tesouraria) deve executar sem erros bloqueantes.
 - A reconciliação bancária e os relatórios executivos devem produzir resultados auditáveis com evidência funcional.
 - A camada de IA deve gerar insights/sugestões com explicação e fonte, sem alterar dados contabilísticos automaticamente.
 - Fluxos de aprovação mantidos no escopo mínimo (vendas e compras) com histórico de decisão.
+- A subscrição simulada deve permitir consultar planos, ativar, renovar, cancelar e reativar sem pagamento real.
 
 ---
 
@@ -178,7 +190,7 @@
 
 - **Fase 1 - Fundação operacional:** identidade, configuração, tabelas-base, vendas/compras e inventário essencial.
 - **Fase 2 - Consolidação financeira:** contabilidade, tesouraria, relatórios, IA preditiva e operação transversal.
-- **Fase 3 - Hardening técnico:** qualidade, segurança, conformidade e fecho de entrega.
+- **Fase 3 - Hardening técnico:** qualidade, segurança, subscrições simuladas, conformidade e fecho de entrega.
 
 ---
 
@@ -187,5 +199,7 @@
 Projeto académico destinado exclusivamente a fins educativos.
 
 ## Changelog
+
+- **2026-06-30** - Adicionados RF49..RF51 para subscrições simuladas no âmbito da MF8.
 
 - **2026-04-19** - Redução e simplificação do escopo com renumeração canónica contínua (`RF01..RF48`).

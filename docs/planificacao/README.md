@@ -6,7 +6,7 @@
 - `area`: `project`
 - `owner`: `Nuno`
 - `status`: `ativo`
-- `last_updated`: `2026-05-25`
+- `last_updated`: `2026-06-30`
 
 ## Objetivo
 Centralizar a planificacao executavel da Opsa com contrato canónico comum entre as 4 PAPs, sem drift estrutural, de governanca ou pedagogico.
@@ -44,10 +44,10 @@ Centralizar a planificacao executavel da Opsa com contrato canónico comum entre
 5. Executar `bash scripts/validate-planificacao.sh`.
 
 ## Resumo de cobertura
-- Total RF: **48**
-- Total RNF: **36**
-- Total BK: **84**
-- Total guias BK: **84**
+- Total RF: **51**
+- Total RNF: **39**
+- Total BK: **93**
+- Total guias BK: **93**
 - Cobertura BK<->guia: **100% (1:1)**
 
 ## Validacao
@@ -55,5 +55,7 @@ Centralizar a planificacao executavel da Opsa com contrato canónico comum entre
 - Gate de fecho (`S4/S8/S12`): exige `overall_pass: true` + evidencias.
 
 ## Changelog
+- `2026-06-30`: MF8 expandida para 18 BK com subscrições simuladas; totais atualizados para 51 RF, 39 RNF e 93 BK.
+- `2026-06-29`: MF8 reforçada com UI alinhada ao mockup, testes finais e correção de erros; totais atualizados para 39 RNF e 87 BK.
 - `2026-05-25`: adicionado contrato de stack de implementacao para centralizar assuncoes tecnicas dos guias BK.
 - `2026-04-18`: README de planificacao normalizado para contrato canónico v2 cross-PAP.

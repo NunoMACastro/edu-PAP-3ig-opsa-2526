@@ -1,11 +1,11 @@
-# BK-MF8-07 - IA deve evitar enviesamentos e sugerir ações baseadas em dados reais.
+# BK-MF8-13 - IA deve evitar enviesamentos e sugerir ações baseadas em dados reais.
 
 ## Header
-- `doc_id`: `GUIA-BK-MF8-07`
-- `bk_id`: `BK-MF8-07`
+- `doc_id`: `GUIA-BK-MF8-13`
+- `bk_id`: `BK-MF8-13`
 - `macro`: `MF8`
-- `owner`: `Pedro`
-- `apoio`: `Andre`
+- `owner`: `Oleksii`
+- `apoio`: `Pedro`
 - `prioridade`: `P1`
 - `estado`: `TODO`
 - `esforco`: `S`
@@ -14,9 +14,9 @@
 - `fase_documental`: `Fase 3`
 - `sprint`: `S12`
 - `core_or_reforco`: `Core`
-- `proximo_bk`: `BK-MF8-08`
-- `guia_path`: `docs/planificacao/guias-bk/MF8/BK-MF8-07-ia-deve-evitar-enviesamentos-e-sugerir-acoes-baseadas-em-dados-reais.md`
-- `last_updated`: `2026-04-19`
+- `proximo_bk`: `BK-MF8-14`
+- `guia_path`: `docs/planificacao/guias-bk/MF8/BK-MF8-13-ia-deve-evitar-enviesamentos-e-sugerir-acoes-baseadas-em-dados-reais.md`
+- `last_updated`: `2026-06-30`
 
 ## Contexto do BK
 - Entrega alvo: implementar `IA deve evitar enviesamentos e sugerir ações baseadas em dados reais.` com rastreabilidade direta ao requisito `RNF34`.
@@ -49,13 +49,13 @@ Executar `IA deve evitar enviesamentos e sugerir ações baseadas em dados reais
 
 ## Bloco operacional
 ### Entrada
-- BK: `BK-MF8-07`
+- BK: `BK-MF8-13`
 - Requisito: `RNF34`
 - Dependencias: `-`
 - Artefactos de referencia: `MATRIZ-CANONICA-BK.md`, `BACKLOG-MVP.md`, `PLANO-SPRINTS.md`
 
 ### Passos
-1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do `BK-MF8-07` e o requisito `RNF34`.
+1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do `BK-MF8-13` e o requisito `RNF34`.
 2. Validar dependencias técnicas (`-`) e preparar dados de teste mínimos para `IA deve evitar enviesamentos e sugerir ações baseadas em dados reais.`.
 3. Definir regra minima para aceitar sugestoes da IA: evidencias suficientes, confianca minima e ausencia de viés obvio.
 4. Implementar validacao de recomendacoes com bloqueio quando faltarem dados ou justificacao.
@@ -73,18 +73,18 @@ Executar `IA deve evitar enviesamentos e sugerir ações baseadas em dados reais
 - [ ] Evidencia: `pr`, `proof`, `neg` preenchidos com artefactos reais.
 
 ### Handoff
-- Proximo BK recomendado: `BK-MF8-08`
+- Proximo BK recomendado: `BK-MF8-14`
 - Registar no handoff: estado de dependencias, risco aberto e decisao tomada.
 - Se houver bloqueio >48h, escalar no scorecard da sprint.
 
 ## Snippet tecnico aplicavel
 **Filtro minimo de qualidade para recomendacoes da IA**
 
-Contexto de rastreabilidade: `BK-MF8-07` -> `RNF34`.
+Contexto de rastreabilidade: `BK-MF8-13` -> `RNF34`.
 
 ```ts
 type SugestaoIA = {
-  bkId: 'BK-MF8-07';
+  bkId: 'BK-MF8-13';
   requisito: 'RNF34';
   acao: string;
   confianca: number;

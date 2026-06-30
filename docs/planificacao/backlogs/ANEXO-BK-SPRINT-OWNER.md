@@ -6,7 +6,7 @@
 - `area`: `project`
 - `owner`: `Nuno`
 - `status`: `ativo`
-- `last_updated`: `2026-04-19`
+- `last_updated`: `2026-06-30`
 
 ## Objetivo
 Rastreabilidade operacional `BK -> Sprint -> Owner`, com contrato de carga pedagogica `Core/Reforco`.
@@ -90,14 +90,24 @@ Rastreabilidade operacional `BK -> Sprint -> Owner`, com contrato de carga pedag
 | BK-MF7-09 | MF7 | S11-S12 | Andre | Sofia | P0 | Reforco | RNF26 | - | docs/planificacao/guias-bk/MF7/BK-MF7-09-frontend-modular-com-componentes-reutilizaveis.md |
 | BK-MF7-10 | MF7 | S11-S12 | Oleksii | Andre | P1 | Core | RNF27 | - | docs/planificacao/guias-bk/MF7/BK-MF7-10-testes-automatizados-para-modulos-criticos-faturacao-iva-balancetes-reconciliacao.md |
 | BK-MF8-01 | MF8 | S12 | Oleksii | Pedro | P0 | Reforco | RNF28 | - | docs/planificacao/guias-bk/MF8/BK-MF8-01-logs-estruturados-info-warn-error-audit.md |
-| BK-MF8-02 | MF8 | S12 | Pedro | Andre | P1 | Core | RNF29 | - | docs/planificacao/guias-bk/MF8/BK-MF8-02-endpoint-de-health-check.md |
-| BK-MF8-03 | MF8 | S12 | Sofia | Oleksii | P1 | Core | RNF30 | - | docs/planificacao/guias-bk/MF8/BK-MF8-03-documentacao-tecnica-minima-arquitetura-modelos-fluxo-contabilistico.md |
-| BK-MF8-04 | MF8 | S12 | Andre | Oleksii | P0 | Reforco | RNF31 | - | docs/planificacao/guias-bk/MF8/BK-MF8-04-insights-devem-incluir-explicacao-e-origem-dos-dados-usados.md |
-| BK-MF8-05 | MF8 | S12 | Oleksii | Pedro | P0 | Reforco | RNF32 | - | docs/planificacao/guias-bk/MF8/BK-MF8-05-ia-nao-altera-dados-contabilisticos-apenas-analisa-e-recomenda.md |
-| BK-MF8-06 | MF8 | S12 | Andre | Oleksii | P1 | Core | RNF33 | - | docs/planificacao/guias-bk/MF8/BK-MF8-06-alertas-configuraveis-ativar-desativar-tipos.md |
-| BK-MF8-07 | MF8 | S12 | Pedro | Andre | P1 | Core | RNF34 | - | docs/planificacao/guias-bk/MF8/BK-MF8-07-ia-deve-evitar-enviesamentos-e-sugerir-acoes-baseadas-em-dados-reais.md |
-| BK-MF8-08 | MF8 | S12 | Sofia | Pedro | P0 | Reforco | RNF35 | - | docs/planificacao/guias-bk/MF8/BK-MF8-08-interface-em-portugues-de-portugal.md |
-| BK-MF8-09 | MF8 | S12 | Sofia | Pedro | P1 | Core | RNF36 | - | docs/planificacao/guias-bk/MF8/BK-MF8-09-datas-moedas-e-separadores-no-padrao-europeu.md |
+| BK-MF8-02 | MF8 | S12 | Sofia | Oleksii | P1 | Core | RNF29 | - | docs/planificacao/guias-bk/MF8/BK-MF8-02-endpoint-de-health-check.md |
+| BK-MF8-03 | MF8 | S12 | Pedro | Andre | P0 | Reforco | RF49 | - | docs/planificacao/guias-bk/MF8/BK-MF8-03-catalogo-de-planos-de-subscricao-simulados.md |
+| BK-MF8-04 | MF8 | S12 | Oleksii | Andre | P0 | Reforco | RF50 | BK-MF8-03 | docs/planificacao/guias-bk/MF8/BK-MF8-04-subscricao-por-empresa-ativa.md |
+| BK-MF8-05 | MF8 | S12 | Andre | Pedro | P0 | Reforco | RF50 | BK-MF8-04 | docs/planificacao/guias-bk/MF8/BK-MF8-05-ativacao-simulada-de-subscricao.md |
+| BK-MF8-06 | MF8 | S12 | Pedro | Andre | P0 | Reforco | RF51 | BK-MF8-05 | docs/planificacao/guias-bk/MF8/BK-MF8-06-renovacao-cancelamento-e-reativacao-simuladas.md |
+| BK-MF8-07 | MF8 | S12 | Andre | Pedro | P0 | Reforco | RF49, RF50, RF51 | BK-MF8-03, BK-MF8-04, BK-MF8-06 | docs/planificacao/guias-bk/MF8/BK-MF8-07-ui-de-planos-e-gestao-da-subscricao.md |
+| BK-MF8-08 | MF8 | S12 | Oleksii | Andre | P1 | Core | RF49, RF50, RF51 | BK-MF8-03, BK-MF8-04, BK-MF8-05, BK-MF8-06, BK-MF8-07 | docs/planificacao/guias-bk/MF8/BK-MF8-08-testes-e-evidencia-de-subscricoes-simuladas.md |
+| BK-MF8-09 | MF8 | S12 | Pedro | Oleksii | P1 | Core | RNF30 | - | docs/planificacao/guias-bk/MF8/BK-MF8-09-documentacao-tecnica-minima-arquitetura-modelos-fluxo-contabilistico.md |
+| BK-MF8-10 | MF8 | S12 | Oleksii | Andre | P0 | Reforco | RNF31 | - | docs/planificacao/guias-bk/MF8/BK-MF8-10-insights-devem-incluir-explicacao-e-origem-dos-dados-usados.md |
+| BK-MF8-11 | MF8 | S12 | Oleksii | Pedro | P0 | Reforco | RNF32 | - | docs/planificacao/guias-bk/MF8/BK-MF8-11-ia-nao-altera-dados-contabilisticos-apenas-analisa-e-recomenda.md |
+| BK-MF8-12 | MF8 | S12 | Andre | Oleksii | P1 | Core | RNF33 | - | docs/planificacao/guias-bk/MF8/BK-MF8-12-alertas-configuraveis-ativar-desativar-tipos.md |
+| BK-MF8-13 | MF8 | S12 | Oleksii | Pedro | P1 | Core | RNF34 | - | docs/planificacao/guias-bk/MF8/BK-MF8-13-ia-deve-evitar-enviesamentos-e-sugerir-acoes-baseadas-em-dados-reais.md |
+| BK-MF8-14 | MF8 | S12 | Pedro | Sofia | P0 | Reforco | RNF35 | - | docs/planificacao/guias-bk/MF8/BK-MF8-14-aproximacao-da-ui-a-ui-do-mockup.md |
+| BK-MF8-15 | MF8 | S12 | Sofia | Pedro | P1 | Core | RNF36 | - | docs/planificacao/guias-bk/MF8/BK-MF8-15-datas-moedas-e-separadores-no-padrao-europeu.md |
+| BK-MF8-16 | MF8 | S12 | Oleksii | Andre | P1 | Core | RNF37 | - | docs/planificacao/guias-bk/MF8/BK-MF8-16-verificacao-dos-testes-atuais-e-criacao-dos-testes-em-falta.md |
+| BK-MF8-17 | MF8 | S12 | Andre | Oleksii | P1 | Core | RNF38 | BK-MF8-16 | docs/planificacao/guias-bk/MF8/BK-MF8-17-execucao-final-de-testes.md |
+| BK-MF8-18 | MF8 | S12 | Oleksii | Andre | P1 | Core | RNF39 | BK-MF8-17 | docs/planificacao/guias-bk/MF8/BK-MF8-18-correcao-dos-erros-encontrados-e-reexecucao-dos-testes-afetados.md |
 
 ## Changelog
+- `2026-06-30`: MF8 atualizada para 18 BK com bloco de subscrições simuladas em S12.
 - `2026-04-13`: Anexo canónico criado por geracao automatica.

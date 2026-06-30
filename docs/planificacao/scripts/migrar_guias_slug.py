@@ -28,7 +28,7 @@ MACRO_FOCUS = {
     "MF5": "experiencia de utilizacao e fluxos transversais de negocio",
     "MF6": "desempenho, seguranca e robustez tecnica",
     "MF7": "compliance, interoperabilidade e modularidade",
-    "MF8": "operacao final, i18n e fecho para defesa PAP",
+    "MF8": "operacao final, subscricoes simuladas, UI, testes finais e fecho para defesa PAP",
 }
 
 MACRO_OBJECTIVE = {
@@ -40,7 +40,7 @@ MACRO_OBJECTIVE = {
     "MF5": "Tornar a UX previsivel, clara e orientada a fluxos reais de trabalho.",
     "MF6": "Assegurar robustez tecnica de performance, seguranca e continuidade.",
     "MF7": "Fechar compliance legal, interoperabilidade e arquitetura modular.",
-    "MF8": "Preparar operacao final, observabilidade e fecho para defesa PAP.",
+    "MF8": "Preparar operacao final, subscricoes simuladas, observabilidade, UI, testes finais e fecho para defesa PAP.",
 }
 
 
@@ -694,7 +694,7 @@ Catálogo curto de snippets de referência por macro para reduzir repetição, m
 - `MF4-MF5`: regras de alerta/UX com output explicável.
 - `MF6`: hardening de segurança e medição de limiares.
 - `MF7`: validação de compliance/interoperabilidade.
-- `MF8`: validação de observabilidade/fecho operacional.
+- `MF8`: validação de observabilidade, subscricoes simuladas, UI, testes finais e fecho operacional.
 
 ## Regras de uso
 1. Cada guia deve usar snippet alinhado ao risco principal do BK.

@@ -7,8 +7,8 @@ import json
 from datetime import date, datetime
 from collections import defaultdict
 
-EXPECTED_RF = [f"RF{i:02d}" for i in range(1, 49)]
-EXPECTED_RNF = [f"RNF{i:02d}" for i in range(1, 37)]
+EXPECTED_RF = [f"RF{i:02d}" for i in range(1, 52)]
+EXPECTED_RNF = [f"RNF{i:02d}" for i in range(1, 40)]
 MAX_DOC_AGE_DAYS = 30
 GUIDE_FILENAME_RE = re.compile(r"^BK-MF[0-8]-\d{2}-[a-z0-9]+(?:-[a-z0-9]+)*\.md$")
 MAX_SNIPPET_DUPLICATION = 40

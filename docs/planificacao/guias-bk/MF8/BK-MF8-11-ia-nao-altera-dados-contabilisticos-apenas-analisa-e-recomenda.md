@@ -1,8 +1,8 @@
-# BK-MF8-05 - IA não altera dados contabilísticos; apenas analisa e recomenda.
+# BK-MF8-11 - IA não altera dados contabilísticos; apenas analisa e recomenda.
 
 ## Header
-- `doc_id`: `GUIA-BK-MF8-05`
-- `bk_id`: `BK-MF8-05`
+- `doc_id`: `GUIA-BK-MF8-17`
+- `bk_id`: `BK-MF8-11`
 - `macro`: `MF8`
 - `owner`: `Oleksii`
 - `apoio`: `Pedro`
@@ -14,9 +14,9 @@
 - `fase_documental`: `Fase 3`
 - `sprint`: `S12`
 - `core_or_reforco`: `Reforco`
-- `proximo_bk`: `BK-MF8-06`
-- `guia_path`: `docs/planificacao/guias-bk/MF8/BK-MF8-05-ia-nao-altera-dados-contabilisticos-apenas-analisa-e-recomenda.md`
-- `last_updated`: `2026-04-19`
+- `proximo_bk`: `BK-MF8-12`
+- `guia_path`: `docs/planificacao/guias-bk/MF8/BK-MF8-11-ia-nao-altera-dados-contabilisticos-apenas-analisa-e-recomenda.md`
+- `last_updated`: `2026-06-30`
 
 ## Contexto do BK
 - Entrega alvo: implementar `IA não altera dados contabilísticos; apenas analisa e recomenda.` com rastreabilidade direta ao requisito `RNF32`.
@@ -49,13 +49,13 @@ Executar `IA não altera dados contabilísticos; apenas analisa e recomenda.` co
 
 ## Bloco operacional
 ### Entrada
-- BK: `BK-MF8-05`
+- BK: `BK-MF8-11`
 - Requisito: `RNF32`
 - Dependencias: `-`
 - Artefactos de referencia: `MATRIZ-CANONICA-BK.md`, `BACKLOG-MVP.md`, `PLANO-SPRINTS.md`
 
 ### Passos
-1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do `BK-MF8-05` e o requisito `RNF32`.
+1. Confirmar no `BACKLOG-MVP` e na `MATRIZ-CANONICA-BK` o escopo do `BK-MF8-11` e o requisito `RNF32`.
 2. Validar dependencias técnicas (`-`) e preparar dados de teste mínimos para `IA não altera dados contabilísticos; apenas analisa e recomenda.`.
 3. Implementar guardrail de mutacao: pedidos de IA com intencao de alterar dados devem ser bloqueados.
 4. Garantir separacao explicita entre camada de recomendacao e comandos transacionais.
@@ -76,18 +76,18 @@ Executar `IA não altera dados contabilísticos; apenas analisa e recomenda.` co
 - [ ] Evidencia: `pr`, `proof`, `neg` preenchidos com artefactos reais.
 
 ### Handoff
-- Proximo BK recomendado: `BK-MF8-06`
+- Proximo BK recomendado: `BK-MF8-12`
 - Registar no handoff: estado de dependencias, risco aberto e decisao tomada.
 - Se houver bloqueio >48h, escalar no scorecard da sprint.
 
 ## Snippet tecnico aplicavel
 **Guardrail de nao-mutacao para comandos da IA**
 
-Contexto de rastreabilidade: `BK-MF8-05` -> `RNF32`.
+Contexto de rastreabilidade: `BK-MF8-11` -> `RNF32`.
 
 ```ts
 type PedidoIA = {
-  bkId: 'BK-MF8-05';
+  bkId: 'BK-MF8-11';
   requisito: 'RNF32';
   intencao: 'analise' | 'recomendacao' | 'mutacao';
   texto: string;

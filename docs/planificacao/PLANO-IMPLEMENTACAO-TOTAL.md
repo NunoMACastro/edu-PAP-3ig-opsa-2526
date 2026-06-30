@@ -6,7 +6,7 @@
 - `area`: `project`
 - `owner`: `Nuno`
 - `status`: `ativo`
-- `last_updated`: `2026-04-19`
+- `last_updated`: `2026-06-30`
 
 ## Objetivo
 Definir o plano macro executavel da Opsa com rastreabilidade RF/RNF -> BK -> Guia e governanca alinhada ao contrato canónico v2.
@@ -27,7 +27,7 @@ Definir o plano macro executavel da Opsa com rastreabilidade RF/RNF -> BK -> Gui
 | MF5 | Janela canónica S01-S12 | 7 | Oleksii |
 | MF6 | Janela canónica S01-S12 | 10 | Oleksii |
 | MF7 | Janela canónica S01-S12 | 10 | Andre |
-| MF8 | Janela canónica S01-S12 | 9 | Oleksii |
+| MF8 | Janela canónica S01-S12 | 18 | Oleksii |
 
 ## Fases
 1. Fase 1 (`S01-S04`): fundacoes + consolidacao do nucleo inicial.
@@ -54,4 +54,6 @@ Definir o plano macro executavel da Opsa com rastreabilidade RF/RNF -> BK -> Gui
 - Evidencias operacionais de `deploy` e `rollback` publicadas no gate `S12`.
 
 ## Changelog
+- `2026-06-30`: MF8 recalculada para 18 BKs e baseline global atualizada para 93 BK.
+- `2026-06-29`: MF8 recalculada para 12 BKs e baseline global atualizada para 87 BK.
 - `2026-04-19`: plano macro recalculado para baseline reduzido (84 BK).

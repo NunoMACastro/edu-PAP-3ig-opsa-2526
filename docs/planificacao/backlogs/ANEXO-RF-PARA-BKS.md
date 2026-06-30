@@ -6,7 +6,7 @@
 - `area`: `project`
 - `owner`: `Nuno`
 - `status`: `ativo`
-- `last_updated`: `2026-04-19`
+- `last_updated`: `2026-06-30`
 
 ## Objetivo
 Rastreabilidade bidirecional `RF -> BKs`, gerada automaticamente a partir do backlog canónico.
@@ -62,6 +62,10 @@ Rastreabilidade bidirecional `RF -> BKs`, gerada automaticamente a partir do bac
 | RF46 | 1 | BK-MF4-08 |
 | RF47 | 1 | BK-MF4-09 |
 | RF48 | 1 | BK-MF4-10 |
+| RF49 | 3 | BK-MF8-03, BK-MF8-07, BK-MF8-08 |
+| RF50 | 4 | BK-MF8-04, BK-MF8-05, BK-MF8-07, BK-MF8-08 |
+| RF51 | 3 | BK-MF8-06, BK-MF8-07, BK-MF8-08 |
 
 ## Changelog
+- `2026-06-30`: RF49..RF51 ligados aos BKs de subscrições simuladas da MF8.
 - `2026-04-13`: Anexo canónico criado por geracao automatica.
