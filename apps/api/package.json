@@ -1,0 +1,50 @@
+{
+  "name": "@opsa/api",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "API OPSA para os BKs MF0, seguindo o contrato apps/api definido na planificação.",
+  "main": "src/server.js",
+  "scripts": {
+    "dev": "node src/server.js",
+    "prisma:generate": "prisma generate",
+    "prisma:validate": "prisma validate",
+    "migration:precheck-mf0": "node scripts/precheck-mf0-migration.js",
+    "syntax:check": "find src tests scripts -name '*.js' -print0 | xargs -0 -n 1 node --check",
+    "test": "npm run test:unit && npm run test:contracts",
+    "test:unit": "node --test tests/unit/*.test.js",
+    "test:contracts": "node --test tests/contracts/*.test.js",
+    "test:integration": "node --test tests/integration/*.test.js",
+    "test:mf6:documents": "node scripts/check-mf6-document-performance.mjs",
+    "test:mf6:concurrency": "node scripts/check-mf6-concurrency.mjs",
+    "test:mf6:reconciliation": "node scripts/check-mf6-reconciliation-performance.mjs",
+    "test:mf6:fifo": "node scripts/check-mf6-fifo-performance.mjs",
+    "test:mf6:https": "node scripts/check-mf6-https.mjs",
+    "test:mf6:bcrypt": "node scripts/check-mf6-bcrypt.mjs",
+    "test:mf6:session-cookie": "node scripts/check-mf6-session-cookie.mjs",
+    "test:mf6:hardening": "node scripts/check-mf6-hardening.mjs",
+    "test:mf6:env": "node scripts/check-mf6-env.mjs",
+    "test:mf6:audit": "node scripts/check-mf6-audit-gate.mjs",
+    "test:mf6": "npm run test:mf6:documents && npm run test:mf6:concurrency && npm run test:mf6:reconciliation && npm run test:mf6:fifo && npm run test:mf6:https && npm run test:mf6:bcrypt && npm run test:mf6:session-cookie && npm run test:mf6:hardening && npm run test:mf6:env && npm run test:mf6:audit",
+    "mf7:backup": "node scripts/run-daily-backup.mjs",
+    "mf7:backup:verify": "node scripts/verify-backup-restore.mjs",
+    "test:mf7:retention": "node --test tests/unit/retentionPolicy.test.js",
+    "test:mf7:email": "node --test tests/contracts/mf7-email-contracts.test.js",
+    "test:mf7:exports": "node --test tests/contracts/mf7-export-contracts.test.js",
+    "test:mf7:imports": "node --test tests/contracts/mf7-import-contracts.test.js",
+    "test:mf7:saft": "node --test tests/contracts/mf7-saft-contracts.test.js",
+    "check:mf7:backend-modules": "node scripts/check-mf7-backend-modules.mjs",
+    "test:mf7:critical-modules": "node --test tests/contracts/mf7-critical-modules.test.js",
+    "test:mf7": "npm run test:mf7:retention && npm run test:mf7:email && npm run test:mf7:exports && npm run test:mf7:imports && npm run test:mf7:saft && npm run check:mf7:backend-modules && npm run test:mf7:critical-modules"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.19.3",
+    "bcrypt": "^5.1.1",
+    "exceljs": "^4.4.0",
+    "express": "^5.2.1",
+    "pdfkit": "^0.15.2"
+  },
+  "devDependencies": {
+    "prisma": "^6.19.3"
+  }
+}
