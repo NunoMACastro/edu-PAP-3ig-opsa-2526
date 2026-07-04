@@ -1,103 +1,149 @@
-// apps/api/src/modules/subscriptions/subscriptionService.js
+/**
+ * @file Regras de domínio para consulta e ativação de subscrições simuladas.
+ *
+ * Este módulo não conhece Express. Recebe o contexto já validado pela rota,
+ * consulta o catálogo canónico e grava a subscrição atual da empresa.
+ */
 
 import { httpError } from "../../lib/httpErrors.js";
 import {
-  getSimulatedSubscriptionPlan,
   SimulatedSubscriptionPlanError,
+  getSimulatedSubscriptionPlan,
 } from "./subscriptionPlans.js";
+import { recordAuditLog } from "../audit/auditLogService.js";
 
-export const SUBSCRIPTION_STATE = Object.freeze({
-  NONE: "none",
-  ACTIVE: "active",
-  CANCELLED: "cancelled",
-  EXPIRED: "expired",
+const SUBSCRIPTION_STATUS = Object.freeze({
+  ACTIVE: "ACTIVE",
+  CANCELLED: "CANCELLED",
+  EXPIRED: "EXPIRED",
+});
+
+const PUBLIC_STATE_BY_STATUS = Object.freeze({
+  [SUBSCRIPTION_STATUS.ACTIVE]: "active",
+  [SUBSCRIPTION_STATUS.CANCELLED]: "cancelled",
+  [SUBSCRIPTION_STATUS.EXPIRED]: "expired",
 });
 
 /**
- * Garante que existe empresa ativa antes de consultar dados persistentes.
+ * Valida o identificador da empresa ativa resolvida pelo backend.
  *
- * @param {string | null | undefined} companyId - Empresa ativa resolvida pela API.
- * @returns {string} Empresa ativa validada.
- * @throws {import("../../lib/httpErrors.js").HttpError} Quando não existe empresa ativa.
+ * @param {string} companyId - Empresa ativa calculada pelo middleware multiempresa.
+ * @returns {string} Empresa validada.
  */
-export function requireActiveCompanyId(companyId) {
+function requireActiveCompany(companyId) {
   if (typeof companyId !== "string" || companyId.trim().length === 0) {
     throw httpError(
       403,
-      "COMPANY_CONTEXT_REQUIRED",
-      "É necessário selecionar uma empresa ativa para consultar a subscrição.",
+      "ACTIVE_COMPANY_REQUIRED",
+      "É obrigatória uma empresa ativa para gerir subscrições.",
     );
   }
 
-  return companyId;
+  return companyId.trim();
 }
 
 /**
- * Converte datas opcionais para o formato JSON estável da API.
+ * Valida uma string obrigatória de domínio.
  *
- * @param {Date | string | null | undefined} value - Data vinda do Prisma.
- * @returns {string | null} Data em ISO string ou null.
+ * @param {unknown} value - Valor recebido do caller.
+ * @param {string} code - Código funcional da falha.
+ * @param {string} message - Mensagem segura para a API.
+ * @returns {string} Valor normalizado.
  */
-function toOptionalIsoString(value) {
-  if (!value) {
-    return null;
+function requireText(value, code, message) {
+  if (typeof value !== "string" || value.trim().length === 0) {
+    throw httpError(400, code, message);
   }
 
+  return value.trim();
+}
+
+/**
+ * Converte um estado persistido para o contrato público da API.
+ *
+ * @param {string} status - Estado guardado no Prisma.
+ * @returns {string} Estado público.
+ */
+function toPublicSubscriptionState(status) {
+  return PUBLIC_STATE_BY_STATUS[status] ?? "unknown";
+}
+
+/**
+ * Converte uma data opcional para ISO sem expor objetos Date crus.
+ *
+ * @param {Date | string | null | undefined} value - Valor persistido.
+ * @returns {string | null} Data ISO ou null.
+ */
+function toOptionalIsoString(value) {
+  if (!value) return null;
   return value instanceof Date ? value.toISOString() : new Date(value).toISOString();
 }
 
 /**
- * Resolve o plano guardado numa subscrição.
+ * Calcula a data final de uma subscrição a partir do contrato do catálogo.
  *
- * @param {string} planCode - Código do plano guardado na subscrição.
- * @returns {object} Plano simulado público.
- * @throws {import("../../lib/httpErrors.js").HttpError} Quando o plano guardado já não existe.
+ * @param {Date} startsAt - Data inicial do ciclo.
+ * @param {{ billingCycle: "month" | "year", intervalCount: number }} plan - Plano canónico.
+ * @returns {Date} Data final calculada.
  */
-function getPlanForStoredSubscription(planCode) {
-  try {
-    return getSimulatedSubscriptionPlan(planCode);
-  } catch (error) {
-    if (error instanceof SimulatedSubscriptionPlanError) {
-      throw httpError(
-        409,
-        "SUBSCRIPTION_PLAN_DRIFT",
-        "A subscrição guardada referencia um plano que já não existe no catálogo simulado.",
-      );
-    }
-
-    throw error;
+export function calculateSubscriptionCycleEnd(startsAt, plan) {
+  if (!Number.isInteger(plan.intervalCount) || plan.intervalCount <= 0) {
+    throw httpError(
+      409,
+      "INVALID_SUBSCRIPTION_INTERVAL",
+      "O plano simulado tem um intervalo inválido.",
+    );
   }
+
+  // Trabalhamos numa cópia da data inicial para não alterar o objeto recebido pelo caller.
+  const endsAt = new Date(startsAt);
+
+  if (plan.billingCycle === "month") {
+    endsAt.setMonth(endsAt.getMonth() + plan.intervalCount);
+    return endsAt;
+  }
+
+  if (plan.billingCycle === "year") {
+    endsAt.setFullYear(endsAt.getFullYear() + plan.intervalCount);
+    return endsAt;
+  }
+
+  throw httpError(
+    409,
+    "INVALID_SUBSCRIPTION_CYCLE",
+    "O plano simulado tem um ciclo de faturação inválido.",
+  );
 }
 
 /**
- * Normaliza o registo Prisma para o payload público da rota.
+ * Acrescenta dados públicos do plano à subscrição persistida.
  *
- * @param {object | null} subscription - Registo `CompanySubscription` devolvido pelo Prisma.
- * @returns {object} Payload público de `GET /api/subscriptions/current`.
+ * @param {object | null} subscription - Subscrição persistida.
+ * @returns {object} Payload público da subscrição atual.
  */
 export function formatCurrentSubscription(subscription) {
   if (!subscription) {
     return {
-      state: SUBSCRIPTION_STATE.NONE,
+      active: false,
+      state: "none",
       subscription: null,
     };
   }
 
-  const plan = getPlanForStoredSubscription(subscription.planCode);
+  const plan = getSimulatedSubscriptionPlan(subscription.planCode);
 
   return {
-    state: String(subscription.status).toLowerCase(),
+    active: subscription.status === SUBSCRIPTION_STATUS.ACTIVE,
+    state: toPublicSubscriptionState(subscription.status),
     subscription: {
       id: subscription.id,
-      companyId: subscription.companyId,
       planCode: subscription.planCode,
-      plan,
+      planName: plan.name,
       status: subscription.status,
+      state: toPublicSubscriptionState(subscription.status),
       startsAt: toOptionalIsoString(subscription.startsAt),
       endsAt: toOptionalIsoString(subscription.endsAt),
-      simulated: subscription.simulated === true,
-      createdAt: toOptionalIsoString(subscription.createdAt),
-      updatedAt: toOptionalIsoString(subscription.updatedAt),
+      simulated: Boolean(subscription.simulated),
     },
   };
 }
@@ -110,9 +156,8 @@ export function formatCurrentSubscription(subscription) {
  * @returns {Promise<object>} Payload público da subscrição atual.
  */
 export async function getCurrentSubscription(prisma, context) {
-  const companyId = requireActiveCompanyId(context.companyId);
+  const companyId = requireActiveCompany(context.companyId);
 
-  // A query usa a empresa resolvida pelo backend para evitar leitura cruzada entre empresas.
   const subscription = await prisma.companySubscription.findUnique({
     where: { companyId },
   });
@@ -125,13 +170,12 @@ export async function getCurrentSubscription(prisma, context) {
  *
  * @param {object | null} subscription - Subscrição persistida.
  * @param {string} companyId - Empresa ativa resolvida pela API.
- * @returns {object | null} A subscrição original quando pertence à empresa ativa.
- * @throws {import("../../lib/httpErrors.js").HttpError} Quando existe tentativa de cruzar empresas.
+ * @returns {object | null} Subscrição original quando pertence à empresa ativa.
  */
 export function assertSubscriptionBelongsToActiveCompany(subscription, companyId) {
-  const expectedCompanyId = requireActiveCompanyId(companyId);
+  const expectedCompany = requireActiveCompany(companyId);
 
-  if (subscription && subscription.companyId !== expectedCompanyId) {
+  if (subscription && subscription.companyId !== expectedCompany) {
     throw httpError(
       403,
       "SUBSCRIPTION_COMPANY_FORBIDDEN",
@@ -140,4 +184,94 @@ export function assertSubscriptionBelongsToActiveCompany(subscription, companyId
   }
 
   return subscription;
+}
+
+/**
+ * Valida o input mínimo da ativação antes de abrir a transação.
+ *
+ * @param {{ companyId: unknown, userId: unknown, planCode: unknown }} input - Dados de ativação.
+ * @returns {{ companyId: string, userId: string, planCode: string }} Dados normalizados.
+ */
+function readActivationInput(input) {
+  return {
+    companyId: requireActiveCompany(input.companyId),
+    userId: requireText(
+      input.userId,
+      "SUBSCRIPTION_USER_REQUIRED",
+      "É obrigatório identificar o utilizador autenticado.",
+    ),
+    planCode: requireText(
+      input.planCode,
+      "SUBSCRIPTION_PLAN_REQUIRED",
+      "É obrigatório indicar o plano de subscrição.",
+    ),
+  };
+}
+
+/**
+ * Ativa ou substitui a subscrição simulada da empresa ativa.
+ *
+ * @param {import("@prisma/client").PrismaClient} prisma - Cliente Prisma da API.
+ * @param {{ companyId: string, userId: string, planCode: string, now?: Date }} input - Dados de ativação vindos da rota.
+ * @returns {Promise<object>} Payload público da subscrição ativa.
+ */
+export async function activateSimulatedSubscription(prisma, input) {
+  const activation = readActivationInput(input);
+  const plan = getSimulatedSubscriptionPlan(activation.planCode);
+  const startsAt = input.now instanceof Date ? input.now : new Date();
+  const endsAt = calculateSubscriptionCycleEnd(startsAt, plan);
+
+  // A transação mantém a subscrição e a auditoria alinhadas para a mesma ativação.
+  const subscription = await prisma.$transaction(async (tx) => {
+    const savedSubscription = await tx.companySubscription.upsert({
+      // A empresa vem do contexto backend; isto impede duplicados e ownership vindo do browser.
+      where: { companyId: activation.companyId },
+      update: {
+        planCode: plan.code,
+        status: SUBSCRIPTION_STATUS.ACTIVE,
+        startsAt,
+        endsAt,
+        simulated: true,
+      },
+      create: {
+        companyId: activation.companyId,
+        planCode: plan.code,
+        status: SUBSCRIPTION_STATUS.ACTIVE,
+        startsAt,
+        endsAt,
+        simulated: true,
+      },
+    });
+
+    // A auditoria guarda só dados mínimos, sem body completo nem informação de pagamento.
+    await recordAuditLog(tx, {
+      companyId: activation.companyId,
+      userId: activation.userId,
+      action: "subscription.activate",
+      entity: "CompanySubscription",
+      entityId: savedSubscription.id,
+      details: {
+        planCode: plan.code,
+        simulated: true,
+      },
+    });
+
+    return savedSubscription;
+  });
+
+  return formatCurrentSubscription(subscription);
+}
+
+/**
+ * Converte erro de catálogo em erro HTTP já esperado pela API.
+ *
+ * @param {unknown} error - Erro capturado no controller.
+ * @returns {never} Lança sempre o erro normalizado.
+ */
+export function rethrowSubscriptionError(error) {
+  if (error instanceof SimulatedSubscriptionPlanError) {
+    throw httpError(error.status, error.code, error.message);
+  }
+
+  throw error;
 }
