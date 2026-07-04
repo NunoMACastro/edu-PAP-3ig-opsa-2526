@@ -1,27 +1,44 @@
-import { Router } from "express";
+// apps/api/src/modules/subscriptions/subscriptionRoutes.js
 
+import { Router } from "express";
 import { requireAuth } from "../auth/authMiddleware.js";
 import { requireCompanyContext } from "../companies/companyContext.js";
 import { requireRole } from "../permissions/permissionMiddleware.js";
+import { toHttpError } from "../../lib/httpErrors.js";
 import {
   getSimulatedSubscriptionPlan,
   listSimulatedSubscriptionPlans,
-  toSubscriptionPlanErrorResponse,
+  SimulatedSubscriptionPlanError,
 } from "./subscriptionPlans.js";
+import { getCurrentSubscription } from "./subscriptionService.js";
 
-/**
- * Constrói os middlewares de segurança usados pelas rotas de subscrição.
- *
- * @param {object} options Opções de configuração.
- * @param {import("@prisma/client").PrismaClient} options.prisma Cliente Prisma da aplicação.
- * @param {Function[] | null} [options.guards] Guards alternativos usados em testes.
- * @returns {Function[]} Middlewares de Express.
- */
-export function buildSubscriptionGuards({ prisma, guards = null }) {
-  if (Array.isArray(guards)) {
-    return guards;
+function sendError(res, error) {
+  const normalized = toHttpError(error);
+
+  return res.status(normalized.status).json({
+    error: normalized.code,
+    message: normalized.message,
+  });
+}
+
+function sendPlanError(res, error) {
+  if (error instanceof SimulatedSubscriptionPlanError) {
+    return res.status(404).json({
+      error: "SUBSCRIPTION_PLAN_NOT_FOUND",
+      message: "O plano de subscrição simulado não existe.",
+    });
   }
 
+  return sendError(res, error);
+}
+
+/**
+ * Cria os guards reais usados em produção para subscrições simuladas.
+ *
+ * @param {import("@prisma/client").PrismaClient} prisma - Cliente Prisma da API.
+ * @returns {import("express").RequestHandler[]} Lista de middlewares de segurança.
+ */
+export function buildSubscriptionGuards(prisma) {
   return [
     requireAuth(prisma),
     requireCompanyContext(prisma),
@@ -30,34 +47,43 @@ export function buildSubscriptionGuards({ prisma, guards = null }) {
 }
 
 /**
- * Cria as rotas HTTP do catálogo de subscrições simuladas.
+ * Cria o router HTTP das subscrições simuladas.
  *
- * @param {object} options Opções da rota.
- * @param {import("@prisma/client").PrismaClient} options.prisma Cliente Prisma da aplicação.
- * @param {Function[] | null} [options.guards] Guards alternativos usados em testes.
- * @returns {Router} Router configurado.
+ * @param {{ prisma: import("@prisma/client").PrismaClient, guards?: import("express").RequestHandler[] }} dependencies - Dependências da rota.
+ * @returns {Router} Router Express pronto a montar em `/api/subscriptions`.
  */
-export function buildSubscriptionRoutes({ prisma, guards = null } = {}) {
+export function buildSubscriptionRoutes({
+  prisma,
+  guards = buildSubscriptionGuards(prisma),
+}) {
   const router = Router();
-  const subscriptionGuards = buildSubscriptionGuards({ prisma, guards });
 
-  router.get("/plans", subscriptionGuards, (_req, res) => {
-    // A API devolve apenas catálogo simulado; nenhum pagamento externo é iniciado aqui.
+  router.get("/plans", guards, (req, res) => {
     return res.status(200).json({
       plans: listSimulatedSubscriptionPlans(),
     });
   });
 
-  router.get("/plans/:code", subscriptionGuards, (req, res) => {
+  router.get("/plans/:code", guards, (req, res) => {
     try {
       return res.status(200).json({
         plan: getSimulatedSubscriptionPlan(req.params.code),
       });
     } catch (error) {
-      // A conversão centralizada mantém o mesmo erro para o frontend e para os testes.
-      const response = toSubscriptionPlanErrorResponse(error);
+      return sendPlanError(res, error);
+    }
+  });
 
-      return res.status(response.status).json(response.body);
+  router.get("/current", guards, async (req, res) => {
+    try {
+      // req.companyId vem do middleware multiempresa e não de input do browser.
+      const currentSubscription = await getCurrentSubscription(prisma, {
+        companyId: req.companyId,
+      });
+
+      return res.status(200).json(currentSubscription);
+    } catch (error) {
+      return sendError(res, error);
     }
   });
 
