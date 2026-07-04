@@ -63,7 +63,6 @@ import {
 } from "./modules/ops/structuredLogger.js";
 import { buildHealthRoutes } from "./modules/ops/healthRoutes.js";
 import { buildSubscriptionRoutes } from "./modules/subscriptions/subscriptionRoutes.js";
-import { buildSubscriptionRoutes } from "./modules/subscriptions/subscriptionRoutes.js";
 
 loadLocalEnvFile();
 
@@ -80,6 +79,7 @@ app.use(express.json());
 app.use(requireTrustedOrigin({ appBaseUrl, isProduction }));
 
 app.use("/api/auth", buildAuthRoutes({ prisma, isProduction, appBaseUrl }));
+app.use("/api/subscriptions", buildSubscriptionRoutes({ prisma }));
 app.use("/api/permissions", buildPermissionsRoutes({ prisma }));
 app.use("/api", buildCompanyRoutes({ prisma }));
 app.use(
@@ -144,9 +144,6 @@ app.use(
         environment: apiEnv.nodeEnv,
     }),
 );
-
-app.use("/api/auth", buildAuthRoutes({ prisma, isProduction, appBaseUrl }));
-app.use("/api/subscriptions", buildSubscriptionRoutes({ prisma }));
 
 /**
  * Arranca o servidor HTTP.
