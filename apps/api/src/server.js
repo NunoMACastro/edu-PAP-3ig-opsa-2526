@@ -61,6 +61,7 @@ import {
     createStructuredLogEvent,
     writeStructuredLog,
 } from "./modules/ops/structuredLogger.js";
+import { buildHealthRoutes } from "./modules/ops/healthRoutes.js";
 
 loadLocalEnvFile();
 
@@ -68,6 +69,7 @@ const prisma = new PrismaClient();
 const app = express();
 const apiEnv = loadApiEnv();
 const { port, isProduction, appBaseUrl } = apiEnv;
+const API_VERSION = "1.0.0";
 
 app.set("trust proxy", 1);
 app.use(enforceHttps({ isProduction }));
@@ -126,6 +128,22 @@ app.use("/api/tasks", buildOperationalTaskRoutes({ prisma }));
 app.use("/api/notifications", buildNotificationRoutes({ prisma }));
 app.use("/api/audit", buildAuditLogRoutes({ prisma }));
 app.use("/api/integrations", buildIntegrationLogRoutes({ prisma }));
+app.set("trust proxy", 1);
+app.use(enforceHttps({ isProduction }));
+app.use(applyStrictTransportSecurity({ isProduction }));
+app.use(express.json());
+app.use(requireTrustedOrigin({ appBaseUrl, isProduction }));
+
+// O health-check é público, mas só expõe metadados operacionais controlados.
+app.use(
+    "/api/health",
+    buildHealthRoutes({
+        version: API_VERSION,
+        environment: apiEnv.nodeEnv,
+    }),
+);
+
+app.use("/api/auth", buildAuthRoutes({ prisma, isProduction, appBaseUrl }));
 
 /**
  * Arranca o servidor HTTP.
