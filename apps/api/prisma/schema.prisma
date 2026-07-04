@@ -130,6 +130,12 @@ enum BusinessImportType {
   STATEMENTS
 }
 
+enum CompanySubscriptionStatus {
+  ACTIVE
+  CANCELLED
+  EXPIRED
+}
+
 model User {
   id                  String               @id @default(uuid())
   email               String               @unique
@@ -243,6 +249,7 @@ model Company {
   operationalTasks OperationalTask[]
   notifications    InAppNotification[]
   integrationLogs  IntegrationLog[]
+  subscriptions    CompanySubscription[]
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
 }
@@ -1243,4 +1250,26 @@ model IntegrationLog {
 
   @@index([companyId, integrationType, createdAt])
   @@index([companyId, status, createdAt])
+}
+
+model CompanySubscription {
+  id String @id @default(uuid())
+
+  // A subscrição pertence à empresa persistida, não a um valor enviado pelo browser.
+  companyId String @unique
+
+  // O código do plano vem do catálogo canónico criado no BK-MF8-03.
+  planCode String
+
+  status CompanySubscriptionStatus @default(ACTIVE)
+  startsAt DateTime?
+  endsAt DateTime?
+  simulated Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Restrict)
+
+  @@index([status])
+  @@index([planCode])
 }
