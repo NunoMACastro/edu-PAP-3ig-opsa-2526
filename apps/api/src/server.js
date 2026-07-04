@@ -62,6 +62,7 @@ import {
     writeStructuredLog,
 } from "./modules/ops/structuredLogger.js";
 import { buildHealthRoutes } from "./modules/ops/healthRoutes.js";
+import { buildSubscriptionRoutes } from "./modules/subscriptions/subscriptionRoutes.js";
 
 loadLocalEnvFile();
 
@@ -144,6 +145,7 @@ app.use(
 );
 
 app.use("/api/auth", buildAuthRoutes({ prisma, isProduction, appBaseUrl }));
+app.use("/api/subscriptions", buildSubscriptionRoutes({ prisma }));
 
 /**
  * Arranca o servidor HTTP.
