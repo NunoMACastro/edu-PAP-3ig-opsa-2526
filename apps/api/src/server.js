@@ -63,6 +63,7 @@ import {
 } from "./modules/ops/structuredLogger.js";
 import { buildHealthRoutes } from "./modules/ops/healthRoutes.js";
 import { buildSubscriptionRoutes } from "./modules/subscriptions/subscriptionRoutes.js";
+import { buildSubscriptionRoutes } from "./modules/subscriptions/subscriptionRoutes.js";
 
 loadLocalEnvFile();
 
