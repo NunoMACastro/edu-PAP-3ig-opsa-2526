@@ -141,3 +141,213 @@ export function assertSubscriptionBelongsToActiveCompany(subscription, companyId
 
   return subscription;
 }
+// apps/api/src/modules/subscriptions/subscriptionService.js
+
+export const SUBSCRIPTION_LIFECYCLE_ACTION = Object.freeze({
+  RENEW: "renew",
+  CANCEL: "cancel",
+  REACTIVATE: "reactivate",
+});
+
+const ALLOWED_LIFECYCLE_TRANSITIONS = Object.freeze({
+  [SUBSCRIPTION_STATUS.ACTIVE]: new Set([
+    SUBSCRIPTION_LIFECYCLE_ACTION.RENEW,
+    SUBSCRIPTION_LIFECYCLE_ACTION.CANCEL,
+  ]),
+  [SUBSCRIPTION_STATUS.CANCELLED]: new Set([
+    SUBSCRIPTION_LIFECYCLE_ACTION.REACTIVATE,
+  ]),
+  [SUBSCRIPTION_STATUS.EXPIRED]: new Set([
+    SUBSCRIPTION_LIFECYCLE_ACTION.REACTIVATE,
+  ]),
+});
+
+/**
+ * Normaliza a ação pedida antes de tocar na base de dados.
+ *
+ * @param {string} action - Ação recebida no pedido HTTP.
+ * @returns {"renew" | "cancel" | "reactivate"} Ação validada.
+ * @throws {HttpError} Quando a ação não pertence ao contrato de RF51.
+ */
+function readSubscriptionLifecycleAction(action) {
+  const normalizedAction = requireText(
+    action,
+    "SUBSCRIPTION_ACTION_REQUIRED",
+    "É obrigatório indicar a ação da subscrição.",
+  );
+
+  if (!Object.values(SUBSCRIPTION_LIFECYCLE_ACTION).includes(normalizedAction)) {
+    throw httpError(
+      400,
+      "INVALID_SUBSCRIPTION_ACTION",
+      "A ação da subscrição deve ser renew, cancel ou reactivate.",
+    );
+  }
+
+  return normalizedAction;
+}
+
+/**
+ * Valida os dados de entrada do service de ciclo de vida.
+ *
+ * @param {{ companyId: string, userId: string, action: string, planCode?: string }} input - Dados vindos da rota protegida.
+ * @returns {{ companyId: string, userId: string, action: "renew" | "cancel" | "reactivate", planCode: string | null }} Dados normalizados.
+ */
+function readSubscriptionLifecycleInput(input) {
+  const action = readSubscriptionLifecycleAction(input.action);
+  const planCode = input.planCode === undefined || input.planCode === null
+    ? null
+    : requireText(
+      input.planCode,
+      "SUBSCRIPTION_PLAN_REQUIRED",
+      "É obrigatório indicar um plano válido para reativar a subscrição.",
+    );
+
+  if (action === SUBSCRIPTION_LIFECYCLE_ACTION.REACTIVATE && !planCode) {
+    throw httpError(
+      400,
+      "SUBSCRIPTION_PLAN_REQUIRED",
+      "A reativação precisa de um plano de subscrição.",
+    );
+  }
+
+  return {
+    companyId: requireActiveCompany(input.companyId),
+    userId: requireText(
+      input.userId,
+      "SUBSCRIPTION_USER_REQUIRED",
+      "É obrigatório identificar o utilizador autenticado.",
+    ),
+    action,
+    planCode,
+  };
+}
+
+/**
+ * Confirma que a transição pedida é permitida para o estado atual.
+ *
+ * @param {{ status: string } | null} subscription - Subscrição atual da empresa.
+ * @param {"renew" | "cancel" | "reactivate"} action - Ação validada.
+ * @returns {void}
+ * @throws {HttpError} Quando não existe subscrição ou a transição é inválida.
+ */
+export function assertSubscriptionLifecycleTransition(subscription, action) {
+  if (!subscription) {
+    throw httpError(
+      404,
+      "SUBSCRIPTION_NOT_FOUND",
+      "A empresa ativa ainda não tem uma subscrição para alterar.",
+    );
+  }
+
+  const allowedActions = ALLOWED_LIFECYCLE_TRANSITIONS[subscription.status];
+
+  // A decisão fica no backend para impedir que a UI force estados impossíveis.
+  if (!allowedActions?.has(action)) {
+    throw httpError(
+      409,
+      "INVALID_SUBSCRIPTION_TRANSITION",
+      `A subscrição não pode executar ${action} a partir do estado ${subscription.status}.`,
+    );
+  }
+}
+
+/**
+ * Calcula os campos Prisma a alterar para a ação pedida.
+ *
+ * @param {{ subscription: object, action: "renew" | "cancel" | "reactivate", planCode: string | null, now: Date }} input - Contexto da transição.
+ * @returns {{ data: object, planCode: string | null, nextStatus: string }} Dados para `update`.
+ */
+function buildSubscriptionLifecycleUpdate(input) {
+  if (input.action === SUBSCRIPTION_LIFECYCLE_ACTION.CANCEL) {
+    return {
+      data: {
+        status: SUBSCRIPTION_STATUS.CANCELLED,
+      },
+      planCode: input.subscription.planCode,
+      nextStatus: SUBSCRIPTION_STATUS.CANCELLED,
+    };
+  }
+
+  const planCode = input.action === SUBSCRIPTION_LIFECYCLE_ACTION.REACTIVATE
+    ? input.planCode
+    : input.subscription.planCode;
+  const plan = getSimulatedSubscriptionPlan(planCode);
+  const currentEndsAt = input.subscription.endsAt
+    ? new Date(input.subscription.endsAt)
+    : input.now;
+  const baseDate = currentEndsAt > input.now ? currentEndsAt : input.now;
+  const startsAt = input.action === SUBSCRIPTION_LIFECYCLE_ACTION.REACTIVATE
+    ? input.now
+    : input.subscription.startsAt;
+  const endsAt = calculateSubscriptionCycleEnd(baseDate, plan);
+
+  return {
+    data: {
+      planCode: plan.code,
+      status: SUBSCRIPTION_STATUS.ACTIVE,
+      startsAt,
+      endsAt,
+      simulated: true,
+    },
+    planCode: plan.code,
+    nextStatus: SUBSCRIPTION_STATUS.ACTIVE,
+  };
+}
+
+/**
+ * Executa renovação, cancelamento ou reativação da subscrição atual.
+ *
+ * @param {import("@prisma/client").PrismaClient} prisma - Cliente Prisma da API.
+ * @param {{ companyId: string, userId: string, action: string, planCode?: string, now?: Date }} input - Pedido validado pela rota.
+ * @returns {Promise<object>} Payload público da subscrição atualizada.
+ */
+export async function runSimulatedSubscriptionAction(prisma, input) {
+  const lifecycleInput = readSubscriptionLifecycleInput(input);
+  const now = input.now instanceof Date ? input.now : new Date();
+
+  const subscription = await prisma.$transaction(async (tx) => {
+    const currentSubscription = await tx.companySubscription.findUnique({
+      // A pesquisa usa a empresa ativa do backend, nunca um valor escolhido no body.
+      where: { companyId: lifecycleInput.companyId },
+    });
+
+    assertSubscriptionBelongsToActiveCompany(
+      currentSubscription,
+      lifecycleInput.companyId,
+    );
+    assertSubscriptionLifecycleTransition(currentSubscription, lifecycleInput.action);
+
+    const previousStatus = currentSubscription.status;
+    const update = buildSubscriptionLifecycleUpdate({
+      subscription: currentSubscription,
+      action: lifecycleInput.action,
+      planCode: lifecycleInput.planCode,
+      now,
+    });
+
+    const savedSubscription = await tx.companySubscription.update({
+      where: { companyId: lifecycleInput.companyId },
+      data: update.data,
+    });
+
+    // A auditoria guarda a intenção e a transição, sem payload completo nem dados financeiros.
+    await recordAuditLog(tx, {
+      companyId: lifecycleInput.companyId,
+      userId: lifecycleInput.userId,
+      action: `subscription.${lifecycleInput.action}`,
+      entity: "CompanySubscription",
+      entityId: savedSubscription.id,
+      details: {
+        previousStatus,
+        nextStatus: update.nextStatus,
+        planCode: update.planCode,
+        simulated: true,
+      },
+    });
+
+    return savedSubscription;
+  });
+
+  return formatCurrentSubscription(subscription);
+}
