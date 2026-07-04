@@ -57,6 +57,10 @@ import {
     enforceHttps,
 } from "./modules/security/transportSecurity.js";
 import { requireTrustedOrigin } from "./modules/security/requestHardening.js";
+import {
+    createStructuredLogEvent,
+    writeStructuredLog,
+} from "./modules/ops/structuredLogger.js";
 
 loadLocalEnvFile();
 
@@ -130,11 +134,20 @@ app.use("/api/integrations", buildIntegrationLogRoutes({ prisma }));
  */
 function startServer() {
     return app.listen(port, () => {
-        console.info({
-            event: "api_started",
-            port,
-            environment: apiEnv.nodeEnv,
+        // O evento de arranque usa apenas metadados operacionais seguros.
+        const startupEvent = createStructuredLogEvent({
+            level: "info",
+            event: "api.started",
+            module: "server",
+            requirement: "RNF28",
+            context: {
+                port,
+                environment: apiEnv.nodeEnv,
+            },
         });
+
+        // O writer central evita regressar a console.info solto e aplica sempre a mesma política.
+        writeStructuredLog(startupEvent);
     });
 }
 
