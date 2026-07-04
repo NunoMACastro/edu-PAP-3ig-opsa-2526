@@ -160,3 +160,67 @@ export function buildSubscriptionRoutes(options) {
 
   return router;
 }
+
+// apps/api/src/modules/subscriptions/subscriptionRoutes.js
+
+import {
+  activateSimulatedSubscription,
+  getCurrentSubscription,
+  rethrowSubscriptionError,
+  runSimulatedSubscriptionAction,
+} from "./subscriptionService.js";
+
+/**
+ * Lê o body das ações de ciclo de vida da subscrição.
+ *
+ * @param {object} body - Body JSON recebido pela rota.
+ * @returns {{ action: string, planCode?: string }} Dados normalizados para o service.
+ */
+function readLifecycleActionBody(body) {
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    throw httpError(
+      400,
+      "INVALID_SUBSCRIPTION_ACTION_BODY",
+      "O pedido deve enviar um objeto JSON.",
+    );
+  }
+
+  if (typeof body.action !== "string" || body.action.trim().length === 0) {
+    throw httpError(
+      400,
+      "SUBSCRIPTION_ACTION_REQUIRED",
+      "É obrigatório indicar a ação da subscrição.",
+    );
+  }
+
+  if (body.planCode !== undefined && typeof body.planCode !== "string") {
+    throw httpError(
+      400,
+      "SUBSCRIPTION_PLAN_INVALID",
+      "O plano deve ser identificado por texto.",
+    );
+  }
+
+  return {
+    action: body.action.trim(),
+    planCode: body.planCode?.trim(),
+  };
+}
+
+router.post("/current/actions", protectedGuards, async (req, res) => {
+  try {
+    const body = readLifecycleActionBody(req.body);
+    const result = await runSimulatedSubscriptionAction(prisma, {
+      // Empresa e utilizador vêm dos middlewares, não do browser.
+      companyId: req.companyId,
+      userId: req.user.id,
+      action: body.action,
+      planCode: body.planCode,
+    });
+
+    return res.status(200).json(result);
+  } catch (error) {
+    // Erros de catálogo e erros HTTP do service são devolvidos de forma controlada.
+    return sendError(res, normalizeSubscriptionError(error));
+  }
+});
