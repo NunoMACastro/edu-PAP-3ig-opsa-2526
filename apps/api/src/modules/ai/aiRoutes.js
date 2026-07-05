@@ -66,12 +66,15 @@ export function buildAiRoutes({ prisma }) {
         }
     });
 
+    // apps/api/src/modules/ai/aiRoutes.js
     router.get("/insights/:id/explanation", baseGuards, async (req, res) => {
         try {
             const explanation = await explainAiInsight(prisma, {
+                // A empresa ativa é resolvida pelos guards no backend; nunca vem do body ou query string.
                 companyId: req.companyId,
                 insightId: req.params.id,
             });
+
             return res.status(200).json({ explanation });
         } catch (error) {
             return sendError(res, error);
