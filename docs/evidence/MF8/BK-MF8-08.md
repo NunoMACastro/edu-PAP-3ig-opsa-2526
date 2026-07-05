@@ -53,6 +53,8 @@
 
 ## Resultados obtidos
 - PS D:\PAP\edu-PAP-3ig-opsa-2526> cd apps/api
+
+## npm run test:mf8:subscriptions
 - PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> npm run test:mf8:subscriptions
 
 > @opsa/api@1.0.0 test:mf8:subscriptions
