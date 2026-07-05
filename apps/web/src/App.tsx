@@ -21,6 +21,7 @@ import { SaleDocumentsPage } from "./pages/SaleDocumentsPage";
 import { SalePostingsPage } from "./pages/SalePostingsPage";
 import { SalesOpenItemsPage } from "./pages/SalesOpenItemsPage";
 import { VatRatesPage } from "./pages/VatRatesPage";
+import { SubscriptionsPage } from "./pages/SubscriptionsPage";
 import {
   AccountingReportsPage,
   FifoCostPage,
@@ -992,10 +993,25 @@ export function App() {
     [],
   );
 
+  const mf8Pages = useMemo<PageConfig[]>(
+  () => [
+    {
+      id: "subscriptions",
+      title: "Subscrições",
+      render: () => <SubscriptionsPage />,
+    },
+  ],
+  [],
+);
+
   const activeResource = resources.find((resource) => resource.id === active);
-  const activePage = [...mf1Pages, ...mf2Pages, ...mf3Pages, ...mf4Pages].find(
-    (page) => page.id === active,
-  );
+  const activePage = [
+  ...mf1Pages,
+  ...mf2Pages,
+  ...mf3Pages,
+  ...mf4Pages,
+  ...mf8Pages,
+].find((page) => page.id === active);
 
   return (
     <main className="appShell">
@@ -1062,6 +1078,20 @@ export function App() {
               {page.title}
             </button>
           ))}
+          {/** MF8 - Subscrições */}
+          <div className="navSection">
+            <p className="navSection__title">MF8 - Subscrições</p>
+            {mf8Pages.map((page) => (
+              <button
+                className={active === page.id ? "active" : ""}
+                key={page.id}
+                onClick={() => setActive(page.id)}
+                type="button"
+              >
+                {page.title}
+              </button>
+            ))}
+          </div>
         </nav>
         <pre className="sessionBox">{JSON.stringify(authSnapshot, null, 2)}</pre>
       </aside>
