@@ -345,20 +345,46 @@ export async function generateAiInsights(prisma, input) {
     return insights.sort((left, right) => left.severity.localeCompare(right.severity));
 }
 
+
 /**
- * Devolve uma explicacao segura de um insight da empresa ativa.
+ * Valida que um insight pode ser defendido com explicação e fonte.
+ *
+ * @param {{ title?: string, explanation?: string, sourceType?: string, sourceId?: string, sourceLabel?: string }} insight - Insight candidato ou persistido.
+ * @returns {void}
+ * @throws {Error} Quando o insight não tem campos mínimos de explicabilidade.
+ */
+export function assertExplainableInsight(insight) {
+    const missing = ["title", "explanation", "sourceType", "sourceId", "sourceLabel"].filter((key) => !insight[key]?.trim?.());
+    if (missing.length > 0) {
+        throw new Error(`Insight sem explicabilidade mínima: ${missing.join(", ")}`);
+    }
+
+    // A explicação deve ser suficientemente concreta para defesa e não apenas uma frase genérica.
+    if (insight.explanation.trim().length < 40) {
+        throw new Error("Explicação do insight demasiado curta.");
+    }
+}
+
+/**
+ * Devolve uma explicação segura de um insight da empresa ativa.
  *
  * @param {import("@prisma/client").PrismaClient} prisma - Cliente Prisma.
- * @param {{ companyId: string, insightId: string }} input - Contexto e identificador.
- * @returns {Promise<object>} Explicacao e fontes.
+ * @param {{ companyId: string, insightId: string }} input - Empresa autenticada e identificador do insight.
+ * @returns {Promise<object>} Explicação, fonte e limite de atuação da IA.
+ * @throws {import("../../lib/httpErrors.js").HttpError} Quando o insight não existe na empresa ativa.
  */
 export async function explainAiInsight(prisma, input) {
     const insight = await prisma.aiInsight.findFirst({
+        // O companyId vem da sessão/contexto backend e impede leitura de insights de outra empresa.
         where: { id: input.insightId, companyId: input.companyId },
     });
+
     if (!insight) {
-        throw httpError(404, "AI_INSIGHT_NOT_FOUND", "Insight nao encontrado");
+        throw httpError(404, "AI_INSIGHT_NOT_FOUND", "Insight não encontrado");
     }
+
+    assertExplainableInsight(insight);
+
     return {
         id: insight.id,
         title: insight.title,
@@ -368,7 +394,8 @@ export async function explainAiInsight(prisma, input) {
             id: insight.sourceId,
             label: insight.sourceLabel,
         },
-        guardrail: "A IA explica e recomenda; nao executa alteracoes automaticamente.",
+        // O guardrail aparece no payload para a UI e a defesa mostrarem que a IA recomenda, mas não executa.
+        guardrail: "A IA explica e recomenda; não executa alterações automaticamente.",
     };
 }
 
