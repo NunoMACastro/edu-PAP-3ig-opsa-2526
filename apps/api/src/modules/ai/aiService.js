@@ -9,6 +9,7 @@
 import { httpError } from "../../lib/httpErrors.js";
 import { listStockAlerts } from "../inventory/stockAlertService.js";
 import { validateQuestionPayload } from "./aiValidators.js";
+import { assertAiRecommendationOnly } from "./aiGovernancePolicy.js";
 
 /**
  * Cria percentagem em pontos base protegida contra divisao por zero.
@@ -400,11 +401,11 @@ export async function explainAiInsight(prisma, input) {
 }
 
 /**
- * Cria sugestoes de acao a partir de insights persistidos.
+ * Cria sugestões de ação a partir de insights persistidos sem executar ações automaticamente.
  *
  * @param {import("@prisma/client").PrismaClient} prisma - Cliente Prisma.
  * @param {{ companyId: string, userId: string }} input - Contexto autenticado.
- * @returns {Promise<object[]>} Sugestoes abertas.
+ * @returns {Promise<object[]>} Sugestões abertas para revisão humana.
  */
 export async function generateAiSuggestions(prisma, input) {
     const insights = await prisma.aiInsight.findMany({
@@ -412,9 +413,14 @@ export async function generateAiSuggestions(prisma, input) {
         orderBy: { generatedAt: "desc" },
         take: 50,
     });
+
     const suggestions = [];
     for (const insight of insights) {
+        // Calculamos a intenção antes de escrever para bloquear ações automáticas no primeiro ponto seguro.
         const actionType = suggestionActionType(insight);
+        assertAiRecommendationOnly({ actionType });
+
+        // O upsert só grava uma sugestão para revisão humana; não aprova documentos nem cria lançamentos.
         suggestions.push(
             await prisma.aiActionSuggestion.upsert({
                 where: {
@@ -444,6 +450,7 @@ export async function generateAiSuggestions(prisma, input) {
             }),
         );
     }
+
     return suggestions;
 }
 
