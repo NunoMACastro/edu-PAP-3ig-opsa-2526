@@ -1,5 +1,6 @@
+// apps/api/src/modules/notifications/notificationRoutes.js
 /**
- * @file Rotas de notificacoes in-app MF4.
+ * @file Rotas de notificações in-app e preferências de alertas.
  */
 
 import { Router } from "express";
@@ -8,6 +9,11 @@ import { requireAuth } from "../auth/authMiddleware.js";
 import { requireCompanyContext } from "../companies/companyContext.js";
 import { requirePermission } from "../permissions/permissionMiddleware.js";
 import { Permission } from "../permissions/permissions.js";
+import {
+    listAlertPreferences,
+    parseAlertPreferenceBody,
+    setAlertPreference,
+} from "./alertPreferenceService.js";
 import {
     listNotifications,
     markNotificationRead,
@@ -31,9 +37,9 @@ function sendError(res, error) {
 }
 
 /**
- * Monta endpoints de notificacoes.
+ * Monta endpoints de notificações e preferências de alertas.
  *
- * @param {{ prisma: import("@prisma/client").PrismaClient }} deps - Dependencias.
+ * @param {{ prisma: import("@prisma/client").PrismaClient }} deps - Dependências.
  * @returns {Router} Router Express.
  */
 export function buildNotificationRoutes({ prisma }) {
@@ -63,6 +69,35 @@ export function buildNotificationRoutes({ prisma }) {
                 userId: req.user.id,
             });
             return res.status(200).json({ notifications });
+        } catch (error) {
+            return sendError(res, error);
+        }
+    });
+
+    router.get("/preferences", guards, async (req, res) => {
+        try {
+            const preferences = await listAlertPreferences(prisma, {
+                // O companyId vem do middleware de empresa ativa, não do frontend.
+                companyId: req.companyId,
+                userId: req.user.id,
+            });
+            return res.status(200).json({ preferences });
+        } catch (error) {
+            return sendError(res, error);
+        }
+    });
+
+    router.patch("/preferences/:type", guards, async (req, res) => {
+        try {
+            const body = parseAlertPreferenceBody(req.body);
+            const preference = await setAlertPreference(prisma, {
+                // A route só aceita o tipo na URL e o enabled no body.
+                companyId: req.companyId,
+                userId: req.user.id,
+                type: req.params.type,
+                enabled: body.enabled,
+            });
+            return res.status(200).json({ preference });
         } catch (error) {
             return sendError(res, error);
         }

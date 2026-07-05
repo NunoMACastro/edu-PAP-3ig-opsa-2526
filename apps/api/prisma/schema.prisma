@@ -167,6 +167,7 @@ model User {
   tasksCreated        OperationalTask[]    @relation("UserTasksCreated")
   tasksAssigned       OperationalTask[]    @relation("UserTasksAssigned")
   notifications       InAppNotification[]  @relation("UserNotifications")
+  alertPreferences    AlertPreference[]    @relation("UserAlertPreferences")
   integrationLogsCreated IntegrationLog[]  @relation("UserIntegrationLogs")
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
@@ -248,6 +249,7 @@ model Company {
   reminders        Reminder[]
   operationalTasks OperationalTask[]
   notifications    InAppNotification[]
+  alertPreferences AlertPreference[]
   integrationLogs  IntegrationLog[]
   subscriptions    CompanySubscription[]
   createdAt         DateTime            @default(now())
@@ -1208,6 +1210,23 @@ model OperationalTask {
 
   @@index([companyId, status, dueAt])
   @@index([assignedToId, dueAt])
+}
+
+model AlertPreference {
+  id        String   @id @default(uuid())
+  companyId String
+  userId    String
+  type      String
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user    User    @relation("UserAlertPreferences", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, userId, type])
+  @@index([companyId, userId])
+  @@index([type])
 }
 
 model InAppNotification {
