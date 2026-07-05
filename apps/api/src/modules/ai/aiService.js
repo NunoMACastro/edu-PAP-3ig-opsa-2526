@@ -589,3 +589,74 @@ export async function generateSmartAlerts(prisma, input) {
     }
     return alerts;
 }
+// apps/api/src/modules/ai/aiService.js
+import { assertAiRecommendationOnly } from "./aiGovernancePolicy.js";
+import { assertAiSourceQuality } from "./aiSourceGuardrails.js";
+
+/**
+ * Cria sugestões de ação a partir de insights persistidos e filtrados por empresa ativa.
+ *
+ * @param {import("@prisma/client").PrismaClient} prisma - Cliente Prisma.
+ * @param {{ companyId: string, userId: string }} input - Contexto autenticado vindo da rota protegida.
+ * @returns {Promise<object[]>} Sugestões abertas para revisão humana, com qualidade de fonte.
+ */
+export async function generateAiSuggestions(prisma, input) {
+    const insights = await prisma.aiInsight.findMany({
+        // O companyId vem dos guards do backend; o frontend não escolhe a empresa consultada.
+        where: { companyId: input.companyId, status: "OPEN" },
+        orderBy: { generatedAt: "desc" },
+        take: 50,
+    });
+
+    const suggestions = [];
+    for (const insight of insights) {
+        const actionType = suggestionActionType(insight);
+        assertAiRecommendationOnly({ actionType });
+
+        // A qualidade da fonte é validada antes de gravar a sugestão para evitar código morto no guardrail.
+        const sourceQuality = assertAiSourceQuality({
+            companyId: input.companyId,
+            sourceType: insight.sourceType,
+            sourceId: insight.sourceId,
+            sourceLabel: insight.sourceLabel,
+            explanation: insight.explanation,
+            actionType,
+        });
+
+        // O upsert continua a guardar apenas a recomendação humana; a IA não executa a ação sugerida.
+        const suggestion = await prisma.aiActionSuggestion.upsert({
+            where: {
+                companyId_insightId_actionType: {
+                    companyId: input.companyId,
+                    insightId: insight.id,
+                    actionType,
+                },
+            },
+            update: {
+                title: insight.suggestedAction ?? "Rever indicador antes de agir",
+                rationale: insight.explanation,
+                sourceLabel: insight.sourceLabel,
+                status: "OPEN",
+                createdById: input.userId,
+            },
+            create: {
+                companyId: input.companyId,
+                insightId: insight.id,
+                actionType,
+                title: insight.suggestedAction ?? "Rever indicador antes de agir",
+                rationale: insight.explanation,
+                sourceLabel: insight.sourceLabel,
+                status: "OPEN",
+                createdById: input.userId,
+            },
+        });
+
+        suggestions.push({
+            ...suggestion,
+            sourceQuality,
+            guardrail: "A IA recomenda com fonte rastreável; a decisão continua humana.",
+        });
+    }
+
+    return suggestions;
+}
