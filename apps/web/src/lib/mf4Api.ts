@@ -2,6 +2,7 @@
  * @file Cliente API tipado para os fluxos MF4.
  */
 
+import { AiSourceQuality } from "../ui/opsaUi";
 import { createApiClient, JsonBody } from "./apiClient";
 
 const client = createApiClient();
@@ -27,6 +28,8 @@ export interface AiActionSuggestion {
   rationale: string;
   sourceLabel: string;
   status: string;
+  sourceQuality?: AiSourceQuality;
+  guardrail?: string;
 }
 
 export interface AiQuestionAnswer {

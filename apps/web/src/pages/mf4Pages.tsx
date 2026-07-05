@@ -33,7 +33,6 @@ import {
   updateTaskStatus,
   askAiQuestion,
 } from "../lib/mf4Api";
-import { PageFrame, StatusMessage } from "../ui/opsaUi";
 import { type ActionFeedbackState, useActionFeedback } from "../ui/useActionFeedback";
 
 /**
@@ -254,46 +253,7 @@ export function AiInsightsPage() {
   );
 }
 
-export function AiSuggestionsPage() {
-  const [suggestions, setSuggestions] = useState<AiActionSuggestion[]>([]);
-  const action = useActionFeedback();
 
-  async function load() {
-    try {
-      await action.run(
-        async () => {
-          setSuggestions((await getAiSuggestions()).suggestions);
-        },
-        {
-          startMessage: "A atualizar sugestoes...",
-          successMessage: "Sugestoes atualizadas.",
-          errorMessage: "Nao foi possivel carregar as sugestoes.",
-        },
-      );
-    } catch {
-      // O feedback de erro ja esta visivel.
-    }
-  }
-
-  return (
-    <PageFrame title="Sugestões de ação">
-      <button type="button" onClick={load} disabled={action.busy}>
-        {action.busy ? "A carregar..." : "Atualizar"}
-      </button>
-      <ActionFeedbackMessage feedback={action.feedback} />
-      <SimpleList
-        items={suggestions}
-        render={(item) => (
-          <article className="operation" key={item.id}>
-            <h3>{item.title}</h3>
-            <p>{item.rationale}</p>
-            <p>{item.actionType} · {item.sourceLabel}</p>
-          </article>
-        )}
-      />
-    </PageFrame>
-  );
-}
 
 export function AiQuestionsPage() {
   const [answer, setAnswer] = useState<AiQuestionAnswer | null>(null);
@@ -735,6 +695,66 @@ export function IntegrationLogsPage() {
         </StatusMessage>
       ) : null}
       <JsonResult value={logs} />
+    </PageFrame>
+  );
+}
+import { AiSourceQualityPanel, PageFrame, StatusMessage } from "../ui/opsaUi";
+
+/**
+ * Lista sugestões de IA com fonte, limitação e aviso de decisão humana.
+ *
+ * @returns Página React de sugestões assistivas.
+ */
+export function AiSuggestionsPage() {
+  const [suggestions, setSuggestions] = useState<AiActionSuggestion[]>([]);
+  const action = useActionFeedback();
+
+  /**
+   * Recarrega sugestões usando a sessão atual enviada por cookie HttpOnly.
+   *
+   * @returns Promise resolvida quando a lista fica atualizada.
+   */
+  async function load() {
+    try {
+      await action.run(
+        async () => {
+          const result = await getAiSuggestions();
+          setSuggestions(result.suggestions);
+        },
+        {
+          startMessage: "A atualizar sugestões...",
+          successMessage: "Sugestões atualizadas.",
+          errorMessage: "Não foi possível carregar as sugestões.",
+        },
+      );
+    } catch {
+      // O feedback de erro fica visível e a lista anterior não é apagada sem necessidade.
+    }
+  }
+
+  return (
+    <PageFrame
+      title="Sugestões de ação"
+      description="Recomendações explicáveis com fonte, limitação e decisão humana."
+    >
+      <button type="button" onClick={load} disabled={action.busy}>
+        {action.busy ? "A carregar..." : "Atualizar"}
+      </button>
+      <ActionFeedbackMessage feedback={action.feedback} />
+      <SimpleList
+        items={suggestions}
+        render={(item) => (
+          <article className="operation" key={item.id}>
+            <h3>{item.title}</h3>
+            <p>{item.rationale}</p>
+            <p>{item.actionType} · {item.sourceLabel}</p>
+            <AiSourceQualityPanel quality={item.sourceQuality} />
+            <StatusMessage tone="neutral" title="Decisão humana">
+              {item.guardrail ?? "A IA recomenda com fonte rastreável; a decisão continua humana."}
+            </StatusMessage>
+          </article>
+        )}
+      />
     </PageFrame>
   );
 }
