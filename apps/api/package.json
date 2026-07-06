@@ -36,8 +36,10 @@
     "check:mf7:backend-modules": "node scripts/check-mf7-backend-modules.mjs",
     "test:mf7:critical-modules": "node --test tests/contracts/mf7-critical-modules.test.js",
     "test:mf7": "npm run test:mf7:retention && npm run test:mf7:email && npm run test:mf7:exports && npm run test:mf7:imports && npm run test:mf7:saft && npm run check:mf7:backend-modules && npm run test:mf7:critical-modules",
-    "test:mf8:subscriptions": "node --test tests/contracts/mf8-subscriptions.contract.test.js",
-    "test:mf8:technical-docs": "node scripts/check-mf8-technical-docs.mjs"
+    "test:mf8:inventory": "node scripts/check-mf8-test-inventory.mjs",
+    "test:mf8:inventory-contracts": "node --test tests/contracts/mf8-test-inventory-contracts.test.js",
+    "test:mf8": "npm run test:mf8:inventory && npm run test:mf8:inventory-contracts",
+    "test:final:prepare": "npm run syntax:check && npm run test:unit && npm run test:contracts && npm run test:integration && npm run test:mf6 && npm run test:mf7 && npm run test:mf8"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
