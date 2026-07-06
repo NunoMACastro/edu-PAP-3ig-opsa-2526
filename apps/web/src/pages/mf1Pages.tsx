@@ -87,14 +87,14 @@ function DataTable({
             {columns.map((column) => (
               <th key={column}>{column}</th>
             ))}
-            {actions ? <th>Acoes</th> : null}
+            {actions ? <th>Ações</th> : null}
           </tr>
         </thead>
         <tbody>
           {rows.map((row, index) => (
             <tr key={String(row.id ?? index)}>
               {columns.map((column) => (
-                <td key={column}>{formatValue(row[column])}</td>
+                <td key={column}>{formatValue(row[column], column)}</td>
               ))}
               {actions ? <td>{actions(row)}</td> : null}
             </tr>
