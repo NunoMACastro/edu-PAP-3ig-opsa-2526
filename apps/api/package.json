@@ -40,7 +40,8 @@
     "test:mf8:inventory-contracts": "node --test tests/contracts/mf8-test-inventory-contracts.test.js",
     "test:mf8": "npm run test:mf8:inventory && npm run test:mf8:inventory-contracts",
     "test:final:prepare": "npm run syntax:check && npm run test:unit && npm run test:contracts && npm run test:integration && npm run test:mf6 && npm run test:mf7 && npm run test:mf8",
-    "mf8:final-validation": "node scripts/run-mf8-final-validation.mjs"
+    "mf8:final-validation": "node scripts/run-mf8-final-validation.mjs",
+    "mf8:defect-report": "node scripts/check-mf8-defect-report.mjs"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
