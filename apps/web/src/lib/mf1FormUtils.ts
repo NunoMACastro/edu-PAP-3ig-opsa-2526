@@ -1,6 +1,6 @@
-/**
- * @file Utilitários partilhados para normalizar respostas e validar formulários dos ecrãs MF1.
- */
+// apps/web/src/lib/mf1FormUtils.ts
+
+import { formatDisplayValue } from "./formatters";
 
 export type ApiObject = Record<string, unknown>;
 
@@ -29,29 +29,28 @@ export function pickArray(response: unknown, key: string): ApiObject[] {
 }
 
 /**
- * Converte valores heterogéneos da API numa representação textual estável para tabelas.
+ * Converte valores heterogéneos da API numa representação textual PT-PT para tabelas.
  *
  * @param value - Valor a normalizar ou formatar.
+ * @param columnName - Nome da coluna que ajuda a escolher moeda, data ou percentagem.
  * @returns Representação textual estável do valor recebido.
  */
-export function formatValue(value: unknown): string {
-  if (value === null || value === undefined || value === "") return "-";
-  if (typeof value === "boolean") return value ? "sim" : "nao";
-  if (typeof value === "object") return JSON.stringify(value);
-  return String(value);
+export function formatValue(value: unknown, columnName = ""): string {
+  // A regra de apresentação fica no formatter central para não duplicar locale nas páginas.
+  return formatDisplayValue(columnName, value);
 }
 
 /**
  * Converte texto de formulário num inteiro positivo obrigatório.
  *
- * @param value - Valor a normalizar ou formatar.
+ * @param value - Valor a normalizar.
  * @param label - Nome amigável usado em mensagens de erro ou UI.
  * @returns Inteiro positivo validado.
  */
 export function toPositiveInteger(value: FormDataEntryValue | null, label: string) {
   const parsed = Number(String(value ?? "").trim());
   if (!Number.isInteger(parsed) || parsed <= 0) {
-    throw new Error(`${label} deve ser um numero inteiro positivo`);
+    throw new Error(`${label} deve ser um número inteiro positivo`);
   }
   return parsed;
 }
@@ -59,14 +58,14 @@ export function toPositiveInteger(value: FormDataEntryValue | null, label: strin
 /**
  * Normaliza texto obrigatório e lança erro claro quando o campo está vazio.
  *
- * @param value - Valor a normalizar ou formatar.
+ * @param value - Valor a normalizar.
  * @param label - Nome amigável usado em mensagens de erro ou UI.
  * @returns Texto obrigatório validado.
  */
 export function requiredText(value: FormDataEntryValue | null, label: string) {
   const text = String(value ?? "").trim();
   if (!text) {
-    throw new Error(`${label} e obrigatorio`);
+    throw new Error(`${label} é obrigatório`);
   }
   return text;
 }
@@ -74,7 +73,7 @@ export function requiredText(value: FormDataEntryValue | null, label: string) {
 /**
  * Normaliza texto opcional, devolvendo undefined para campos vazios.
  *
- * @param value - Valor a normalizar ou formatar.
+ * @param value - Valor a normalizar.
  * @returns Texto normalizado, ou undefined quando o campo está vazio.
  */
 export function optionalText(value: FormDataEntryValue | null) {

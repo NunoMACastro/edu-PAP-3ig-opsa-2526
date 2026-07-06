@@ -148,7 +148,7 @@ function DataTable({ rows }: { rows: ApiObject[] }) {
           {rows.map((row, index) => (
             <tr key={String(row.id ?? index)}>
               {columns.map((column) => (
-                <td key={column}>{formatValue(row[column])}</td>
+                <td key={column}>{formatValue(row[column], column)}</td>
               ))}
             </tr>
           ))}
