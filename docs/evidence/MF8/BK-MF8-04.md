@@ -2,25 +2,64 @@
 
 Data: 2026-07-04
 
+<<<<<<< HEAD
 ## Alterações verificadas
 
 - Modelo `CompanySubscription` ligado a `Company`.
 - Service `getCurrentSubscription`.
 - Rota `GET /api/subscriptions/current`.
 - Testes HTTP para sucesso, ausência de subscrição e bloqueios de segurança.
+=======
+## Contexto
+
+- Projeto: `OPSA`
+- BK: `BK-MF8-04 - Subscricao por empresa ativa`
+- RF/RNF: `RF50`
+- Implementation root validado: `real_dev`
+- Tipo de correcao: criacao de evidence documental em falta apos auditoria.
+
+## Ficheiros verificados
+
+- `real_dev/api/prisma/schema.prisma`
+- `real_dev/api/prisma/migrations/20260704120000_mf8_company_subscriptions/migration.sql`
+- `real_dev/api/src/modules/subscriptions/subscriptionService.js`
+- `real_dev/api/src/modules/subscriptions/subscriptionRoutes.js`
+- `real_dev/api/src/server.js`
+- `real_dev/api/tests/contracts/mf8-current-subscription.contract.test.js`
+- `docs/planificacao/guias-bk/AUDITORIA-IMPLEMENTACAO-real_dev-MF8.md`
+
+## Alteracoes verificadas
+
+- Modelo `CompanySubscription` ligado a `Company`, com `companyId` unico.
+- Campo `planCode` usado como ligacao ao catalogo simulado do `BK-MF8-03`.
+- Service `getCurrentSubscription` a consultar `prisma.companySubscription.findUnique({ where: { companyId } })`.
+- Resposta enriquecida com `getSimulatedSubscriptionPlan(code)`.
+- Rota `GET /api/subscriptions/current` montada em `/api/subscriptions`.
+- Guards de autenticacao, empresa ativa e role `ADMIN` ou `GESTOR`.
+- Testes de contrato para sucesso, ausencia de subscricao, role bloqueada, empresa ativa em falta e drift de plano.
+>>>>>>> 81619f4 (Update: Mid)
 
 ## Comandos executados
 
 ```bash
+<<<<<<< HEAD
 cd apps/api
 npm run prisma:validate
 npm run syntax:check
 node --test tests/contracts/mf8-current-subscription.contract.test.js
 npm run test:contracts
+=======
+node --test real_dev/api/tests/contracts/mf8-current-subscription.contract.test.js
+npm --prefix real_dev/api run syntax:check
+DATABASE_URL=postgresql://opsa:opsa@localhost:5432/opsa npm --prefix real_dev/api run prisma:validate
+npm --prefix real_dev/api run test:contracts
+bash scripts/validate-planificacao.sh
+>>>>>>> 81619f4 (Update: Mid)
 ```
 
 ## Resultado observado
 
+<<<<<<< HEAD
 - `npm run prisma:validate`: registar PASS ou erro completo.
 - `npm run syntax:check`: registar PASS ou erro completo.
 - `node --test tests/contracts/mf8-current-subscription.contract.test.js`: registar PASS ou erro completo.
@@ -363,3 +402,31 @@ docs\planificacao\guias-bk\MF8\BK-MF8-04-subscricao-por-empresa-ativa.md:1058:- 
 docs\planificacao\guias-bk\MF8\BK-MF8-04-subscricao-por-empresa-ativa.md:1059:- `companyId`;
 docs\planificacao\guias-bk\MF8\BK-MF8-04-subscricao-por-empresa-ativa.md:1060:- `planCode`;
 docs\planificacao\guias-bk\MF8\BK-MF8-04-subscricao-por-empresa-ativa.md:1067:- os campos `billingCycle` e `intervalCount` vindos do catálogo.
+=======
+| Comando | Resultado |
+| --- | --- |
+| `node --test real_dev/api/tests/contracts/mf8-current-subscription.contract.test.js` | `PASS`; 6 testes, 6 pass. |
+| `npm --prefix real_dev/api run syntax:check` | `PASS`; `node --check` executado sobre `src`, `tests` e `scripts`. |
+| `DATABASE_URL=postgresql://opsa:opsa@localhost:5432/opsa npm --prefix real_dev/api run prisma:validate` | `PASS`; schema Prisma valido. |
+| `npm --prefix real_dev/api run test:contracts` | `PASS`; 76 testes, 76 pass. |
+| `bash scripts/validate-planificacao.sh` | `PASS_COM_RESSALVAS`; `overall_pass=true`, `advisory_pass=false` por divida documental antiga fora deste BK. |
+
+## Limites confirmados
+
+- Nao houve pagamento real.
+- Nao houve checkout.
+- Nao houve faturacao.
+- Nao houve gateway, provider externo ou webhook.
+- Nao houve ativacao, renovacao, cancelamento ou reativacao neste BK.
+- O `companyId` e resolvido pelo backend a partir da empresa ativa; nao vem de `body` nem de `query`.
+- A UI de planos e gestao da subscricao fica para `BK-MF8-07`.
+
+## Notas de risco
+
+- O validador de planificacao continua com `advisory_pass=false` por divida documental antiga e transversal, mas `overall_pass=true`.
+- `real_dev/` esta ignorado por `.gitignore`; a validacao foi feita por leitura direta dos ficheiros e execucao local dos comandos.
+
+## Conclusao
+
+`BK-MF8-04` fica com evidence documental criada. A implementacao auditada cumpre o contrato funcional de `RF50` e deixa o handoff preparado para `BK-MF8-05`, reutilizando `CompanySubscription`, `companyId`, `planCode`, `billingCycle` e `intervalCount`.
+>>>>>>> 81619f4 (Update: Mid)

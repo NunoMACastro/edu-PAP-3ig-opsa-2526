@@ -8,6 +8,7 @@
 
 ## Erro observado
 
+<<<<<<< HEAD
 - Comando original: npm run mf8:final-validation
 - Resultado observado: FAIL
 - Impacto: a execução final do MF8 não podia ser fechada.
@@ -433,3 +434,30 @@ docs\evidence\MF8\CORRECAO-ERROS-REPORT.md:31:- Decisão final: CORRIGIDO_REVALI
 
 ## git diff --check
 - PS D:\PAP\edu-PAP-3ig-opsa-2526> git diff --check
+=======
+- Comando original: npm run test:final:prepare
+- Resultado observado: FAIL; a execução final do BK-MF8-17 ficou com decisão `BLOQUEADO_ATE_CORRECAO` porque a área API saiu com exit code `1`.
+- Impacto: a execução final do MF8 não pode ser fechada como revalidada enquanto a bateria API persistida não correr sem bloqueio ambiental.
+
+## Causa raiz
+
+- Causa raiz resumida: BLOQUEADO_AMBIENTE; os testes persistidos MF2/MF3 exigem `TEST_DATABASE_URL` para uma base PostgreSQL efémera segura, e a tentativa com `postgresql://opsa_test:opsa_test@localhost:5432/opsa_test` falhou em `npx prisma migrate deploy` com `Schema engine error`.
+
+## Correção aplicada
+
+- Ficheiros corrigidos: real_dev/api/scripts/check-mf8-defect-report.mjs; real_dev/api/package.json; docs/evidence/MF8/EXECUCAO-FINAL-TESTES.md; docs/evidence/MF8/CORRECAO-ERROS-REPORT.md
+- Correção aplicada: criados o verificador BK-MF8-18 e o script npm `mf8:defect-report`; a evidence final BK-MF8-17 foi gerada; o bloqueio ambiental foi registado explicitamente sem alterar código de produto nem converter skip em prova limpa.
+
+## Teste afetado reexecutado
+
+- Comando reexecutado: npm run test:final:prepare
+- Resultado da reexecução: FAIL_AMBIENTE; `npm --prefix real_dev/api run test:integration` falhou em MF2/MF3 por falta/indisponibilidade de `TEST_DATABASE_URL`; `OPSA_SKIP_PERSISTENCE_TESTS=true npm --prefix real_dev/api run test:final:prepare` passou com 2 skips explícitos, mas esse resultado não substitui a prova persistida limpa.
+
+## Decisão final
+
+- Decisão final: BLOQUEADO_AMBIENTE
+
+## Risco residual
+
+- Risco residual: a MF8 permanece bloqueada para fecho limpo até existir uma base PostgreSQL efémera segura e a bateria API `npm run test:final:prepare` passar sem `OPSA_SKIP_PERSISTENCE_TESTS=true`.
+>>>>>>> 81619f4 (Update: Mid)

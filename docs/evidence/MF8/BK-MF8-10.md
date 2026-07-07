@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ## Comandos executados
 
 - PS D:\PAP\edu-PAP-3ig-opsa-2526> cd apps/api
@@ -300,3 +301,80 @@ test at tests\contracts\mf8-subscriptions.contract.test.js:1:1
 
 > @opsa/web@1.0.0 typecheck
 > tsc --noEmit
+=======
+# Evidence MF8 / BK-MF8-10
+
+- Projeto: OPSA
+- BK: BK-MF8-10
+- Tema: insights com explicacao e origem dos dados usados
+- RF/RNF: RNF31
+- Data: 2026-07-05
+- Responsavel: Oleksii
+- Apoio: Andre
+- Implementation root validado: real_dev
+
+## Artefactos verificados
+
+- Service principal: `real_dev/api/src/modules/ai/aiService.js`
+- Router principal: `real_dev/api/src/modules/ai/aiRoutes.js`
+- Modelo Prisma: `real_dev/api/prisma/schema.prisma`
+- Cliente frontend: `real_dev/web/src/lib/mf4Api.ts`
+- Pagina frontend consumidora: `real_dev/web/src/pages/mf4Pages.tsx`
+- Teste de contrato: `real_dev/api/tests/contracts/mf8-ai-explainability.contract.test.js`
+- Script de package: `test:mf8:ai-explainability`
+- Relatorio de implementacao: `docs/planificacao/guias-bk/IMPLEMENTACAO-REAL_DEV-MF8.md`
+
+## Matriz de prova
+
+| RNF | Prova automatica | Criterio de sucesso | Resultado observado |
+| --- | --- | --- | --- |
+| RNF31 | `assertExplainableInsight()` valida `title`, `explanation`, `sourceType`, `sourceId` e `sourceLabel`. | Um insight sem explicacao concreta ou fonte rastreavel falha antes de ser persistido/devolvido. | PASS; teste especifico cobre positivo e negativos. |
+| RNF31 | `explainAiInsight()` consulta por `id + companyId`. | Um insight de outra empresa e indistinguivel de inexistente e devolve `AI_INSIGHT_NOT_FOUND`. | PASS; teste especifico valida a query por empresa ativa. |
+| RNF31 | Router `GET /api/ai/insights/:id/explanation`. | A rota existe no dominio `/api/ai` e devolve `{ explanation: { id, title, explanation, source, guardrail } }`. | PASS; teste especifico confirma rota interna e payload do service. |
+| RNF31/RNF32 | Campo `guardrail` e contratos MF4. | A IA explica/recomenda, mas nao executa alteracoes automaticamente. | PASS; payload e teste preservam o guardrail. |
+
+## Comandos executados
+
+| Comando | Resultado |
+| --- | --- |
+| `npm --prefix real_dev/api run test:mf8:ai-explainability` | PASS; 5 testes, 5 pass. |
+| `npm --prefix real_dev/api run syntax:check` | PASS; sintaxe JS de `src`, `tests` e `scripts` valida. |
+| `DATABASE_URL=postgresql://opsa:opsa@localhost:5432/opsa npm --prefix real_dev/api run prisma:validate` | PASS; schema Prisma valido. |
+| `npm --prefix real_dev/api run test:contracts` | PASS; 104 testes, 104 pass. |
+| `npm --prefix real_dev/api run test:unit` | PASS; 79 testes, 79 pass. |
+| `OPSA_SKIP_PERSISTENCE_TESTS=true npm --prefix real_dev/api run test:integration` | PASS_COM_RESSALVAS; 2 testes skipped por falta de `TEST_DATABASE_URL`. |
+| `npm --prefix real_dev/web run typecheck` | PASS; TypeScript sem erros. |
+| `npm --prefix real_dev/web run build` | PASS; Vite build concluido com 49 modulos transformados. |
+| Pesquisa estatica de risco em `real_dev/api real_dev/web` sem `node_modules`/`dist` | PASS_COM_RESSALVAS; hits em denylist, testes negativos e storage privado, sem finding ligado ao BK10. |
+| Pesquisa de drift de dominio em `real_dev/api real_dev/web` sem `node_modules`/`dist` | PASS; sem matches. |
+| `bash scripts/validate-planificacao.sh` | PASS_COM_RESSALVAS; `overall_pass=true`, `advisory_pass=false` por advisories documentais legados fora do scope. |
+| `git diff --check` | PASS; sem whitespace errors em ficheiros rastreados. |
+
+## Negativos validados
+
+- `explanation` vazia falha com `AI_INSIGHT_NOT_EXPLAINABLE`.
+- `explanation` demasiado curta falha com `AI_INSIGHT_EXPLANATION_TOO_SHORT`.
+- `sourceId` vazio falha com `AI_INSIGHT_NOT_EXPLAINABLE`.
+- `sourceLabel` vazio falha com `AI_INSIGHT_NOT_EXPLAINABLE`.
+- Insight inexistente ou de outra empresa falha com `AI_INSIGHT_NOT_FOUND`.
+- Insight persistido sem `sourceType` falha antes de devolver payload publico.
+
+## Limites confirmados
+
+- A implementacao reforca o contrato RNF31 sobre o modulo de IA existente; nao cria provider generativo novo.
+- A IA continua explicavel e recomendatoria; nao altera dados contabilisticos, nao aprova documentos e nao executa acoes.
+- O endpoint usa a empresa ativa resolvida no backend; o frontend nao envia `companyId` para decidir ownership.
+- Nao foram alterados BKs, RF/RNF, backlog, matriz, guias canonicos, `apps/` ou `mockup/`.
+- Smoke manual com sessao real em browser nao foi executado nesta passagem; a prova ficou em contrato backend, typecheck e build frontend.
+
+## Handoff para BK-MF8-11
+
+- Contrato entregue: `assertExplainableInsight()` e `explainAiInsight()` garantem explicacao, fonte e ownership por empresa ativa.
+- Endpoint reutilizavel: `GET /api/ai/insights/:id/explanation`.
+- Teste repetivel: `npm --prefix real_dev/api run test:mf8:ai-explainability`.
+- O proximo BK pode apoiar-se neste guardrail para confirmar que a IA recomenda, mas nao executa acoes ou altera contabilidade.
+
+## Decisao
+
+`BK-MF8-10` fica implementado com validacao backend de explicabilidade, endpoint canonico protegido, teste contratual dedicado, evidence e relatorio de implementacao atualizados.
+>>>>>>> 81619f4 (Update: Mid)

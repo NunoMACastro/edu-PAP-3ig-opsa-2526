@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Evidence MF8 / BK-MF8-08
 
 - Projeto: OPSA
@@ -377,3 +378,74 @@ npm error
 npm error To see a list of scripts, run:
 npm error   npm run
 npm error A complete log of this run can be found in: C:\Users\User\AppData\Local\npm-cache\_logs\2026-07-05T09_53_05_242Z-debug-0.log
+=======
+# Evidence - BK-MF8-08
+
+Data: 2026-07-05
+
+## Contexto
+
+- Projeto: `OPSA`
+- BK: `BK-MF8-08 - Testes e evidencia de subscricoes simuladas`
+- RF/RNF: `RF49`, `RF50`, `RF51`
+- Implementation root validado: `real_dev`
+- Tipo de execucao: implementacao de contrato agregador, script npm e evidence tecnica.
+
+## Ficheiros alterados
+
+- `real_dev/api/tests/contracts/mf8-subscriptions.contract.test.js`
+- `real_dev/api/package.json`
+- `docs/evidence/MF8/BK-MF8-08.md`
+- `docs/planificacao/guias-bk/IMPLEMENTACAO-REAL_DEV-MF8.md`
+
+## Matriz de prova
+
+| RF | Prova automatica | Criterio de sucesso | Resultado observado |
+| --- | --- | --- | --- |
+| `RF49` | `test:mf8:subscriptions` lista `monthly`, `quarterly`, `yearly`, `EUR`, `simulated: true` e verifica ausencia de `paymentProvider`, `checkoutUrl`, `paymentIntentId` e `invoiceId`. | Tres planos simulados expostos e nenhum campo de pagamento real. | `PASS`; caso `RF49 lista os tres planos simulados sem contrato de pagamento real`. |
+| `RF50` | `test:mf8:subscriptions` ativa subscricao com `companyId` vindo do contexto backend e auditoria `subscription.activate`. | Subscricao fica `state=active`, `planCode=monthly`, `simulated=true`, auditoria minima criada. | `PASS`; caso `RF50 ativa subscricao para a empresa ativa e regista auditoria minima`. |
+| `RF51` | `test:mf8:subscriptions` renova, cancela e reativa usando `runSimulatedSubscriptionAction`. | Transicoes validas persistem estado correto e auditam `subscription.renew`, `subscription.cancel`, `subscription.reactivate`. | `PASS`; caso `RF51 renova, cancela e reativa a subscricao sem gateway externo`. |
+
+## Negativos validados
+
+| Negativo | Resultado observado |
+| --- | --- |
+| Cancelar subscricao ja cancelada | `INVALID_SUBSCRIPTION_TRANSITION` confirmado por `assertSubscriptionLifecycleTransition`. |
+| Reativar sem plano | `SUBSCRIPTION_PLAN_REQUIRED` confirmado por `runSimulatedSubscriptionAction`. |
+| Ativar sem empresa ativa | `COMPANY_CONTEXT_REQUIRED` confirmado por `activateSimulatedSubscription`. |
+| Prometer pagamento real no contrato | `paymentProvider`, `checkoutUrl`, `paymentIntentId` e `invoiceId` ausentes nos planos e subscricoes publicas testadas. |
+
+## Comandos executados
+
+| Comando | Resultado |
+| --- | --- |
+| `npm --prefix real_dev/api run test:mf8:subscriptions` | `PASS`; 4 testes, 4 pass. |
+| `npm --prefix real_dev/api run syntax:check` | `PASS`; `node --check` em `src`, `tests` e `scripts`. |
+| `DATABASE_URL=postgresql://opsa:opsa@localhost:5432/opsa npm --prefix real_dev/api run prisma:validate` | `PASS`; schema Prisma valido. |
+| `npm --prefix real_dev/api run test:contracts` | `PASS`; 99 testes, 99 pass. |
+| `npm --prefix real_dev/api run test:unit` | `PASS`; 79 testes, 79 pass. |
+| `OPSA_SKIP_PERSISTENCE_TESTS=true npm --prefix real_dev/api run test:integration` | `PASS_COM_RESSALVAS`; 2 testes skipped explicitamente por falta de `TEST_DATABASE_URL`. |
+| `npm --prefix real_dev/web run typecheck` | `PASS`; TypeScript sem erros. |
+| `npm --prefix real_dev/web run test:mf8:subscriptions-ui` | `PASS`; `MF8 subscriptions UI smoke OK`. |
+| `npm --prefix real_dev/web run build` | `PASS`; Vite build concluido com 49 modulos transformados. |
+| `bash scripts/validate-planificacao.sh` | `PASS_COM_RESSALVAS`; `overall_pass=true`, `advisory_pass=false` por advisories documentais legados fora deste BK. |
+
+## Limites confirmados
+
+- Nao houve gateway externo, checkout, cartao, recibo, fatura, invoice, webhook ou cobranca real.
+- O frontend continua sem enviar `companyId`, sem guardar sessao/role/empresa em `localStorage` ou `sessionStorage`, e sem chamar `fetch` diretamente no cliente de subscricoes.
+- A empresa ativa, o utilizador autenticado, roles e permissoes continuam resolvidos no backend pelos guards existentes.
+- A integracao persistida real com DB nao foi executada por falta de `TEST_DATABASE_URL`; os testes de integracao foram corridos com skip explicito.
+- Smoke manual em browser real com cookies vivos nao foi executado nesta passagem.
+
+## Handoff para BK-MF8-09
+
+- Contrato principal entregue: `real_dev/api/tests/contracts/mf8-subscriptions.contract.test.js`.
+- Comando principal entregue: `npm --prefix real_dev/api run test:mf8:subscriptions`.
+- Evidence de RF49/RF50/RF51 consolidada neste ficheiro.
+- O proximo BK pode documentar arquitetura/modelos/fluxos usando a subscricao como simulada e sem efeitos contabilisticos reais.
+
+## Conclusao
+
+`BK-MF8-08` fica com evidence tecnica e contrato agregador implementados. A prova cobre planos simulados, ativacao por empresa ativa, renovacao, cancelamento, reativacao, auditoria minima, negativos principais e ausencia de cobranca real.
+>>>>>>> 81619f4 (Update: Mid)

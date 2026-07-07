@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ## node --test tests/contracts/mf8-ai-governance.contract.test.js
 - PS D:\PAP\edu-PAP-3ig-opsa-2526> cd apps/api
 - PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> node --test tests/contracts/mf8-ai-governance.contract.test.js
@@ -300,3 +301,84 @@ test at tests\contracts\mf8-subscriptions.contract.test.js:1:1
 
 > @opsa/web@1.0.0 typecheck
 > tsc --noEmit
+=======
+# Evidence MF8 / BK-MF8-11
+
+- Projeto: OPSA
+- BK: BK-MF8-11
+- Tema: IA nao altera dados contabilisticos; apenas analisa e recomenda
+- RF/RNF: RNF32
+- Data: 2026-07-06
+- Responsavel: Oleksii
+- Apoio: Pedro
+- Implementation root validado: real_dev
+
+## Artefactos verificados
+
+- Politica principal: `real_dev/api/src/modules/ai/aiGovernancePolicy.js`
+- Service integrado: `real_dev/api/src/modules/ai/aiService.js`
+- Modelo persistente: `real_dev/api/prisma/schema.prisma`
+- Router principal: `real_dev/api/src/modules/ai/aiRoutes.js`
+- Teste de contrato: `real_dev/api/tests/contracts/mf8-ai-governance.contract.test.js`
+- Script de package: `test:mf8:ai-governance`
+- Relatorio de implementacao: `docs/planificacao/guias-bk/IMPLEMENTACAO-REAL_DEV-MF8.md`
+
+## Matriz de prova
+
+| RNF | Prova automatica | Criterio de sucesso | Resultado observado |
+| --- | --- | --- | --- |
+| RNF32 | `assertAiRecommendationOnly()` valida `actionType` antes da persistencia. | Sugestoes sem acao explicita falham com erro de dominio. | PASS; teste cobre ausencia e string vazia. |
+| RNF32 | Denylist explicita de acoes financeiras/contabilisticas. | A IA nao pode aprovar documentos, criar lancamentos, alterar dados contabilisticos ou executar pagamentos/recebimentos. | PASS; teste percorre `BLOCKED_AI_ACTION_TYPES`. |
+| RNF32 | `generateAiSuggestions()` chama a policy antes de `prisma.aiActionSuggestion.upsert`. | O upsert grava apenas sugestoes abertas para revisao humana. | PASS; teste de contrato valida ordem de integracao e payload persistido. |
+| MF4/MF8 | `AiActionSuggestion` mantem `companyId`, `insightId`, `actionType`, `title`, `rationale`, `sourceLabel` e `status`. | O modelo continua recomendatorio e nao inclui campos de execucao financeira. | PASS; teste confirma ausencia de `execute`, `journalEntryId` e `paymentId`. |
+
+## Comandos executados
+
+| Comando | Resultado |
+| --- | --- |
+| `npm --prefix real_dev/api run test:mf8:ai-governance` | PASS; 5 testes, 5 pass. |
+| `npm --prefix real_dev/api run syntax:check` | PASS; sintaxe JS de `src`, `tests` e `scripts` valida. |
+| `DATABASE_URL=postgresql://opsa:opsa@localhost:5432/opsa npm --prefix real_dev/api run prisma:validate` | PASS; schema Prisma valido. |
+| `npm --prefix real_dev/api run test:contracts` | PASS; 109 testes, 109 pass. |
+| `npm --prefix real_dev/api run test:unit` | PASS; 79 testes, 79 pass. |
+| `OPSA_SKIP_PERSISTENCE_TESTS=true npm --prefix real_dev/api run test:integration` | PASS_COM_RESSALVAS; 2 testes skipped por falta de `TEST_DATABASE_URL`. |
+| `npm --prefix real_dev/web run typecheck` | PASS; TypeScript sem erros. |
+| `npm --prefix real_dev/web run build` | PASS; Vite build concluido com 49 modulos transformados. |
+| Pesquisa estatica de risco no escopo IA BK11 | PASS; sem matches para TODOs, storage sensivel, execucao dinamica, segredos, RAG/OCR/embeddings ou casts inseguros. |
+| Pesquisa de drift de dominio no escopo IA/evidence MF8 | PASS; sem referencias a dominios externos. |
+| Pesquisa de `companyId` no escopo IA BK11 | PASS_COM_RESSALVAS; hits esperados em `req.companyId`, inputs internos e asserts de teste, sem `req.body.companyId`/`req.query.companyId`. |
+| `git check-ignore -v real_dev ...` | INFO; `real_dev/` esta ignorado por `.gitignore`, esperado nesta PAP. |
+| `bash scripts/validate-planificacao.sh` | PASS_COM_RESSALVAS; `overall_pass=true`, `advisory_pass=false` por advisories documentais legados fora do scope. |
+| `git diff --check` | PASS; sem whitespace errors em ficheiros rastreados. |
+| `rg -n "[ \\t]+$" docs/evidence/MF8/BK-MF8-11.md docs/planificacao/guias-bk/IMPLEMENTACAO-REAL_DEV-MF8.md` | PASS; sem trailing whitespace nos artefactos untracked atualizados. |
+
+## Negativos validados
+
+- `actionType` ausente falha com `AI_SUGGESTION_ACTION_REQUIRED`.
+- `actionType` vazio falha com `AI_SUGGESTION_ACTION_REQUIRED`.
+- `APPROVE_DOCUMENT` e aliases de aprovacao falham com `AI_AUTOMATED_FINANCIAL_ACTION_BLOCKED`.
+- `POST_JOURNAL_ENTRY`/`CREATE_JOURNAL_ENTRY` falham com `AI_AUTOMATED_FINANCIAL_ACTION_BLOCKED`.
+- `CHANGE_ACCOUNTING_DATA` falha com `AI_AUTOMATED_FINANCIAL_ACTION_BLOCKED`.
+- `EXECUTE_PAYMENT`/`REGISTER_PAYMENT`/`REGISTER_RECEIPT` falham com `AI_AUTOMATED_FINANCIAL_ACTION_BLOCKED`.
+- A persistencia de sugestoes nao cria campos de execucao como `execute`, `journalEntryId` ou `paymentId`.
+
+## Limites confirmados
+
+- A implementacao reforca o contrato RNF32 no modulo de IA existente; nao cria provider generativo novo.
+- A IA continua explicavel e recomendatoria; nao altera dados contabilisticos, nao aprova documentos e nao executa pagamentos.
+- O endpoint de sugestoes usa empresa ativa resolvida no backend; o frontend nao envia `companyId` para decidir ownership.
+- Nao foram alterados BKs, RF/RNF, backlog, matriz, guias canonicos, `apps/` ou `mockup/`.
+- Smoke manual com sessao real em browser nao foi executado; a prova ficou em contrato backend, typecheck e build frontend.
+- Os advisories de planificacao existentes em guias antigos permanecem fora do scope do BK11; o validador manteve `overall_pass=true`.
+
+## Handoff para BK-MF8-12
+
+- Contrato entregue: `assertAiRecommendationOnly()` e `BLOCKED_AI_ACTION_TYPES` fecham a fronteira RNF32 antes da persistencia de sugestoes.
+- Integracao reutilizavel: `generateAiSuggestions()` grava apenas sugestoes abertas para decisao humana.
+- Teste repetivel: `npm --prefix real_dev/api run test:mf8:ai-governance`.
+- O proximo BK pode configurar alertas sem alargar a categoria `ai` para execucao automatica.
+
+## Decisao
+
+`BK-MF8-11` fica implementado com policy backend explicita, integracao antes do upsert de `AiActionSuggestion`, negativos P0 de governanca, evidence e relatorio de implementacao atualizados.
+>>>>>>> 81619f4 (Update: Mid)
