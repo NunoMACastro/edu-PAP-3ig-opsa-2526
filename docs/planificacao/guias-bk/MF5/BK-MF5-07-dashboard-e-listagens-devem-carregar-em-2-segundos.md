@@ -16,7 +16,11 @@
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF6-01`
 - `guia_path`: `docs/planificacao/guias-bk/MF5/BK-MF5-07-dashboard-e-listagens-devem-carregar-em-2-segundos.md`
-- `last_updated`: `2026-06-20`
+- `last_updated`: `2026-07-10`
+
+#### Contrato de listagens atualizado
+
+Listagens críticas usam cursor pagination com default 50, máximo 100 e resposta `{ items, pageInfo: { nextCursor, hasNextPage } }`. A UI cancela pesquisas anteriores, deduplica IDs e carrega mais sem repetir mutações. O orçamento de 2 segundos mede browser e API com 25 utilizadores autenticados concorrentes; um smoke textual ou uma lista truncada por `take` não prova performance nem paginação.
 
 #### Objetivo
 

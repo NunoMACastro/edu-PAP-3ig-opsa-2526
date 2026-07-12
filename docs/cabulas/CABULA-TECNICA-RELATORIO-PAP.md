@@ -221,19 +221,22 @@ Os relatórios também podem servir como fonte para a IA. Um insight deve nascer
 
 ## IA Assistiva, Recomendações E Explicabilidade
 
-A IA é uma das áreas diferenciadoras do OPSA, mas deve ser tratada com cuidado. A IA deve apoiar a decisão, não substituir o utilizador nem alterar dados contabilísticos automaticamente.
+A IA do OPSA tem duas camadas complementares. A primeira é determinística: calcula métricas, insights, sugestões e alertas diretamente sobre PostgreSQL. A segunda é um chat opcional controlado pela OpenAI: interpreta a pergunta, escolhe ferramentas de leitura e redige a resposta, mas nunca calcula valores, executa SQL ou altera dados.
+
+PostgreSQL e o catálogo analítico interno continuam a ser a única fonte de verdade. Isto permite apresentar a IA como apoio à decisão auditável e não como uma entidade que inventa ou decide pela empresa.
 
 Este domínio inclui:
 
 - insights automáticos;
 - identificação de tendências;
 - deteção de riscos;
-- sugestões de ação;
-- perguntas em linguagem natural;
-- alertas inteligentes;
-- explicações;
-- origem dos dados;
-- limitações da sugestão.
+- sugestões de ação com estado e feedback;
+- chat persistente e contextual em linguagem natural;
+- alertas inteligentes com score, severidade e lifecycle;
+- comparação de períodos;
+- explicações, fórmulas e origem dos dados;
+- cobertura, qualidade e limitações;
+- atualização manual e automática por worker.
 
 Exemplos de uso da IA:
 
@@ -241,12 +244,28 @@ Exemplos de uso da IA:
 - sugerir revisão de preços;
 - alertar para artigos parados;
 - destacar risco de cashflow;
-- responder a perguntas com base em dados da empresa;
+- responder a perguntas sobre cashflow, clientes, stock, margem e KPIs;
 - explicar que relatório, documento ou alerta serviu de fonte.
 
-A IA deve respeitar uma regra crítica: recomenda, mas não executa. Isto significa que não deve aprovar documentos, criar lançamentos contabilísticos, fazer pagamentos, alterar stock ou modificar preços de forma automática.
+A IA deve respeitar uma regra crítica: recomenda, mas não executa. Isto significa que não aprova documentos, não cria lançamentos contabilísticos, não faz pagamentos, não altera stock e não modifica preços automaticamente.
+
+O catálogo interno expõe apenas ferramentas analíticas read-only: resumo de cashflow, recebimentos, risco de stock, margem, KPIs executivos, comparação temporal e explicação de insights. Todas usam período explícito, timezone `Europe/Lisbon`, fórmulas estruturadas e referências de origem. A paginação limita detalhes, não os totais.
+
+O chat está disponível na página `/ai/chat` e num drawer transversal para `ADMIN`, `GESTOR` e `CONTABILISTA`. O frontend envia apenas contexto técnico mínimo do módulo; o backend volta a validar empresa, permissões e ownership. O endpoint antigo `/api/ai/questions` existe apenas como adapter depreciado.
+
+Uma chamada à OpenAI exige três autorizações simultâneas: provider configurado no servidor, opt-in da empresa por `ADMIN` e consentimento individual. Se qualquer condição falhar, ou se o provider estiver indisponível, a aplicação responde em modo determinístico.
+
+Antes do envio externo, nomes e entidades são substituídos por aliases temporários como `CUSTOMER_001`. Emails, NIF, IBAN, telefones, moradas, credenciais, documentos, anexos e SAF-T são bloqueados. O histórico local é cifrado com AES-256-GCM, pode ser apagado pelo utilizador e é eliminado após, no máximo, 90 dias.
 
 Cada insight deve ter uma explicação compreensível. Por exemplo, em vez de dizer apenas "risco de stock", o sistema deve indicar o artigo, o armazém, a quantidade atual, o limite configurado e a fonte usada.
+
+Na resposta do chat, o utilizador vê a empresa ativa, o período e `asOf`, o modo OpenAI ou determinístico, a qualidade dos dados, fontes, limitações e sugestões de seguimento. Não vê prompts, argumentos internos das tools, aliases ou detalhes secretos do provider.
+
+Os insights e alertas são processados por `AiAnalysisRun`. Um worker periódico atualiza ocorrências, resolve automaticamente riscos que desapareceram e respeita preferências de entrega sem deixar de detetar internamente o risco.
+
+Para o relatório, a formulação mais rigorosa é:
+
+> A IA OPSA usa cálculos determinísticos e auditáveis como fonte de verdade. A OpenAI é opcional e serve apenas para redigir enquadramento qualitativo a partir de intenção e sinais canónicos; pergunta, histórico, IDs e valores ficam no backend.
 
 ## Subscrições Simuladas
 
@@ -677,18 +696,25 @@ Inclui:
 - insights automáticos;
 - deteção de riscos;
 - tendências;
-- sugestões de ação;
-- perguntas em linguagem natural;
-- alertas inteligentes;
-- explicações;
-- origem dos dados;
-- limitações da recomendação.
+- sugestões de ação com lifecycle;
+- chat contextual na página e no drawer global;
+- alertas inteligentes atualizados pelo worker;
+- tools analíticas read-only;
+- explicações, fórmulas e referências;
+- período, qualidade e limitações;
+- consentimento, pseudonimização e retenção.
 
-A IA deve ser apresentada como assistiva. Isto significa que ajuda a interpretar dados, mas não executa operações críticas automaticamente. Não aprova documentos, não cria lançamentos, não faz pagamentos, não altera stock e não modifica preços sozinha.
+A apresentação deve separar claramente o motor determinístico do chat OpenAI opcional. O primeiro calcula valores sobre PostgreSQL; o segundo interpreta e redige com base nesses resultados. Em caso de falha externa, o sistema mantém resposta determinística.
+
+A OpenAI não recebe pergunta livre, histórico, nomes, IDs, valores, SQL, Prisma, ficheiros ou acesso à aplicação. O backend executa uma tool autorizada, cria `facts` e fontes, e rejeita narrativas externas com números ou referências. O histórico é local, cifrado, apagável e retido por um máximo de 90 dias.
+
+A IA continua a ser assistiva. Não aprova documentos, não cria lançamentos, não faz pagamentos, não altera stock e não modifica preços sozinha.
 
 Mensagem-chave:
 
-> A IA do OPSA não decide pela empresa. Ela recomenda, explica e aponta fontes para apoiar a decisão humana.
+> A IA do OPSA não decide pela empresa. Calcula com dados internos auditáveis e pode usar a OpenAI, de forma controlada, apenas para interpretar, explicar e apontar fontes.
+
+Para a arquitetura completa, consultar `docs/ARQUITETURA-IA-OPSA-V2.md`.
 
 ### 9. Subscrições Simuladas, Notificações E Tarefas
 

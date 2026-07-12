@@ -17,7 +17,7 @@
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF1-02`
 - `guia_path`: `docs/planificacao/guias-bk/MF1/BK-MF1-01-configurar-tabelas-de-iva-taxas-isencoes-codigos.md`
-- `last_updated`: `2026-06-01`
+- `last_updated`: `2026-07-10`
 
 ## Objetivo
 
@@ -80,6 +80,12 @@ A empresa consegue criar, listar e desativar taxas/códigos de IVA por empresa, 
 - **Componente React:** mostra lista, formulário e feedback de erro/sucesso; envia cookies com `credentials: "include"` através do `apiClient`.
 - **Multiempresa:** obriga cada query a filtrar por empresa; evita que uma taxa de IVA de uma empresa apareça noutra.
 - **Handoff:** os documentos de venda e compra passam a referenciar `vatRateId` em vez de aceitar taxas soltas enviadas pelo browser.
+
+### Contrato de paridade obrigatório (2026-07-10)
+
+- `rateBps = 0` é um valor válido e obrigatório para IVA isento; validações frontend usam comparações explícitas e nunca `if (!rateBps)`.
+- A listagem usa cursor e devolve `{ items, pageInfo: { nextCursor, hasNextPage } }`, com 50 itens por omissão e máximo 100.
+- Um erro `400`, `409` ou `500` preserva os valores do formulário. O formulário só limpa depois de sucesso confirmado.
 
 ## Arquitetura do BK
 
@@ -407,10 +413,11 @@ Localização: `apps/web/src/lib/vatRateApi.ts`.
 import { apiClient } from "./apiClient";
 
 export type VatRate = { id: string; code: string; description: string; rateBps: number; type: string; exemptionReason: string | null; isActive: boolean };
+export type CursorPage<T> = { items: T[]; pageInfo: { nextCursor: string | null; hasNextPage: boolean } };
 
-export async function fetchVatRates(): Promise<VatRate[]> {
-    const response = await apiClient.get<{ data: VatRate[] }>("/api/vat-rates");
-    return response.data;
+export async function fetchVatRates(cursor?: string): Promise<CursorPage<VatRate>> {
+    const query = cursor ? `?cursor=${encodeURIComponent(cursor)}` : "";
+    return apiClient.get<CursorPage<VatRate>>(`/api/vat-rates${query}`);
 }
 
 export async function createVatRate(input: { code: string; description: string; rateBps: number; type: string; exemptionReason?: string }) {
@@ -444,7 +451,8 @@ export function VatRatesPage() {
         setLoading(true);
         setError(null);
         try {
-            setRates(await fetchVatRates());
+            const page = await fetchVatRates();
+            setRates(page.items);
         } catch (err) {
             setError(err instanceof Error ? err.message : "Não foi possível carregar as taxas de IVA.");
         } finally {

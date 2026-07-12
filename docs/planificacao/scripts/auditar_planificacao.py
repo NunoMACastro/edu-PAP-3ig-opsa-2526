@@ -1,17 +1,319 @@
 #!/usr/bin/env python3
+"""Audit OPSA planning documents and enforce release-quality documentation gates.
+
+The command prints a machine-readable JSON report and exits with status 1 whenever
+it finds documentation drift, conflict markers, unwaived blockers/advisories, an
+invalid waiver configuration, or a canonical runtime decision other than the
+academic ready state. Waivers are explicit, attributable and time-bounded through
+``docs/planificacao/VALIDATION-WAIVERS.json``; merge conflict markers are never
+waivable.
+"""
+
 from __future__ import annotations
 
 from pathlib import Path
+import argparse
 import re
 import json
 from datetime import date, datetime
 from collections import defaultdict
+import unicodedata
+
+from documentation_sync_contract import (
+    audit_canonical_runtime_state,
+    audit_documentation_sync,
+    run_mutation_self_test,
+)
 
 EXPECTED_RF = [f"RF{i:02d}" for i in range(1, 52)]
 EXPECTED_RNF = [f"RNF{i:02d}" for i in range(1, 40)]
 MAX_DOC_AGE_DAYS = 30
 GUIDE_FILENAME_RE = re.compile(r"^BK-MF[0-8]-\d{2}-[a-z0-9]+(?:-[a-z0-9]+)*\.md$")
 MAX_SNIPPET_DUPLICATION = 40
+DOCUMENT_TEXT_SUFFIXES = {".md", ".json", ".txt", ".yaml", ".yml"}
+CONFLICT_MARKER_RE = re.compile(
+    r"^(?:<<<<<<<(?: .+)?|=======|>>>>>>>(?: .+)?)\s*$",
+    flags=re.MULTILINE,
+)
+EVIDENCE_DECISION_RE = re.compile(
+    r"^(?:-\s*)?(?:Decis[aã]o(?: final)?|Resultado final):\s*`?([A-Z][A-Z0-9_]+)`?",
+    flags=re.MULTILINE,
+)
+BLOCKING_DECISION_PREFIXES = ("BLOQUEAD", "BLOQUEANT", "FAIL", "LACUNA")
+ADVISORY_DECISION_PREFIXES = ("PASS_COM_", "PODE_AVANCAR_COM_", "PENDENTE", "RESSALVA")
+WAIVER_SCHEMA_VERSION = 1
+MIN_WAIVER_REASON_LENGTH = 20
+
+
+def repo_relative(repo: Path, path: Path) -> str:
+    """Return a stable POSIX path relative to the repository root."""
+    return path.resolve().relative_to(repo.resolve()).as_posix()
+
+
+def normalize_issue_part(value: object) -> str:
+    """Normalize arbitrary issue data into a deterministic waiver identifier part."""
+    text = unicodedata.normalize("NFKD", str(value)).encode("ascii", "ignore").decode("ascii")
+    return re.sub(r"[^a-zA-Z0-9._/=-]+", "-", text.strip()).strip("-").lower() or "unknown"
+
+
+def make_issue(
+    severity: str,
+    category: str,
+    identity: object,
+    detail: object,
+    *,
+    path: str | None = None,
+    waivable: bool = True,
+) -> dict[str, object]:
+    """Create one stable blocker/advisory record consumed by the waiver gate."""
+    issue = {
+        "issue_id": f"{severity}:{normalize_issue_part(category)}:{normalize_issue_part(identity)}",
+        "severity": severity,
+        "category": category,
+        "detail": detail,
+        "waivable": waivable,
+    }
+    if path:
+        issue["path"] = path
+    return issue
+
+
+def scan_conflict_markers(repo: Path) -> list[dict[str, object]]:
+    """Find unresolved merge markers in textual documentation.
+
+    Conflict markers are never waivable because the document has no trustworthy
+    canonical state until the conflict is resolved explicitly.
+    """
+    issues: list[dict[str, object]] = []
+    docs_root = repo / "docs"
+
+    for path in sorted(p for p in docs_root.rglob("*") if p.is_file()):
+        if path.suffix.lower() not in DOCUMENT_TEXT_SUFFIXES:
+            continue
+        marker_lines = [
+            line_number
+            for line_number, line in enumerate(read(path).splitlines(), start=1)
+            if CONFLICT_MARKER_RE.match(line)
+        ]
+        if not marker_lines:
+            continue
+        relative_path = repo_relative(repo, path)
+        issues.append(
+            make_issue(
+                "blocker",
+                "conflict-marker",
+                relative_path,
+                {"lines": marker_lines},
+                path=relative_path,
+                waivable=False,
+            )
+        )
+
+    return issues
+
+
+def scan_evidence_decisions(repo: Path) -> list[dict[str, object]]:
+    """Collect explicit blocking or qualified decisions from current MF8 evidence.
+
+    Only structured decision fields are parsed. Mentions inside explanatory prose do
+    not become release state, which avoids false positives in risk descriptions.
+    """
+    issues: list[dict[str, object]] = []
+    evidence_root = repo / "docs" / "evidence" / "MF8"
+    seen_decisions: set[tuple[str, str, str]] = set()
+
+    if not evidence_root.exists():
+        return issues
+
+    for path in sorted(evidence_root.glob("*.md")):
+        relative_path = repo_relative(repo, path)
+        for match in EVIDENCE_DECISION_RE.finditer(read(path)):
+            decision = match.group(1)
+            if decision.startswith(BLOCKING_DECISION_PREFIXES):
+                severity = "blocker"
+                category = "evidence-decision"
+            elif decision.startswith(ADVISORY_DECISION_PREFIXES):
+                severity = "advisory"
+                category = "evidence-decision-qualified"
+            else:
+                continue
+            decision_key = (relative_path, decision, severity)
+            if decision_key in seen_decisions:
+                continue
+            seen_decisions.add(decision_key)
+            issues.append(
+                make_issue(
+                    severity,
+                    category,
+                    f"{relative_path}:{decision}",
+                    {"decision": decision},
+                    path=relative_path,
+                )
+            )
+
+    return issues
+
+
+def parse_waiver_date(raw: object) -> date | None:
+    """Parse a waiver expiration date in strict ISO YYYY-MM-DD format."""
+    if not isinstance(raw, str):
+        return None
+    try:
+        return datetime.strptime(raw, "%Y-%m-%d").date()
+    except ValueError:
+        return None
+
+
+def load_validation_waivers(
+    repo: Path,
+    waiver_path: Path,
+    *,
+    today: date | None = None,
+) -> tuple[dict[str, dict[str, str]], list[dict[str, object]]]:
+    """Load active, attributable and time-bounded validation waivers.
+
+    Malformed, duplicate or expired entries are returned as non-waivable blockers so
+    a broken waiver configuration can never turn the documentation gate green.
+    """
+    today = today or date.today()
+    active: dict[str, dict[str, str]] = {}
+    errors: list[dict[str, object]] = []
+    relative_path = repo_relative(repo, waiver_path)
+
+    if not waiver_path.exists():
+        errors.append(
+            make_issue(
+                "blocker",
+                "waiver-config",
+                "missing-file",
+                "Ficheiro de waivers obrigatorio em falta.",
+                path=relative_path,
+                waivable=False,
+            )
+        )
+        return active, errors
+
+    try:
+        payload = json.loads(read(waiver_path))
+    except (json.JSONDecodeError, OSError) as error:
+        errors.append(
+            make_issue(
+                "blocker",
+                "waiver-config",
+                "invalid-json",
+                str(error),
+                path=relative_path,
+                waivable=False,
+            )
+        )
+        return active, errors
+
+    if not isinstance(payload, dict) or payload.get("schema_version") != WAIVER_SCHEMA_VERSION:
+        errors.append(
+            make_issue(
+                "blocker",
+                "waiver-config",
+                "invalid-schema-version",
+                f"schema_version deve ser {WAIVER_SCHEMA_VERSION}.",
+                path=relative_path,
+                waivable=False,
+            )
+        )
+        return active, errors
+
+    waivers = payload.get("waivers")
+    if not isinstance(waivers, list):
+        errors.append(
+            make_issue(
+                "blocker",
+                "waiver-config",
+                "waivers-not-list",
+                "waivers deve ser uma lista.",
+                path=relative_path,
+                waivable=False,
+            )
+        )
+        return active, errors
+
+    for index, waiver in enumerate(waivers):
+        identity = f"entry-{index}"
+        if not isinstance(waiver, dict):
+            errors.append(
+                make_issue(
+                    "blocker",
+                    "waiver-config",
+                    identity,
+                    "Cada waiver deve ser um objeto.",
+                    path=relative_path,
+                    waivable=False,
+                )
+            )
+            continue
+
+        issue_id = waiver.get("issue_id")
+        owner = waiver.get("owner")
+        reason = waiver.get("reason")
+        expires_on = parse_waiver_date(waiver.get("expires_on"))
+        fields_valid = (
+            isinstance(issue_id, str)
+            and bool(issue_id.strip())
+            and isinstance(owner, str)
+            and bool(owner.strip())
+            and isinstance(reason, str)
+            and len(reason.strip()) >= MIN_WAIVER_REASON_LENGTH
+            and expires_on is not None
+        )
+
+        if not fields_valid:
+            errors.append(
+                make_issue(
+                    "blocker",
+                    "waiver-config",
+                    identity,
+                    "Waiver exige issue_id, owner, reason >= 20 chars e expires_on ISO valido.",
+                    path=relative_path,
+                    waivable=False,
+                )
+            )
+            continue
+
+        assert isinstance(issue_id, str)
+        assert isinstance(owner, str)
+        assert isinstance(reason, str)
+        assert expires_on is not None
+
+        if issue_id in active:
+            errors.append(
+                make_issue(
+                    "blocker",
+                    "waiver-config",
+                    f"duplicate-{issue_id}",
+                    "issue_id duplicado.",
+                    path=relative_path,
+                    waivable=False,
+                )
+            )
+            continue
+        if expires_on < today:
+            errors.append(
+                make_issue(
+                    "blocker",
+                    "waiver-config",
+                    f"expired-{issue_id}",
+                    {"issue_id": issue_id, "expires_on": expires_on.isoformat()},
+                    path=relative_path,
+                    waivable=False,
+                )
+            )
+            continue
+
+        active[issue_id] = {
+            "owner": owner.strip(),
+            "reason": reason.strip(),
+            "expires_on": expires_on.isoformat(),
+        }
+
+    return active, errors
 
 
 def read(path: Path) -> str:
@@ -101,43 +403,159 @@ def extract_header_value(text: str, key: str) -> str:
     return m.group(1).strip() if m else ""
 
 
-def has_required_blocks(text: str) -> bool:
-    required = [
-        "## Bloco pedagogico",
-        "### Objetivo",
-        "### Pre-requisitos",
-        "### Erros comuns",
-        "### Check de compreensao",
-        "### Tempo estimado",
-        "## Bloco operacional",
-        "### Entrada",
-        "### Passos",
-        "### Validacao",
-        "### Handoff",
-        "## Snippet tecnico aplicavel",
+def normalize_semantic_text(value: str) -> str:
+    """Normalize PT-PT prose for semantic checks without requiring broken ASCII copy."""
+    ascii_text = unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode("ascii")
+    return re.sub(r"\s+", " ", ascii_text.lower()).strip()
+
+
+def extract_semantic_headings(text: str) -> list[str]:
+    """Return normalized Markdown headings independently of level and accents."""
+    return [
+        normalize_semantic_text(match.group(1))
+        for match in re.finditer(r"^#{2,6}\s+(.+?)\s*$", text, flags=re.MULTILINE)
     ]
-    return all(section in text for section in required)
 
 
-def has_non_placeholder_snippet(text: str) -> bool:
-    if "## Snippet tecnico aplicavel" not in text:
-        return False
-    if "Adicionar aqui" in text or "Trecho real e aplicavel" in text:
-        return False
-    return re.search(r"```[a-zA-Z0-9]*\n.+?```", text, flags=re.DOTALL) is not None
+def heading_matches(headings: list[str], *prefixes: str) -> bool:
+    """Check whether a guide has a heading matching one of the semantic variants."""
+    normalized_prefixes = tuple(normalize_semantic_text(prefix) for prefix in prefixes)
+    return any(heading.startswith(normalized_prefixes) for heading in headings)
 
 
-def extract_min_negativos(text: str) -> int:
-    m = re.search(r"Negativos: minimo `?(\d+)`?", text)
-    return int(m.group(1)) if m else 0
+def missing_required_guide_sections(text: str) -> list[str]:
+    """Validate the active tutorial contract while accepting equivalent historic labels.
+
+    OPSA guides were hydrated in three editorial waves. Their heading levels and a
+    few labels differ, but all valid variants express the same contract. Requiring
+    the retired ``Bloco pedagogico``/``Snippet tecnico`` literals generated hundreds
+    of false advisories and encouraged deliberately unaccented Portuguese.
+    """
+    headings = extract_semantic_headings(text)
+    normalized_text = normalize_semantic_text(text)
+    checks = {
+        "objetivo": heading_matches(headings, "objetivo", "o que vamos fazer neste bk"),
+        "importancia": heading_matches(headings, "importancia", "porque e que isto e importante"),
+        "scope_in": heading_matches(headings, "scope-in", "o que entra (scope)"),
+        "scope_out": heading_matches(headings, "scope-out", "o que nao entra (scope-out)"),
+        "estado_antes_depois": (
+            heading_matches(headings, "estado antes e depois")
+            or (
+                heading_matches(headings, "estado antes")
+                and heading_matches(headings, "estado depois")
+            )
+            or (
+                "estado esperado antes do bk:" in normalized_text
+                and "estado esperado depois do bk:" in normalized_text
+            )
+        ),
+        "pre_requisitos": heading_matches(headings, "pre-requisitos", "pre-leitura minima"),
+        "glossario": heading_matches(headings, "glossario"),
+        "conceitos_teoricos": heading_matches(headings, "conceitos teoricos essenciais"),
+        "arquitetura": (
+            heading_matches(headings, "arquitetura do bk")
+            or "impacto na arquitetura:" in normalized_text
+        ),
+        "ficheiros": (
+            heading_matches(headings, "ficheiros a criar/editar/rever")
+            or "ficheiros a criar/editar/rever:" in normalized_text
+        ),
+        "tutorial_linear": heading_matches(
+            headings,
+            "tutorial tecnico linear",
+            "passos lineares",
+        ),
+        "criterios_aceite": heading_matches(headings, "criterios de aceite"),
+        "validacao_final": heading_matches(headings, "validacao final"),
+        "evidence": heading_matches(headings, "evidence para pr/defesa"),
+        "handoff": heading_matches(headings, "handoff"),
+        "changelog": heading_matches(headings, "changelog"),
+    }
+    return [name for name, present in checks.items() if not present]
 
 
-def extract_first_snippet_block(text: str) -> str:
-    m = re.search(r"## Snippet tecnico aplicavel.*?```[a-zA-Z0-9]*\n(.+?)```", text, flags=re.DOTALL)
-    if not m:
+def extract_meaningful_code_blocks(text: str) -> list[str]:
+    """Return non-placeholder fenced blocks used as executable technical guidance."""
+    blocks = re.findall(r"```[^\n]*\n(.*?)```", text, flags=re.DOTALL)
+    placeholder_phrases = ("adicionar aqui", "trecho real e aplicavel")
+    return [
+        block
+        for block in blocks
+        if block.strip()
+        and not any(phrase in normalize_semantic_text(block) for phrase in placeholder_phrases)
+    ]
+
+
+def has_non_placeholder_technical_content(text: str) -> bool:
+    """Require concrete fenced technical content, not a retired standalone section."""
+    return bool(extract_meaningful_code_blocks(text))
+
+
+def extract_tutorial_step_count(text: str) -> int:
+    """Count actual ``Passo N`` headings instead of every numbered sub-item."""
+    return len(
+        {
+            int(match.group(1))
+            for match in re.finditer(r"^#{3,6}\s+Passo\s+(\d+)\b", text, flags=re.MULTILINE | re.IGNORECASE)
+        }
+    )
+
+
+def extract_negative_scenario_count(text: str) -> int:
+    """Estimate documented negative coverage from explicit minima and step bodies."""
+    normalized_text = normalize_semantic_text(text.replace("`", ""))
+    number_words = {
+        "um": 1,
+        "uma": 1,
+        "dois": 2,
+        "duas": 2,
+        "tres": 3,
+        "quatro": 4,
+        "cinco": 5,
+        "seis": 6,
+        "sete": 7,
+        "oito": 8,
+    }
+    number_token = r"(\d+|um|uma|dois|duas|tres|quatro|cinco|seis|sete|oito)"
+    patterns = (
+        rf"negativ[^.\n]{{0,35}}?minim[^\d\n]{{0,12}}{number_token}",
+        rf"pelo menos\s+{number_token}\s+(?:cenarios?\s+)?negativ",
+        rf"{number_token}\s+cenarios?\s+negativ",
+        rf"{number_token}\s+negativ",
+    )
+    explicit_counts: list[int] = []
+    for pattern in patterns:
+        for match in re.finditer(pattern, normalized_text):
+            raw = match.group(1)
+            explicit_counts.append(int(raw) if raw.isdigit() else number_words[raw])
+
+    structured_count = len(
+        re.findall(
+            r"^7\.\s+Cen[aá]rio negativo/erro esperado\.?\s*$",
+            text,
+            flags=re.MULTILINE | re.IGNORECASE,
+        )
+    )
+    return max([structured_count, *explicit_counts], default=0)
+
+
+def extract_final_handoff(text: str) -> str:
+    """Return the final Handoff section, independent of heading level."""
+    matches = list(re.finditer(r"^#{2,6}\s+Handoff\s*$", text, flags=re.MULTILINE | re.IGNORECASE))
+    if not matches:
         return ""
-    snippet = re.sub(r"\s+", " ", m.group(1)).strip()
-    return snippet
+    start = matches[-1].end()
+    next_heading = re.search(r"^#{2,6}\s+", text[start:], flags=re.MULTILINE)
+    end = start + next_heading.start() if next_heading else len(text)
+    return text[start:end]
+
+
+def extract_first_technical_block(text: str) -> str:
+    """Return a normalized representative block for excessive-duplication checks."""
+    blocks = extract_meaningful_code_blocks(text)
+    if not blocks:
+        return ""
+    return re.sub(r"\s+", " ", blocks[0]).strip()
 
 
 def parse_totals_from_plan_readme(text: str) -> dict[str, int]:
@@ -168,7 +586,8 @@ def rnf_anchor_issues(rnf_text: str) -> list[str]:
     return issues
 
 
-def scorecard_issues(score_text: str) -> list[str]:
+def scorecard_issues(score_text: str, sprint_plan_text: str) -> list[str]:
+    """Validate score weights and planned loads against the canonical sprint plan."""
     expected = {
         "Cobertura/rastreabilidade": 25,
         "Coerencia documental": 20,
@@ -180,6 +599,31 @@ def scorecard_issues(score_text: str) -> list[str]:
     for name, weight in expected.items():
         if not re.search(rf"\|\s*{re.escape(name)}\s*\|\s*{weight}\s*\|", score_text):
             issues.append(f"missing_or_invalid_score_criterion:{name}")
+
+    plan_rows = parse_table_rows(
+        sprint_plan_text,
+        "| sprint | periodo | foco_macro | objetivo_operacional | carga_planeada_u | gate |",
+    )
+    score_rows = parse_table_rows(
+        score_text,
+        (
+            "| sprint | estado_sprint | cobertura | coerencia | pedagogia_guidance_step_by_step | "
+            "adequacao_12o | governanca | carga_planeada_u | carga_real_u | desvio_u | "
+            "risco_semaforo | acao_corretiva |"
+        ),
+    )
+    plan_loads = {row["sprint"]: row["carga_planeada_u"] for row in plan_rows}
+    score_loads = {row["sprint"]: row["carga_planeada_u"] for row in score_rows}
+    for sprint, expected_load in sorted(plan_loads.items()):
+        actual_load = score_loads.get(sprint)
+        if actual_load is None:
+            issues.append(f"missing_scorecard_sprint:{sprint}")
+        elif actual_load != expected_load:
+            issues.append(
+                f"scorecard_planned_load_mismatch:{sprint}(expected={expected_load},actual={actual_load})"
+            )
+    for sprint in sorted(set(score_loads) - set(plan_loads)):
+        issues.append(f"unexpected_scorecard_sprint:{sprint}")
     return issues
 
 
@@ -200,7 +644,113 @@ def is_recent_last_updated(doc_date: date, today: date | None = None) -> bool:
     return (today - doc_date).days <= MAX_DOC_AGE_DAYS
 
 
+def issue_identity(value: object) -> str:
+    """Serialize an issue payload deterministically for stable waiver IDs."""
+    if isinstance(value, (dict, list)):
+        return json.dumps(value, sort_keys=True, ensure_ascii=True, separators=(",", ":"))
+    return str(value)
+
+
+def build_plan_validation_issues(
+    repo: Path,
+    coverage: dict[str, list[object]],
+    consistency: dict[str, list[object]],
+    guides_quality: dict[str, list[object]],
+) -> list[dict[str, object]]:
+    """Convert legacy validation findings into explicit blocker/advisory records."""
+    issues: list[dict[str, object]] = []
+
+    for category, entries in coverage.items():
+        for entry in entries:
+            issues.append(make_issue("blocker", f"coverage-{category}", issue_identity(entry), entry))
+
+    blocking_consistency_categories = (
+        "matriz_backlog_mismatches",
+        "broken_guia_links",
+        "invalid_dependencies",
+        "cycles",
+        "scorecard_contract_issues",
+        "declared_totals_issues",
+        "rnf_index_anchor_issues",
+    )
+    for category in blocking_consistency_categories:
+        for entry in consistency.get(category, []):
+            issues.append(make_issue("blocker", category, issue_identity(entry), entry))
+
+    for raw_path in consistency.get("outdated_docs", []):
+        path = Path(str(raw_path))
+        relative_path = repo_relative(repo, path)
+        issues.append(
+            make_issue(
+                "advisory",
+                "outdated-doc",
+                relative_path,
+                "Documento sem last_updated recente.",
+                path=relative_path,
+            )
+        )
+
+    blocking_guide_categories = ("guide_header_issues", "naming_issues", "missing_guides")
+    for category in blocking_guide_categories:
+        for entry in guides_quality.get(category, []):
+            issues.append(make_issue("blocker", category, issue_identity(entry), entry))
+
+    for entry in guides_quality.get("guide_content_issues", []):
+        issues.append(make_issue("advisory", "guide-content", issue_identity(entry), entry))
+
+    return issues
+
+
+def apply_validation_waivers(
+    issues: list[dict[str, object]],
+    active_waivers: dict[str, dict[str, str]],
+    waiver_path: str,
+) -> tuple[list[dict[str, object]], list[dict[str, object]], list[dict[str, object]]]:
+    """Split issues into waived/unwaived sets and reject stale waiver identifiers."""
+    known_ids = {str(issue["issue_id"]) for issue in issues}
+    waived: list[dict[str, object]] = []
+    unwaived: list[dict[str, object]] = []
+    stale: list[dict[str, object]] = []
+
+    for issue in issues:
+        issue_id = str(issue["issue_id"])
+        waiver = active_waivers.get(issue_id)
+        if waiver and bool(issue.get("waivable", True)):
+            waived_issue = dict(issue)
+            waived_issue["waiver"] = waiver
+            waived.append(waived_issue)
+        else:
+            unwaived.append(issue)
+
+    for issue_id in sorted(set(active_waivers) - known_ids):
+        stale.append(
+            make_issue(
+                "blocker",
+                "waiver-config",
+                f"stale-{issue_id}",
+                {"issue_id": issue_id, "reason": "Waiver nao corresponde a um finding atual."},
+                path=waiver_path,
+                waivable=False,
+            )
+        )
+
+    return waived, unwaived, stale
+
+
 def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="Valida planificação, evidence e sincronização documental OPSA.",
+    )
+    parser.add_argument(
+        "--self-test",
+        action="store_true",
+        help="Executa negativos de mutação do contrato documental num diretório temporário.",
+    )
+    args = parser.parse_args()
+    if args.self_test:
+        print(json.dumps(run_mutation_self_test(), indent=2, ensure_ascii=False))
+        return
+
     repo = Path(__file__).resolve().parents[3]
     plan = repo / "docs" / "planificacao"
     backlogs = plan / "backlogs"
@@ -211,11 +761,11 @@ def main() -> None:
 
     matriz_rows = parse_table_rows(
         read(backlogs / "MATRIZ-CANONICA-BK.md"),
-        "| bk_id | macro | titulo | owner | apoio | prioridade | estado | esforco | dependencias | rf_rnf | fase_documental | proximo_bk_recomendado |",
+        "| bk_id | macro | titulo | owner | apoio | prioridade | estado_alunos | esforco | dependencias | rf_rnf | fase_documental | proximo_bk_recomendado |",
     )
     backlog_rows = parse_table_rows(
         read(backlogs / "BACKLOG-MVP.md"),
-        "| bk_id | macro | titulo | owner | apoio | prioridade | estado | esforco | dependencias | rf_rnf | fase_documental | proximo_bk | guia |",
+        "| bk_id | macro | titulo | owner | apoio | prioridade | estado_alunos | esforco | dependencias | rf_rnf | fase_documental | proximo_bk | guia |",
         "## MF0",
     )
 
@@ -256,6 +806,7 @@ def main() -> None:
             continue
         if (
             m["owner"] != b["owner"]
+            or m["estado_alunos"] != b["estado_alunos"]
             or m["prioridade"] != b["prioridade"]
             or sorted(parse_items(m["rf_rnf"])) != sorted(parse_items(b["rf_rnf"]))
         ):
@@ -263,8 +814,8 @@ def main() -> None:
                 {
                     "bk_id": bk_id,
                     "type": "field_mismatch",
-                    "matrix": {"owner": m["owner"], "prioridade": m["prioridade"], "rf_rnf": m["rf_rnf"]},
-                    "backlog": {"owner": b["owner"], "prioridade": b["prioridade"], "rf_rnf": b["rf_rnf"]},
+                    "matrix": {"owner": m["owner"], "estado_alunos": m["estado_alunos"], "prioridade": m["prioridade"], "rf_rnf": m["rf_rnf"]},
+                    "backlog": {"owner": b["owner"], "estado_alunos": b["estado_alunos"], "prioridade": b["prioridade"], "rf_rnf": b["rf_rnf"]},
                 }
             )
 
@@ -342,35 +893,46 @@ def main() -> None:
         header_proximo = extract_header_value(text, "proximo_bk")
         if header_proximo and header_proximo != "-" and header_proximo not in matriz_by_bk:
             guide_header_issues.append({"bk_id": bk_id, "mismatch": "invalid_header_proximo_bk"})
-        handoff_match = re.search(r"^- Proximo BK recomendado: `([^`]+)`", text, flags=re.MULTILINE)
-        if not handoff_match:
-            guide_content_issues.append({"bk_id": bk_id, "issue": "missing_handoff_proximo_bk_line"})
-        else:
-            handoff_proximo = handoff_match.group(1).strip()
-            if header_proximo and handoff_proximo != header_proximo:
-                guide_content_issues.append({"bk_id": bk_id, "issue": "handoff_proximo_bk_not_matching_header"})
-            if handoff_proximo != "-" and handoff_proximo not in matriz_by_bk:
-                guide_content_issues.append({"bk_id": bk_id, "issue": "invalid_handoff_proximo_bk"})
+        final_handoff = extract_final_handoff(text)
+        if header_proximo and header_proximo != "-" and header_proximo not in final_handoff:
+            guide_content_issues.append({"bk_id": bk_id, "issue": "handoff_missing_expected_next_bk"})
 
         if "Conseguir explicar e executar o BK" in text:
             guide_content_issues.append({"bk_id": bk_id, "issue": "generic_objective_phrase_legacy"})
 
-        if not has_required_blocks(text):
-            guide_content_issues.append({"bk_id": bk_id, "issue": "missing_pedagogic_or_operational_blocks"})
+        missing_sections = missing_required_guide_sections(text)
+        if missing_sections:
+            guide_content_issues.append(
+                {
+                    "bk_id": bk_id,
+                    "issue": f"missing_required_sections({','.join(missing_sections)})",
+                }
+            )
 
-        if not has_non_placeholder_snippet(text):
-            guide_content_issues.append({"bk_id": bk_id, "issue": "missing_or_placeholder_snippet"})
+        if not has_non_placeholder_technical_content(text):
+            guide_content_issues.append({"bk_id": bk_id, "issue": "missing_or_placeholder_technical_content"})
         else:
-            snippet = extract_first_snippet_block(text)
+            snippet = extract_first_technical_block(text)
             if snippet:
                 snippet_histogram[snippet].append(bk_id)
 
-        step_count = len(re.findall(r"^\d+\. ", text, flags=re.MULTILINE))
-        min_negativos = extract_min_negativos(text)
-        if row["prioridade"] == "P0" and (step_count < 8 or min_negativos < 3):
-            guide_content_issues.append({"bk_id": bk_id, "issue": f"P0_minimos(step={step_count},neg={min_negativos})"})
-        if row["prioridade"] in {"P1", "P2"} and (step_count < 6 or min_negativos < 2):
-            guide_content_issues.append({"bk_id": bk_id, "issue": f"P1P2_minimos(step={step_count},neg={min_negativos})"})
+        tutorial_steps = extract_tutorial_step_count(text)
+        negative_scenarios = extract_negative_scenario_count(text)
+        required_negatives = 3 if row["prioridade"] == "P0" else 2
+        if tutorial_steps < 2:
+            guide_content_issues.append(
+                {"bk_id": bk_id, "issue": f"tutorial_minimum_steps(step={tutorial_steps},required=2)"}
+            )
+        if negative_scenarios < required_negatives:
+            guide_content_issues.append(
+                {
+                    "bk_id": bk_id,
+                    "issue": (
+                        f"negative_scenarios_below_priority_minimum"
+                        f"(neg={negative_scenarios},required={required_negatives})"
+                    ),
+                }
+            )
 
     for lf in legacy_files:
         naming_issues.append({"file": str(lf), "issue": "legacy_filename_without_slug"})
@@ -415,7 +977,8 @@ def main() -> None:
         dfs(n, [n])
 
     scorecard_text = read(plan / "sprints" / "SCORECARD-SPRINTS.md")
-    scorecard_contract_issues = scorecard_issues(scorecard_text)
+    sprint_plan_text = read(plan / "sprints" / "PLANO-SPRINTS.md")
+    scorecard_contract_issues = scorecard_issues(scorecard_text, sprint_plan_text)
     plan_readme_text = read(plan / "README.md")
     declared_totals = parse_totals_from_plan_readme(plan_readme_text)
     declared_totals_issues: list[str] = []
@@ -461,7 +1024,92 @@ def main() -> None:
         and not rnf_index_anchor_consistency_issues
     )
     blocking_guides_pass = not guide_header_issues and not naming_issues and not missing_guides
-    advisory_pass = not outdated_docs and not guide_content_issues
+    coverage_result = {
+        "missing_rf_matrix": missing_rf_matrix,
+        "missing_rnf_matrix": missing_rnf_matrix,
+        "missing_rf_backlog": missing_rf_backlog,
+        "missing_rnf_backlog": missing_rnf_backlog,
+        "invalid_refs": sorted(invalid_refs),
+    }
+    consistency_result = {
+        "matriz_backlog_mismatches": mismatches,
+        "broken_guia_links": broken_guia_links,
+        "invalid_dependencies": deps_invalid,
+        "cycles": cycles,
+        "outdated_docs": outdated_docs,
+        "scorecard_contract_issues": scorecard_contract_issues,
+        "declared_totals_issues": declared_totals_issues,
+        "rnf_index_anchor_issues": rnf_index_anchor_consistency_issues,
+    }
+    guides_quality_result = {
+        "guide_header_issues": guide_header_issues,
+        "guide_content_issues": guide_content_issues,
+        "naming_issues": naming_issues,
+        "missing_guides": missing_guides,
+    }
+
+    conflict_marker_issues = scan_conflict_markers(repo)
+    evidence_decision_issues = scan_evidence_decisions(repo)
+    documentation_sync_result = audit_documentation_sync(repo)
+    canonical_runtime_result = audit_canonical_runtime_state(repo)
+    documentation_sync_issues = [
+        make_issue(
+            "blocker",
+            f"documentation-sync-{issue['category']}",
+            issue["identity"],
+            issue["detail"],
+            path=str(issue["path"]),
+            waivable=issue["category"] in {"broken-link", "pagination-envelope"},
+        )
+        for issue in documentation_sync_result["issues"]
+    ]
+    plan_validation_issues = build_plan_validation_issues(
+        repo,
+        coverage_result,
+        consistency_result,
+        guides_quality_result,
+    )
+    waiver_path = plan / "VALIDATION-WAIVERS.json"
+    active_waivers, waiver_config_issues = load_validation_waivers(repo, waiver_path)
+    all_issues = (
+        plan_validation_issues
+        + conflict_marker_issues
+        + evidence_decision_issues
+        + documentation_sync_issues
+        + waiver_config_issues
+    )
+    waived_issues, unwaived_issues, stale_waiver_issues = apply_validation_waivers(
+        all_issues,
+        active_waivers,
+        repo_relative(repo, waiver_path),
+    )
+    waiver_config_issues.extend(stale_waiver_issues)
+    unwaived_issues.extend(stale_waiver_issues)
+    unwaived_blockers = [issue for issue in unwaived_issues if issue["severity"] == "blocker"]
+    unwaived_advisories = [issue for issue in unwaived_issues if issue["severity"] == "advisory"]
+    documentation_sync_issue_ids = {
+        str(issue["issue_id"])
+        for issue in documentation_sync_issues
+    }
+    unwaived_documentation_sync_issues = [
+        issue
+        for issue in unwaived_issues
+        if str(issue["issue_id"]) in documentation_sync_issue_ids
+    ]
+
+    coverage_pass = not any(coverage_result.values())
+    conflict_markers_pass = not conflict_marker_issues
+    blockers_pass = not unwaived_blockers
+    advisory_pass = not unwaived_advisories
+    waiver_config_pass = not waiver_config_issues
+    documentation_sync_pass = not unwaived_documentation_sync_issues
+    canonical_runtime_pass = bool(canonical_runtime_result["canonical_runtime_pass"])
+    overall_pass = (
+        blockers_pass
+        and advisory_pass
+        and waiver_config_pass
+        and canonical_runtime_pass
+    )
 
     result = {
         "counts": {
@@ -471,50 +1119,50 @@ def main() -> None:
             "backlog_bk": len(backlog_rows),
             "guide_bk": len(guide_files),
         },
-        "coverage": {
-            "missing_rf_matrix": missing_rf_matrix,
-            "missing_rnf_matrix": missing_rnf_matrix,
-            "missing_rf_backlog": missing_rf_backlog,
-            "missing_rnf_backlog": missing_rnf_backlog,
-            "invalid_refs": sorted(invalid_refs),
+        "coverage": coverage_result,
+        "consistency": consistency_result,
+        "guides_quality": guides_quality_result,
+        "documentation_sync": {
+            **documentation_sync_result,
+            "documentation_sync_pass": documentation_sync_pass,
+            "unwaived_issues": unwaived_documentation_sync_issues,
+            "waived_issue_count": len(
+                [
+                    issue
+                    for issue in waived_issues
+                    if str(issue["issue_id"]) in documentation_sync_issue_ids
+                ]
+            ),
         },
-        "consistency": {
-            "matriz_backlog_mismatches": mismatches,
-            "broken_guia_links": broken_guia_links,
-            "invalid_dependencies": deps_invalid,
-            "cycles": cycles,
-            "outdated_docs": outdated_docs,
-            "scorecard_contract_issues": scorecard_contract_issues,
-            "declared_totals_issues": declared_totals_issues,
-            "rnf_index_anchor_issues": rnf_index_anchor_consistency_issues,
-        },
-        "guides_quality": {
-            "guide_header_issues": guide_header_issues,
-            "guide_content_issues": guide_content_issues,
-            "naming_issues": naming_issues,
-            "missing_guides": missing_guides,
+        "canonical_runtime": canonical_runtime_result,
+        "validation_policy": {
+            "waiver_file": repo_relative(repo, waiver_path),
+            "active_waivers": active_waivers,
+            "conflict_marker_issues": conflict_marker_issues,
+            "evidence_decision_issues": evidence_decision_issues,
+            "waiver_config_issues": waiver_config_issues,
+            "waived_issues": waived_issues,
+            "unwaived_blockers": unwaived_blockers,
+            "unwaived_advisories": unwaived_advisories,
         },
         "status": {
-            "coverage_pass": not missing_rf_matrix
-            and not missing_rnf_matrix
-            and not missing_rf_backlog
-            and not missing_rnf_backlog
-            and not invalid_refs,
+            "coverage_pass": coverage_pass,
             "consistency_pass": blocking_consistency_pass,
             "guides_pass": blocking_guides_pass,
             "naming_pass": not naming_issues,
+            "conflict_markers_pass": conflict_markers_pass,
+            "blockers_pass": blockers_pass,
             "advisory_pass": advisory_pass,
-            "overall_pass": not missing_rf_matrix
-            and not missing_rnf_matrix
-            and not missing_rf_backlog
-            and not missing_rnf_backlog
-            and not invalid_refs
-            and blocking_consistency_pass
-            and blocking_guides_pass,
+            "waiver_config_pass": waiver_config_pass,
+            "documentation_sync_pass": documentation_sync_pass,
+            "canonical_runtime_pass": canonical_runtime_pass,
+            "overall_pass": overall_pass,
         },
     }
 
     print(json.dumps(result, indent=2, ensure_ascii=False))
+    if not overall_pass:
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":

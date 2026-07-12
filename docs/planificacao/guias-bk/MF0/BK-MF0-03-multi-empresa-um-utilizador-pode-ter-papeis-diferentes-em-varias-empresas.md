@@ -17,7 +17,7 @@
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF0-04`
 - `guia_path`: `docs/planificacao/guias-bk/MF0/BK-MF0-03-multi-empresa-um-utilizador-pode-ter-papeis-diferentes-em-varias-empresas.md`
-- `last_updated`: `2026-05-24`
+- `last_updated`: `2026-07-10`
 
 #### BK-MF0-03 - Multi-empresa (um utilizador pode ter papéis diferentes em várias empresas).
 
@@ -25,7 +25,7 @@
 
 Neste BK vamos transformar o requisito RF03 num guia de execução para construir a parte da app relacionada com identidade. O foco não é produzir documentação genérica: é deixar claro que modelos, endpoints, validações, UI e evidência devem existir quando a equipa implementar o BK.
 
-A app real ainda está marcada como `sem_codigo`; por isso, os caminhos técnicos propostos seguem o contrato central `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md`. Esse contrato define a stack assumida, a estrutura indicativa e a regra de adaptação quando existir scaffold real, sem alterar RF, BK, owners, dependências ou critérios de aceite.
+A implementação pedagógica usa os caminhos públicos `apps/api` e `apps/web` e segue os contratos atuais de `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md` e `docs/planificacao/CONTRATO-INTERFACES-IMPLEMENTACAO.md`. O estado `TODO` descreve apenas o progresso dos alunos; não significa ausência de uma implementação privada de referência.
 
 Como a fase alvo é MF0, não existem BKs de fases anteriores a reutilizar. A continuidade nasce aqui: os outputs deste BK devem ser contratos estáveis para BK-MF0-04 e para os BKs de vendas, compras, inventário, contabilidade e segurança das fases seguintes.
 
@@ -42,6 +42,7 @@ Como a fase alvo é MF0, não existem BKs de fases anteriores a reutilizar. A co
 - Criar modelo de empresa mínimo para associar utilizadores.
 - Criar membership com userId, companyId e role.
 - Adicionar contexto de empresa ativo na sessão.
+- Criar a primeira empresa por onboarding transacional, com perfil, membership `ADMIN`, empresa ativa e auditoria.
 - Garantir que queries futuras filtram por companyId.
 - Preparar seletor simples de empresa no frontend quando houver mais de uma empresa.
 
@@ -69,14 +70,14 @@ Como a fase alvo é MF0, não existem BKs de fases anteriores a reutilizar. A co
 - Owner: `Oleksii` (CANONICO)
 - Apoio: `Andre` (CANONICO)
 - Dependências (BK IDs): `BK-MF0-02` (CANONICO)
-- Pré-condições: Depende de BK-MF0-02. App real pode ainda não existir; nesse caso criar a estrutura técnica assumida antes dos ficheiros alvo. (DERIVADO)
+- Pré-condições: Depende de BK-MF0-02. O scaffold pedagógico pode ainda estar incompleto; usar `apps/api` e `apps/web` e respeitar os contratos centrais atuais. (DERIVADO)
 - Ref. Plano: `PLANO-IMPLEMENTACAO-TOTAL.md` MF0; `PLANO-SPRINTS.md` S01-S02. (CANONICO)
 - Flow ID: `FLOW-MULTI-COMPANY` (DERIVADO)
 - Fonte de verdade: `docs/RF.md` -> `RF03` (CANONICO)
 - Fonte de verdade: `docs/planificacao/backlogs/BACKLOG-MVP.md` (CANONICO)
 - Fonte de verdade: `docs/planificacao/backlogs/MATRIZ-CANONICA-BK.md` e `docs/planificacao/backlogs/MF-VIEWS.md` (CANONICO)
 - Descrição: Multi-empresa (um utilizador pode ter papéis diferentes em várias empresas). (CANONICO)
-- Stack decidida: `DERIVADO` e centralizada em `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md`; este BK usa essa stack apenas como assunção técnica até existir scaffold real.
+- Stack decidida: `DERIVADO` e centralizada em `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md`; este BK ensina o mesmo contrato seguro nos caminhos públicos dos alunos.
 - Mockup usado: `mockup/` existe e foi usado como referência de fluxo, hierarquia e nomes visíveis; não é contrato pixel-perfect.
 
 #### O que vamos fazer neste BK (DERIVADO):
@@ -87,7 +88,7 @@ Como a fase alvo é MF0, não existem BKs de fases anteriores a reutilizar. A co
 - Dependências de BK anteriores e uso: Depende de BK-MF0-02.
 - Impacto na arquitetura: reforça separação entre routes, controllers, services, validators e UI.
 - Impacto frontend: liga o fluxo visual do mockup a API real com estados loading/error/empty/success quando aplicável.
-- Impacto backend/dados: cria ou prepara `Company, CompanyMembership` e endpoints `GET /api/companies, POST /api/session/company, GET /api/session/context`.
+- Impacto backend/dados: cria ou prepara `Company`, `CompanyProfile`, `CompanyMembership` e os endpoints `POST /api/onboarding/company`, `GET /api/companies`, `POST /api/session/company` e `GET /api/session/context`.
 - Impacto segurança: valida inputs no backend, aplica sessão/permissão quando aplicável e evita exposição de dados sensíveis.
 - Impacto testes: exige smoke e 3 negativos concretos.
 - Handoff: BK-MF0-04 deve reutilizar os contratos aqui criados.
@@ -122,9 +123,21 @@ Como a fase alvo é MF0, não existem BKs de fases anteriores a reutilizar. A co
 - **Erros comuns a evitar:** implementar só no frontend, confiar em dados enviados pelo browser, esquecer `companyId` nos dados por empresa, devolver mensagens técnicas cruas ao utilizador ou criar campos que não aparecem nos RF/RNF.
 - **Negativos de segurança/robustez:** todos os casos inválidos devem falhar de forma controlada, sem stack traces, sem dados sensíveis e sem escrita parcial na base de dados.
 
+##### Contrato de paridade obrigatório (2026-07-10)
+
+O onboarding não pode depender de seed nem deixar o utilizador autenticado sem empresa. `POST /api/onboarding/company` recebe os dados mínimos da empresa e executa uma única transação Prisma que:
+
+1. cria `Company` e `CompanyProfile`;
+2. cria a `CompanyMembership` do utilizador autenticado com role `ADMIN`;
+3. define `Session.activeCompanyId` para a sessão corrente;
+4. grava `AuditLog` na mesma transação;
+5. devolve a empresa e o contexto ativo sem expor dados de outra empresa.
+
+Qualquer falha faz rollback das cinco operações. O teste obrigatório força uma falha no último passo e prova que não ficou empresa, perfil ou membership órfã. O seletor de empresa continua a usar apenas memberships do utilizador autenticado; `companyId` nunca vem de um body de negócio sem validação contra essa membership.
+
 #### Tutorial técnico linear (DERIVADO):
 
-Este tutorial organiza o BK em passos lineares. O aluno deve seguir de cima para baixo: confirmar contratos, modelar dados, validar entradas, implementar regras de negócio, expor HTTP, testar e deixar handoff. Sempre que o scaffold real ainda não existir, usar a estrutura prevista em `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md` e registar a adaptação na evidence.
+Este tutorial organiza o BK em passos lineares. O aluno deve seguir de cima para baixo: confirmar contratos, modelar dados, validar entradas, implementar regras de negócio, expor HTTP, testar e deixar handoff. Se o scaffold pedagógico ainda estiver incompleto, usar `apps/api` e `apps/web`, seguir os contratos centrais atuais e registar a adaptação na evidence.
 
 ### Passo 1 - Confirmar contrato, scope e ligação aos BKs vizinhos
 
@@ -690,7 +703,7 @@ Se falta fonte documental ou decisão de arquitetura, não inventes. Regista exa
 
 Decisões em falta a manter visíveis durante a implementação:
 
-- Confirmar se a primeira empresa e membership inicial são criadas por seed, onboarding ou convite. Este BK apenas define o contrato técnico para usar empresas existentes.
+- A primeira empresa e a membership inicial são criadas por `POST /api/onboarding/company`; seed não substitui este fluxo.
 
 5. Explicação do código.
 
@@ -727,7 +740,10 @@ Se o handoff diz para usar algo que não foi criado neste BK ou num BK anterior,
 
 O BK seguinte deve criar convites e gerir memberships dentro de uma empresa ativa. Todas as queries de utilizadores da empresa devem usar `companyId` vindo de `requireCompanyContext`.
 
+- Próximo BK recomendado: `BK-MF0-04`.
+
 ## Changelog
 
+- `2026-07-10`: handoff sincronizado explicitamente com o próximo BK canónico do header.
 - `2026-05-24`: guia refinado para estrutura step-by-step executável, com continuidade MF0, mockup, negativos, critérios e evidence.
 - `2026-04-19`: metadados canónicos preservados da vaga de normalização.

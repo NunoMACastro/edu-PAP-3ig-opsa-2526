@@ -16,7 +16,11 @@
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF5-07`
 - `guia_path`: `docs/planificacao/guias-bk/MF5/BK-MF5-06-as-mensagens-de-erro-devem-ser-claras-e-indicar-como-resolver-o-problema.md`
-- `last_updated`: `2026-06-20`
+- `last_updated`: `2026-07-10`
+
+#### Contrato de erros atualizado
+
+`401` não é uma mensagem local repetida por cada formulário: o cliente comum limpa a sessão e o Router navega para login com `returnTo` interno validado. `409 STALE_STATE` preserva dados, recarrega a versão atual e pede nova decisão. A mensagem visível referencia campos através de `aria-describedby`, move foco para o erro relevante e nunca apresenta stack, payload bruto ou detalhes internos.
 
 #### Objetivo
 

@@ -171,7 +171,7 @@ evidence inválida por exposição de informação sensível.
 Resultado obtido:
 evidence mantida sem exposição de dados confidenciais.
 
-- PS D:\PAP\edu-PAP-3ig-opsa-2526> cd apps/api                         
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> cd apps/api
 - PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> node --check src/modules/auth/sessionCookie.js
 - PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> node scripts/check-mf6-session-cookie.mjs
 - PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> npm run test:contracts

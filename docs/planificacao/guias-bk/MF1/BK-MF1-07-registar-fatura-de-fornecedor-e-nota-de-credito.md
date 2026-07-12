@@ -17,7 +17,7 @@
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF1-08`
 - `guia_path`: `docs/planificacao/guias-bk/MF1/BK-MF1-07-registar-fatura-de-fornecedor-e-nota-de-credito.md`
-- `last_updated`: `2026-06-01`
+- `last_updated`: `2026-07-10`
 
 ## Objetivo
 
@@ -322,10 +322,38 @@ model VatRate {
 Localização: `apps/api/src/modules/purchases/purchaseDocumentService.js`.
 
 ```js
+import {
+    buildCursorPage,
+    buildKeysetCondition,
+    decodePageCursor,
+    parsePageLimit,
+} from "../../lib/cursorPagination.js";
 import { httpError } from "../../lib/httpErrors.js";
+import { parseOptionalStrictDateOnly, parseStrictDateOnly } from "../../lib/strictDate.js";
 import { assertOpenFiscalPeriod } from "../fiscal-periods/fiscalPeriodService.js";
 
 const kinds = new Set(["SUPPLIER_INVOICE", "SUPPLIER_CREDIT_NOTE"]);
+
+export async function listPurchaseDocuments(prisma, companyId, page = {}) {
+    const limit = parsePageLimit(page.limit);
+    const cursor = decodePageCursor(page.cursor, "date");
+    const keyset = buildKeysetCondition(cursor, {
+        sortField: "issuedAt",
+        direction: "desc",
+    });
+    const baseWhere = { companyId };
+    const records = await prisma.purchaseDocument.findMany({
+        where: keyset ? { AND: [baseWhere, keyset] } : baseWhere,
+        include: { supplier: true, lines: true },
+        orderBy: [{ issuedAt: "desc" }, { id: "desc" }],
+        take: limit + 1,
+    });
+    return buildCursorPage(records, {
+        limit,
+        sortField: "issuedAt",
+        sortType: "date",
+    });
+}
 
 function parseLine(line) {
     const quantity = Number(line.quantity);
@@ -343,10 +371,8 @@ export async function createPurchaseDocument(prisma, companyId, userId, input) {
     if (!kinds.has(kind)) throw httpError(400, "INVALID_KIND", "Tipo de compra inválido");
     const supplierNumber = String(input.supplierNumber ?? "").trim();
     if (!supplierNumber) throw httpError(400, "INVALID_SUPPLIER_NUMBER", "Numero do fornecedor obrigatório");
-    const issuedAt = new Date(input.issuedAt);
-    if (Number.isNaN(issuedAt.getTime())) throw httpError(400, "INVALID_DATE", "Data inválida");
-    const dueDate = input.dueDate ? new Date(input.dueDate) : null;
-    if (dueDate && Number.isNaN(dueDate.getTime())) throw httpError(400, "INVALID_DUE_DATE", "Data de vencimento inválida");
+    const issuedAt = parseStrictDateOnly(input.issuedAt, { code: "INVALID_DATE", field: "issuedAt" });
+    const dueDate = parseOptionalStrictDateOnly(input.dueDate, { code: "INVALID_DUE_DATE", field: "dueDate" });
     const lines = Array.isArray(input.lines) ? input.lines.map(parseLine) : [];
     if (lines.length === 0) throw httpError(400, "EMPTY_LINES", "Documento sem linhas");
     await assertOpenFiscalPeriod(prisma, { companyId, documentDate: issuedAt });
@@ -401,7 +427,7 @@ import { requireAuth } from "../auth/authMiddleware.js";
 import { requireCompanyContext } from "../companies/companyContext.js";
 import { requireRole } from "../permissions/permissionMiddleware.js";
 import { toHttpError } from "../../lib/httpErrors.js";
-import { createPurchaseDocument } from "./purchaseDocumentService.js";
+import { createPurchaseDocument, listPurchaseDocuments } from "./purchaseDocumentService.js";
 
 function sendError(res, error) {
     const response = toHttpError(error);
@@ -421,8 +447,8 @@ export function buildPurchaseDocumentRoutes({ prisma }) {
     });
     router.get("/", guards, async (req, res) => {
         try {
-            const data = await prisma.purchaseDocument.findMany({ where: { companyId: req.companyId }, include: { supplier: true, lines: true }, orderBy: { issuedAt: "desc" } });
-            return res.status(200).json({ data });
+            const page = await listPurchaseDocuments(prisma, req.companyId, req.query);
+            return res.status(200).json(page);
         } catch (error) {
             return sendError(res, error);
         }
@@ -479,6 +505,14 @@ export type PurchaseDocumentInput = { kind: "SUPPLIER_INVOICE" | "SUPPLIER_CREDI
 export async function createPurchaseDocument(input: PurchaseDocumentInput) {
     return apiClient.post("/api/purchases/documents", input);
 }
+
+export async function fetchPurchaseDocuments(cursor?: string) {
+    const query = cursor ? `?cursor=${encodeURIComponent(cursor)}` : "";
+    return apiClient.get<{
+        items: unknown[];
+        pageInfo: { nextCursor: string | null; hasNextPage: boolean };
+    }>(`/api/purchases/documents${query}`);
+}
 ```
 
 Localização: `apps/web/src/pages/PurchaseDocumentsPage.tsx`.
@@ -487,12 +521,14 @@ Localização: `apps/web/src/pages/PurchaseDocumentsPage.tsx`.
 // apps/web/src/pages/PurchaseDocumentsPage.tsx
 import { FormEvent, useState } from "react";
 import { createPurchaseDocument, type PurchaseDocumentInput } from "../lib/purchasesApi";
+import { todayInPortugal } from "../lib/localDate";
+import { EntityAutocomplete } from "../components/forms/EntityAutocomplete";
 
 const emptyForm: PurchaseDocumentInput = {
     kind: "SUPPLIER_INVOICE",
     supplierId: "",
     supplierNumber: "",
-    issuedAt: new Date().toISOString().slice(0, 10),
+    issuedAt: todayInPortugal(),
     lines: [{ itemId: "", vatRateId: "", description: "", quantity: 1, unitCostCents: 0 }],
 };
 
@@ -531,11 +567,11 @@ export function PurchaseDocumentsPage() {
                     <option value="SUPPLIER_INVOICE">Fatura de fornecedor</option>
                     <option value="SUPPLIER_CREDIT_NOTE">Nota de crédito</option>
                 </select>
-                <input value={form.supplierId} onChange={(event) => setForm({ ...form, supplierId: event.target.value })} placeholder="ID do fornecedor" />
+                <EntityAutocomplete label="Fornecedor" endpoint="/api/suppliers" value={form.supplierId} onChange={(supplierId) => setForm({ ...form, supplierId })} />
                 <input value={form.supplierNumber} onChange={(event) => setForm({ ...form, supplierNumber: event.target.value })} placeholder="Numero do fornecedor" />
                 <input type="date" value={form.issuedAt} onChange={(event) => setForm({ ...form, issuedAt: event.target.value })} />
-                <input value={form.lines[0].itemId} onChange={(event) => setForm({ ...form, lines: [{ ...form.lines[0], itemId: event.target.value }] })} placeholder="ID do artigo" />
-                <input value={form.lines[0].vatRateId} onChange={(event) => setForm({ ...form, lines: [{ ...form.lines[0], vatRateId: event.target.value }] })} placeholder="ID da taxa IVA" />
+                <EntityAutocomplete label="Artigo" endpoint="/api/items" value={form.lines[0].itemId} onChange={(itemId) => setForm({ ...form, lines: [{ ...form.lines[0], itemId }] })} />
+                <EntityAutocomplete label="Taxa de IVA" endpoint="/api/vat-rates" value={form.lines[0].vatRateId} onChange={(vatRateId) => setForm({ ...form, lines: [{ ...form.lines[0], vatRateId }] })} />
                 <input type="number" value={form.lines[0].unitCostCents} onChange={(event) => setForm({ ...form, lines: [{ ...form.lines[0], unitCostCents: Number(event.target.value) }] })} />
                 <button type="submit" disabled={saving}>{saving ? "A guardar..." : "Registar compra"}</button>
             </form>

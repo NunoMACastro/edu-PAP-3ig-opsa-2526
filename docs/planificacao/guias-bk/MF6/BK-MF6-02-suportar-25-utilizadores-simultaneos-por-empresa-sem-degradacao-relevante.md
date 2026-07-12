@@ -17,7 +17,7 @@
 - `core_or_reforco`: `Core`
 - `proximo_bk`: `BK-MF6-03`
 - `guia_path`: `docs/planificacao/guias-bk/MF6/BK-MF6-02-suportar-25-utilizadores-simultaneos-por-empresa-sem-degradacao-relevante.md`
-- `last_updated`: `2026-06-22`
+- `last_updated`: `2026-07-10`
 
 #### Objetivo
 
@@ -283,7 +283,7 @@ O script usa `fetch` nativo e não adiciona dependências. A variável `OPSA_SES
 
 6. Validação do passo.
 
-Executa `cd apps/api && OPSA_SESSION_COOKIES_JSON='["sid=1","sid=2"]' node scripts/check-mf6-concurrency.mjs`, substituindo o exemplo por 25 cookies reais de teste.
+Injeta `OPSA_SESSION_COOKIES_JSON` por um canal seguro no processo (sem escrever o valor no comando, evidence ou shell history) e executa `cd apps/api && node scripts/check-mf6-concurrency.mjs`. A variável deve conter 25 cookies reais exclusivamente do ambiente remoto de teste.
 
 7. Cenário negativo/erro esperado.
 

@@ -17,7 +17,7 @@
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF1-03`
 - `guia_path`: `docs/planificacao/guias-bk/MF1/BK-MF1-02-emitir-fatura-fatura-recibo-nota-de-credito-com-numeracao-sequencial.md`
-- `last_updated`: `2026-06-01`
+- `last_updated`: `2026-07-10`
 
 ## Objetivo
 
@@ -81,6 +81,14 @@ A aplicação emite documentos de venda por empresa, com sequência atómica, li
 - **Formulário React:** recolhe dados mínimos e mostra listagem; a validação local melhora UX mas não substitui o backend.
 - **Segurança:** o `companyId` vem da sessão e as permissões são verificadas na route; isto evita emissão noutra empresa.
 - **Handoff:** recebimentos, lançamentos contabilísticos, aprovação e relatórios dependem do documento emitido neste BK.
+
+## Contrato de paridade obrigatório (2026-07-10)
+
+- `issuedAt` e `dueDate` usam o parser estrito partilhado `YYYY-MM-DD`; datas impossíveis devolvem `400` e não são normalizadas por `new Date(string)`.
+- O default de data no browser é calculado em calendário local de Portugal, sem `toISOString()`; diferenças de UTC não podem deslocar o dia.
+- Cliente, artigo e taxa de IVA são escolhidos por select/autocomplete carregado da API, nunca por UUID escrito à mão. Linhas são um editor estruturado, nunca JSON manual.
+- Listagens devolvem `{ items, pageInfo: { nextCursor, hasNextPage } }`; a UI mostra “Carregar mais” apenas quando `hasNextPage`.
+- O formulário preserva todo o conteúdo em `400`, `409` ou `500` e só limpa depois de sucesso.
 
 ## Arquitetura do BK
 
@@ -369,15 +377,37 @@ model User {
 Localização: `apps/api/src/modules/sales/saleDocumentService.js`.
 
 ```js
+import {
+    buildCursorPage,
+    buildKeysetCondition,
+    decodePageCursor,
+    parsePageLimit,
+} from "../../lib/cursorPagination.js";
 import { httpError } from "../../lib/httpErrors.js";
+import { parseOptionalStrictDateOnly, parseStrictDateOnly } from "../../lib/strictDate.js";
 import { assertOpenFiscalPeriod } from "../fiscal-periods/fiscalPeriodService.js";
 
 const saleKinds = new Set(["INVOICE", "INVOICE_RECEIPT", "CREDIT_NOTE"]);
 
-function toDate(value, field) {
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) throw httpError(400, "INVALID_DATE", field + " inválida");
-    return date;
+export async function listSaleDocuments(prisma, companyId, page = {}) {
+    const limit = parsePageLimit(page.limit);
+    const cursor = decodePageCursor(page.cursor, "date");
+    const keyset = buildKeysetCondition(cursor, {
+        sortField: "issuedAt",
+        direction: "desc",
+    });
+    const baseWhere = { companyId };
+    const records = await prisma.saleDocument.findMany({
+        where: keyset ? { AND: [baseWhere, keyset] } : baseWhere,
+        include: { customer: true, lines: true },
+        orderBy: [{ issuedAt: "desc" }, { id: "desc" }],
+        take: limit + 1,
+    });
+    return buildCursorPage(records, {
+        limit,
+        sortField: "issuedAt",
+        sortType: "date",
+    });
 }
 
 function parseLine(line) {
@@ -411,8 +441,8 @@ export async function createSaleDocument(prisma, companyId, userId, input) {
     const kind = String(input.kind ?? "").toUpperCase();
     if (!saleKinds.has(kind)) throw httpError(400, "INVALID_KIND", "Tipo de documento inválido");
     if (!input.customerId) throw httpError(400, "INVALID_CUSTOMER", "Cliente obrigatório");
-    const issuedAt = toDate(input.issuedAt, "issuedAt");
-    const dueDate = input.dueDate ? toDate(input.dueDate, "dueDate") : null;
+    const issuedAt = parseStrictDateOnly(input.issuedAt, { code: "INVALID_DATE", field: "issuedAt" });
+    const dueDate = parseOptionalStrictDateOnly(input.dueDate, { code: "INVALID_DUE_DATE", field: "dueDate" });
     const lines = Array.isArray(input.lines) ? input.lines.map(parseLine) : [];
     if (lines.length === 0) throw httpError(400, "EMPTY_LINES", "Documento sem linhas");
 
@@ -504,7 +534,7 @@ import { requireAuth } from "../auth/authMiddleware.js";
 import { requireCompanyContext } from "../companies/companyContext.js";
 import { requireRole } from "../permissions/permissionMiddleware.js";
 import { toHttpError } from "../../lib/httpErrors.js";
-import { createSaleDocument, issueSaleDocument } from "./saleDocumentService.js";
+import { createSaleDocument, issueSaleDocument, listSaleDocuments } from "./saleDocumentService.js";
 
 function sendError(res, error) {
     const response = toHttpError(error);
@@ -526,8 +556,8 @@ export function buildSaleDocumentRoutes({ prisma }) {
 
     router.get("/", guards, async (req, res) => {
         try {
-            const data = await prisma.saleDocument.findMany({ where: { companyId: req.companyId }, include: { customer: true, lines: true }, orderBy: { issuedAt: "desc" } });
-            return res.status(200).json({ data });
+            const page = await listSaleDocuments(prisma, req.companyId, req.query);
+            return res.status(200).json(page);
         } catch (error) { return sendError(res, error); }
     });
 
@@ -591,8 +621,9 @@ export async function createSaleDocument(input: SaleDocumentInput) {
     return apiClient.post("/api/sales/documents", input);
 }
 
-export async function fetchSaleDocuments() {
-    return apiClient.get("/api/sales/documents");
+export async function fetchSaleDocuments(cursor?: string) {
+    const query = cursor ? `?cursor=${encodeURIComponent(cursor)}` : "";
+    return apiClient.get<{ items: unknown[]; pageInfo: { nextCursor: string | null; hasNextPage: boolean } }>(`/api/sales/documents${query}`);
 }
 
 export async function issueSaleDocument(id: string) {
@@ -606,13 +637,25 @@ Localização: `apps/web/src/pages/SaleDocumentsPage.tsx`.
 // apps/web/src/pages/SaleDocumentsPage.tsx
 import { FormEvent, useEffect, useState } from "react";
 import { createSaleDocument, fetchSaleDocuments, issueSaleDocument, type SaleDocumentInput } from "../lib/salesApi";
+import { EntityAutocomplete } from "../components/forms/EntityAutocomplete";
 
 type SaleDocumentRow = { id: string; number: string | null; kind: string; status: string; totalCents: number };
+
+function todayInPortugal(date = new Date()) {
+    const parts = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "Europe/Lisbon",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+    }).formatToParts(date);
+    const value = Object.fromEntries(parts.map(({ type, value }) => [type, value]));
+    return `${value.year}-${value.month}-${value.day}`;
+}
 
 const emptyForm: SaleDocumentInput = {
     kind: "INVOICE",
     customerId: "",
-    issuedAt: new Date().toISOString().slice(0, 10),
+    issuedAt: todayInPortugal(),
     lines: [{ itemId: "", vatRateId: "", description: "", quantity: 1, unitPriceCents: 0 }],
 };
 
@@ -628,8 +671,8 @@ export function SaleDocumentsPage() {
         setLoading(true);
         setError(null);
         try {
-            const response = await fetchSaleDocuments() as { data: SaleDocumentRow[] };
-            setDocuments(response.data);
+            const response = await fetchSaleDocuments() as { items: SaleDocumentRow[]; pageInfo: { nextCursor: string | null; hasNextPage: boolean } };
+            setDocuments(response.items);
         } catch (err) {
             setError(err instanceof Error ? err.message : "Não foi possível carregar documentos de venda.");
         } finally {
@@ -682,10 +725,10 @@ export function SaleDocumentsPage() {
                     <option value="INVOICE_RECEIPT">Fatura-recibo</option>
                     <option value="CREDIT_NOTE">Nota de crédito</option>
                 </select>
-                <input value={form.customerId} onChange={(event) => setForm({ ...form, customerId: event.target.value })} placeholder="ID do cliente" />
+                <EntityAutocomplete label="Cliente" endpoint="/api/customers" value={form.customerId} onChange={(customerId) => setForm({ ...form, customerId })} />
                 <input type="date" value={form.issuedAt} onChange={(event) => setForm({ ...form, issuedAt: event.target.value })} />
-                <input value={form.lines[0].itemId} onChange={(event) => setForm({ ...form, lines: [{ ...form.lines[0], itemId: event.target.value }] })} placeholder="ID do artigo" />
-                <input value={form.lines[0].vatRateId} onChange={(event) => setForm({ ...form, lines: [{ ...form.lines[0], vatRateId: event.target.value }] })} placeholder="ID da taxa IVA" />
+                <EntityAutocomplete label="Artigo" endpoint="/api/items" value={form.lines[0].itemId} onChange={(itemId) => setForm({ ...form, lines: [{ ...form.lines[0], itemId }] })} />
+                <EntityAutocomplete label="Taxa de IVA" endpoint="/api/vat-rates" value={form.lines[0].vatRateId} onChange={(vatRateId) => setForm({ ...form, lines: [{ ...form.lines[0], vatRateId }] })} />
                 <input type="number" value={form.lines[0].unitPriceCents} onChange={(event) => setForm({ ...form, lines: [{ ...form.lines[0], unitPriceCents: Number(event.target.value) }] })} />
                 <button type="submit" disabled={saving}>{saving ? "A guardar..." : "Guardar rascunho"}</button>
             </form>

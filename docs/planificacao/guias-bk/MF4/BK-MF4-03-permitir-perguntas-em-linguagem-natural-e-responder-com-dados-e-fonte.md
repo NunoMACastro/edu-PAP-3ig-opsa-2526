@@ -1,5 +1,7 @@
 # BK-MF4-03 - Permitir perguntas em linguagem natural e responder com dados e fonte.
 
+> **Atualização da implementação de referência em 2026-07-11:** o formulário de pergunta única foi substituído por chat persistente e contextual, com OpenAI opcional e controlada. O tutorial determinístico abaixo preserva a progressão pedagógica original; para o contrato runtime atual, usar [`../SINCRONIZACAO-IA-V2.md`](../SINCRONIZACAO-IA-V2.md) e `docs/ARQUITETURA-IA-OPSA-V2.md`.
+
 ## Header
 - `doc_id`: `GUIA-BK-MF4-03`
 - `bk_id`: `BK-MF4-03`
@@ -16,11 +18,11 @@
 - `core_or_reforco`: `Core`
 - `proximo_bk`: `BK-MF4-04`
 - `guia_path`: `docs/planificacao/guias-bk/MF4/BK-MF4-03-permitir-perguntas-em-linguagem-natural-e-responder-com-dados-e-fonte.md`
-- `last_updated`: `2026-06-16`
+- `last_updated`: `2026-07-11`
 
 #### Objetivo
 
-Neste BK vais criar um endpoint de perguntas em linguagem natural controlada, respondendo apenas com dados que a aplicação consegue justificar com fontes.
+Neste BK vais criar uma interface de linguagem natural controlada. Na implementação de referência atual, essa interface é um chat com sessões e contexto, cujas respostas continuam limitadas a dados que a aplicação consegue justificar com fontes estruturadas.
 
 #### Importância
 
@@ -28,23 +30,24 @@ RF41 aproxima os relatórios dos utilizadores não técnicos. O ponto central é
 
 #### Scope-in
 
-- Criar `AiQuestionRun` para guardar pergunta, resposta, fontes e utilizador.
-- Aceitar perguntas de leitura sobre vendas, compras, margem e stock.
+- Criar sessões e mensagens isoladas por empresa e utilizador, com conteúdo cifrado e apagável.
+- Aceitar perguntas de leitura sobre cashflow, recebimentos, margem, stock, KPIs, comparação e explicação de insights.
 - Bloquear pedidos de alteração, aprovação, emissão ou lançamento.
-- Responder com fontes reais, sem inventar dados.
-- Criar formulário simples no frontend.
+- Responder com tools internas read-only, fontes reais, limitações e validação numérica.
+- Pseudonimizar dados antes do envio externo e exigir opt-in/consentimento.
+- Criar página `/ai/chat` e drawer global com streaming SSE.
 
 #### Scope-out
 
-- Não integrar provider externo de IA.
-- Não implementar conversas multi-turno.
+- Não dar ao provider acesso a SQL, Prisma, IDs reais, ficheiros ou ferramentas mutáveis.
+- Não usar conhecimento geral, web search, anexos, SAF-T, Conversations API ou armazenamento remoto de conversas.
 - Não executar mutações pedidas pelo utilizador.
 - Não responder a perguntas fora das fontes documentadas.
 
 #### Estado antes e depois
 
 - Estado antes: a MF3 já fornece relatórios, tesouraria, stock, importações e SAF-T, mas este BK ainda não entrega o fluxo específico de RF41.
-- Estado depois: o aluno implementa o contrato deste BK com backend protegido, dados por empresa, validação e evidence objetiva.
+- Estado depois na referência: existe chat protegido com provider opcional, fallback determinístico, histórico local cifrado, retenção máxima de 90 dias, consentimento e evidence de testes sem dados reais.
 
 #### Pre-requisitos
 

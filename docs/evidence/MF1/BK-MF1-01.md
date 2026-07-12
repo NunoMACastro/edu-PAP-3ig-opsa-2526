@@ -47,7 +47,7 @@ The schema at prisma\schema.prisma is valid 🚀
 ℹ todo 0
 ℹ duration_ms 1633.5579
 
-- PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> npm run test:contracts                  
+- PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> npm run test:contracts
 
 > @opsa/api@1.0.0 test:contracts
 > node --test tests/contracts/*.test.js
@@ -139,10 +139,10 @@ Passo 5
 ℹ todo 0
 ℹ duration_ms 1448.6191
 
-Passo 7 
+Passo 7
 - PS D:\PAP\edu-PAP-3ig-opsa-2526> git diff --check não devolveu nada
 
-Passo 8 
+Passo 8
 - PS D:\PAP\edu-PAP-3ig-opsa-2526> git diff -- docs/planificacao/guias-bk/MF1 também não devolveu nada
 
 Objetivo

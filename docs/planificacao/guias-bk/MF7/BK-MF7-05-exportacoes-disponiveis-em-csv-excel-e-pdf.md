@@ -17,7 +17,11 @@
 - `core_or_reforco`: `Core`
 - `proximo_bk`: `BK-MF7-06`
 - `guia_path`: `docs/planificacao/guias-bk/MF7/BK-MF7-05-exportacoes-disponiveis-em-csv-excel-e-pdf.md`
-- `last_updated`: `2026-06-26`
+- `last_updated`: `2026-07-10`
+
+#### Contrato de download atualizado
+
+Os endpoints de exportação autorizam novamente utilizador, empresa e permissão no momento do download. Respondem por streaming com `Content-Disposition: attachment`, `X-Content-Type-Options: nosniff` e `Cache-Control: no-store`; não devolvem ficheiros dentro de JSON. Nomes são seguros e fórmulas CSV/XLSX são neutralizadas. Exportações grandes têm limites/timeout e não são montadas integralmente em memória sem orçamento explícito. Listagens de runs usam `{ items, pageInfo }` com cursor.
 
 #### Objetivo
 

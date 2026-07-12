@@ -16,7 +16,11 @@
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF5-01`
 - `guia_path`: `docs/planificacao/guias-bk/MF4/BK-MF4-10-registar-logs-de-integracao-uploads-saf-t-reconciliacoes.md`
-- `last_updated`: `2026-06-16`
+- `last_updated`: `2026-07-10`
+
+#### Contrato de integração atualizado
+
+Logs de upload, SAF-T e reconciliação guardam apenas metadata/hash/estado redigidos e são gravados atomicamente com a alteração relevante. A consulta usa cursor pagination `{ items, pageInfo }`. Ficheiros ficam no S3 privado; conteúdo, tokens, cookies e URLs credenciadas nunca entram no log.
 
 #### Objetivo
 
@@ -271,6 +275,12 @@ Cria `GET /api/integrations/logs`.
 ```js
 // apps/api/src/modules/integrations/integrationLogRoutes.js
 import { Router } from "express";
+import {
+    buildCursorPage,
+    buildKeysetCondition,
+    decodePageCursor,
+    parsePageLimit,
+} from "../../lib/cursorPagination.js";
 import { toHttpError } from "../../lib/httpErrors.js";
 import { requireAuth } from "../auth/authMiddleware.js";
 import { requireCompanyContext } from "../companies/companyContext.js";
@@ -291,8 +301,27 @@ export function buildIntegrationLogRoutes({ prisma }) {
     router.get("/logs", guards, async (req, res) => {
         try {
             // A empresa vem do contexto autenticado; não é aceite como query param.
-            const logs = await prisma.integrationLog.findMany({ where: { companyId: req.companyId }, orderBy: { createdAt: "desc" }, take: 100 });
-            return res.status(200).json({ logs });
+            const pageSize = parsePageLimit(req.query.limit);
+            const cursor = decodePageCursor(req.query.cursor, "date");
+            const keyset = buildKeysetCondition(cursor, {
+                sortField: "createdAt",
+                direction: "desc",
+            });
+            const baseWhere = { companyId: req.companyId };
+            const rows = await prisma.integrationLog.findMany({
+                where: keyset ? { AND: [baseWhere, keyset] } : baseWhere,
+                orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+                take: pageSize + 1,
+            });
+            const page = buildCursorPage(rows, {
+                limit: pageSize,
+                sortField: "createdAt",
+                sortType: "date",
+            });
+            return res.status(200).json({
+                items: page.items,
+                pageInfo: page.pageInfo,
+            });
         } catch (error) {
             return sendError(res, error);
         }
@@ -315,7 +344,7 @@ A rota é deliberadamente só de consulta. Este BK não cria upload, SAF-T ou re
 
 O array `guards` aplica sessão, empresa ativa e role `ADMIN`. A rota não aceita `companyId` vindo da query string, porque a empresa tem de ser resolvida pelo contexto autenticado. Este padrão é igual aos restantes BKs multiempresa e deve ser reconhecido pelos alunos como uma regra transversal da aplicação.
 
-`take: 100` limita a resposta inicial para o MVP. Se a app crescer, a paginação pode ser adicionada, mas mantendo sempre o filtro por `companyId` antes de devolver dados.
+O service pede `pageSize + 1`, calcula `hasNextPage` e mantém filtro por `companyId` antes de devolver dados.
 
 6. Validação do passo.
 
@@ -410,8 +439,12 @@ export interface IntegrationLogItem {
 }
 
 /** Consulta logs de integração da empresa ativa. */
-export function getIntegrationLogs() {
-  return client.request<{ logs: IntegrationLogItem[] }>("GET", "/integrations/logs");
+export function getIntegrationLogs(cursor?: string) {
+  const query = cursor ? `?cursor=${encodeURIComponent(cursor)}` : "";
+  return client.request<{
+    items: IntegrationLogItem[];
+    pageInfo: { nextCursor: string | null; hasNextPage: boolean };
+  }>("GET", `/integrations/logs${query}`);
 }
 
 // apps/web/src/pages/IntegrationLogsPage.tsx
@@ -427,7 +460,7 @@ export function IntegrationLogsPage() {
     try {
       // A API só devolve logs se a sessão for Admin da empresa ativa.
       const result = await getIntegrationLogs();
-      setLogs(result.logs);
+      setLogs(result.items);
       setError(null);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Erro inesperado");

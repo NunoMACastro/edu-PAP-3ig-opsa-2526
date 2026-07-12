@@ -17,7 +17,7 @@
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF6-10`
 - `guia_path`: `docs/planificacao/guias-bk/MF6/BK-MF6-09-chaves-de-api-e-credenciais-apenas-em-variaveis-de-ambiente.md`
-- `last_updated`: `2026-06-22`
+- `last_updated`: `2026-07-10`
 
 #### Objetivo
 
@@ -215,7 +215,8 @@ Escreve nomes e valores fictícios.
 4. Código completo, correto e integrado com a app final.
 
 ```dotenv
-DATABASE_URL=postgresql://user:pass@localhost:5432/opsa_dev
+# Preencher por canal seguro no ambiente de execução; nunca documentar utilizador/password.
+DATABASE_URL=
 APP_BASE_URL=http://localhost:5173
 ```
 

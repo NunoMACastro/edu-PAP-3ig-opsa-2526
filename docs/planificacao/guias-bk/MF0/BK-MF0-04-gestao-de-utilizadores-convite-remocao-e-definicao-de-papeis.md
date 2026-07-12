@@ -17,7 +17,7 @@
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF0-05`
 - `guia_path`: `docs/planificacao/guias-bk/MF0/BK-MF0-04-gestao-de-utilizadores-convite-remocao-e-definicao-de-papeis.md`
-- `last_updated`: `2026-05-24`
+- `last_updated`: `2026-07-10`
 
 #### BK-MF0-04 - Gestão de utilizadores: convite, remoção e definição de papéis.
 
@@ -25,7 +25,7 @@
 
 Neste BK vamos transformar o requisito RF04 num guia de execução para construir a parte da app relacionada com identidade. O foco não é produzir documentação genérica: é deixar claro que modelos, endpoints, validações, UI e evidência devem existir quando a equipa implementar o BK.
 
-A app real ainda está marcada como `sem_codigo`; por isso, os caminhos técnicos propostos seguem o contrato central `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md`. Esse contrato define a stack assumida, a estrutura indicativa e a regra de adaptação quando existir scaffold real, sem alterar RF, BK, owners, dependências ou critérios de aceite.
+A implementação pedagógica usa os caminhos públicos `apps/api` e `apps/web` e segue os contratos atuais de `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md` e `docs/planificacao/CONTRATO-INTERFACES-IMPLEMENTACAO.md`. O estado `TODO` descreve apenas o progresso dos alunos; não significa ausência de uma implementação privada de referência.
 
 Como a fase alvo é MF0, não existem BKs de fases anteriores a reutilizar. A continuidade nasce aqui: os outputs deste BK devem ser contratos estáveis para BK-MF0-05 e para os BKs de vendas, compras, inventário, contabilidade e segurança das fases seguintes.
 
@@ -41,14 +41,15 @@ Como a fase alvo é MF0, não existem BKs de fases anteriores a reutilizar. A co
 
 - Listar utilizadores da empresa ativa.
 - Criar convite por email, role e empresa.
+- Consultar preview, aceitar, reenviar e revogar convites com estados e timestamps persistentes.
 - Alterar role de um membro existente dentro das roles canónicas.
 - Remover membership sem apagar a conta global.
-- Preparar adaptador de email para envio real/futuro.
+- Enfileirar email transacional na `EmailOutbox` para entrega SMTP pelo worker.
 
 ##### O que não entra (scope-out)
 
 - Recuperação de password, porque pertence ao BK-MF0-05.
-- Auditoria completa de alterações, que será reforçada em MF4/MF6.
+- Interfaces de administração avançada fora das ações auditadas de convite/membership.
 - Equipas/departamentos, porque não existem nos RF/RNF.
 - Convites entre empresas sem permissão explicita.
 
@@ -69,14 +70,14 @@ Como a fase alvo é MF0, não existem BKs de fases anteriores a reutilizar. A co
 - Owner: `Oleksii` (CANONICO)
 - Apoio: `Andre` (CANONICO)
 - Dependências (BK IDs): `BK-MF0-03` (CANONICO)
-- Pré-condições: Depende de BK-MF0-03. App real pode ainda não existir; nesse caso criar a estrutura técnica assumida antes dos ficheiros alvo. (DERIVADO)
+- Pré-condições: Depende de BK-MF0-03. O scaffold pedagógico pode ainda estar incompleto; usar `apps/api` e `apps/web` e respeitar os contratos centrais atuais. (DERIVADO)
 - Ref. Plano: `PLANO-IMPLEMENTACAO-TOTAL.md` MF0; `PLANO-SPRINTS.md` S01-S02. (CANONICO)
 - Flow ID: `FLOW-USER-ADMIN` (DERIVADO)
 - Fonte de verdade: `docs/RF.md` -> `RF04` (CANONICO)
 - Fonte de verdade: `docs/planificacao/backlogs/BACKLOG-MVP.md` (CANONICO)
 - Fonte de verdade: `docs/planificacao/backlogs/MATRIZ-CANONICA-BK.md` e `docs/planificacao/backlogs/MF-VIEWS.md` (CANONICO)
 - Descrição: Gestão de utilizadores: convite, remoção e definição de papéis. (CANONICO)
-- Stack decidida: `DERIVADO` e centralizada em `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md`; este BK usa essa stack apenas como assunção técnica até existir scaffold real.
+- Stack decidida: `DERIVADO` e centralizada em `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md`; este BK ensina o mesmo contrato seguro nos caminhos públicos dos alunos.
 - Mockup usado: `mockup/` existe e foi usado como referência de fluxo, hierarquia e nomes visíveis; não é contrato pixel-perfect.
 
 #### O que vamos fazer neste BK (DERIVADO):
@@ -87,7 +88,7 @@ Como a fase alvo é MF0, não existem BKs de fases anteriores a reutilizar. A co
 - Dependências de BK anteriores e uso: Depende de BK-MF0-03.
 - Impacto na arquitetura: reforça separação entre routes, controllers, services, validators e UI.
 - Impacto frontend: liga o fluxo visual do mockup a API real com estados loading/error/empty/success quando aplicável.
-- Impacto backend/dados: cria ou prepara `Invitation, CompanyMembership` e endpoints `GET /api/company/users, POST /api/company/invitations, PATCH /api/company/users/:id/role, DELETE /api/company/users/:id`.
+- Impacto backend/dados: cria ou prepara `CompanyInvitation`, `CompanyMembership`, `EmailOutbox` e os endpoints `GET/POST /api/company/invitations`, `POST /api/company/invitations/:id/resend`, `POST /api/company/invitations/:id/revoke`, `POST /api/invitations/preview`, `POST /api/invitations/accept`, `GET /api/company/users`, `PATCH /api/company/users/:id/role` e `DELETE /api/company/users/:id`.
 - Impacto segurança: valida inputs no backend, aplica sessão/permissão quando aplicável e evita exposição de dados sensíveis.
 - Impacto testes: exige smoke e 3 negativos concretos.
 - Handoff: BK-MF0-05 deve reutilizar os contratos aqui criados.
@@ -118,13 +119,21 @@ Como a fase alvo é MF0, não existem BKs de fases anteriores a reutilizar. A co
 - Gerir utilizadores numa app multiempresa significa gerir memberships, não apagar pessoas da plataforma.
 - Tokens de convite devem expirar e não devem ser guardados em texto puro quando funcionam como segredo.
 - A validação backend deve impedir roles desconhecidas e alterações feitas por quem não tem permissão.
-- O email pode ser simulado no desenvolvimento, mas o contrato deve permitir integrar o serviço real quando o RNF21 for tratado.
+- O email segue sempre o contrato comum de `EmailOutbox`; em produção o worker usa SMTP e o modo log/mock é proibido.
 - **Erros comuns a evitar:** implementar só no frontend, confiar em dados enviados pelo browser, esquecer `companyId` nos dados por empresa, devolver mensagens técnicas cruas ao utilizador ou criar campos que não aparecem nos RF/RNF.
 - **Negativos de segurança/robustez:** todos os casos inválidos devem falhar de forma controlada, sem stack traces, sem dados sensíveis e sem escrita parcial na base de dados.
 
+##### Contrato de paridade obrigatório (2026-07-10)
+
+- O link entregue por SMTP usa fragmento, por exemplo `/convites#token=...`. O browser lê o fragmento, envia o token apenas no body de `POST /api/invitations/preview` ou `POST /api/invitations/accept` e remove-o da URL com `history.replaceState` imediatamente depois. Tokens nunca entram em path, query string, analytics ou logs.
+- Criar/re-enviar um convite e enfileirar a mensagem cifrada em `EmailOutbox` acontece na mesma transação. O worker SMTP separado usa lease, retry exponencial e deduplicação; não há envio direto nem `console.log` de email/token.
+- Aceitar/revogar grava `acceptedAt`/`acceptedById` ou `revokedAt`/`revokedById`, membership e `AuditLog` atomicamente. Reenvio invalida o segredo anterior, atualiza expiração e cria novo item de outbox.
+- Alterar role ou remover membership bloqueia a empresa com `SELECT ... FOR UPDATE`, volta a contar ADMINs dentro da transação e usa claim com estado esperado. Duas despromoções concorrentes nunca podem deixar a empresa sem ADMIN; quem perde o claim recebe `409 STALE_STATE`.
+- Listagens usam cursor, limite por omissão 50 e máximo 100: `{ items, pageInfo: { nextCursor, hasNextPage } }`.
+
 #### Tutorial técnico linear (DERIVADO):
 
-Este tutorial organiza o BK em passos lineares. O aluno deve seguir de cima para baixo: confirmar contratos, modelar dados, validar entradas, implementar regras de negócio, expor HTTP, testar e deixar handoff. Sempre que o scaffold real ainda não existir, usar a estrutura prevista em `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md` e registar a adaptação na evidence.
+Este tutorial organiza o BK em passos lineares. O aluno deve seguir de cima para baixo: confirmar contratos, modelar dados, validar entradas, implementar regras de negócio, expor HTTP, testar e deixar handoff. Se o scaffold pedagógico ainda estiver incompleto, usar `apps/api` e `apps/web`, seguir os contratos centrais atuais e registar a adaptação na evidence.
 
 ### Passo 1 - Confirmar contrato, scope e ligação aos BKs vizinhos
 
@@ -210,9 +219,13 @@ model CompanyInvitation {
   tokenHash String           @unique
   status    InvitationStatus @default(PENDING)
   expiresAt DateTime
-  createdBy String
-  createdAt DateTime         @default(now())
-  updatedAt DateTime         @updatedAt
+  createdBy     String
+  acceptedAt   DateTime?
+  acceptedById String?
+  revokedAt    DateTime?
+  revokedById  String?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
 
   company Company @relation(fields: [companyId], references: [id])
 
@@ -323,22 +336,22 @@ export function validateRolePayload(body) {
 Localização: criar `apps/api/src/modules/company-users/invitationEmailAdapter.js`.
 
 ```js
-export function buildInvitationEmailAdapter({ appBaseUrl, logger = console }) {
+export function buildInvitationEmailAdapter({ appBaseUrl, emailOutbox }) {
     return {
-        async sendInvitation({ email, companyName, token }) {
-            const inviteUrl = `${appBaseUrl}/convites/${token}`;
+        async enqueueInvitation(tx, { invitationId, email, companyName, token }) {
+            const inviteUrl = `${appBaseUrl}/convites#token=${encodeURIComponent(token)}`;
 
-            // Adaptador pedagógico: em desenvolvimento regista o link sem expor secrets noutros logs.
-            logger.info({
-                event: "company_invitation_created",
-                email,
-                companyName,
-                inviteUrl,
+            return emailOutbox.enqueue(tx, {
+                kind: "COMPANY_INVITATION",
+                dedupeKey: `company-invitation:${invitationId}`,
+                payload: { to: email, companyName, inviteUrl },
             });
         },
     };
 }
 ```
+
+`EmailOutbox.enqueue` cifra o payload com AES-256-GCM antes de o persistir. Só o worker SMTP com lease o decifra para entrega; nenhum logger recebe `email`, `token` ou `inviteUrl`.
 
 5. Explicação do código.
 
@@ -390,11 +403,13 @@ function hashToken(token) {
     return crypto.createHash("sha256").update(token).digest("hex");
 }
 
-async function assertNotLastAdmin(prisma, { companyId, targetUserId }) {
-    const activeAdmins = await prisma.companyMembership.count({
+async function lockCompanyAndAssertNotLastAdmin(tx, { companyId, targetUserId }) {
+    await tx.$queryRaw`SELECT id FROM "Company" WHERE id = ${companyId} FOR UPDATE`;
+
+    const activeAdmins = await tx.companyMembership.count({
         where: { companyId, role: "ADMIN", isActive: true },
     });
-    const target = await prisma.companyMembership.findFirst({
+    const target = await tx.companyMembership.findFirst({
         where: { companyId, userId: targetUserId, isActive: true },
     });
 
@@ -405,21 +420,39 @@ async function assertNotLastAdmin(prisma, { companyId, targetUserId }) {
             "Não é possível remover ou alterar o último ADMIN ativo",
         );
     }
+
+    if (!target) {
+        throw httpError(404, "USER_NOT_IN_COMPANY", "Utilizador não pertence à empresa");
+    }
+
+    return target;
 }
 
-export async function listCompanyUsers(prisma, companyId) {
+export async function listCompanyUsers(prisma, { companyId, cursor, limit = 50 }) {
     const memberships = await prisma.companyMembership.findMany({
         where: { companyId, isActive: true },
         include: { user: true },
-        orderBy: { createdAt: "asc" },
+        orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+        take: Math.min(limit, 100) + 1,
+        ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
     });
 
-    return memberships.map((membership) => ({
+    const hasNextPage = memberships.length > Math.min(limit, 100);
+    const page = hasNextPage ? memberships.slice(0, -1) : memberships;
+    const items = page.map((membership) => ({
         userId: membership.userId,
         email: membership.user.email,
         name: membership.user.name,
         role: membership.role,
     }));
+
+    return {
+        items,
+        pageInfo: {
+            nextCursor: hasNextPage ? page.at(-1).id : null,
+            hasNextPage,
+        },
+    };
 }
 
 export async function inviteUser(
@@ -448,52 +481,67 @@ export async function inviteUser(
         throw httpError(404, "COMPANY_NOT_FOUND", "Empresa não encontrada");
 
     const token = createToken();
-    const invitation = await prisma.companyInvitation.create({
-        data: {
-            companyId,
+    return prisma.$transaction(async (tx) => {
+        const invitation = await tx.companyInvitation.create({
+            data: {
+                companyId,
+                email,
+                role,
+                tokenHash: hashToken(token),
+                createdBy: actorUserId,
+                expiresAt: new Date(now.getTime() + INVITATION_TTL_MS),
+            },
+        });
+
+        await emailAdapter.enqueueInvitation(tx, {
+            invitationId: invitation.id,
             email,
-            role,
-            tokenHash: hashToken(token),
-            createdBy: actorUserId,
-            expiresAt: new Date(now.getTime() + INVITATION_TTL_MS),
-        },
-    });
+            companyName: company.name,
+            token,
+        });
+        await tx.auditLog.create({
+            data: {
+                companyId,
+                userId: actorUserId,
+                action: "COMPANY_INVITATION_CREATED",
+                entity: "CompanyInvitation",
+                entityId: invitation.id,
+            },
+        });
 
-    await emailAdapter.sendInvitation({
-        email,
-        companyName: company.name,
-        token,
+        return {
+            id: invitation.id,
+            email: invitation.email,
+            role: invitation.role,
+            status: invitation.status,
+            expiresAt: invitation.expiresAt,
+        };
     });
-
-    return {
-        id: invitation.id,
-        email: invitation.email,
-        role: invitation.role,
-        status: invitation.status,
-        expiresAt: invitation.expiresAt,
-    };
 }
 
 export async function updateCompanyUserRole(
     prisma,
-    { companyId, targetUserId, role },
+    { companyId, targetUserId, actorUserId, role },
 ) {
-    await assertNotLastAdmin(prisma, { companyId, targetUserId });
-
-    const updated = await prisma.companyMembership.updateMany({
-        where: { companyId, userId: targetUserId, isActive: true },
-        data: { role },
+    return prisma.$transaction(async (tx) => {
+        const target = await lockCompanyAndAssertNotLastAdmin(tx, { companyId, targetUserId });
+        const updated = await tx.companyMembership.updateMany({
+            where: {
+                companyId,
+                userId: targetUserId,
+                isActive: true,
+                role: target.role,
+            },
+            data: { role },
+        });
+        if (updated.count !== 1) {
+            throw httpError(409, "STALE_STATE", "A membership foi alterada por outra operação");
+        }
+        await tx.auditLog.create({
+            data: { companyId, userId: actorUserId, action: "COMPANY_MEMBER_ROLE_CHANGED", entity: "CompanyMembership", entityId: target.id },
+        });
+        return { userId: targetUserId, role };
     });
-
-    if (updated.count === 0) {
-        throw httpError(
-            404,
-            "USER_NOT_IN_COMPANY",
-            "Utilizador não pertence à empresa",
-        );
-    }
-
-    return { userId: targetUserId, role };
 }
 
 export async function removeCompanyUser(
@@ -508,20 +556,19 @@ export async function removeCompanyUser(
         );
     }
 
-    await assertNotLastAdmin(prisma, { companyId, targetUserId });
-
-    const removed = await prisma.companyMembership.updateMany({
-        where: { companyId, userId: targetUserId, isActive: true },
-        data: { isActive: false },
+    return prisma.$transaction(async (tx) => {
+        const target = await lockCompanyAndAssertNotLastAdmin(tx, { companyId, targetUserId });
+        const removed = await tx.companyMembership.updateMany({
+            where: { id: target.id, isActive: true, role: target.role },
+            data: { isActive: false },
+        });
+        if (removed.count !== 1) {
+            throw httpError(409, "STALE_STATE", "A membership foi alterada por outra operação");
+        }
+        await tx.auditLog.create({
+            data: { companyId, userId: actorUserId, action: "COMPANY_MEMBER_REMOVED", entity: "CompanyMembership", entityId: target.id },
+        });
     });
-
-    if (removed.count === 0) {
-        throw httpError(
-            404,
-            "USER_NOT_IN_COMPANY",
-            "Utilizador não pertence à empresa",
-        );
-    }
 }
 ```
 
@@ -547,6 +594,7 @@ Transformar a regra de negócio em API HTTP previsível para o frontend e para t
     - CRIAR:
     - apps/api/src/modules/company-users/companyUserController.js
     - apps/api/src/modules/company-users/companyUserRoutes.js
+    - apps/api/src/modules/company-users/invitationLifecycleController.js
     - EDITAR:
     - apps/api/src/server.js
     - LOCALIZACAO:
@@ -587,8 +635,12 @@ export function buildCompanyUserController({ prisma, emailAdapter }) {
     return {
         async list(req, res) {
             try {
-                const users = await listCompanyUsers(prisma, req.companyId);
-                return res.status(200).json({ users });
+                const page = await listCompanyUsers(prisma, {
+                    companyId: req.companyId,
+                    cursor: req.query.cursor,
+                    limit: Number(req.query.limit ?? 50),
+                });
+                return res.status(200).json(page);
             } catch (error) {
                 return sendError(res, error);
             }
@@ -614,6 +666,7 @@ export function buildCompanyUserController({ prisma, emailAdapter }) {
                 const result = await updateCompanyUserRole(prisma, {
                     companyId: req.companyId,
                     targetUserId: req.params.id,
+                    actorUserId: req.user.id,
                     role: input.role,
                 });
                 return res.status(200).json({ user: result });
@@ -647,14 +700,16 @@ import { requireCompanyContext } from "../companies/companyContext.js";
 import { Permission } from "../permissions/permissions.js";
 import { requirePermission } from "../permissions/permissionMiddleware.js";
 import { buildInvitationEmailAdapter } from "./invitationEmailAdapter.js";
+import { buildInvitationLifecycleController } from "./invitationLifecycleController.js";
 import { buildCompanyUserController } from "./companyUserController.js";
 
-export function buildCompanyUserRoutes({ prisma, appBaseUrl }) {
+export function buildCompanyUserRoutes({ prisma, appBaseUrl, emailOutbox }) {
     const router = Router();
     const controller = buildCompanyUserController({
         prisma,
-        emailAdapter: buildInvitationEmailAdapter({ appBaseUrl }),
+        emailAdapter: buildInvitationEmailAdapter({ appBaseUrl, emailOutbox }),
     });
+    const invitations = buildInvitationLifecycleController({ prisma, appBaseUrl, emailOutbox });
 
     const guards = [
         requireAuth(prisma),
@@ -663,7 +718,10 @@ export function buildCompanyUserRoutes({ prisma, appBaseUrl }) {
     ];
 
     router.get("/users", guards, controller.list);
+    router.get("/invitations", guards, invitations.list);
     router.post("/invitations", guards, controller.invite);
+    router.post("/invitations/:id/resend", guards, invitations.resend);
+    router.post("/invitations/:id/revoke", guards, invitations.revoke);
     router.patch("/users/:id/role", guards, controller.updateRole);
     router.delete("/users/:id", guards, controller.remove);
 
@@ -681,9 +739,12 @@ app.use(
     buildCompanyUserRoutes({
         prisma,
         appBaseUrl: process.env.APP_BASE_URL,
+        emailOutbox,
     }),
 );
 ```
+
+As rotas públicas autenticadas apenas pelo token são montadas separadamente em `/api/invitations`: `POST /preview` e `POST /accept`. Os respetivos controllers leem `req.body.token`; não existe rota com o token em `params` ou `query`.
 
 5. Explicação do código.
 
@@ -797,7 +858,7 @@ Se falta fonte documental ou decisão de arquitetura, não inventes. Regista exa
 
 Decisões em falta a manter visíveis durante a implementação:
 
-- Falta escolher o fornecedor real de email e templates transacionais. Enquanto RNF21 não tiver implementação, o adaptador acima serve apenas desenvolvimento/evidence e deve ser trocado sem mudar o service.
+- O provider é SMTP através da `EmailOutbox`; o ambiente de validação pode usar uma sandbox SMTP, mas nunca logs como entrega. O template pode evoluir sem alterar o contrato transacional, o fragmento ou o body da API.
 - Falta fechar o fluxo de aceitação de convite. Este BK cria e envia convite; aceitar convite pode ficar no mesmo BK se o scope for confirmado, ou num BK complementar.
 
 5. Explicação do código.
@@ -835,7 +896,10 @@ Se o handoff diz para usar algo que não foi criado neste BK ou num BK anterior,
 
 O BK seguinte também envia email, mas para recuperação de password global. Reutilizar a abordagem de adaptador para não misturar regra de negócio com infraestrutura de email.
 
+- Próximo BK recomendado: `BK-MF0-05`.
+
 ## Changelog
 
+- `2026-07-10`: handoff sincronizado explicitamente com o próximo BK canónico do header.
 - `2026-05-24`: guia refinado para estrutura step-by-step executável, com continuidade MF0, mockup, negativos, critérios e evidence.
 - `2026-04-19`: metadados canónicos preservados da vaga de normalização.

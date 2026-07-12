@@ -9,7 +9,7 @@
 * Endpoint previsto: /api/purchases/documents
 
 ### Passo 2
-Como aida não tinha BK03-BK06 feitos tive que apagar 
+Como aida não tinha BK03-BK06 feitos tive que apagar
 "saleDocumentLines SaleDocumentLine[]" do VatRate
 "saleDocumentLines SaleDocumentLine[]" do Item
 
@@ -29,9 +29,9 @@ Prisma schema loaded from prisma\schema.prisma
 
 ✔ Generated Prisma Client (v6.19.3) to .\node_modules\@prisma\client in 643ms
 
-- PS D:\PAP\edu-PAP-3ig-opsa-2526> npm --prefix apps/api run prisma:validate                                 
-   
-> @opsa/api@1.0.0 prisma:validate   
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> npm --prefix apps/api run prisma:validate
+
+> @opsa/api@1.0.0 prisma:validate
 > prisma validate
 
 Environment variables loaded from .env
@@ -109,14 +109,14 @@ npm --prefix apps/web run build
 ℹ todo 0
 ℹ duration_ms 2467.0455
 
-### Passo 7 
-- PS D:\PAP\edu-PAP-3ig-opsa-2526> git diff --check                                                                                                                                                         
+### Passo 7
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> git diff --check
 apps/web/src/lib/apiClient.ts:256: trailing whitespace.
-+    
++
 docs/evidence/MF1/BK-MF1-07.md:91: trailing whitespace.
-+### Passo 5 
++### Passo 5
 docs/evidence/MF1/BK-MF1-07.md:112: trailing whitespace.
-+### Pass0 7 
++### Pass0 7
 
 - PS D:\PAP\edu-PAP-3ig-opsa-2526> git diff -- docs/planificacao/guias-bk/MF1 não devolveu nada
 

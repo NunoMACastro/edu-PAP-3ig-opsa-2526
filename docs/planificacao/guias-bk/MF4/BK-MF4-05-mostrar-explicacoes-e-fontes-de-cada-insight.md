@@ -1,5 +1,7 @@
 # BK-MF4-05 - Mostrar explicações e fontes de cada insight.
 
+> **Atualização IA v2:** a explicabilidade inclui fórmula, período, `asOf`, contagens, qualidade, limitações e `sourceRefs`; o backend é o único autor de `facts` e fontes do chat. Ver [`../SINCRONIZACAO-IA-V2.md`](../SINCRONIZACAO-IA-V2.md).
+
 ## Header
 - `doc_id`: `GUIA-BK-MF4-05`
 - `bk_id`: `BK-MF4-05`

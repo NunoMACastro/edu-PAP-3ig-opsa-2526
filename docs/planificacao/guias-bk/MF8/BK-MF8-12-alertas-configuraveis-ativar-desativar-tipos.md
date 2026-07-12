@@ -1,5 +1,7 @@
 # BK-MF8-12 - Alertas configuráveis (ativar/desativar tipos)
 
+> **Atualização IA v2:** `AlertPreference` controla entrega por utilizador; `AiRuleSetting` controla regras e thresholds por empresa. Desativar entrega não elimina deteção interna, e alertas resolvidos não são reenviados como ativos. Ver [`../SINCRONIZACAO-IA-V2.md`](../SINCRONIZACAO-IA-V2.md).
+
 ## Header
 
 - `doc_id`: `GUIA-BK-MF8-12`

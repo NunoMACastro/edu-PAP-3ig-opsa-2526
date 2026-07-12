@@ -16,7 +16,11 @@
 - `core_or_reforco`: `Core`
 - `proximo_bk`: `BK-MF4-07`
 - `guia_path`: `docs/planificacao/guias-bk/MF4/BK-MF4-06-criar-editar-lembretes-essenciais-prazos-pagamentos-e-impostos.md`
-- `last_updated`: `2026-06-16`
+- `last_updated`: `2026-07-10`
+
+#### Contrato transacional atualizado
+
+Datas usam parser estrito `YYYY-MM-DD`; `2026-02-30` falha. Listagem usa `{ items, pageInfo }`. Criar/editar/alterar estado e `AuditLog` confirmam na mesma transação; transições recebem `expectedStatus` e conflito devolve `409 STALE_STATE`. A UI preserva dados em erro e usa selects para entidades relacionadas.
 
 #### Objetivo
 
@@ -193,6 +197,7 @@ Cria validator explícito.
 ```js
 // apps/api/src/modules/reminders/reminderValidators.js
 import { httpError } from "../../lib/httpErrors.js";
+import { parseCalendarDate } from "../../lib/calendarDate.js";
 
 const allowedReminderTypes = new Set(["DEADLINE", "PAYMENT", "TAX"]);
 const allowedReminderStatuses = new Set(["OPEN", "DONE", "CANCELLED"]);
@@ -209,12 +214,10 @@ function requiredText(value, field) {
 /** Valida data obrigatória recebida pelo body. */
 function requiredDate(value, field) {
     const raw = requiredText(value, field);
-    // A conversão para Date permite detetar valores impossíveis antes de chegar ao Prisma.
-    const date = new Date(raw);
-    if (Number.isNaN(date.getTime())) {
-        throw httpError(400, "INVALID_REMINDER", field + " deve ser uma data válida");
-    }
-    return date;
+    return parseCalendarDate(raw, {
+        code: "INVALID_REMINDER",
+        message: field + " deve ser uma data real no formato YYYY-MM-DD",
+    });
 }
 
 /** Valida valor pertencente a uma lista fechada. */
@@ -366,8 +369,12 @@ export function buildReminderRoutes({ prisma }) {
 
     router.get("/", guards, async (req, res) => {
         // req.companyId foi calculado pelo middleware; não vem do browser.
-        const items = await listReminders(prisma, { companyId: req.companyId });
-        return res.status(200).json({ items });
+        const page = await listReminders(prisma, {
+            companyId: req.companyId,
+            cursor: req.query.cursor,
+            limit: Number(req.query.limit ?? 50),
+        });
+        return res.status(200).json(page);
     });
 
     router.post("/", guards, async (req, res) => {
@@ -458,7 +465,7 @@ export interface ReminderInput {
 
 /** Lista lembretes da empresa ativa. */
 export function loadReminders() {
-  return client.request<{ items: ReminderItem[] }>("GET", "/reminders");
+  return client.request<CursorPage<ReminderItem>>("GET", "/reminders");
 }
 
 /** Cria lembrete operacional. */

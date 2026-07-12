@@ -17,7 +17,11 @@
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF8-02`
 - `guia_path`: `docs/planificacao/guias-bk/MF8/BK-MF8-01-logs-estruturados-info-warn-error-audit.md`
-- `last_updated`: `2026-06-30`
+- `last_updated`: `2026-07-10`
+
+#### Contrato operacional atualizado
+
+O middleware comum gera/valida request ID e regista dois eventos JSON por pedido: início e fim, com método, route template, status e duração. Query, body, cookies, authorization, tokens, emails, IPs em claro e stack não entram nos logs. O contexto propaga o request ID aos services, auditoria e workers. `createApp(...)` não abre listener; `startServer()` instala graceful shutdown, retira readiness, drena HTTP/workers e termina Redis/Prisma. Um log de arranque isolado não satisfaz este BK.
 
 #### Objetivo
 

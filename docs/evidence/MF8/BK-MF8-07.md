@@ -1,38 +1,39 @@
 # Evidence MF8 / BK-MF8-07
 
-- Projeto: OPSA
-- BK: BK-MF8-07
-- Tema: UI de planos e gestão da subscrição simulada
-- Data: YYYY-MM-DD
-- Responsável: Andre
-- Apoio: Pedro
+## Identificacao
 
-## Ficheiros alterados
+- Projeto: `OPSA`
+- BK: `BK-MF8-07`
+- Tema: UI de planos e gestao da subscricao simulada
+- Data de revalidacao: `2026-07-10`
+- Implementation root validado: `real_dev`
+- Nivel de prova: `ESTATICO_SEM_BROWSER`
 
-- apps/web/src/lib/subscriptionsApi.ts
-- apps/web/src/pages/SubscriptionsPage.tsx
-- apps/web/src/App.tsx
-- apps/web/src/styles.css
-- apps/web/scripts/check-mf8-subscriptions-ui.mjs
-- apps/web/package.json
+## Artefactos verificados
 
-## Comandos executados
+- Cliente: `real_dev/web/src/lib/subscriptionsApi.ts`
+- Pagina: `real_dev/web/src/pages/SubscriptionsPage.tsx`
+- Rotas e navegacao: `real_dev/web/src/App.tsx`
+- Gate: `real_dev/web/scripts/check-mf8-subscriptions-ui.mjs`
 
-| Comando | Critério de sucesso | Evidência a anexar |
+## Comando executado
+
+| Diretorio | Comando | Resultado observado |
 | --- | --- | --- |
-| `cd apps/web && npm run typecheck` | O comando termina com exit code `0` e não apresenta erros de TypeScript. | Anexar o output real do terminal; se falhar, manter o BK aberto e resumir o erro corrigido. |
-| `cd apps/web && npm run test:mf8:subscriptions-ui` | O gate confirma página, cliente API, aviso de simulação e ausência de `companyId` decidido pela UI. | Anexar o output real do terminal; se falhar, indicar a regra de UI ou segurança que ficou por corrigir. |
+| `real_dev/web` | `npm run test:mf8:subscriptions-ui` | `PASS`; `MF8 subscriptions UI smoke OK`. |
 
-## Verificação manual
+## Contrato estatico observado
 
-- [ ] A página `Subscrições` aparece na navegação.
-- [ ] A lista de planos mostra mensal, trimestral e anual quando a API devolve catálogo.
-- [ ] O estado sem subscrição permite ativar plano.
-- [ ] O estado ativo permite renovar e cancelar.
-- [ ] O estado cancelado ou expirado permite reativar com plano escolhido.
-- [ ] A UI mostra aviso de ações simuladas e não promete pagamento real.
-- [ ] A UI não pede identificador de empresa ao utilizador.
+- A pagina e o cliente API existem e usam o cliente HTTP central.
+- A UI identifica a subscricao como simulada e nao recebe `companyId` como decisao de ownership.
+- Acoes de ativacao e ciclo de vida sao encaminhadas para a API.
 
-## Notas para BK-MF8-08
+## Itens ainda nao provados
 
-BK-MF8-08 deve usar esta evidence para validar o fluxo completo de subscrições simuladas.
+- Renderizacao e interacao num browser real autenticado.
+- Responsividade e acessibilidade nos viewports contratados.
+- Fluxo persistido contra PostgreSQL remoto.
+
+## Decisao
+
+`PASS_ESTATICO`; foram removidos a data indefinida, campos por completar e caminhos da implementação dos alunos. O fecho browser permanece pendente.

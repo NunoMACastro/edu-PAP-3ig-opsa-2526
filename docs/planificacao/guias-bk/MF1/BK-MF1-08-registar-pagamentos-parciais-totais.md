@@ -17,7 +17,7 @@
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF1-09`
 - `guia_path`: `docs/planificacao/guias-bk/MF1/BK-MF1-08-registar-pagamentos-parciais-totais.md`
-- `last_updated`: `2026-06-01`
+- `last_updated`: `2026-07-10`
 
 ## Objetivo
 
@@ -259,6 +259,7 @@ Localização: `apps/api/src/modules/payments/paymentService.js`.
 
 ```js
 import { httpError } from "../../lib/httpErrors.js";
+import { parseStrictDateOnly } from "../../lib/strictDate.js";
 import { assertOpenFiscalPeriod } from "../fiscal-periods/fiscalPeriodService.js";
 
 const methods = new Set(["CASH", "BANK_TRANSFER", "CARD", "OTHER"]);
@@ -266,10 +267,9 @@ const methods = new Set(["CASH", "BANK_TRANSFER", "CARD", "OTHER"]);
 function parsePaymentInput(input) {
     if (!input || typeof input !== "object") throw httpError(400, "INVALID_BODY", "O corpo do pedido deve ser JSON");
     const amountCents = Number(input.amountCents);
-    const paidAt = new Date(input.paidAt);
+    const paidAt = parseStrictDateOnly(input.paidAt, { code: "INVALID_DATE", field: "paidAt" });
     const method = String(input.method ?? "").toUpperCase();
     if (!Number.isInteger(amountCents) || amountCents <= 0) throw httpError(400, "INVALID_AMOUNT", "Valor pago inválido");
-    if (Number.isNaN(paidAt.getTime())) throw httpError(400, "INVALID_DATE", "Data de pagamento inválida");
     if (!methods.has(method)) throw httpError(400, "INVALID_METHOD", "Método de pagamento inválido");
     return { amountCents, paidAt, method, reference: String(input.reference ?? "").trim() || null, notes: String(input.notes ?? "").trim() || null };
 }
@@ -391,11 +391,13 @@ Localização: `apps/web/src/pages/PaymentsPage.tsx`.
 // apps/web/src/pages/PaymentsPage.tsx
 import { FormEvent, useState } from "react";
 import { registerPayment, type PaymentInput } from "../lib/paymentApi";
+import { todayInPortugal } from "../lib/localDate";
+import { EntityAutocomplete } from "../components/forms/EntityAutocomplete";
 
 const emptyForm: PaymentInput & { purchaseDocumentId: string } = {
     purchaseDocumentId: "",
     amountCents: 0,
-    paidAt: new Date().toISOString().slice(0, 10),
+    paidAt: todayInPortugal(),
     method: "BANK_TRANSFER",
     reference: "",
     notes: "",
@@ -431,7 +433,7 @@ export function PaymentsPage() {
         <main>
             <h1>Pagamentos</h1>
             <form onSubmit={handleSubmit} aria-label="Registar pagamento">
-                <input value={form.purchaseDocumentId} onChange={(event) => setForm({ ...form, purchaseDocumentId: event.target.value })} placeholder="ID do documento de compra" />
+                <EntityAutocomplete label="Documento de compra" endpoint="/api/purchases/documents" value={form.purchaseDocumentId} onChange={(purchaseDocumentId) => setForm({ ...form, purchaseDocumentId })} />
                 <input type="number" value={form.amountCents} onChange={(event) => setForm({ ...form, amountCents: Number(event.target.value) })} />
                 <input type="date" value={form.paidAt} onChange={(event) => setForm({ ...form, paidAt: event.target.value })} />
                 <select value={form.method} onChange={(event) => setForm({ ...form, method: event.target.value as PaymentInput["method"] })}>

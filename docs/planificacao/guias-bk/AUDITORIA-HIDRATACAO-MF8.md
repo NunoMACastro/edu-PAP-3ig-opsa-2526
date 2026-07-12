@@ -1,3 +1,10 @@
+> [!WARNING]
+> `SNAPSHOT_HISTORICO_SUPERSEDED` — estado `SUPERSEDED` em 2026-07-10.
+>
+> Este relatório preserva um snapshot histórico e não representa o estado corrente.
+> Fonte atual: [relatório canónico](../auditorias/CORRECAO-AUDITORIA-END-TO-END-REAL_DEV-2026-07-09.md).
+> Não reutilizar contagens, comandos, paths ou decisões deste corpo como evidence atual.
+
 # Correção de hidratação de guias BK - MF8 / sem findings elegíveis
 
 - Projeto: OPSA
@@ -9010,7 +9017,7 @@ Decisões `DERIVADO` identificadas:
 | `cd apps/api && npm run syntax:check` | PASS | Código atual em `apps/api` sem erro de sintaxe. Não valida código futuro em falta no guia. |
 | `cd apps/api && npm run test:contracts` | PASS | 30 testes passaram. Ainda cobrem MF0..MF6, não o novo fluxo MF8 de subscrições. |
 | `cd apps/api && npm run prisma:validate` | BLOQUEADO_AMBIENTE | Falhou por `DATABASE_URL` ausente. |
-| `cd apps/api && DATABASE_URL=postgresql://user:pass@localhost:5432/opsa_test npm run prisma:validate` | PASS | Schema atual válido; não valida o `CompanySubscription` que o guia ainda não especifica. |
+| `cd apps/api && DATABASE_URL=<URL_AUTHENTICATED_REDACTED> npm run prisma:validate` | PASS | Schema atual válido; não valida o `CompanySubscription` que o guia ainda não especifica. |
 
 ## 10. Riscos e drift residual
 

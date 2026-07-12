@@ -1,6 +1,6 @@
 # Funções Fundamentais Da Aplicação - OPSA
 
-Data do levantamento: 2026-07-07
+Data do levantamento: 2026-07-11 (sincronização incremental da IA v2)
 Base do levantamento: `real_dev/api/src` e `real_dev/web/src`
 
 ## Critérios
@@ -13,9 +13,11 @@ Base do levantamento: `real_dev/api/src` e `real_dev/web/src`
 
 ## Resumo
 
-- Backend: 590 funções/métodos em 157 ficheiros.
-- Frontend: 328 funções/métodos em 25 ficheiros.
-- Total: 918 funções/métodos fundamentais listados.
+- Backend: 629 entradas fundamentais em 164 ficheiros.
+- Frontend: 340 entradas fundamentais em 28 ficheiros.
+- Total: 969 entradas documentais.
+
+Uma entrada pode agrupar funções relacionadas, como operações CRUD de sessões ou consentimento, quando partilham responsabilidade e contrato. Por isso, este inventário documental não deve ser confundido com a contagem AST integral apresentada em `ESTATISTICAS-PROJETO.md`.
 
 ## Backend
 
@@ -147,9 +149,71 @@ Base do levantamento: `real_dev/api/src` e `real_dev/web/src`
 ### `real_dev/api/src/modules/ai/aiRoutes.js`
 
 - `sendError(res, error)` (top-level; função) - Envia erro HTTP normalizado. Entradas: `res`: Resposta Express.; `error`: Erro capturado. Devolve: Resposta JSON.
-- `buildAiRoutes({ prisma })` (exportada; função) - Monta as rotas de IA MF4. Entradas: `deps`: Dependencias. Devolve: Router Express configurado.
+- `sendSse(res, event, data)` (top-level; função) - Emite um evento SSE sem expor argumentos internos das tools. Entradas: resposta, tipo e payload seguro. Devolve: escrita no stream.
+- `buildAiRoutes({ prisma, apiEnv, redisClient, providerOverride })` (exportada; função) - Monta as APIs canónicas de análise, lifecycle, settings, consentimento e chat, além do adapter depreciado `/questions`. Aplica autenticação, empresa ativa, permissões e roles. Entradas: dependências da API. Devolve: Router Express configurado sem chamar providers no arranque.
+
+### `real_dev/api/src/modules/ai/aiAnalysisService.js`
+
+- `AI_RULE_REGISTRY` (exportada; constante) - Registo versionado das regras determinísticas, thresholds seguros, score e prioridade.
+- `createAnalysisRun(prisma, input)` (exportada; função) - Cria um run manual ou de sistema em `QUEUED`, sempre limitado à empresa autenticada.
+- `getAnalysisRun(prisma, input)` (exportada; função) - Consulta estado e resumo seguro de um run da empresa ativa.
+- `claimNextAnalysisRun(prisma, workerId)` (exportada; função) - Reclama atomicamente o próximo run para impedir processamento concorrente duplicado.
+- `processAnalysisRun(prisma, run)` (exportada; função) - Executa métricas e regras, atualiza fingerprints e ocorrências, resolve riscos desaparecidos e fecha o run.
+- `listAiRecords(prisma, model, input)` (exportada; função) - Lista insights, sugestões ou alertas com paginação e ordenação por score/prioridade.
+- `updateAiRecordStatus(prisma, model, input)` (exportada; função) - Atualiza lifecycle, feedback e motivo dentro das transições autorizadas.
+- `getAiSettings(prisma, companyId)` (exportada; função) - Devolve opt-in, quotas e regras da empresa.
+- `updateAiSettings(prisma, input)` (exportada; função) - Permite ao `ADMIN` alterar opt-in, quotas e thresholds dentro de limites seguros.
+
+### `real_dev/api/src/modules/ai/aiAnalysisWorker.js`
+
+- `enqueueHourlyCompanyRuns(prisma, now)` (exportada; função) - Agenda idempotentemente análises horárias para as empresas.
+- `runAiAnalysisWorkerCycle(prisma, aiConfig, options)` (exportada; função) - Agenda, reclama e processa um batch de runs e elimina sessões de chat expiradas.
+
+### `real_dev/api/src/modules/ai/aiChatCrypto.js`
+
+- `parseAiChatEncryptionKey(value)` (exportada; função) - Valida que a chave própria do chat representa 32 bytes e falha fechado quando falta.
+- `encryptAiChatPayload(payload, encryptionKey)` (exportada; função) - Cifra conteúdo, fontes, resumo e aliases em envelope AES-256-GCM.
+- `decryptAiChatPayload(envelope, encryptionKey)` (exportada; função) - Autentica e decifra um envelope sem aceitar conteúdo adulterado.
+- `hashDeletedSessionId(sessionId, encryptionKey)` (exportada; função) - Produz o HMAC minimizado usado na auditoria de hard-delete.
+- `createSafetyIdentifier(userId, hmacKey)` (exportada; função) - Deriva o `safety_identifier` sem email ou username.
+
+### `real_dev/api/src/modules/ai/aiChatProvider.js`
+
+- `AI_CHAT_OUTPUT_SCHEMA` (exportada; constante) - JSON Schema estrito apenas para `status`, narrativa qualitativa, limitações e follow-ups.
+- `AiChatProvider` (exportada; classe) - Interface mínima comum para providers de chat.
+- `FakeProvider` (exportada; classe) - Provider determinístico usado em testes sem rede nem dados reais.
+- `OpenAiProvider` (exportada; classe) - Implementa Responses API com `store: false`, streaming, function tools estritas e Structured Output.
+- `createAiChatProvider(aiConfig, override)` (exportada; função) - Seleciona provider desativado, OpenAI ou override de testes sem efetuar chamada externa.
+
+### `real_dev/api/src/modules/ai/aiChatService.js`
+
+- `classifyChatIntent(question)` (exportada; função) - Classifica apenas cashflow, recebimentos, stock, margem, KPIs, comparação e explicação de insight; pedidos fora do âmbito são recusados.
+- `createChatSession`, `listChatSessions`, `listChatMessages` (exportadas; funções) - Gerem histórico cifrado isolado por empresa e utilizador.
+- `deleteChatSession` e `purgeExpiredChatSessions` (exportadas; funções) - Fazem hard-delete manual ou após retenção e guardam só auditoria minimizada.
+- `getConsent`, `acceptConsent` e `revokeConsent` (exportadas; funções) - Gerem consentimento individual por empresa e versão de política.
+- `validateProviderClaims(response, toolResults, aliasMap)` (exportada; função) - Confirma que valores e referências da resposta existem nos resultados estruturados das tools.
+- `sendChatMessage(prisma, aiConfig, provider, input)` (exportada; função) - Orquestra quotas atómicas, lock, classificação/tool local única, factos backend, provider qualitativo, cancelamento, fallback, cifragem e telemetria.
+- `setChatMessageFeedback(prisma, input)` (exportada; função) - Regista apenas `USEFUL` ou `NOT_USEFUL`, sem comentário livre.
+
+### `real_dev/api/src/modules/ai/aiMetricCatalog.js`
+
+- `AI_TIMEZONE` e `AI_TOOL_NAMES` (exportadas; constantes) - Definem `Europe/Lisbon` e o catálogo fechado de sete tools read-only.
+- `toAiLocalDateKey(date)` e `zonedDateBoundary(dateText, options)` (exportadas; funções) - Normalizam dias e limites no timezone operacional.
+- `validateMetricPeriod(args)` (exportada; função) - Exige `from`/`to`, limita a 366 dias e valida `topN <= 10`.
+- `weightedAverageDays(events, dateField, documentField)` (exportada; função) - Calcula PMR/PMP ponderado por valores efetivamente recebidos ou pagos, incluindo parciais.
+- `calculateAccountingMargin(lines)` (exportada; função) - Calcula receita, gastos, resultado e margem por classes SNC; devolve EBITDA apenas quando há classificação suficiente.
+- `executeAiTool(prisma, input)` (exportada; função) - Executa uma tool autorizada na empresa ativa e devolve métricas, fórmula, período, cobertura, qualidade, limitações e `sourceRefs`.
+- `AI_FUNCTION_TOOLS` (exportada; constante) - Schemas estritos expostos ao provider; não contêm Prisma, SQL ou IDs reais.
+
+### `real_dev/api/src/modules/ai/aiPrivacy.js`
+
+- `pseudonymizeUserText(prisma, input)` (exportada; função) - Substitui entidades conhecidas por aliases limitados à sessão antes de uma chamada externa.
+- `pseudonymizeToolResult(value, aliasMap)` (exportada; função) - Remove labels e IDs reais dos resultados e limita referências enviadas.
+- `assertOutboundAiSafe(payload)` (exportada; função) - Bloqueia emails, NIF, IBAN, telefone, morada, credenciais, documentos, anexos, SAF-T e instruções de exfiltração.
 
 ### `real_dev/api/src/modules/ai/aiService.js`
+
+Este módulo mantém a geração MF4 anterior e a explicação de insights necessária à compatibilidade. A arquitetura canónica nova usa `aiAnalysisService.js`, `aiMetricCatalog.js` e `aiChatService.js`; `answerAiQuestion` não é o caminho usado pelo chat `/ai/chat`.
 
 - `bps(numerator, denominator)` (top-level; função) - Cria percentagem em pontos base protegida contra divisao por zero. Entradas: `numerator`: Numerador em centimos ou unidades.; `denominator`: Denominador em centimos ou unidades. Devolve: Percentagem em pontos base, ou null sem base.
 - `eur(cents)` (top-level; função) - Converte cêntimos em texto EUR simples para mensagens explicáveis. Entradas: `cents`: Valor monetário em cêntimos. Devolve: Valor formatado para leitura humana.
@@ -164,7 +228,7 @@ Base do levantamento: `real_dev/api/src` e `real_dev/web/src`
 - `generateAiInsights(prisma, input)` (exportada; função) - Gera e persiste insights idempotentes por fonte. Entradas: `prisma`: Cliente Prisma.; `input`: Contexto autenticado. Devolve: Insights persistidos.
 - `explainAiInsight(prisma, input)` (exportada; função) - Devolve uma explicacao segura de um insight da empresa ativa. Entradas: `prisma`: Cliente Prisma.; `input`: Contexto e identificador. Devolve: Explicacao e fontes.
 - `generateAiSuggestions(prisma, input)` (exportada; função) - Cria sugestoes de acao a partir de insights persistidos e fontes validadas. Entradas: `prisma`: Cliente Prisma.; `input`: Contexto autenticado. Devolve: Sugestoes abertas com metadados de qualidade da fonte.
-- `answerAiQuestion(prisma, input)` (exportada; função) - Responde a perguntas de leitura com dados e fontes internas. Entradas: `prisma`: Cliente Prisma.; `input`: Pedido autenticado. Devolve: Resposta persistida e explicavel.
+- `answerAiQuestion(prisma, input)` (exportada; função legada) - Mantém compatibilidade histórica MF4. O endpoint público depreciado `/api/ai/questions` já encaminha para o serviço canónico de chat.
 - `generateSmartAlerts(prisma, input)` (exportada; função) - Gera alertas inteligentes de tesouraria e ruturas sem alterar saldos. Entradas: `prisma`: Cliente Prisma.; `input`: Contexto autenticado. Devolve: Alertas persistidos.
 
 ### `real_dev/api/src/modules/ai/aiSourceGuardrails.js`
@@ -174,6 +238,8 @@ Base do levantamento: `real_dev/api/src` e `real_dev/web/src`
 - `assertAiSourceQuality(input)` (exportada; função) - Bloqueia sugestoes sem fonte real e devolve metadados para a API/UI. Entradas: `input`: Sugestao candidata. Devolve: Resultado de qualidade.
 
 ### `real_dev/api/src/modules/ai/aiValidators.js`
+
+Os validadores deste ficheiro permanecem para compatibilidade MF4. Os períodos e argumentos das ferramentas canónicas são validados por `validateMetricPeriod` e pelo JSON Schema estrito do catálogo.
 
 - `parseIsoDate(value, field)` (top-level; função) - Normaliza datas ISO curtas recebidas por query string. Entradas: `value`: Valor recebido no pedido HTTP.; `field`: Nome do campo usado na mensagem de erro. Devolve: Data validada em UTC.
 - `inclusiveDays(fromDate, toDate)` (top-level; função) - Calcula dias inclusivos para alinhar validacao com os relatórios MF3. Entradas: `fromDate`: Data inicial.; `toDate`: Data final. Devolve: Numero inclusivo de dias.
@@ -530,8 +596,8 @@ Base do levantamento: `real_dev/api/src` e `real_dev/web/src`
 - `assertImportRowLimit(rowCount)` (top-level; função) - Garante que a importação fica dentro do volume operacional documentado. Entradas: `rowCount`: Número de linhas de dados. Devolve: Valor documentado como `void`.
 - `rowsFromHeader(headers, valueRows, firstDataRowNumber)` (top-level; função) - Constrói objetos de linha a partir de cabeçalhos e valores. Entradas: `headers`: Cabeçalhos normalizados.; `valueRows`: Linhas de valores normalizados.; `firstDataRowNumber`: Número real da primeira linha de dados no ficheiro. Devolve: Linhas tabulares.
 - `parseCsvRows(content)` (exportada; função) - Converte CSV com cabeçalho em linhas de objetos simples. Entradas: `content`: Conteúdo textual CSV separado por `;`. Devolve: Linhas normalizadas por cabeçalho.
-- `parseXlsxRows(contentBase64)` (top-level; função) - Converte ficheiro Excel em linhas com cabeçalhos da primeira linha da primeira folha. Entradas: `contentBase64`: Conteúdo XLSX codificado em base64. Devolve: Linhas normalizadas.
-- `parseImportFileRows(input)` (exportada; função) - Parseia o ficheiro indicado pelo payload para linhas tabulares. Entradas: `input`: Dados de ficheiro vindos do pedido. Devolve: Formato e linhas normalizadas.
+- `parseXlsxRows(fileBuffer, options = {})` (top-level; função) - Converte um buffer XLSX multipart em linhas com cabeçalhos da primeira folha, num worker terminável com limites de tamanho, linhas, colunas, células e tempo. Entradas: `fileBuffer`: bytes recebidos por streaming; `options`: budgets operacionais. Devolve: Linhas normalizadas.
+- `parseImportFileRows(input)` (exportada; função) - Parseia o ficheiro multipart para linhas tabulares. Entradas: `input`: buffer, nome, MIME e policy validados pela rota. Devolve: Formato e linhas normalizadas.
 
 ### `real_dev/api/src/modules/integrations/integrationLogRoutes.js`
 
@@ -1082,6 +1148,22 @@ Base do levantamento: `real_dev/api/src` e `real_dev/web/src`
 
 ## Frontend
 
+### `real_dev/web/src/ai/AiPageContext.tsx`
+
+- `AiPageContextProvider({ value, children })` (exportada; componente React) - Disponibiliza ao assistente apenas módulo, referência técnica, período e filtros. O backend não confia neste contexto sem revalidar ownership e empresa.
+- `useAiPageContext()` (exportada; hook) - Lê o contexto mínimo da página atual para perguntas contextuais no chat e drawer.
+
+### `real_dev/web/src/ai/AiChat.tsx`
+
+- `ChatWorkspace({ compact })` (top-level; componente React) - Implementa sessões, histórico, consentimento, streaming SSE, fontes, limitações, follow-ups, feedback e eliminação numa superfície reutilizável.
+- `AiChatPage()` (exportada; componente React) - Renderiza a página completa `/ai/chat`.
+- `AiAssistantDrawer()` (exportada; componente React) - Renderiza o launcher e drawer global responsivo com gestão de foco, `Escape` e acessibilidade de streaming.
+- `AiSettingsPage()` (exportada; componente React) - Permite ao `ADMIN` consultar provider, ativar opt-in e gerir política, quotas, regras e thresholds da empresa.
+
+### `real_dev/web/src/lib/aiChatApi.ts`
+
+- `aiChatApi` (exportada; objeto) - Cliente tipado das APIs canónicas de sessões, mensagens SSE, feedback, consentimento, settings e analysis runs. Centraliza encoding de IDs e nunca expõe secrets, prompts ou aliases internos.
+
 ### `real_dev/web/src/App.tsx`
 
 - `asObject(value)` (top-level; função) - Converte um valor desconhecido num objeto indexável, devolvendo objeto vazio quando o formato não é seguro. Entradas: `value`: Valor a normalizar ou formatar. Devolve: Objeto indexável seguro, ou objeto vazio quando o valor não é compatível.
@@ -1223,10 +1305,15 @@ Base do levantamento: `real_dev/api/src` e `real_dev/web/src`
 
 ### `real_dev/web/src/lib/mf4Api.ts`
 
-- `getAiInsights(from, to)` (exportada; função) - Consulta insights com intervalo de datas validado no backend. Entradas: `from`: Data inicial YYYY-MM-DD.; `to`: Data final YYYY-MM-DD. Devolve: Lista de insights.
-- `getAiSuggestions()` (exportada; função) - Consulta sugestões de ação geradas pela IA para revisão humana. A função não recebe filtros porque o backend usa a sessão e a empresa ativa. Entradas: sem entradas explícitas Devolve: Lista de sugestões abertas ou históricas devolvidas pela API.
-- `askAiQuestion(question)` (exportada; função) - Envia uma pergunta livre para o assistente de IA com fontes rastreáveis. O texto é enviado no corpo do pedido para o backend aplicar validação e guardrails. Entradas: `question`: Pergunta escrita pelo utilizador no formulário. Devolve: Resposta estruturada com intenção, texto final e fontes usadas.
-- `getSmartAlerts(from, to)` (exportada; função) - Consulta alertas inteligentes para um intervalo temporal validado pela API. As datas seguem o formato usado pelos inputs HTML e são codificadas na query string. Entradas: `from`: Data inicial no formato YYYY-MM-DD.; `to`: Data final no formato YYYY-MM-DD. Devolve: Lista de alertas calculados para a empresa ativa.
+- `getAiInsights(from, to)` (exportada; função) - Lê insights paginados já persistidos para o período; não gera resultados por efeito lateral.
+- `getAiSuggestions()` (exportada; função) - Lê sugestões e respetivo lifecycle para revisão humana.
+- `askAiQuestion(question)` (exportada; função legada) - Cliente do adapter depreciado `/api/ai/questions`. A navegação canónica usa `aiChatApi` e `/ai/chat`.
+- `getSmartAlerts(from, to)` (exportada; função) - Lê alertas paginados já persistidos para o período.
+- `createAiAnalysisRun(from, to)` (exportada; função) - Agenda uma atualização manual e devolve o run em `QUEUED`.
+- `getAiAnalysisRun(id)` (exportada; função) - Consulta `QUEUED`, `RUNNING`, `COMPLETED` ou `FAILED` para polling da UI.
+- `updateAiInsightStatus(id, status)` (exportada; função) - Reconhece, resolve ou dispensa um insight autorizado.
+- `updateAiSuggestionStatus(id, status, feedback)` (exportada; função) - Aceita, dispensa ou conclui uma sugestão e regista feedback controlado.
+- `updateSmartAlertStatus(id, status)` (exportada; função) - Atualiza o lifecycle de um alerta autorizado.
 - `getInsightExplanation(id)` (exportada; função) - Obtém a explicação pedagógica e auditável de um insight específico. O identificador é codificado no caminho para evitar caracteres inseguros no URL. Entradas: `id`: Identificador do insight cuja explicação deve ser consultada. Devolve: Explicação do insight com fonte e guardrail associado.
 - `getReminders()` (exportada; função) - Lista os lembretes operacionais visíveis na empresa ativa. O backend resolve a sessão através dos cookies HttpOnly partilhados pelo client. Entradas: sem entradas explícitas Devolve: Coleção de lembretes ordenada pela API.
 - `createReminder(body)` (exportada; função) - Cria um lembrete operacional com os campos normalizados pelo formulário. A validação final continua no backend para proteger o contrato da API. Entradas: `body`: Payload JSON com título, tipo, prazo e descrição opcional. Devolve: Lembrete criado e persistido.
@@ -1440,7 +1527,7 @@ Base do levantamento: `real_dev/api/src` e `real_dev/web/src`
 - `AiInsightsPage()` (exportada; componente React) - Renderiza a página de insights automáticos da MF4. A página consulta insights por intervalo e permite abrir a explicação auditável de cada resultado. Entradas: sem entradas explícitas Devolve: Elemento React da página de insights com lista, feedback e explicação selecionada.
 - `AiSuggestionsPage()` (exportada; componente React) - Renderiza a página de sugestões de ação geradas pela IA. A página mostra recomendações com fonte, limitação e decisão humana obrigatória. Entradas: sem entradas explícitas Devolve: Elemento React da página de sugestões com feedback de atualização.
 - `load()` (interna; função) - Recarrega sugestões usando a sessão atual enviada por cookie HttpOnly. Entradas: sem entradas explícitas Devolve: Promise resolvida quando a lista fica atualizada.
-- `AiQuestionsPage()` (exportada; componente React) - Renderiza a página de perguntas à IA com fontes rastreáveis. A resposta fica visível em JSON para apoiar a validação pedagógica do contrato. Entradas: sem entradas explícitas Devolve: Elemento React com formulário de pergunta e resultado estruturado.
+- `AiQuestionsPage()` (exportada; componente React legado) - Mantém o formulário MF4 durante a transição, mas não está registado como página canónica; `/ai/questions` redireciona para `AiChatPage` em `/ai/chat`.
 - `submit(event)` (interna; função) - Submete a pergunta do formulário e guarda a resposta devolvida pela API. O texto é validado localmente antes de ser enviado ao backend. Entradas: `event`: Evento de submissão do formulário de pergunta. Devolve: Promise resolvida depois de atualizar o feedback e a resposta.
 - `SmartAlertsPage()` (exportada; componente React) - Renderiza a página de alertas inteligentes da MF4. A página usa o intervalo de datas comum e apresenta alertas calculados pelo backend. Entradas: sem entradas explícitas Devolve: Elemento React com formulário de consulta e cartões de alerta.
 - `RemindersPage()` (exportada; componente React) - Renderiza a página de lembretes operacionais. A página permite listar, criar e concluir lembretes sem duplicar regras de validação do backend. Entradas: sem entradas explícitas Devolve: Elemento React com ações de lembrete e lista atualizada.

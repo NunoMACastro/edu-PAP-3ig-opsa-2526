@@ -160,7 +160,7 @@ Contratos verificados:
 Comandos executados:
 - PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> node scripts/check-mf6-document-performance.mjs
 
-Passo 7 
+Passo 7
 Regra confirmada:
 - performance não remove validação;
 - erro correto é preferível a sucesso rápido incorreto;
@@ -367,7 +367,7 @@ security
   - linhas de documentos
   - dados pessoais
   - tokens ou cookies
-  
+
 audit
 - Logs usam toDocumentInsertLog().
 - Apenas são registados:

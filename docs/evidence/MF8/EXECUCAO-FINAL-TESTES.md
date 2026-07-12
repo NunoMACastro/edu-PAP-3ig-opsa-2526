@@ -1,180 +1,79 @@
-# Execução final de testes MF8
+# Execucao final de testes MF8
 
-## Identificação
-
-- BK: BK-MF8-17
-- Requisito: RNF38
-<<<<<<< HEAD
-- Data/hora: 2026-07-06T09:41:30.651Z
-=======
-- Data/hora: 2026-07-07T01:35:15.749Z
->>>>>>> 81619f4 (Update: Mid)
-- Evidence de entrada: `docs/evidence/MF8/TESTES-EM-FALTA.md`
-- Decisão final: `BLOQUEADO_ATE_CORRECAO`
-
-## Precondições
-
-| Verificação | Resultado esperado | Resultado observado | Decisão |
-| --- | --- | --- | --- |
-<<<<<<< HEAD
-| Evidence de testes em falta criada no BK-MF8-16 | O ficheiro existe antes da execução final. | Encontrado. | OK |
-=======
-| Evidence de testes em falta criada no BK-MF8-16 | O ficheiro existe antes da execucao final. | Encontrado. | OK |
->>>>>>> 81619f4 (Update: Mid)
-
-## Resumo da evidence do BK-MF8-16
-
-```md
-# Testes em falta MF8
-
-<<<<<<< HEAD
-## Identificação
-
-- BK: BK-MF8-16
-- Requisito: RNF37
-- Owner: Oleksii
-- Apoio: Andre
-- Data:
-- Branch/PR:
-
-## Comandos executados
-=======
 ## Identificacao
 
-- BK: `BK-MF8-16`
-- Requisito: `RNF37`
-- Owner: `Oleksii`
-- Apoio: `Andre`
-- Data: `2026-07-07`
-- Branch/PR: local, sem commit nesta execucao
+- BK: `BK-MF8-17`
+- Requisito: `RNF38`
+- Data de revalidacao: `2026-07-10`
+- Evidence de entrada: `docs/evidence/MF8/TESTES-EM-FALTA.md`
 - Implementation root validado: `real_dev`
-- Guia canonico: `docs/planificacao/guias-bk/MF8/BK-MF8-16-verificacao-dos-testes-atuais-e-criacao-dos-testes-em-falta.md`
->>>>>>> 81619f4 (Update: Mid)
-```
+- Decisão final: `BLOQUEADO_AMBIENTE_E_VALIDACAO_EXTERNA`
+
+## Escopo da revalidacao
+
+Foram repetidos todos os gates locais que não exigem credenciais e os comandos
+que devem falhar honestamente sem infraestrutura remota. Nenhum scanner de
+existência, build ou teste com doubles foi usado para substituir PostgreSQL,
+Redis, SMTP, S3, restore, browsers reais ou revisão externa SAF-T.
 
 ## Comandos executados
 
-| Área | Diretório | Comando | Resultado esperado | Exit code | Decisão |
-| --- | --- | --- | --- | ---: | --- |
-<<<<<<< HEAD
-| API | `D:\PAP\edu-PAP-3ig-opsa-2526\apps\api` | `npm run test:final:prepare` | syntax, unitários, contratos, integração, MF6, MF7 e MF8 sem falhas. | 1 | BLOQUEANTE |
-| WEB | `D:\PAP\edu-PAP-3ig-opsa-2526\apps\web` | `npm run test:final:prepare` | gates frontend, typecheck e build sem falhas. | 1 | BLOQUEANTE |
-| PLANIFICACAO | `D:\PAP\edu-PAP-3ig-opsa-2526` | `bash scripts/validate-planificacao.sh` | overall_pass=true no relatório JSON do validador. | 1 | BLOQUEANTE |
-=======
-| API | `/Users/nuno/Developer/EPMS/Terceiro Ano/2025.2026/PAP/opsa/real_dev/api` | `npm run test:final:prepare` | syntax, unitarios, contratos, integracao, MF6, MF7 e MF8 sem falhas. | 1 | BLOQUEANTE |
-| WEB | `/Users/nuno/Developer/EPMS/Terceiro Ano/2025.2026/PAP/opsa/real_dev/web` | `npm run test:final:prepare` | gates frontend, typecheck e build sem falhas. | 0 | OK |
-| PLANIFICACAO | `/Users/nuno/Developer/EPMS/Terceiro Ano/2025.2026/PAP/opsa` | `bash scripts/validate-planificacao.sh` | overall_pass=true no relatorio JSON do validador. | 0 | OK |
->>>>>>> 81619f4 (Update: Mid)
+| Area | Diretorio | Comando | Exit code | Resultado observado | Decisao |
+| --- | --- | --- | ---: | --- | --- |
+| API syntax | `real_dev/api` | `npm run syntax:check` | 0 | Todos os `.js`/`.mjs` de `src`, `tests` e `scripts` passaram `node --check`. | `OK` |
+| API unit | `real_dev/api` | `npm run test:unit` | 0 | 278 testes, 278 pass, 0 fail, 0 skipped. | `OK` |
+| API contracts | `real_dev/api` | `npm run test:contracts` | 0 | 153 testes, 153 pass, 0 fail, 0 skipped. | `OK` |
+| API integration | `real_dev/api` | `npm run test:integration` | 1 | 7 testes, 2 pass, 5 fail, 0 skipped. Cinco suites falharam cedo por serviços remotos ausentes. | `BLOQUEADO_AMBIENTE` |
+| API MF6 | `real_dev/api` | `npm run test:mf6` | 0 | Todos os contratos MF6 passaram após sincronizar três checkers obsoletos com os contratos atuais. | `OK_LOCAL` |
+| API MF7 | `real_dev/api` | `npm run test:mf7` | 0 | 44 testes focados e check modular passaram, sem skips. | `OK_LOCAL` |
+| API MF8 | `real_dev/api` | `npm run test:mf8` | 0 | 16 testes de subscrições, IA, docs/inventário passaram. O inventário encontrou 43 ficheiros unitários, 28 de contrato e 6 de integração. | `OK_INVENTARIO` |
+| Frontend | `real_dev/web` | `npm run test:final:prepare` | 0 | 10 ficheiros/30 testes Vitest, MF1/MF2/MF3/MF5/MF7/MF8, typecheck e dois builds Vite passaram. | `OK_LOCAL` |
+| Browser | `real_dev/web` | `npm run test:e2e -- --reporter=line` | 1 | Fail-closed antes dos testes: Google Chrome e Microsoft Edge não estão instalados. Firefox não foi iniciado porque o preflight aborta toda a matriz. | `BLOQUEADO_AMBIENTE` |
+| Dependencias | API e web | `npm audit --omit=dev --audit-level=moderate` | 0 | Zero vulnerabilidades em ambos os projetos. | `OK` |
+| Dependencias | API e web | `npm ls --all` | 0 | Sem módulos extraneous; dependências opcionais ausentes não são erro. | `OK` |
+| Prisma | `real_dev/api` | `prisma validate` e `prisma generate` com URL sintética | 0 | Schema válido e client gerado; migration remota não executada. | `OK_ESTRUTURAL` |
+| API MF8 | `real_dev/api` | `npm run mf8:defect-report` | 1 | O report mantém decisão bloqueada e o checker recusou falso verde. | `BLOQUEANTE_ESPERADO` |
+| Gate anti-drift | raiz | `python3 -B docs/planificacao/scripts/auditar_planificacao.py --self-test` | 0 | 123 mutações negativas passaram, incluindo remoção de contratos, evidence, markers de arquitetura, envelopes paginados, estado canónico e códigos SAF-T. | `OK` |
+| Documentacao | raiz | `bash scripts/validate-planificacao.sh` | 1 | `documentation_sync_pass=true`, 0 conflict markers, 3 blockers runtime, 0 advisories e 0 waivers ativos; `canonical_runtime_pass=false` por decisão `NO_GO`. | `BLOQUEANTE_RUNTIME` |
+| Gate academico | `real_dev/api` | `npm run gate:academic` | 1 | Node `24.11.1` está abaixo do contrato `>=24.17 <25`. | `BLOQUEANTE` |
 
-## Output observado
+## Provas complementares sem poder de fecho
 
-### API - npm run test:final:prepare
+- O browser integrado confirmou, com mock HTTP local, que a paginação de
+  clientes envia o cursor, preserva a primeira página, acrescenta a segunda e
+  remove o controlo quando termina. Esta prova não substitui Chrome/Edge/Firefox.
+- O gerador SAF-T interno produz XML Windows-1252 bem formado e os testes
+  focados passam; motor XSD 1.1 sobre o esquema oficial `1.04_01`, reconciliação externa e revisão
+  contabilística continuam por demonstrar.
+- Backup/readiness/bulk import têm testes locais verdes; `pg_dump`, `pg_restore`
+  e `psql` não existem no PATH e os serviços PostgreSQL/Redis/S3 não estão
+  configurados.
 
-<<<<<<< HEAD
-- Diretório: `D:\PAP\edu-PAP-3ig-opsa-2526\apps\api`
-=======
-- Diretório: `/Users/nuno/Developer/EPMS/Terceiro Ano/2025.2026/PAP/opsa/real_dev/api`
->>>>>>> 81619f4 (Update: Mid)
-- Exit code: `1`
-- Decisão: `BLOQUEANTE`
+## Bloqueios persistidos
 
-#### stdout
+- `TEST_DATABASE_URL` e `RESTORE_DATABASE_URL` ausentes.
+- `REDIS_URL`, prefixo e HMAC de teste ausentes.
+- SMTP sandbox e S3/bucket de backup remotos ausentes.
+- Ferramentas PostgreSQL client ausentes.
+- Google Chrome e Microsoft Edge ausentes; Firefox fica por executar porque o
+  preflight da matriz termina antes de iniciar qualquer teste.
+- Node local `v24.11.1`, abaixo de `24.17`.
+- Motor XSD 1.1 externo sobre o esquema SAF-T `1.04_01`, reconciliação externa e revisão contabilística ausentes.
+- Três decisões documentais bloqueantes permanecem explícitas e sem waiver.
 
-```text
-<<<<<<< HEAD
-Sem stdout.
-=======
-> @opsa/api@1.0.0 test:final:prepare<br>> npm run syntax:check && npm run test:unit && npm run test:contracts && npm run test:integration && npm run test:mf6 && npm run test:mf7 && npm run test:mf8<br><br><br>> @opsa/api@1.0.0 syntax:check<br>> find src tests scripts -name '*.js' -print0 \| xargs -0 -n 1 node --check<br><br><br>> @opsa/api@1.0.0 test:unit<br>> node --test tests/unit/*.test.js<br><br>✔ BK01: login aceita password curta e deixa a autenticação decidir credenciais inválidas (1.176042ms)<br>✔ BK01: registo mantém política de password forte (0.30175ms)<br>✔ BK06: perfil da empresa assume EUR quando currency é omitida (0.184959ms)<br>✔ BK06: perfil da empresa rejeita dia fiscal impossível (0.098667ms)<br>✔ BK07: importação vazia é rejeitada (0.073292ms)<br>✔ BK10: fornecedor aceita NIF vazio e valida quando preenchido (0.116833ms)<br>✔ BK08: período fiscal rejeita datas normalizadas pelo JavaScript (0.124667ms)<br>✔ BK01: rate limit de autenticação bloqueia excesso e exige store em produção (0.097791ms)<br>✔ BK02: permissões de escrita seguem os atores documentados na MF0 (0.070708ms)<br>✔ BK-MF1-01: IVA isento exige motivo de isenção (4.571375ms)<br>✔ BK-MF1-02: venda calcula totais no backend e usa companyId do contexto (0.481334ms)<br>✔ BK-MF1-06: emissão definitiva exige venda aprovada (0.242292ms)<br>✔ BK-MF1-02: emissão definitiva reserva número por upsert atómico (0.496791ms)<br>✔ BK-MF1-02: emissão concorrente não reserva número sem claim do documento (0.15725ms)<br>✔ BK-MF1-03: recebimento não pode exceder montante em aberto (0.267541ms)<br>✔ BK-MF1-03: recebimento rejeita saldo alterado em concorrência (0.14775ms)<br>✔ BK-MF1-04: lançamento de venda fica balanceado (0.849208ms)<br>✔ BK-MF1-05: títulos em aberto calculam antiguidade e ignoram liquidad...
->>>>>>> 81619f4 (Update: Mid)
-```
-
-#### stderr
-
-```text
-<<<<<<< HEAD
-spawnSync npm ENOENT
-=======
-Sem stderr.
->>>>>>> 81619f4 (Update: Mid)
-```
-
-### WEB - npm run test:final:prepare
-
-<<<<<<< HEAD
-- Diretório: `D:\PAP\edu-PAP-3ig-opsa-2526\apps\web`
-- Exit code: `1`
-- Decisão: `BLOQUEANTE`
-=======
-- Diretório: `/Users/nuno/Developer/EPMS/Terceiro Ano/2025.2026/PAP/opsa/real_dev/web`
-- Exit code: `0`
-- Decisão: `OK`
->>>>>>> 81619f4 (Update: Mid)
-
-#### stdout
-
-```text
-<<<<<<< HEAD
-Sem stdout.
-=======
-> @opsa/web@1.0.0 test:final:prepare<br>> npm run test:mf1 && npm run test:mf2 && npm run test:mf3 && npm run test:mf5:feedback && npm run test:mf5:responsive && npm run test:mf5:a11y && npm run test:mf5:forms && npm run test:mf5:errors && npm run test:mf5:performance && npm run test:mf7 && npm run test:mf8<br><br><br>> @opsa/web@1.0.0 test:mf1<br>> node scripts/check-mf1-pages.mjs<br><br>MF1 frontend pages contract OK<br><br>> @opsa/web@1.0.0 test:mf2<br>> node scripts/check-mf2-pages.mjs<br><br>MF2 frontend pages contract OK<br><br>> @opsa/web@1.0.0 test:mf3<br>> node scripts/check-mf3-pages.mjs<br><br>MF3 pages smoke OK<br><br>> @opsa/web@1.0.0 test:mf5:feedback<br>> node scripts/check-mf5-feedback.mjs<br><br>MF5 feedback smoke OK<br><br>> @opsa/web@1.0.0 test:mf5:responsive<br>> node scripts/check-mf5-responsive.mjs<br><br>MF5 responsive table smoke OK<br><br>> @opsa/web@1.0.0 test:mf5:a11y<br>> node scripts/check-mf5-accessibility.mjs<br><br>MF5 accessibility contract OK<br><br>> @opsa/web@1.0.0 test:mf5:forms<br>> node scripts/check-mf5-form-validation.mjs<br><br>MF5 form validation smoke OK<br><br>> @opsa/web@1.0.0 test:mf5:errors<br>> node scripts/check-mf5-error-messages.mjs<br><br>MF5 error messages smoke OK<br><br>> @opsa/web@1.0.0 test:mf5:performance<br>> node scripts/check-mf5-performance.mjs<br><br>MF5 performance budget contract OK<br><br>> @opsa/web@1.0.0 test:mf7<br>> npm run test:mf7:browser-compatibility && npm run check:mf7:frontend-modules && npm run typecheck && npm run build<br><br><br>> @opsa/web@1.0.0 test:mf7:browser-compatibility<br>> node scripts/check-mf7-browser-compatibility.mjs<br><br>MF7 browser compatibility gate OK<br><br>> @opsa/web@1.0.0 check:mf7:frontend-modules<br>> node scripts/check-mf7-frontend-modules.mjs<br><br>MF7 frontend ...
->>>>>>> 81619f4 (Update: Mid)
-```
-
-#### stderr
-
-```text
-<<<<<<< HEAD
-spawnSync npm ENOENT
-=======
-Sem stderr.
->>>>>>> 81619f4 (Update: Mid)
-```
-
-### PLANIFICACAO - bash scripts/validate-planificacao.sh
-
-<<<<<<< HEAD
-- Diretório: `D:\PAP\edu-PAP-3ig-opsa-2526`
-- Exit code: `1`
-- Decisão: `BLOQUEANTE`
-=======
-- Diretório: `/Users/nuno/Developer/EPMS/Terceiro Ano/2025.2026/PAP/opsa`
-- Exit code: `0`
-- Decisão: `OK`
->>>>>>> 81619f4 (Update: Mid)
-
-#### stdout
-
-```text
-<<<<<<< HEAD
-Sem stdout.
-=======
-{<br>  "counts": {<br>    "rf_docs": 51,<br>    "rnf_docs": 39,<br>    "matriz_bk": 93,<br>    "backlog_bk": 93,<br>    "guide_bk": 93<br>  },<br>  "coverage": {<br>    "missing_rf_matrix": [],<br>    "missing_rnf_matrix": [],<br>    "missing_rf_backlog": [],<br>    "missing_rnf_backlog": [],<br>    "invalid_refs": []<br>  },<br>  "consistency": {<br>    "matriz_backlog_mismatches": [],<br>    "broken_guia_links": [],<br>    "invalid_dependencies": [],<br>    "cycles": [],<br>    "outdated_docs": [<br>      "/Users/nuno/Developer/EPMS/Terceiro Ano/2025.2026/PAP/opsa/docs/planificacao/sprints/SCORECARD-SPRINTS.md",<br>      "/Users/nuno/Developer/EPMS/Terceiro Ano/2025.2026/PAP/opsa/docs/planificacao/sprints/GUIAO-DOCENTE-SEMANAL.md",<br>      "/Users/nuno/Developer/EPMS/Terceiro Ano/2025.2026/PAP/opsa/docs/planificacao/sprints/OPERACAO-DEPLOY-ROLLBACK.md"<br>    ],<br>    "scorecard_contract_issues": [],<br>    "declared_totals_issues": [],<br>    "rnf_index_anchor_issues": []<br>  },<br>  "guides_quality": {<br>    "guide_header_issues": [],<br>    "guide_content_issues": [<br>      {<br>        "bk_id": "BK-MF0-01",<br>        "issue": "missing_handoff_proximo_bk_line"<br>      },<br>      {<br>        "bk_id": "BK-MF0-01",<br>        "issue": "missing_pedagogic_or_operational_blocks"<br>      },<br>      {<br>        "bk_id": "BK-MF0-01",<br>        "issue": "missing_or_placeholder_snippet"<br>      },<br>      {<br>        "bk_id": "BK-MF0-01",<br>        "issue": "P0_minimos(step=49,neg=0)"<br>      },<br>      {<br>        "bk_id": "BK-MF0-02",<br>        "issue": "missing_handoff_proximo_bk_line"<br>      },<br>      {<br>        "bk_id": "BK-MF0-02",<br>        "issue": "missing_pedagogic_or_operational_blocks"<br>      },<br>      {<br>        "bk_id": "BK-MF0-...
->>>>>>> 81619f4 (Update: Mid)
-```
-
-#### stderr
-
-```text
-<<<<<<< HEAD
-spawnSync bash ENOENT
-=======
-Sem stderr.
->>>>>>> 81619f4 (Update: Mid)
-```
-
-## Cenários negativos
-
-| Cenário | Resultado esperado | Decisão |
-| --- | --- | --- |
-| `TESTES-EM-FALTA.md` ausente | Script termina antes da bateria final com decisão `BLOQUEANTE`. | Coberto por precondição. |
-| `test:final:prepare` falha na API ou na web | Evidence regista exit code diferente de zero e decisão `BLOQUEANTE`. | Coberto por execução real. |
+Não foi usado `OPSA_SKIP_PERSISTENCE_TESTS=true`. Um skip nunca substitui a
+prova runtime exigida.
 
 ## Handoff para BK-MF8-18
 
-- Se a decisão final for `PODE_AVANCAR_PARA_BK-MF8-18`, o próximo BK só precisa verificar se não há falhas residuais.
-- Se a decisão final for `BLOQUEADO_ATE_CORRECAO`, o próximo BK deve começar pelo primeiro comando com decisão `BLOQUEANTE`.
-- Nunca apagar outputs antigos sem guardar a nova execução.
+1. Atualizar Node para `>=24.17 <25`.
+2. Fornecer serviços remotos exclusivamente por canal seguro.
+3. Instalar os PostgreSQL client tools, Google Chrome e Microsoft Edge; depois
+   reexecutar também os projetos Firefox da matriz.
+4. Executar migrations desde zero, integração `7/7`, backup/restore e browser/axe.
+5. Obter validação/reconciliação/revisão SAF-T externas.
+6. Só depois repetir gate académico, defect report e validador documental.
 
-## Decisão
+## Decisao
 
-Decisão final: `BLOQUEADO_ATE_CORRECAO`
+Decisao final: `BLOQUEADO_AMBIENTE_E_VALIDACAO_EXTERNA`.

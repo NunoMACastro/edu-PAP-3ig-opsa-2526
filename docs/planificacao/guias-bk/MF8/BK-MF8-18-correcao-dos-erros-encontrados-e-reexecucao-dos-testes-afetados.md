@@ -16,7 +16,11 @@
 - `core_or_reforco`: `Core`
 - `proximo_bk`: `-`
 - `guia_path`: `docs/planificacao/guias-bk/MF8/BK-MF8-18-correcao-dos-erros-encontrados-e-reexecucao-dos-testes-afetados.md`
-- `last_updated`: `2026-07-03`
+- `last_updated`: `2026-07-10`
+
+#### Contrato de correção atualizado
+
+Uma correção reexecuta o teste que falhou, a camada afetada e o gate final completo quando a alteração cruza contratos. Regressões reabrem o mesmo finding; novos defeitos recebem ID novo. Ambiente ausente permanece blocker e não justifica alterar código para “fazer verde”. A evidence regista comando, diretório, exit code, contagens e resumo, sem tokens, cookies, emails, passwords ou URLs credenciadas.
 
 #### Objetivo
 

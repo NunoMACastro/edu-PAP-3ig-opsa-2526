@@ -1,3 +1,10 @@
+> [!WARNING]
+> `SNAPSHOT_HISTORICO_SUPERSEDED` — estado `SUPERSEDED` em 2026-07-10.
+>
+> Este relatório preserva um snapshot histórico e não representa o estado corrente.
+> Fonte atual: [relatório canónico](../auditorias/CORRECAO-AUDITORIA-END-TO-END-REAL_DEV-2026-07-09.md).
+> Não reutilizar contagens, comandos, paths ou decisões deste corpo como evidence atual.
+
 # IMPLEMENTACAO-REAL_DEV-MF3
 
 ## Resultado geral
@@ -69,7 +76,7 @@ A MF3 foi implementada em `real_dev/api` e `real_dev/web`, com modelos Prisma, m
 | Comando | Resultado |
 | --- | --- |
 | `npm --prefix real_dev/api run syntax:check` | PASS |
-| `DATABASE_URL=postgresql://opsa:opsa@localhost:5432/opsa_dev npm --prefix real_dev/api run prisma:validate` | PASS |
+| `DATABASE_URL=<URL_AUTHENTICATED_REDACTED> npm --prefix real_dev/api run prisma:validate` | PASS |
 | `npm --prefix real_dev/api run test:unit` | PASS, 48/48 |
 | `npm --prefix real_dev/api run test:contracts` | PASS, 22/22 |
 | `npm --prefix real_dev/web run test:mf3` | PASS |

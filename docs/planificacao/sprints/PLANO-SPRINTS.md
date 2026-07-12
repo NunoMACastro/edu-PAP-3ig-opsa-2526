@@ -6,7 +6,13 @@
 - `area`: `project`
 - `owner`: `Nuno`
 - `status`: `ativo`
-- `last_updated`: `2026-06-30`
+- `last_updated`: `2026-07-10`
+
+## Semântica desta planificação
+
+As cargas, datas e estados deste documento dizem respeito aos alunos. O respetivo campo semântico é `estado_alunos`; a existência de código equivalente em `real_dev` não antecipa nem fecha uma entrega pedagógica.
+
+O gate da implementação privada de referência é mantido separadamente em [`GATES-S4-S8-S12.md`](GATES-S4-S8-S12.md) e no [relatório canónico](../auditorias/CORRECAO-AUDITORIA-END-TO-END-REAL_DEV-2026-07-09.md).
 
 ## Conversao S/M/L
 - `S`: 1 unidade
@@ -60,8 +66,14 @@
 - `SCORECARD-SPRINTS.md`
 - `GUIAO-DOCENTE-SEMANAL.md`
 - `GATES-S4-S8-S12.md`
+- `../CONTRATO-INTERFACES-IMPLEMENTACAO.md`
+
+## Manutenção documental de 2026-07-10
+
+A correção integral do drift documental é manutenção transversal e não altera a carga, o estado, os owners ou os IDs dos 93 BK. Os contratos seguros atuais são ensinados nos mesmos guias `apps/...`; o resultado do gate documental é independente do progresso dos alunos e do `NO_GO` runtime da referência.
 
 ## Changelog
+- `2026-07-10`: separada a planificação dos alunos do gate da referência e ligada a correção documental ao contrato central de interfaces.
 - `2026-06-30`: capacidade semanal diferenciada para a MF8, mantendo total de equipa em 16u: Oleksii 6u, Andre 4u, Pedro 4u e Sofia 2u.
 - `2026-06-30`: S12 recalibrada para incluir RF49..RF51 e os BK-MF8-03 a BK-MF8-08, atualizando a baseline para 93 BK / 154u.
 - `2026-06-29`: S12 recalibrada para incluir BK-MF8-10 a BK-MF8-12, atualizando a baseline para 87 BK / 143u.

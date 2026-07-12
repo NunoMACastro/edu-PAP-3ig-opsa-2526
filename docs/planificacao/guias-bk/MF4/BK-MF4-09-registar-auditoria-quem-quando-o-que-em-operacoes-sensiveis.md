@@ -16,7 +16,11 @@
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF4-10`
 - `guia_path`: `docs/planificacao/guias-bk/MF4/BK-MF4-09-registar-auditoria-quem-quando-o-que-em-operacoes-sensiveis.md`
-- `last_updated`: `2026-06-16`
+- `last_updated`: `2026-07-10`
+
+#### Contrato de auditoria atualizado
+
+Cada operação sensível grava a mutação e `AuditLog` na mesma transação. A consulta usa cursor pagination `{ items, pageInfo }`, default 50 e máximo 100. Eventos de segurança de login/reset vivem em `SecurityAuditEvent`, sem email/IP em claro. Logs e evidence nunca incluem secrets ou payloads completos.
 
 #### Objetivo
 
@@ -199,6 +203,12 @@ Cria rota `GET /api/audit/logs`.
 ```js
 // apps/api/src/modules/audit/auditLogRoutes.js
 import { Router } from "express";
+import {
+    buildCursorPage,
+    buildKeysetCondition,
+    decodePageCursor,
+    parsePageLimit,
+} from "../../lib/cursorPagination.js";
 import { toHttpError } from "../../lib/httpErrors.js";
 import { requireAuth } from "../auth/authMiddleware.js";
 import { requireCompanyContext } from "../companies/companyContext.js";
@@ -218,9 +228,27 @@ export function buildAuditLogRoutes({ prisma }) {
 
     router.get("/logs", guards, async (req, res) => {
         try {
-            // A consulta usa sempre a empresa ativa e limita o volume devolvido.
-            const logs = await prisma.auditLog.findMany({ where: { companyId: req.companyId }, orderBy: { createdAt: "desc" }, take: 100 });
-            return res.status(200).json({ logs });
+            const pageSize = parsePageLimit(req.query.limit);
+            const cursor = decodePageCursor(req.query.cursor, "date");
+            const keyset = buildKeysetCondition(cursor, {
+                sortField: "createdAt",
+                direction: "desc",
+            });
+            const baseWhere = { companyId: req.companyId };
+            const rows = await prisma.auditLog.findMany({
+                where: keyset ? { AND: [baseWhere, keyset] } : baseWhere,
+                orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+                take: pageSize + 1,
+            });
+            const page = buildCursorPage(rows, {
+                limit: pageSize,
+                sortField: "createdAt",
+                sortType: "date",
+            });
+            return res.status(200).json({
+                items: page.items,
+                pageInfo: page.pageInfo,
+            });
         } catch (error) {
             return sendError(res, error);
         }
@@ -243,7 +271,7 @@ A consulta de auditoria é restrita porque estes registos podem revelar ações 
 
 Repara que a rota não lê `companyId` da query string. Mesmo que alguém tente chamar `/api/audit/logs?companyId=outra`, esse valor não é usado. A empresa vem de `req.companyId`, que foi resolvido pelo middleware de contexto com base na sessão.
 
-O `take: 100` limita o volume inicial da resposta. Isto é uma escolha pragmática para o MVP: evita respostas enormes e dá evidence suficiente. Se no futuro for preciso paginação, ela deve manter o mesmo princípio de segurança: filtrar sempre por empresa ativa antes de devolver logs.
+O service pede `pageSize + 1` para determinar `hasNextPage`, mantém ordenação estável e filtra sempre pela empresa ativa antes de devolver logs.
 
 6. Validação do passo.
 
@@ -327,8 +355,12 @@ export interface AuditLogItem {
 }
 
 /** Consulta logs de auditoria da empresa ativa. */
-export function getAuditLogs() {
-  return client.request<{ logs: AuditLogItem[] }>("GET", "/audit/logs");
+export function getAuditLogs(cursor?: string) {
+  const query = cursor ? `?cursor=${encodeURIComponent(cursor)}` : "";
+  return client.request<{
+    items: AuditLogItem[];
+    pageInfo: { nextCursor: string | null; hasNextPage: boolean };
+  }>("GET", `/audit/logs${query}`);
 }
 
 // apps/web/src/pages/AuditLogsPage.tsx
@@ -344,7 +376,7 @@ export function AuditLogsPage() {
     try {
       // A API só responde se a sessão tiver papel ADMIN ou AUDITOR.
       const result = await getAuditLogs();
-      setLogs(result.logs);
+      setLogs(result.items);
       setError(null);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Erro inesperado");

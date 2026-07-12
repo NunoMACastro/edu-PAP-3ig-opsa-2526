@@ -144,10 +144,10 @@ At line:1 char:1
 + ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     + CategoryInfo          : ObjectNotFound: (D:\PAP\edu-PAP-...es\mf1Pages.tsx:String) [Select-String], ItemNotFoundException
     + FullyQualifiedErrorId : PathNotFound,Microsoft.PowerShell.Commands.SelectStringCommand
- 
-- PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\web> Select-String -Path src/pages/mf1Pages.tsx,src/pages/mf2Pages.tsx,src/pages/mf3Pages.tsx,src/pages/mf4Pages.tsx -Pattern "function PageFrame"  
 
-- PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\web> Select-String -Path src/pages/mf1Pages.tsx,src/pages/mf2Pages.tsx,src/pages/mf3Pages.tsx,src/pages/mf4Pages.tsx -Pattern "../ui/opsaUi"                                    
+- PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\web> Select-String -Path src/pages/mf1Pages.tsx,src/pages/mf2Pages.tsx,src/pages/mf3Pages.tsx,src/pages/mf4Pages.tsx -Pattern "function PageFrame"
+
+- PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\web> Select-String -Path src/pages/mf1Pages.tsx,src/pages/mf2Pages.tsx,src/pages/mf3Pages.tsx,src/pages/mf4Pages.tsx -Pattern "../ui/opsaUi"
 
 src\pages\mf1Pages.tsx:20:import { PageFrame } from "../ui/opsaUi";
 src\pages\mf2Pages.tsx:11:import { PageFrame } from "../ui/opsaUi";

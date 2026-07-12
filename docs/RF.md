@@ -139,11 +139,20 @@
 
 | Código | Requisito                                                                       | Atores               | Prioridade | Dependências |
 | :----- | :------------------------------------------------------------------------------ | :------------------- | :--------- | :----------- |
-| RF39   | Gerar **insights automáticos** (tendências, riscos, clientes, artigos parados). | Gestor, Contabilista | Must       | RF37         |
-| RF40   | Sugerir **ações** (ajustar preços, negociar fornecedor, repor stock).           | Gestor               | Should     | RF39         |
-| RF41   | Permitir **perguntas em linguagem natural** e responder com dados e fonte.      | Gestor, Contabilista | Should     | RF37         |
-| RF42   | Emitir **alertas inteligentes** (cashflow, desvios, ruturas).                   | Gestor               | Should     | RF34, RF27   |
-| RF43   | Mostrar **explicações e fontes** de cada insight.                               | Todos                | Must       | RF39         |
+| RF39   | Gerar **insights automáticos** versionados, explicáveis e atualizáveis manualmente ou por worker. | Admin, Gestor, Contabilista | Must | RF37 |
+| RF40   | Sugerir **ações** de apoio à decisão, com estado e feedback, sem as executar automaticamente. | Admin, Gestor | Should | RF39 |
+| RF41   | Disponibilizar um **chat contextual em linguagem natural**, persistente e apagável, limitado a dados autorizados da empresa e com fontes. | Admin, Gestor, Contabilista | Should | RF37 |
+| RF42   | Emitir **alertas inteligentes** com score, severidade e lifecycle (cashflow, desvios, ruturas). | Admin, Gestor | Should | RF34, RF27 |
+| RF43   | Mostrar **explicações, fórmulas, período, qualidade, limitações e fontes** dos resultados de IA. | Admin, Gestor, Contabilista | Must | RF39 |
+
+Contrato atual da IA v2:
+
+- PostgreSQL e o catálogo de métricas OPSA são a fonte de verdade; totais não dependem da paginação.
+- O chat classifica e executa uma tool read-only no backend. A OpenAI opcional recebe apenas sinais qualitativos e não recebe pergunta, histórico, IDs ou valores; o backend compõe todos os factos.
+- A chamada externa exige configuração global, opt-in da empresa por `ADMIN` e consentimento individual válido.
+- O chat existe em `/ai/chat` e num drawer transversal; `/ai/questions` é apenas compatibilidade depreciada.
+- Insights e alertas são recalculados por `AiAnalysisRun`, tanto manualmente como por worker periódico.
+- A arquitetura, APIs, privacidade e limites estão documentados em `docs/ARQUITETURA-IA-OPSA-V2.md`.
 
 ---
 

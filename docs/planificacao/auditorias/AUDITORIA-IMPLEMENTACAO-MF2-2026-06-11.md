@@ -1,3 +1,10 @@
+> [!WARNING]
+> `SNAPSHOT_HISTORICO_SUPERSEDED` — estado `SUPERSEDED` em 2026-07-10.
+>
+> Este relatório preserva um snapshot histórico e não representa o estado corrente.
+> Fonte atual: [relatório canónico](./CORRECAO-AUDITORIA-END-TO-END-REAL_DEV-2026-07-09.md).
+> Não reutilizar contagens, comandos, paths ou decisões deste corpo como evidence atual.
+
 ## Resultado Geral
 
 - Projeto: OPSA
@@ -232,7 +239,7 @@
   - `bash scripts/validate-planificacao.sh`: executou, mas `overall_pass: false` por issues documentais transversais.
   - `npm --prefix real_dev/api run syntax:check`: passou.
   - `npm --prefix real_dev/api run prisma:validate`: falhou sem `DATABASE_URL`.
-  - `DATABASE_URL='postgresql://user:pass@localhost:5432/opsa' npm --prefix real_dev/api run prisma:validate`: passou.
+  - `DATABASE_URL='<URL_AUTHENTICATED_REDACTED> npm --prefix real_dev/api run prisma:validate`: passou.
   - `npm --prefix real_dev/api run test:unit`: passou, 31 testes.
   - `npm --prefix real_dev/api run test:contracts`: passou, 13 testes.
   - `npm --prefix real_dev/web run typecheck`: passou.

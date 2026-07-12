@@ -17,7 +17,7 @@ Validações executadas:
 - npm --prefix apps/api run test:unit => passou.
 - npm --prefix apps/api run test:contracts => passou.
 - npm --prefix apps/api run syntax:check => passou.
-- env DATABASE_URL=postgresql://user:pass@localhost:5432/opsa npm --prefix apps/api run prisma:validate => passou.
+- env `DATABASE_URL=<fornecida-por-canal-seguro>` npm --prefix apps/api run prisma:validate => passou.
 - npm --prefix apps/web run typecheck => passou.
 - npm --prefix apps/web run build => passou.
 

@@ -1,3 +1,10 @@
+> [!WARNING]
+> `SNAPSHOT_HISTORICO_SUPERSEDED` — estado `SUPERSEDED` em 2026-07-10.
+>
+> Este relatório preserva um snapshot histórico e não representa o estado corrente.
+> Fonte atual: [relatório canónico](../auditorias/CORRECAO-AUDITORIA-END-TO-END-REAL_DEV-2026-07-09.md).
+> Não reutilizar contagens, comandos, paths ou decisões deste corpo como evidence atual.
+
 # Auditoria de implementacao real_dev - MF8
 
 ## Execucao 2026-07-07 - Auditoria MF8 completa
@@ -76,7 +83,7 @@ Nao ha findings `P0` nem `P1` ativos na implementacao MF8. Os BKs `BK-MF8-17` e 
 | `git status --short --untracked-files=all` | `PASS_COM_NOTA`; ja existiam artefactos MF8 e relatorios untracked, preservados. |
 | `git check-ignore -v real_dev real_dev/api real_dev/web` | `PASS_COM_NOTA`; `.gitignore:4:real_dev/` confirma area ignorada esperada. |
 | `npm --prefix real_dev/api run syntax:check` | `PASS`. |
-| `DATABASE_URL=postgresql://opsa_test:opsa_test@localhost:5432/opsa_test npm --prefix real_dev/api run prisma:validate` | `PASS`; schema Prisma valido. |
+| `DATABASE_URL=<URL_AUTHENTICATED_REDACTED> npm --prefix real_dev/api run prisma:validate` | `PASS`; schema Prisma valido. |
 | `npm --prefix real_dev/api run test:mf8` | `PASS`; subscricoes 4/4, IA explicavel 5/5, IA governance 5/5, docs tecnicos OK, inventario OK, contratos de inventario 2/2. |
 | `npm --prefix real_dev/web run test:mf8` | `PASS`; subscriptions UI, UI alignment, formatters, typecheck e build passaram. |
 | `printenv TEST_DATABASE_URL` | `FAIL_ESPERADO_AMBIENTE`; variavel ausente. |
@@ -136,7 +143,7 @@ O contrato esperado e consumir `docs/evidence/MF8/EXECUCAO-FINAL-TESTES.md`, ide
 | Script npm BK18 | `OK` | `real_dev/api/package.json` expoe `"mf8:defect-report": "node scripts/check-mf8-defect-report.mjs"`. |
 | Orquestrador BK17 | `OK_COM_CUIDADO` | `real_dev/api/scripts/run-mf8-final-validation.mjs` existe e `node --check` passou. Nao foi executado nesta reauditoria porque escreve `docs/evidence/MF8/EXECUCAO-FINAL-TESTES.md`, e o modo atual e audit-only. |
 | Integracao persistida sem env | `BLOQUEADO_AMBIENTE` | `printenv TEST_DATABASE_URL` saiu com exit code `1`; `npm --prefix real_dev/api run test:integration` falhou em MF2/MF3 exigindo `TEST_DATABASE_URL`; MF1 passou. |
-| Integracao persistida com URL local | `BLOQUEADO_AMBIENTE` | `TEST_DATABASE_URL=postgresql://opsa_test:opsa_test@localhost:5432/opsa_test npm --prefix real_dev/api run test:integration` falhou em MF2/MF3 no `npx prisma migrate deploy` com `Schema engine error`. |
+| Integracao persistida com URL local | `BLOQUEADO_AMBIENTE` | `TEST_DATABASE_URL=<URL_AUTHENTICATED_REDACTED> npm --prefix real_dev/api run test:integration` falhou em MF2/MF3 no `npx prisma migrate deploy` com `Schema engine error`. |
 | API com skip explicito | `PASS_COM_RISCOS` | `OPSA_SKIP_PERSISTENCE_TESTS=true npm --prefix real_dev/api run test:final:prepare` passou: 79 unitarios, 120 contratos, MF6/MF7/MF8 passaram, com 2 skips explicitos em MF2/MF3. |
 | Web final | `PASS` | `npm --prefix real_dev/web run test:final:prepare` passou: gates MF1, MF2, MF3, MF5, MF7, MF8, typecheck e build. |
 | Planificacao | `PASS_COM_RESSALVAS` | `bash scripts/validate-planificacao.sh` saiu com exit code `0`, `overall_pass=true` e `advisory_pass=false` por advisories documentais legados, incluindo avisos de qualidade de guias fora do scope BK18. |
@@ -160,7 +167,7 @@ O contrato esperado e consumir `docs/evidence/MF8/EXECUCAO-FINAL-TESTES.md`, ide
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | `P1-BK-MF8-18-DEPENDENCIA-BK17-001` | `P1` | `CORRIGIDO_SEM_VALIDACAO_TOTAL` | `docs/evidence/MF8/EXECUCAO-FINAL-TESTES.md` existe e contem decisao `BLOQUEADO_ATE_CORRECAO`, comando API `npm run test:final:prepare` com exit `1`, web exit `0` e planificacao exit `0`. | O BK18 deve consumir uma evidence BK17 persistida com decisao final, comando original e output observavel. | A evidence existe e e consumida pelo relatorio/verificador. A validacao limpa total ainda nao existe porque a API final bloqueia em MF2/MF3 sem BD efemera. | O P1 de ausencia de evidence deixou de se reproduzir; resta risco operacional de fecho sem BD real. | Manter este finding fechado como `CORRIGIDO_SEM_VALIDACAO_TOTAL`; reexecutar o fluxo limpo quando `TEST_DATABASE_URL` estiver funcional. |
 | `P1-BK-MF8-18-DEFECT-REPORT-001` | `P1` | `CORRIGIDO` | `real_dev/api/scripts/check-mf8-defect-report.mjs` existe; `real_dev/api/package.json` expoe `mf8:defect-report`; `docs/evidence/MF8/CORRECAO-ERROS-REPORT.md` existe; `node --check` passou; `npm --prefix real_dev/api run mf8:defect-report` passou. | O BK18 deve entregar verificador, script npm e relatorio unico de correcao/bloqueio, ligado a evidence BK17. | O trio de artefactos existe e valida. A decisao final e `BLOQUEADO_AMBIENTE`, suportada por evidence e nao apresentada como fecho limpo. | O P1 ja nao bloqueia RNF39 ao nivel de artefactos/validador. | Manter corrigido; quando houver BD, atualizar o relatorio BK18 para `CORRIGIDO_REVALIDADO` apenas se o comando original passar sem skip. |
-| `P2-BK-MF8-18-PERSISTENCE-001` | `P2` | `BLOQUEADO_AMBIENTE` | `npm --prefix real_dev/api run test:integration` falhou em MF2/MF3 sem `TEST_DATABASE_URL`; a tentativa com `postgresql://opsa_test:opsa_test@localhost:5432/opsa_test` falhou em `npx prisma migrate deploy` com `Schema engine error`; a bateria com `OPSA_SKIP_PERSISTENCE_TESTS=true` passou com 2 skips. | A reexecucao final deve provar a bateria API sem skip ou manter o bloqueio ambiental explicito. | O ambiente atual nao fornece PostgreSQL efemero funcional para MF2/MF3. | A MF8 nao deve ser fechada como revalidada limpa; a defesa fica com ressalva tecnica ate a BD existir. | Configurar uma PostgreSQL efemera cujo nome contenha `test`, `audit` ou `ci`, correr `npm --prefix real_dev/api run test:integration` e depois reexecutar o comando afetado sem `OPSA_SKIP_PERSISTENCE_TESTS=true`. |
+| `P2-BK-MF8-18-PERSISTENCE-001` | `P2` | `BLOQUEADO_AMBIENTE` | `npm --prefix real_dev/api run test:integration` falhou em MF2/MF3 sem `TEST_DATABASE_URL`; a tentativa com `<URL_AUTHENTICATED_REDACTED>` falhou em `npx prisma migrate deploy` com `Schema engine error`; a bateria com `OPSA_SKIP_PERSISTENCE_TESTS=true` passou com 2 skips. | A reexecucao final deve provar a bateria API sem skip ou manter o bloqueio ambiental explicito. | O ambiente atual nao fornece PostgreSQL efemero funcional para MF2/MF3. | A MF8 nao deve ser fechada como revalidada limpa; a defesa fica com ressalva tecnica ate a BD existir. | Configurar uma PostgreSQL efemera cujo nome contenha `test`, `audit` ou `ci`, correr `npm --prefix real_dev/api run test:integration` e depois reexecutar o comando afetado sem `OPSA_SKIP_PERSISTENCE_TESTS=true`. |
 
 Nao foram encontrados findings `P0` nem `P1` ativos nesta reauditoria. Os hits de scan estatico amplo ficaram classificados como ruido controlado: validacao do modulo proprio de troca de empresa ativa em MF0, testes negativos que rejeitam `req.body.companyId`/`req.query.companyId`, denylist/redaccao de segredos, gates que impedem OCR/RAG/embeddings e checks contra storage sensivel no frontend. O scan dirigido aos artefactos BK17/BK18 nao encontrou matches; o scan de drift de dominio nao encontrou referencias indevidas.
 
@@ -184,7 +191,7 @@ Nao foram encontrados findings `P0` nem `P1` ativos nesta reauditoria. Os hits d
 | `npm --prefix real_dev/api run mf8:defect-report` | `PASS`; `BK-MF8-18 validado: BLOQUEADO_AMBIENTE (npm run test:final:prepare)`. |
 | `printenv TEST_DATABASE_URL` | `FAIL_ESPERADO_AMBIENTE`; exit code `1`, variavel ausente. |
 | `npm --prefix real_dev/api run test:integration` | `FAIL_AMBIENTE`; MF1 passou, MF2/MF3 falharam por falta de `TEST_DATABASE_URL`. |
-| `TEST_DATABASE_URL=postgresql://opsa_test:opsa_test@localhost:5432/opsa_test npm --prefix real_dev/api run test:integration` | `FAIL_AMBIENTE`; MF2/MF3 falharam em `npx prisma migrate deploy` com `Schema engine error`. |
+| `TEST_DATABASE_URL=<URL_AUTHENTICATED_REDACTED> npm --prefix real_dev/api run test:integration` | `FAIL_AMBIENTE`; MF2/MF3 falharam em `npx prisma migrate deploy` com `Schema engine error`. |
 | `OPSA_SKIP_PERSISTENCE_TESTS=true npm --prefix real_dev/api run test:final:prepare` | `PASS_COM_RISCOS`; 79 unitarios, 120 contratos, MF6/MF7/MF8 passaram, com 2 skips explicitos em MF2/MF3. |
 | `npm --prefix real_dev/web run test:final:prepare` | `PASS`; gates frontend, typecheck e build passaram. |
 | `bash scripts/validate-planificacao.sh` | `PASS_COM_RESSALVAS`; `overall_pass=true`, `advisory_pass=false` por advisories documentais legados fora deste scope. |
@@ -211,7 +218,7 @@ Nao foram encontrados findings `P0` nem `P1` ativos nesta reauditoria. Os hits d
 - Finding `P1-BK-MF8-18-DEFECT-REPORT-001`: `CORRIGIDO`
 - Evidencia da correcao P1 defect report: `real_dev/api/scripts/check-mf8-defect-report.mjs` existe; `real_dev/api/package.json` expoe `mf8:defect-report`; `docs/evidence/MF8/CORRECAO-ERROS-REPORT.md` existe; `node --check real_dev/api/scripts/check-mf8-defect-report.mjs` passou; `npm --prefix real_dev/api run mf8:defect-report` passou com decisao `BLOQUEADO_AMBIENTE`.
 - Finding `P2-BK-MF8-18-PERSISTENCE-001`: `BLOQUEADO_AMBIENTE`
-- Evidencia do bloqueio P2: `npm --prefix real_dev/api run test:integration` falha em MF2/MF3 sem `TEST_DATABASE_URL`; a tentativa com `TEST_DATABASE_URL=postgresql://opsa_test:opsa_test@localhost:5432/opsa_test` falhou em `npx prisma migrate deploy` com `Schema engine error`; `OPSA_SKIP_PERSISTENCE_TESTS=true npm --prefix real_dev/api run test:final:prepare` passou com 2 skips explicitos.
+- Evidencia do bloqueio P2: `npm --prefix real_dev/api run test:integration` falha em MF2/MF3 sem `TEST_DATABASE_URL`; a tentativa com `TEST_DATABASE_URL=<URL_AUTHENTICATED_REDACTED>` falhou em `npx prisma migrate deploy` com `Schema engine error`; `OPSA_SKIP_PERSISTENCE_TESTS=true npm --prefix real_dev/api run test:final:prepare` passou com 2 skips explicitos.
 - Decisao atual: `BK-MF8-18` deixa de estar bloqueado por falta de artefactos P1; fica `BLOQUEADO_AMBIENTE` ate existir uma base PostgreSQL efemera funcional para revalidar a bateria API sem skip.
 
 ## Execucao 2026-07-07 - Auditoria BK-MF8-18
@@ -538,7 +545,7 @@ Nao foram encontrados findings `P0` ou `P1` no escopo estrito de `BK-MF8-16`.
 | `npm --prefix real_dev/web run test:mf8` | `PASS`; subscriptions UI, UI alignment, formatters, typecheck e build. |
 | `OPSA_SKIP_PERSISTENCE_TESTS=true npm --prefix real_dev/api run test:final:prepare` | `PASS_COM_RISCOS`; 79 unitarios, 120 contratos, MF6/MF7/MF8 passaram; integracao teve 2 pass e 2 skips explicitos para MF2/MF3 persistidos. |
 | `npm --prefix real_dev/web run test:final:prepare` | `PASS`; MF1, MF2, MF3, MF5, MF7, MF8, typecheck e build passaram. |
-| `DATABASE_URL=postgresql://opsa_test:opsa_test@localhost:5432/opsa_test npm --prefix real_dev/api run prisma:validate` | `PASS`; schema Prisma valido. |
+| `DATABASE_URL=<URL_AUTHENTICATED_REDACTED> npm --prefix real_dev/api run prisma:validate` | `PASS`; schema Prisma valido. |
 | `bash scripts/validate-planificacao.sh` | `PASS_COM_RESSALVAS`; `overall_pass=true`, `coverage_pass=true`, `consistency_pass=true`, `guides_pass=true`, `naming_pass=true`, `advisory_pass=false` por advisories documentais legados. |
 | Scan estatico nos ficheiros BK16 alterados | `PASS`; sem TODO/FIXME, storage sensivel, execucao dinamica, segredos hardcoded, casts inseguros, CORS permissivo, RAG/OCR/embeddings ou drift de dominio. |
 | Scan estatico amplo em `real_dev/api real_dev/web` | `PASS_COM_RUIDO_CONTROLADO`; hits apenas em denylist de segredos, testes negativos/redaccao, checks contra storage e scripts que bloqueiam OCR/RAG/embeddings. Sem finding ligado ao BK16. |
@@ -712,7 +719,7 @@ Nao foram identificados novos findings `P0`, `P1`, `P2` ou `P3` no escopo estrit
 | `npm --prefix real_dev/api run syntax:check` | `PASS`; sintaxe JS valida. |
 | `npm --prefix real_dev/api run test:contracts` | `PASS`; 118 testes, 118 pass, 0 fail. |
 | `npm --prefix real_dev/api run test:unit` | `PASS`; 79 testes, 79 pass, 0 fail. |
-| `DATABASE_URL=postgresql://opsa:opsa@localhost:5432/opsa npm --prefix real_dev/api run prisma:validate` | `PASS`; schema Prisma valido. |
+| `DATABASE_URL=<URL_AUTHENTICATED_REDACTED> npm --prefix real_dev/api run prisma:validate` | `PASS`; schema Prisma valido. |
 | `bash scripts/validate-planificacao.sh` | `PASS_COM_RESSALVAS`; `overall_pass=true`, `coverage_pass=true`, `consistency_pass=true`, `guides_pass=true`, `naming_pass=true`; `advisory_pass=false` por avisos documentais antigos fora desta reauditoria. |
 | `git diff --check` | `PASS`; sem whitespace errors no diff tracked. |
 
@@ -787,7 +794,7 @@ Nao restam findings ativos conhecidos no escopo estrito de `BK-MF8-14`.
 | `npm --prefix real_dev/web run build` | `PASS`; build Vite concluida. |
 | `node --test tests/contracts/mf8-ai-source-guardrails.contract.test.js` em `real_dev/api` | `PASS`; 5 testes, 5 pass, 0 fail. |
 | `npm --prefix real_dev/api run syntax:check` | `PASS`; sintaxe JS valida. |
-| `DATABASE_URL=postgresql://opsa:opsa@localhost:5432/opsa npm --prefix real_dev/api run prisma:validate` | `PASS`; schema Prisma valido. |
+| `DATABASE_URL=<URL_AUTHENTICATED_REDACTED> npm --prefix real_dev/api run prisma:validate` | `PASS`; schema Prisma valido. |
 | Pesquisas estaticas de risco e drift no escopo BK14 | `PASS`; sem marcadores de implementacao pendente, storage sensivel, execucao dinamica, segredos, casts inseguros, CORS permissivo ou drift de dominio. |
 | `bash scripts/validate-planificacao.sh` | `PASS_COM_RESSALVAS`; `overall_pass=true`, `advisory_pass=false` por avisos documentais antigos fora desta correcao. |
 | `rg -n "[ \t]+$" docs/evidence/MF8/BK-MF8-14.md docs/evidence/MF8/UI-MOCKUP-CHECKLIST.md ...` | `PASS`; sem trailing whitespace nos ficheiros MF8 revistos. |
@@ -877,7 +884,7 @@ Nao foram identificados findings `P0`, `P1` ou `P2` no escopo estrito de `BK-MF8
 | `npm --prefix real_dev/api run syntax:check` | `PASS`; sintaxe JS valida. |
 | `npm --prefix real_dev/api run test:contracts` | `PASS`; 118 testes, 118 pass, 0 fail. |
 | `npm --prefix real_dev/api run test:unit` | `PASS`; 79 testes, 79 pass, 0 fail. |
-| `DATABASE_URL=postgresql://opsa:opsa@localhost:5432/opsa npm --prefix real_dev/api run prisma:validate` | `PASS`; schema Prisma valido. |
+| `DATABASE_URL=<URL_AUTHENTICATED_REDACTED> npm --prefix real_dev/api run prisma:validate` | `PASS`; schema Prisma valido. |
 | `bash scripts/validate-planificacao.sh` | `PASS_COM_RESSALVAS`; `overall_pass=true`, `coverage_pass=true`, `consistency_pass=true`, `guides_pass=true`, `naming_pass=true`; `advisory_pass=false` por avisos documentais antigos fora da correcao permitida. |
 | `git diff --check` | `PASS`; sem whitespace errors no diff tracked. |
 
@@ -960,7 +967,7 @@ Nao foram identificados novos findings `P0`, `P1`, `P2` ou `P3` no escopo estrit
 | `git status --short --untracked-files=all` | `PASS_COM_NOTA`; artefactos MF8 untracked ja existentes foram preservados. |
 | `test -f docs/evidence/MF8/BK-MF8-13.md` | `PASS`; evidence dedicada existe. |
 | `npm --prefix real_dev/api run syntax:check` | `PASS`; sintaxe JS valida. |
-| `DATABASE_URL=postgresql://opsa:opsa@localhost:5432/opsa npm --prefix real_dev/api run prisma:validate` | `PASS`; schema Prisma valido. |
+| `DATABASE_URL=<URL_AUTHENTICATED_REDACTED> npm --prefix real_dev/api run prisma:validate` | `PASS`; schema Prisma valido. |
 | `node --test tests/contracts/mf8-ai-source-guardrails.contract.test.js` em `real_dev/api` | `PASS`; 5 testes, 5 pass, 0 fail. |
 | `npm --prefix real_dev/api run test:contracts` | `PASS`; 118 testes, 118 pass, 0 fail. |
 | `npm --prefix real_dev/api run test:unit` | `PASS`; 79 testes, 79 pass, 0 fail. |
@@ -1039,7 +1046,7 @@ O contrato runtime continua o mesmo:
 | --- | --- |
 | `test -f docs/evidence/MF8/BK-MF8-13.md` | `PASS`; evidence dedicada existe. |
 | `npm --prefix real_dev/api run syntax:check` | `PASS`; sintaxe JS valida. |
-| `DATABASE_URL=postgresql://opsa:opsa@localhost:5432/opsa npm --prefix real_dev/api run prisma:validate` | `PASS`; schema Prisma valido. |
+| `DATABASE_URL=<URL_AUTHENTICATED_REDACTED> npm --prefix real_dev/api run prisma:validate` | `PASS`; schema Prisma valido. |
 | `node --test tests/contracts/mf8-ai-source-guardrails.contract.test.js` em `real_dev/api` | `PASS`; 5 testes, 5 pass, 0 fail. |
 | `npm --prefix real_dev/api run test:contracts` | `PASS`; 118 testes, 118 pass, 0 fail. |
 | `bash scripts/validate-planificacao.sh` | `PASS_COM_RESSALVAS`; `overall_pass=true`, `advisory_pass=false` por advisories documentais antigos, incluindo BK13. |
@@ -1125,7 +1132,7 @@ Contrato funcional validado:
 | --- | --- |
 | `git status --short --untracked-files=all` | `PASS_COM_NOTA`; artefactos MF8 untracked ja existentes foram preservados. |
 | `npm --prefix real_dev/api run syntax:check` | `PASS`; sintaxe JS valida. |
-| `DATABASE_URL=postgresql://opsa:opsa@localhost:5432/opsa npm --prefix real_dev/api run prisma:validate` | `PASS`; schema Prisma valido. |
+| `DATABASE_URL=<URL_AUTHENTICATED_REDACTED> npm --prefix real_dev/api run prisma:validate` | `PASS`; schema Prisma valido. |
 | `node --test tests/contracts/mf8-ai-source-guardrails.contract.test.js` em `real_dev/api` | `PASS`; 5 testes, 5 pass, 0 fail. |
 | `npm --prefix real_dev/api run test:contracts` | `PASS`; 118 testes, 118 pass, 0 fail. |
 | `npm --prefix real_dev/api run test:unit` | `PASS`; 79 testes, 79 pass, 0 fail. |
@@ -1209,7 +1216,7 @@ O contrato runtime continua o mesmo:
 | `git status --short --untracked-files=all` | `PASS_COM_NOTA`; artefactos MF8 untracked ja existentes foram preservados. |
 | `test -f docs/evidence/MF8/BK-MF8-12.md` | `PASS`; evidence dedicada existe. |
 | `npm --prefix real_dev/api run syntax:check` | `PASS`; sintaxe JS valida. |
-| `DATABASE_URL=postgresql://opsa:opsa@localhost:5432/opsa npm --prefix real_dev/api run prisma:validate` | `PASS`; schema Prisma valido. |
+| `DATABASE_URL=<URL_AUTHENTICATED_REDACTED> npm --prefix real_dev/api run prisma:validate` | `PASS`; schema Prisma valido. |
 | `node --test tests/contracts/mf8-alert-preferences.contract.test.js` em `real_dev/api` | `PASS`; 4 testes, 4 pass, 0 fail. |
 | `npm --prefix real_dev/api run test:contracts` | `PASS`; 113 testes, 113 pass, 0 fail. |
 | `npm --prefix real_dev/api run test:unit` | `PASS`; 79 testes, 79 pass, 0 fail. |
@@ -1261,7 +1268,7 @@ O contrato runtime continua o mesmo:
 | Comando | Resultado |
 | --- | --- |
 | `npm --prefix real_dev/api run syntax:check` | `PASS` |
-| `DATABASE_URL=postgresql://opsa:opsa@localhost:5432/opsa npm --prefix real_dev/api run prisma:validate` | `PASS` |
+| `DATABASE_URL=<URL_AUTHENTICATED_REDACTED> npm --prefix real_dev/api run prisma:validate` | `PASS` |
 | `node --test tests/contracts/mf8-alert-preferences.contract.test.js` em `real_dev/api` | `PASS`; 4 testes, 4 pass. |
 | `npm --prefix real_dev/api run test:contracts` | `PASS`; 113 testes, 113 pass. |
 | `npm --prefix real_dev/api run test:unit` | `PASS`; 79 testes, 79 pass. |
@@ -1373,7 +1380,7 @@ Fontes revistas nesta auditoria:
 | --- | --- |
 | `git status --short` | `PASS_COM_RESSALVAS`; confirmou artefactos untracked pre-existentes, preservados. |
 | `npm --prefix real_dev/api run syntax:check` | `PASS`; `node --check` sem erros. |
-| `DATABASE_URL=postgresql://opsa:opsa@localhost:5432/opsa npm --prefix real_dev/api run prisma:validate` | `PASS`; schema Prisma valido. |
+| `DATABASE_URL=<URL_AUTHENTICATED_REDACTED> npm --prefix real_dev/api run prisma:validate` | `PASS`; schema Prisma valido. |
 | `node --test tests/contracts/mf8-alert-preferences.contract.test.js` em `real_dev/api` | `PASS`; 4 testes, 4 pass, 0 fail. |
 | `npm --prefix real_dev/api run test:contracts` | `PASS`; 113 testes, 113 pass, 0 fail. |
 | `npm --prefix real_dev/api run test:unit` | `PASS`; 79 testes, 79 pass, 0 fail. |
@@ -1463,7 +1470,7 @@ Fontes reconsultadas nesta reauditoria:
 | --- | --- |
 | `npm --prefix real_dev/api run test:mf8:ai-governance` | `PASS`; 5 testes, 5 pass, 0 fail. |
 | `npm --prefix real_dev/api run syntax:check` | `PASS`; `node --check` sem erros. |
-| `DATABASE_URL=postgresql://opsa:opsa@localhost:5432/opsa npm --prefix real_dev/api run prisma:validate` | `PASS`; schema Prisma valido. |
+| `DATABASE_URL=<URL_AUTHENTICATED_REDACTED> npm --prefix real_dev/api run prisma:validate` | `PASS`; schema Prisma valido. |
 | `npm --prefix real_dev/api run test:contracts` | `PASS`; 109 testes, 109 pass, 0 fail. |
 | `npm --prefix real_dev/api run test:unit` | `PASS`; 79 testes, 79 pass, 0 fail. |
 | `OPSA_SKIP_PERSISTENCE_TESTS=true npm --prefix real_dev/api run test:integration` | `PASS_COM_RESSALVAS`; 2 testes skipped explicitamente por `OPSA_SKIP_PERSISTENCE_TESTS=true`. |
@@ -1585,7 +1592,7 @@ Fontes revistas nesta auditoria:
 | --- | --- |
 | `npm --prefix real_dev/api run test:mf8:ai-governance` | `PASS`; 5 testes, 5 pass, 0 fail. |
 | `npm --prefix real_dev/api run syntax:check` | `PASS`; `node --check` sem erros. |
-| `DATABASE_URL=postgresql://opsa:opsa@localhost:5432/opsa npm --prefix real_dev/api run prisma:validate` | `PASS`; schema Prisma valido. |
+| `DATABASE_URL=<URL_AUTHENTICATED_REDACTED> npm --prefix real_dev/api run prisma:validate` | `PASS`; schema Prisma valido. |
 | `npm --prefix real_dev/api run test:contracts` | `PASS`; 109 testes, 109 pass, 0 fail. |
 | `npm --prefix real_dev/api run test:unit` | `PASS`; 79 testes, 79 pass, 0 fail. |
 | `OPSA_SKIP_PERSISTENCE_TESTS=true npm --prefix real_dev/api run test:integration` | `PASS_COM_RESSALVAS`; 2 testes ignorados explicitamente por `OPSA_SKIP_PERSISTENCE_TESTS=true`. |
@@ -1708,7 +1715,7 @@ Fontes revistas nesta auditoria:
 | --- | --- |
 | `npm --prefix real_dev/api run test:mf8:ai-explainability` | `PASS`; 5 testes, 5 pass. |
 | `npm --prefix real_dev/api run syntax:check` | `PASS`; `node --check` em `src`, `tests` e `scripts`. |
-| `DATABASE_URL=postgresql://opsa:opsa@localhost:5432/opsa npm --prefix real_dev/api run prisma:validate` | `PASS`; schema Prisma valido. |
+| `DATABASE_URL=<URL_AUTHENTICATED_REDACTED> npm --prefix real_dev/api run prisma:validate` | `PASS`; schema Prisma valido. |
 | `npm --prefix real_dev/api run test:contracts` | `PASS`; 104 testes, 104 pass. |
 | `npm --prefix real_dev/api run test:unit` | `PASS`; 79 testes, 79 pass. |
 | `OPSA_SKIP_PERSISTENCE_TESTS=true npm --prefix real_dev/api run test:integration` | `PASS_COM_RESSALVAS`; 2 testes skipped explicitamente por falta de `TEST_DATABASE_URL`. |
@@ -1831,7 +1838,7 @@ Fontes revistas nesta auditoria:
 | `OPSA_MF8_TECH_DOC_MUTATION=remove-limits npm --prefix real_dev/api run test:mf8:technical-docs` | `PASS_NEGATIVO`; exit code `1` esperado com `Falta seccao obrigatoria: ## Limites`. |
 | `OPSA_MF8_TECH_DOC_MUTATION=add-fiscal-certification npm --prefix real_dev/api run test:mf8:technical-docs` | `PASS_NEGATIVO`; exit code `1` esperado por promessa fora do MVP. |
 | `npm --prefix real_dev/api run syntax:check` | `PASS`; `node --check` em `src`, `tests` e `scripts`. |
-| `DATABASE_URL=postgresql://opsa:opsa@localhost:5432/opsa npm --prefix real_dev/api run prisma:validate` | `PASS`; schema Prisma valido. |
+| `DATABASE_URL=<URL_AUTHENTICATED_REDACTED> npm --prefix real_dev/api run prisma:validate` | `PASS`; schema Prisma valido. |
 | `npm --prefix real_dev/api run test:contracts` | `PASS`; 99 testes, 99 pass. |
 | `npm --prefix real_dev/api run test:unit` | `PASS`; 79 testes, 79 pass. |
 | `OPSA_SKIP_PERSISTENCE_TESTS=true npm --prefix real_dev/api run test:integration` | `PASS_COM_RESSALVAS`; 2 testes skipped explicitamente por falta de `TEST_DATABASE_URL`. |
@@ -1957,7 +1964,7 @@ Fontes revistas nesta auditoria:
 | --- | --- |
 | `npm --prefix real_dev/api run test:mf8:subscriptions` | `PASS`; 4 testes, 4 pass. |
 | `npm --prefix real_dev/api run syntax:check` | `PASS`; `node --check` em `src`, `tests` e `scripts`. |
-| `DATABASE_URL=postgresql://opsa:opsa@localhost:5432/opsa npm --prefix real_dev/api run prisma:validate` | `PASS`; schema Prisma valido. |
+| `DATABASE_URL=<URL_AUTHENTICATED_REDACTED> npm --prefix real_dev/api run prisma:validate` | `PASS`; schema Prisma valido. |
 | `npm --prefix real_dev/api run test:contracts` | `PASS`; 99 testes, 99 pass. |
 | `npm --prefix real_dev/api run test:unit` | `PASS`; 79 testes, 79 pass. |
 | `OPSA_SKIP_PERSISTENCE_TESTS=true npm --prefix real_dev/api run test:integration` | `PASS_COM_RESSALVAS`; 2 testes skipped explicitamente por falta de `TEST_DATABASE_URL`. |
@@ -2083,7 +2090,7 @@ Fontes revistas nesta auditoria:
 | `npm --prefix real_dev/api run test:contracts` | `PASS`; 95 testes, 95 pass. |
 | `npm --prefix real_dev/api run test:unit` | `PASS`; 79 testes, 79 pass. |
 | `npm --prefix real_dev/api run syntax:check` | `PASS` |
-| `DATABASE_URL=postgresql://opsa:opsa@localhost:5432/opsa npm --prefix real_dev/api run prisma:validate` | `PASS`; schema Prisma valido. |
+| `DATABASE_URL=<URL_AUTHENTICATED_REDACTED> npm --prefix real_dev/api run prisma:validate` | `PASS`; schema Prisma valido. |
 | `OPSA_SKIP_PERSISTENCE_TESTS=true npm --prefix real_dev/api run test:integration` | `PASS_COM_RESSALVAS`; 2 testes skipped explicitamente por falta de `TEST_DATABASE_URL`. |
 | `bash scripts/validate-planificacao.sh` | `PASS_COM_RESSALVAS`; `overall_pass=true`, com `advisory_pass=false` por advisories legados de qualidade de guias fora deste scope. |
 
@@ -2205,7 +2212,7 @@ Fontes revistas nesta auditoria:
 | --- | --- |
 | `node --test real_dev/api/tests/contracts/mf8-subscription-lifecycle.contract.test.js` | `PASS`; 11 testes, 11 pass. |
 | `npm --prefix real_dev/api run syntax:check` | `PASS` |
-| `DATABASE_URL=postgresql://opsa:opsa@localhost:5432/opsa npm --prefix real_dev/api run prisma:validate` | `PASS`; schema Prisma valido. |
+| `DATABASE_URL=<URL_AUTHENTICATED_REDACTED> npm --prefix real_dev/api run prisma:validate` | `PASS`; schema Prisma valido. |
 | `npm --prefix real_dev/api run test:contracts` | `PASS`; 95 testes, 95 pass. |
 | `npm --prefix real_dev/api run test:unit` | `PASS`; 79 testes, 79 pass. |
 | `OPSA_SKIP_PERSISTENCE_TESTS=true npm --prefix real_dev/api run test:integration` | `PASS_COM_RESSALVAS`; 2 testes de persistencia skipped explicitamente por variavel de ambiente. |
@@ -2320,7 +2327,7 @@ Fontes revistas nesta auditoria:
 | `node --test real_dev/api/tests/contracts/mf8-current-subscription.contract.test.js` | `PASS`; 6 testes, 6 pass. |
 | `node --test real_dev/api/tests/contracts/mf8-subscription-plans.contract.test.js` | `PASS`; 10 testes, 10 pass. |
 | `npm --prefix real_dev/api run syntax:check` | `PASS` |
-| `env DATABASE_URL=postgresql://opsa:opsa@localhost:5432/opsa npm --prefix real_dev/api run prisma:validate` | `PASS`; schema Prisma valido. |
+| `env DATABASE_URL=<URL_AUTHENTICATED_REDACTED> npm --prefix real_dev/api run prisma:validate` | `PASS`; schema Prisma valido. |
 | `npm --prefix real_dev/api run test:contracts` | `PASS`; 84 testes, 84 pass. |
 | `npm --prefix real_dev/api run test:unit` | `PASS`; 79 testes, 79 pass. |
 | `env OPSA_SKIP_PERSISTENCE_TESTS=true npm --prefix real_dev/api run test:integration` | `PASS_COM_RESSALVAS`; 2 testes skipped explicitamente por `OPSA_SKIP_PERSISTENCE_TESTS=true`. |
@@ -2420,7 +2427,7 @@ Fontes revistas nesta reauditoria:
 | --- | --- |
 | `node --test real_dev/api/tests/contracts/mf8-current-subscription.contract.test.js` | `PASS`; 6 testes, 6 pass. |
 | `npm --prefix real_dev/api run syntax:check` | `PASS` |
-| `DATABASE_URL=postgresql://opsa:opsa@localhost:5432/opsa npm --prefix real_dev/api run prisma:validate` | `PASS`; schema Prisma valido. |
+| `DATABASE_URL=<URL_AUTHENTICATED_REDACTED> npm --prefix real_dev/api run prisma:validate` | `PASS`; schema Prisma valido. |
 | `npm --prefix real_dev/api run test:unit` | `PASS`; 79 testes, 79 pass. |
 | `npm --prefix real_dev/api run test:contracts` | `PASS`; 76 testes, 76 pass. |
 | `OPSA_SKIP_PERSISTENCE_TESTS=true npm --prefix real_dev/api run test:integration` | `PASS_COM_RESSALVAS`; 2 testes skipped explicitamente por nao haver `TEST_DATABASE_URL`. A suite de integracao existente cobre MF2/MF3, nao este BK. |
@@ -2523,8 +2530,8 @@ Fontes revistas nesta auditoria:
 | `node --test real_dev/api/tests/contracts/mf8-current-subscription.contract.test.js` | `PASS`; 6 testes, 6 pass. |
 | `npm --prefix real_dev/api run syntax:check` | `PASS` |
 | `npm --prefix real_dev/api run prisma:validate` | `FAIL_ESPERADO`; `Prisma P1012` por falta de `DATABASE_URL` no ambiente. |
-| `DATABASE_URL=postgresql://opsa:opsa@localhost:5432/opsa npm --prefix real_dev/api run prisma:validate` | `PASS`; schema Prisma valido. |
-| `DATABASE_URL=postgresql://opsa:opsa@localhost:5432/opsa npm --prefix real_dev/api run prisma:generate` | `PASS`; Prisma Client gerado. |
+| `DATABASE_URL=<URL_AUTHENTICATED_REDACTED> npm --prefix real_dev/api run prisma:validate` | `PASS`; schema Prisma valido. |
+| `DATABASE_URL=<URL_AUTHENTICATED_REDACTED> npm --prefix real_dev/api run prisma:generate` | `PASS`; Prisma Client gerado. |
 | `npm --prefix real_dev/api run test:unit` | `PASS`; 79 testes, 79 pass. |
 | `npm --prefix real_dev/api run test:contracts` | `PASS`; 76 testes, 76 pass. |
 | `npm --prefix real_dev/web run typecheck` | `PASS` |
@@ -2637,7 +2644,7 @@ Fontes revistas nesta auditoria:
 | `node --test real_dev/api/tests/contracts/mf8-subscription-plans.contract.test.js` | `PASS`; 10 testes, 10 pass. |
 | `npm --prefix real_dev/api run syntax:check` | `PASS` |
 | `npm --prefix real_dev/api run prisma:validate` | `FAIL_ESPERADO`; `Prisma P1012` por falta de `DATABASE_URL` no ambiente. |
-| `DATABASE_URL=postgresql://opsa:opsa@localhost:5432/opsa npm --prefix real_dev/api run prisma:validate` | `PASS`; schema Prisma valido. |
+| `DATABASE_URL=<URL_AUTHENTICATED_REDACTED> npm --prefix real_dev/api run prisma:validate` | `PASS`; schema Prisma valido. |
 | `npm --prefix real_dev/api run test:unit` | `PASS`; 79 testes, 79 pass. |
 | `npm --prefix real_dev/api run test:contracts` | `PASS`; 70 testes, 70 pass. |
 | `npm --prefix real_dev/web run typecheck` | `PASS` |
@@ -2747,7 +2754,7 @@ Fontes revistas nesta reauditoria:
 | `node --check real_dev/api/tests/contracts/mf8-health.contract.test.js` | `PASS` |
 | `node --test real_dev/api/tests/contracts/mf8-health.contract.test.js` | `PASS`; 7 testes, 7 pass. |
 | `npm --prefix real_dev/api run syntax:check` | `PASS` |
-| `DATABASE_URL=postgresql://user:pass@localhost:5432/opsa_test npm --prefix real_dev/api run prisma:validate` | `PASS`; schema Prisma valido. |
+| `DATABASE_URL=<URL_AUTHENTICATED_REDACTED> npm --prefix real_dev/api run prisma:validate` | `PASS`; schema Prisma valido. |
 | `npm --prefix real_dev/api run test:unit` | `PASS`; 79 testes, 79 pass. |
 | `npm --prefix real_dev/api run test:contracts` | `PASS`; 60 testes, 60 pass. |
 | `npm --prefix real_dev/web run typecheck` | `PASS` |
@@ -2853,7 +2860,7 @@ Fontes revistas:
 | `node --check real_dev/api/tests/contracts/mf8-health.contract.test.js` | `PASS` |
 | `node --test real_dev/api/tests/contracts/mf8-health.contract.test.js` | `PASS`; 7 testes, 7 pass. |
 | `npm --prefix real_dev/api run syntax:check` | `PASS` |
-| `DATABASE_URL=postgresql://user:pass@localhost:5432/opsa_test npm --prefix real_dev/api run prisma:validate` | `PASS`; schema Prisma valido. |
+| `DATABASE_URL=<URL_AUTHENTICATED_REDACTED> npm --prefix real_dev/api run prisma:validate` | `PASS`; schema Prisma valido. |
 | `npm --prefix real_dev/api run test:unit` | `PASS`; 79 testes, 79 pass. |
 | `npm --prefix real_dev/api run test:contracts` | `PASS`; 60 testes, 60 pass. |
 | `npm --prefix real_dev/web run typecheck` | `PASS` |
@@ -2952,7 +2959,7 @@ Fontes revistas:
 | `node --check real_dev/api/tests/unit/structuredLogger.test.js` | `PASS` |
 | `node --test real_dev/api/tests/unit/structuredLogger.test.js` | `PASS`; 5 testes, 5 pass. |
 | `npm --prefix real_dev/api run syntax:check` | `PASS` |
-| `DATABASE_URL=postgresql://user:pass@localhost:5432/opsa_test npm --prefix real_dev/api run prisma:validate` | `PASS` |
+| `DATABASE_URL=<URL_AUTHENTICATED_REDACTED> npm --prefix real_dev/api run prisma:validate` | `PASS` |
 | `npm --prefix real_dev/api run test:unit` | `PASS`; 79 testes, 79 pass. |
 | `npm --prefix real_dev/api run test:contracts` | `PASS`; 53 testes, 53 pass. |
 | `npm --prefix real_dev/web run typecheck` | `PASS` |

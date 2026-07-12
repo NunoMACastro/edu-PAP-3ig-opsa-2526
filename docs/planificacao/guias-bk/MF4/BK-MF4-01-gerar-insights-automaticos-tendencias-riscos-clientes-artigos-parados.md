@@ -1,5 +1,7 @@
 # BK-MF4-01 - Gerar insights automáticos (tendências, riscos, clientes, artigos parados).
 
+> **Atualização IA v2:** `GET /api/ai/insights` é agora leitura pura. A geração manual ou automática usa `AiAnalysisRun`, catálogo de métricas, regras versionadas, fingerprints e worker. Ver [`../SINCRONIZACAO-IA-V2.md`](../SINCRONIZACAO-IA-V2.md). Exemplos antigos de GET com geração representam apenas a baseline pedagógica MF4.
+
 ## Header
 - `doc_id`: `GUIA-BK-MF4-01`
 - `bk_id`: `BK-MF4-01`
@@ -16,7 +18,11 @@
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF4-02`
 - `guia_path`: `docs/planificacao/guias-bk/MF4/BK-MF4-01-gerar-insights-automaticos-tendencias-riscos-clientes-artigos-parados.md`
-- `last_updated`: `2026-06-16`
+- `last_updated`: `2026-07-10`
+
+#### Contrato de listagem atualizado
+
+O endpoint devolve `{ items, pageInfo: { nextCursor, hasNextPage } }`, default 50 e máximo 100. O cursor preserva ordenação estável e o frontend cancela consultas obsoletas; datas usam o parser calendário estrito.
 
 #### Objetivo
 
@@ -452,8 +458,14 @@ export function buildAiInsightRoutes({ prisma }) {
             const range = validateInsightQuery(req.query);
             // O frontend só envia datas; empresa e utilizador vêm da sessão.
             // Isto protege ownership e mantém a UI fora das decisões de autorização.
-            const insights = await generateAiInsights(prisma, { companyId: req.companyId, userId: req.user.id, ...range });
-            return res.status(200).json({ insights });
+            const page = await generateAiInsights(prisma, {
+                companyId: req.companyId,
+                userId: req.user.id,
+                cursor: req.query.cursor,
+                limit: Number(req.query.limit ?? 50),
+                ...range,
+            });
+            return res.status(200).json(page);
         } catch (error) {
             return sendError(res, error);
         }
@@ -522,12 +534,17 @@ export interface AiInsight {
   status: string;
 }
 
+export interface CursorPage<T> {
+  items: T[];
+  pageInfo: { nextCursor: string | null; hasNextPage: boolean };
+}
+
 /** Consulta insights automáticos da empresa ativa. */
 export function getAiInsights(from: string, to: string) {
   // A query string leva apenas filtros de período.
   // A empresa ativa continua protegida no cookie de sessão e no backend.
   const query = "?from=" + encodeURIComponent(from) + "&to=" + encodeURIComponent(to);
-  return client.request<{ insights: AiInsight[] }>("GET", "/ai/insights" + query);
+  return client.request<CursorPage<AiInsight>>("GET", "/ai/insights" + query);
 }
 
 // apps/web/src/pages/AiInsightsPage.tsx
@@ -551,7 +568,7 @@ export function AiInsightsPage() {
       // A UI não calcula insights: pede ao backend para aplicar as regras
       // com autenticação, permissões e dados reais da empresa ativa.
       const result = await getAiInsights(from, to);
-      setInsights(result.insights);
+      setInsights(result.items);
     } catch (caught) {
       // A mensagem vem do ApiError criado no apiClient, por isso fica alinhada
       // com os erros controlados do backend.

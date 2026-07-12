@@ -1,3 +1,10 @@
+> [!WARNING]
+> `SNAPSHOT_HISTORICO_SUPERSEDED` — estado `SUPERSEDED` em 2026-07-10.
+>
+> Este relatório preserva um snapshot histórico e não representa o estado corrente.
+> Fonte atual: [relatório canónico](../auditorias/CORRECAO-AUDITORIA-END-TO-END-REAL_DEV-2026-07-09.md).
+> Não reutilizar contagens, comandos, paths ou decisões deste corpo como evidence atual.
+
 # Correcao da auditoria de implementacao real_dev - MF6
 
 ## Execucao atual - correcao dirigida BK-MF6-09 e BK-MF6-10 - 2026-06-25
@@ -84,7 +91,7 @@ Nao foram alterados BKs, RF/RNF, matriz, backlog, sprints, `apps/`, `mockup/`, P
 | `npm --prefix real_dev/api run test:mf6` | `PASS_COM_RESSALVAS` | 10 smokes MF6 passaram; concorrencia continua em `mode: local-contract`, ressalva historica fora destes P3. |
 | `npm --prefix real_dev/api run test:unit` | `PASS` | 65 testes passaram. |
 | `npm --prefix real_dev/api run test:contracts` | `PASS` | 30 testes passaram. |
-| `DATABASE_URL=postgresql://user:pass@localhost:5432/opsa_dev npm --prefix real_dev/api run prisma:validate` | `PASS` | Schema Prisma valido. |
+| `DATABASE_URL=<URL_AUTHENTICATED_REDACTED> npm --prefix real_dev/api run prisma:validate` | `PASS` | Schema Prisma valido. |
 | `npm --prefix real_dev/web run typecheck` | `PASS` | TypeScript sem erros. |
 | `npm --prefix real_dev/web run build` | `PASS` | Vite build passou. |
 
@@ -451,7 +458,7 @@ Nao foram alterados BKs, RF/RNF, matriz, backlog, sprints, `apps/` ou `mockup/`.
 | --- | --- | --- |
 | `git status --short --untracked-files=all` | `PASS_COM_OBSERVACOES` | Relatorios MF6 untracked; `real_dev/` continua gitignored. |
 | `npm run syntax:check` em `real_dev/api` | `PASS` | `node --check` em `src`, `tests` e `scripts`. |
-| `DATABASE_URL=postgresql://user:pass@localhost:5432/opsa_dev npm run prisma:validate` em `real_dev/api` | `PASS` | Schema Prisma valido. |
+| `DATABASE_URL=<URL_AUTHENTICATED_REDACTED> npm run prisma:validate` em `real_dev/api` | `PASS` | Schema Prisma valido. |
 | `npm run test:mf6:documents` em `real_dev/api` | `PASS` | Contrato de performance de documentos OK. |
 | `npm run test:mf6:concurrency` em `real_dev/api` | `PASS_COM_RESSALVAS` | Passou em `mode: local-contract`, sem HTTP autenticado real. |
 | `npm run test:unit` em `real_dev/api` | `PASS` | 65 testes passaram. |
@@ -473,7 +480,7 @@ Nao foram alterados BKs, RF/RNF, matriz, backlog, sprints, `apps/` ou `mockup/`.
 ### Blockers e proximos passos
 
 - `BLOQUEADO`: `MF6-AUD-20260625-BK02-F01` precisa de ambiente com DB de teste, servidor autenticado e 25 cookies reais da mesma empresa.
-- Proxima acao recomendada: executar `OPSA_SESSION_COOKIES_JSON='[...]' OPSA_API_BASE_URL='http://127.0.0.1:3000' npm --prefix real_dev/api run test:mf6:concurrency`. Se passar, atualizar o estado de `BK-MF6-02` para `CORRIGIDO`.
+- Proxima acao recomendada: executar `OPSA_SESSION_COOKIES_JSON=<SECRET_REDACTED> OPSA_API_BASE_URL='http://127.0.0.1:3000' npm --prefix real_dev/api run test:mf6:concurrency`. Se passar, atualizar o estado de `BK-MF6-02` para `CORRIGIDO`.
 
 ## Metadados
 
@@ -606,7 +613,7 @@ Nao foram alterados BKs, RF/RNF, matriz, backlog, `apps/`, `mockup/` ou docs can
 
 ## Blockers e TODOs
 
-- `TODO_OPERACIONAL`: executar `OPSA_SESSION_COOKIES_JSON='[...]' OPSA_API_BASE_URL='http://127.0.0.1:3000' npm --prefix real_dev/api run test:mf6:concurrency` com 25 cookies reais.
+- `TODO_OPERACIONAL`: executar `OPSA_SESSION_COOKIES_JSON=<SECRET_REDACTED> OPSA_API_BASE_URL='http://127.0.0.1:3000' npm --prefix real_dev/api run test:mf6:concurrency` com 25 cookies reais.
 - `TODO_OPERACIONAL`: repetir `npm --prefix real_dev/api run test:integration` sem `OPSA_SKIP_PERSISTENCE_TESTS` quando existir `TEST_DATABASE_URL`.
 - `FORA_DE_SCOPE`: corrigir `advisory_pass=false` do validador de planificacao, porque a prompt atual nao permite alterar BKs/docs canonicos.
 

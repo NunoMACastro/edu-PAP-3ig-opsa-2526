@@ -1,3 +1,10 @@
+> [!WARNING]
+> `SNAPSHOT_HISTORICO_SUPERSEDED` — estado `SUPERSEDED` em 2026-07-10.
+>
+> Este relatório preserva um snapshot histórico e não representa o estado corrente.
+> Fonte atual: [relatório canónico](../auditorias/CORRECAO-AUDITORIA-END-TO-END-REAL_DEV-2026-07-09.md).
+> Não reutilizar contagens, comandos, paths ou decisões deste corpo como evidence atual.
+
 # Correcao de auditoria de implementacao real_dev - MF3
 
 Data: 2026-06-15
@@ -135,7 +142,7 @@ Nota Git: `real_dev/` esta ignorado por `.gitignore` no repositorio principal, p
 | --- | --- |
 | `npm --prefix real_dev/api run test:unit` | PASS, 50/50 |
 | `npm --prefix real_dev/api run syntax:check` | PASS |
-| `DATABASE_URL=postgresql://opsa:opsa@localhost:5432/opsa_audit npm --prefix real_dev/api run prisma:validate` | PASS |
+| `DATABASE_URL=<URL_AUTHENTICATED_REDACTED> npm --prefix real_dev/api run prisma:validate` | PASS |
 | `npm --prefix real_dev/api run test:contracts` | PASS, 23/23 |
 | `node --input-type=module -e ...` com fronteiras inclusivas IVA/forecast | PASS |
 | `npm --prefix real_dev/api run test:integration` | FAIL controlado: falta `TEST_DATABASE_URL` |

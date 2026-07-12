@@ -16,7 +16,7 @@
 - `core_or_reforco`: `Core`
 - `proximo_bk`: `BK-MF4-01`
 - `guia_path`: `docs/planificacao/guias-bk/MF3/BK-MF3-08-kpis-executivos-receita-custos-ebitda-pmr-pmp.md`
-- `last_updated`: `2026-06-15`
+- `last_updated`: `2026-07-10`
 
 #### Objetivo
 
@@ -74,14 +74,14 @@ RF38 transforma dados operacionais em indicadores de gestão. Estes KPIs aliment
 
 #### Ficheiros a criar/editar/rever
 
-- CRIAR: `real_dev/api/src/modules/reports/executiveKpiFilters.js`
-- CRIAR: `real_dev/api/src/modules/reports/executiveKpiService.js`
-- CRIAR: `real_dev/api/src/modules/reports/executiveKpiRoutes.js`
-- CRIAR: `real_dev/web/src/lib/kpiApi.ts`
-- CRIAR: `real_dev/web/src/pages/ExecutiveKpisPage.tsx`
-- EDITAR: `real_dev/api/prisma/schema.prisma`
-- EDITAR: `real_dev/api/src/server.js`
-- EDITAR: `real_dev/web/src/App.tsx`
+- CRIAR: `apps/api/src/modules/reports/executiveKpiFilters.js`
+- CRIAR: `apps/api/src/modules/reports/executiveKpiService.js`
+- CRIAR: `apps/api/src/modules/reports/executiveKpiRoutes.js`
+- CRIAR: `apps/web/src/lib/kpiApi.ts`
+- CRIAR: `apps/web/src/pages/ExecutiveKpisPage.tsx`
+- EDITAR: `apps/api/prisma/schema.prisma`
+- EDITAR: `apps/api/src/server.js`
+- EDITAR: `apps/web/src/App.tsx`
 - REVER: BK-MF3-07, BK-MF1-02, BK-MF1-03, BK-MF1-07, BK-MF1-08.
 
 #### Tutorial técnico linear
@@ -130,7 +130,7 @@ Guardar KPIs calculados.
 
 2. Ficheiros envolvidos:
     - CRIAR: nenhum.
-    - EDITAR: `real_dev/api/prisma/schema.prisma`
+    - EDITAR: `apps/api/prisma/schema.prisma`
     - REVER: `SaleDocument`, `PurchaseDocument`, `Receipt`, `Payment`.
     - LOCALIZAÇÃO: modelos de reporting.
 
@@ -179,7 +179,7 @@ Forcar zero em PMR sem dados enganaria o gestor.
 Validar período de KPI.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `real_dev/api/src/modules/reports/executiveKpiFilters.js`
+    - CRIAR: `apps/api/src/modules/reports/executiveKpiFilters.js`
     - EDITAR: nenhum.
     - REVER: `httpErrors.js`.
     - LOCALIZAÇÃO: ficheiro completo.
@@ -191,7 +191,7 @@ Reutiliza padrão de relatórios.
 4. Código completo, correto e integrado com a app final.
 
 ```js
-// real_dev/api/src/modules/reports/executiveKpiFilters.js
+// apps/api/src/modules/reports/executiveKpiFilters.js
 import { httpError } from "../../lib/httpErrors.js";
 
 /**
@@ -242,7 +242,7 @@ Período invertido devolve `400 INVALID_KPI_RANGE`.
 Calcular KPIs com dados reais e fontes.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `real_dev/api/src/modules/reports/executiveKpiService.js`
+    - CRIAR: `apps/api/src/modules/reports/executiveKpiService.js`
     - EDITAR: nenhum.
     - REVER: vendas, compras, recebimentos e pagamentos.
     - LOCALIZAÇÃO: ficheiro completo.
@@ -254,7 +254,7 @@ Trata divisão por zero.
 4. Código completo, correto e integrado com a app final.
 
 ```js
-// real_dev/api/src/modules/reports/executiveKpiService.js
+// apps/api/src/modules/reports/executiveKpiService.js
 import { httpError } from "../../lib/httpErrors.js";
 
 const dayMs = 86400000;
@@ -333,8 +333,8 @@ Sem recebimentos, `pmrDays` deve ser `null`.
 Publicar KPIs apenas para gestor.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `real_dev/api/src/modules/reports/executiveKpiRoutes.js`
-    - EDITAR: `real_dev/api/src/server.js`
+    - CRIAR: `apps/api/src/modules/reports/executiveKpiRoutes.js`
+    - EDITAR: `apps/api/src/server.js`
     - REVER: middlewares.
     - LOCALIZAÇÃO: ficheiro completo e montagem.
 
@@ -345,7 +345,7 @@ Cria `GET /api/reports/executive-kpis`.
 4. Código completo, correto e integrado com a app final.
 
 ```js
-// real_dev/api/src/modules/reports/executiveKpiRoutes.js
+// apps/api/src/modules/reports/executiveKpiRoutes.js
 import { Router } from "express";
 import { requireAuth } from "../auth/authMiddleware.js";
 import { requireCompanyContext } from "../companies/companyContext.js";
@@ -378,7 +378,7 @@ export function buildExecutiveKpiRoutes({ prisma }) {
 ```
 
 ```js
-// real_dev/api/src/server.js
+// apps/api/src/server.js
 import { buildExecutiveKpiRoutes } from "./modules/reports/executiveKpiRoutes.js";
 
 app.use("/api/reports/executive-kpis", buildExecutiveKpiRoutes({ prisma }));
@@ -403,7 +403,7 @@ Auditor sem role de gestor recebe `403`.
 Tipar indicadores executivos.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `real_dev/web/src/lib/kpiApi.ts`
+    - CRIAR: `apps/web/src/lib/kpiApi.ts`
     - EDITAR: nenhum.
     - REVER: cliente comum.
     - LOCALIZAÇÃO: ficheiro completo.
@@ -415,7 +415,7 @@ Cria tipo com `number | null` para PMR/PMP.
 4. Código completo, correto e integrado com a app final.
 
 ```ts
-// real_dev/web/src/lib/kpiApi.ts
+// apps/web/src/lib/kpiApi.ts
 import { apiClient } from "./apiClient";
 
 /**
@@ -463,8 +463,8 @@ Role errada gera erro apresentado na página.
 Mostrar indicadores executivos.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `real_dev/web/src/pages/ExecutiveKpisPage.tsx`
-    - EDITAR: `real_dev/web/src/App.tsx`
+    - CRIAR: `apps/web/src/pages/ExecutiveKpisPage.tsx`
+    - EDITAR: `apps/web/src/App.tsx`
     - REVER: `kpiApi.ts`.
     - LOCALIZAÇÃO: ficheiro completo e menu.
 
@@ -475,7 +475,7 @@ Mostra cards simples com fonte.
 4. Código completo, correto e integrado com a app final.
 
 ```tsx
-// real_dev/web/src/pages/ExecutiveKpisPage.tsx
+// apps/web/src/pages/ExecutiveKpisPage.tsx
 import { FormEvent, useState } from "react";
 import { fetchExecutiveKpis, type ExecutiveKpis } from "../lib/kpiApi";
 
@@ -608,6 +608,6 @@ BK-MF4-01 usa estes KPIs e relatórios como fonte para insights automáticos exp
 
 ## Changelog
 
-- `2026-06-15`: alinhados caminhos técnicos da MF3 com `real_dev/api` e `real_dev/web`, preservando contratos RF/RNF, dependências e escopo.
+- `2026-06-15`: alinhados caminhos técnicos da MF3 com `apps/api` e `apps/web`, preservando contratos RF/RNF, dependências e escopo.
 - `2026-06-13`: corrigido para calcular KPIs reais, tratar falta de dados, usar `apiClient`, adicionar JSDoc e preparar fontes para IA explicável.
 - `2026-06-13`: alinhado com MF1, usando estados reais de venda em vez de estados de compra.

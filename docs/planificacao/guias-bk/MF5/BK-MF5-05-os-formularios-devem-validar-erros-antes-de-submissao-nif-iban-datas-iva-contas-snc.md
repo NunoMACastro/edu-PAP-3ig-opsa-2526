@@ -16,7 +16,11 @@
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF5-06`
 - `guia_path`: `docs/planificacao/guias-bk/MF5/BK-MF5-05-os-formularios-devem-validar-erros-antes-de-submissao-nif-iban-datas-iva-contas-snc.md`
-- `last_updated`: `2026-06-20`
+- `last_updated`: `2026-07-10`
+
+#### Contrato de domínio atualizado
+
+Datas de calendário usam parser estrito `YYYY-MM-DD` e defaults no calendário local de Portugal, sem conversão UTC. Uma taxa isenta exatamente igual a `0` é válida e não pode ser confundida com campo vazio. Entidades relacionadas são escolhidas por select/autocomplete; linhas contabilísticas usam editores de linhas, não UUIDs ou JSON escritos pelo utilizador. Erros preservam todo o formulário.
 
 #### Objetivo
 
@@ -320,9 +324,12 @@ export function validateIsoDate(field: string, value: PrimitiveValidationValue):
     return { field, message: "A data deve estar no formato AAAA-MM-DD." };
   }
 
-  const [, year, month, day] = match;
-  const date = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)));
-  if (date.toISOString().slice(0, 10) !== normalized) {
+  const [, yearText, monthText, dayText] = match;
+  const year = Number(yearText);
+  const month = Number(monthText);
+  const day = Number(dayText);
+  const daysInMonth = new Date(year, month, 0).getDate();
+  if (month < 1 || month > 12 || day < 1 || day > daysInMonth) {
     return { field, message: "A data indicada não existe." };
   }
 
@@ -473,7 +480,7 @@ export function formatMf5FormErrors(errors: FieldValidationError[]) {
 
 5. Explicação do código.
 
-Os `Set` no topo tornam a decisão explícita por nome real de campo. A data usa regex e compara `toISOString().slice(0, 10)` com o valor original, rejeitando datas impossíveis como `2026-02-30`. O IBAN usa validação de controlo mod 97. IVA fica separado entre identificador, basis points e percentagem visual.
+Os `Set` no topo tornam a decisão explícita por nome real de campo. A data usa regex e valida os dias do mês no calendário local, rejeitando datas impossíveis como `2026-02-30` sem roundtrip UTC. O IBAN usa validação de controlo mod 97. IVA fica separado entre identificador, basis points e percentagem visual, mantendo `0` distinto de vazio.
 
 6. Validação do passo.
 
@@ -779,7 +786,7 @@ const [validators, app, mf1, packageJson] = await Promise.all(
 );
 
 assertIncludes(validators, "validatePortugueseIban", "validação de IBAN português");
-assertIncludes(validators, "toISOString().slice(0, 10)", "datas usam roundtrip ISO");
+assertIncludes(validators, "daysInMonth", "datas usam validação de calendário local");
 assertIncludes(validators, "validateVatBps", "IVA técnico separado de percentagem visual");
 assertIncludes(validators, "validateKnownId", "identificadores validados como seleção");
 assertIncludes(validators, "validateMf5FormData", "formulários dedicados conseguem usar FormData");
@@ -809,7 +816,7 @@ Atualiza `apps/web/package.json` mantendo os scripts existentes:
 
 5. Explicação do código.
 
-O smoke não substitui testes unitários nem validação manual. Ele confirma rapidamente que o ficheiro de validadores existe, que datas usam roundtrip ISO, que IVA não é validado por regra única e que o `OperationForm` consome mensagens como `Error`.
+O smoke não substitui testes unitários nem validação manual. Ele confirma rapidamente que o ficheiro de validadores existe, que datas usam calendário local, que IVA não é validado por regra única e que o `OperationForm` consome mensagens como `Error`.
 
 6. Validação do passo.
 
@@ -817,7 +824,7 @@ Executa `cd apps/web && npm run test:mf5:forms`. O output esperado é `MF5 form 
 
 7. Cenário negativo/erro esperado.
 
-Se alguém trocar o roundtrip ISO por `Date.parse`, o smoke deve falhar por falta de `toISOString().slice(0, 10)`.
+Se alguém trocar a validação de calendário por `Date.parse`, o smoke deve falhar por falta de `daysInMonth`.
 
 ### Passo 8 - Executar validação final e preparar evidence
 

@@ -1,6 +1,6 @@
 # Estatísticas Do Projeto - OPSA
 
-Data do levantamento: 2026-07-07
+Data do levantamento: 2026-07-11
 Base do levantamento: checkout local `opsa`
 
 ## Critérios De Contagem
@@ -17,11 +17,11 @@ Base do levantamento: checkout local `opsa`
 
 | Categoria                            |                                           Âmbito | Ficheiros | Linhas | Média por ficheiro |
 | ------------------------------------ | -----------------------------------------------: | --------: | -----: | -----------------: |
-| Total de documentação e planificação |                                   `docs/**/*.md` |       203 | 115838 |             570.63 |
-| Documentação geral                   | `docs/**/*.md`, excluindo `docs/planificacao/**` |        58 |  11322 |             195.21 |
-| Planificação                         |                      `docs/planificacao/**/*.md` |       145 | 104516 |             720.80 |
+| Total de documentação e planificação |                                   `docs/**/*.md` |       215 | 115223 |             535.92 |
+| Documentação geral                   | `docs/**/*.md`, excluindo `docs/planificacao/**` |        67 |  13342 |             199.13 |
+| Planificação                         |                      `docs/planificacao/**/*.md` |       148 | 101881 |             688.39 |
 
-A maior parte da documentação textual do projeto está na planificação. A planificação representa `145` dos `203` ficheiros Markdown contabilizados, ou seja, `71.43%` dos ficheiros e `90.23%` das linhas de documentação.
+A maior parte da documentação textual do projeto está na planificação. A planificação representa `148` dos `215` ficheiros Markdown contabilizados, ou seja, `68.84%` dos ficheiros e `88.42%` das linhas de documentação.
 
 ## Código
 
@@ -29,34 +29,34 @@ A maior parte da documentação textual do projeto está na planificação. A pl
 
 | Área         |                          Âmbito | Ficheiros | Linhas | Média por ficheiro |
 | ------------ | ------------------------------: | --------: | -----: | -----------------: |
-| Total da app | `real_dev/api` + `real_dev/web` |       288 |  45258 |             157.15 |
-| Backend      |                  `real_dev/api` |       229 |  34403 |             150.23 |
-| Frontend     |                  `real_dev/web` |        59 |  10855 |             183.98 |
+| Total da app | `real_dev/api` + `real_dev/web` |       430 |  83036 |             193.11 |
+| Backend      |                  `real_dev/api` |       341 |  62633 |             183.67 |
+| Frontend     |                  `real_dev/web` |        89 |  20403 |             229.25 |
 
 Esta contagem inclui os ficheiros de suporte que fazem parte do projeto, como `package-lock.json`, `package.json`, `tsconfig.json`, `.env.example`, `.env.test.example`, Prisma, scripts de validação e evidências técnicas dentro de `real_dev`.
 
-Os ficheiros auxiliares próprios representam `15` ficheiros e `4936` linhas: `10` ficheiros / `3852` linhas no backend e `5` ficheiros / `1084` linhas no frontend.
+Os ficheiros auxiliares próprios representam `19` ficheiros e `8524` linhas: `13` ficheiros / `4575` linhas no backend e `6` ficheiros / `3949` linhas no frontend.
 
 ### Código Estrito
 
 | Área                    |                          Âmbito | Ficheiros | Linhas de código | Média por ficheiro |
 | ----------------------- | ------------------------------: | --------: | ---------------: | -----------------: |
-| Total de código estrito | `real_dev/api` + `real_dev/web` |       273 |            40322 |             147.70 |
-| Backend                 |                  `real_dev/api` |       219 |            30551 |             139.50 |
-| Frontend                |                  `real_dev/web` |        54 |             9771 |             180.94 |
+| Total de código estrito | `real_dev/api` + `real_dev/web` |       411 |            74512 |             181.29 |
+| Backend                 |                  `real_dev/api` |       328 |            58058 |             177.01 |
+| Frontend                |                  `real_dev/web` |        83 |            16454 |             198.24 |
 
 ## Código Por Extensão
 
 | Extensão  |     Área | Ficheiros | Linhas |
 | --------- | -------: | --------: | -----: |
-| `.js`     |  Backend |       191 |  25356 |
-| `.mjs`    |  Backend |        17 |   2344 |
-| `.sql`    |  Backend |        10 |   1562 |
-| `.prisma` |  Backend |         1 |   1289 |
-| `.tsx`    | Frontend |        19 |   5104 |
-| `.ts`     | Frontend |        19 |   2479 |
-| `.mjs`    | Frontend |        14 |   1413 |
-| `.css`    | Frontend |         1 |    763 |
+| `.js`     |  Backend |       283 |  50514 |
+| `.mjs`    |  Backend |        26 |   3854 |
+| `.sql`    |  Backend |        18 |   2061 |
+| `.prisma` |  Backend |         1 |   1629 |
+| `.tsx`    | Frontend |        31 |   9280 |
+| `.ts`     | Frontend |        36 |   4583 |
+| `.mjs`    | Frontend |        14 |   1437 |
+| `.css`    | Frontend |         1 |   1142 |
 | `.html`   | Frontend |         1 |     12 |
 
 ## Funções E Estrutura Interna
@@ -65,33 +65,33 @@ A contagem de funções foi feita por AST com o parser de TypeScript, sobre fich
 
 | Métrica                             | Total | Backend | Frontend |
 | ----------------------------------- | ----: | ------: | -------: |
-| Funções / construções function-like |  2303 |    1664 |      639 |
-| Declarações `function`              |   950 |     692 |      258 |
-| Function expressions                |     9 |       9 |        0 |
-| Arrow functions                     |  1240 |     860 |      380 |
-| Métodos                             |   100 |     100 |        0 |
-| Construtores                        |     4 |       3 |        1 |
-| Classes                             |     4 |       3 |        1 |
+| Funções / construções function-like |  4806 |    3644 |     1162 |
+| Declarações `function`              |  1438 |    1081 |      357 |
+| Function expressions                |    10 |      10 |        0 |
+| Arrow functions                     |  3160 |    2356 |      804 |
+| Métodos                             |   190 |     190 |        0 |
+| Construtores                        |     8 |       7 |        1 |
+| Classes                             |     9 |       8 |        1 |
 
 ## Testes E Código Fonte
 
 | Métrica                   | Total | Backend | Frontend |
 | ------------------------- | ----: | ------: | -------: |
-| Ficheiros dentro de `src` |   195 |     157 |       38 |
-| Linhas dentro de `src`    | 26195 |   17860 |     8335 |
-| Ficheiros de teste        |    33 |      33 |        0 |
-| Linhas de teste           |  7415 |    7415 |        0 |
+| Ficheiros dentro de `src` |   254 |     192 |       62 |
+| Linhas dentro de `src`    | 44775 |   29600 |    15175 |
+| Ficheiros de teste        |    98 |      84 |       14 |
+| Linhas de teste           | 20212 |   18425 |     1787 |
 
-As linhas de teste representam `16.38%` das linhas dos ficheiros próprios da app. As linhas dentro de `src` representam `57.88%` das linhas dos ficheiros próprios da app.
+As linhas de teste representam `24.34%` das linhas dos ficheiros próprios da app. As linhas dentro de `src` representam `53.92%` das linhas dos ficheiros próprios da app.
 
 ## Leitura Rápida
 
-- O projeto tem `203` ficheiros Markdown de documentação e planificação.
-- A documentação e planificação somam `115838` linhas.
-- A app em `real_dev` tem `288` ficheiros próprios, incluindo código e auxiliares do projeto.
-- Esses ficheiros próprios da app somam `45258` linhas.
-- Dentro desses ficheiros, o código estrito soma `273` ficheiros e `40322` linhas.
-- O codebase tem `2303` funções/construções function-like contabilizadas por AST.
-- Existem `33` ficheiros de teste, com `7415` linhas.
-- O backend concentra `79.51%` dos ficheiros próprios da app e `76.02%` das linhas da app.
-- O frontend concentra `20.49%` dos ficheiros próprios da app e `23.98%` das linhas da app.
+- O projeto tem `215` ficheiros Markdown de documentação e planificação.
+- A documentação e planificação somam `115223` linhas.
+- A app em `real_dev` tem `430` ficheiros próprios, incluindo código e auxiliares do projeto.
+- Esses ficheiros próprios da app somam `83036` linhas.
+- Dentro desses ficheiros, o código estrito soma `411` ficheiros e `74512` linhas.
+- O codebase tem `4806` funções/construções function-like contabilizadas por AST.
+- Existem `98` ficheiros de teste, com `20212` linhas.
+- O backend concentra `79.30%` dos ficheiros próprios da app e `75.43%` das linhas da app.
+- O frontend concentra `20.70%` dos ficheiros próprios da app e `24.57%` das linhas da app.

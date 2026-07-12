@@ -34,7 +34,7 @@ npm --prefix apps/api run test:unit
 npm --prefix apps/web run typecheck
 npm --prefix apps/web run build
 
-### Passo 4 
+### Passo 4
 - PS D:\PAP\edu-PAP-3ig-opsa-2526> npm --prefix apps/api run test:unit
 
 > @opsa/api@1.0.0 test:unit

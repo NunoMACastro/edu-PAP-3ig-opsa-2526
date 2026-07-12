@@ -19,10 +19,10 @@ Cenário negativo:
 - Constraint @@unique([userId, companyId]) preparada para impedir memberships duplicadas.
 - Teste 409 ainda não aplicável por endpoint, porque vamos tratar criação/gestão de membership em BK-MF0-04.
 
-Passo 3: 
+Passo 3:
 - companyValidators.js criado
 - validateSwitchCompanyPayload exportado
-Testes do companyValidators.js 
+Testes do companyValidators.js
 - PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> node -e "import('./src/modules/companies/companyValidators.js').then(m => console.log(Object.keys(m)))"
 [ 'validateSwitchCompanyPayload' ]
 
@@ -36,7 +36,7 @@ Passo 4:
 - companyService.js criado
 - companyContext.js atualizado já com implementação real
 
-- PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> node -e "import('./src/modules/companies/companyService.js').then(m => console.log(Object.keys(m)))"                                                            
+- PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> node -e "import('./src/modules/companies/companyService.js').then(m => console.log(Object.keys(m)))"
 [ 'getCompanyContext', 'listUserCompanies', 'switchActiveCompany' ]
 
 - PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> node -e "import('./src/modules/companies/companyContext.js').then(m => console.log(Object.keys(m)))"
@@ -79,7 +79,7 @@ Keep-Alive: timeout=5
 
 {"error":"SESSION_REQUIRED","message":"Sessao obrigatoria"}
 
-Passo 6: 
+Passo 6:
 - PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> node -e "import('./src/modules/companies/companyValidators.js').then(m => { try { m.validateSwitchCompanyPayload({}); } catch (e) { console.log(e.status, e.code, e.message); } })"
 400 INVALID_COMPANY_ID companyId e obrigatorio
 

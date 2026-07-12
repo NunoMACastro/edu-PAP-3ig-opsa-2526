@@ -17,7 +17,7 @@
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF1-10`
 - `guia_path`: `docs/planificacao/guias-bk/MF1/BK-MF1-09-gerar-lancamentos-contabilisticos-automaticos-de-compras.md`
-- `last_updated`: `2026-06-01`
+- `last_updated`: `2026-07-10`
 
 ## Objetivo
 
@@ -334,6 +334,7 @@ Localização: `apps/web/src/pages/PurchasePostingsPage.tsx`.
 // apps/web/src/pages/PurchasePostingsPage.tsx
 import { FormEvent, useState } from "react";
 import { postPurchaseDocument } from "../lib/accountingApi";
+import { EntityAutocomplete } from "../components/forms/EntityAutocomplete";
 
 export function PurchasePostingsPage() {
     const [purchaseDocumentId, setPurchaseDocumentId] = useState("");
@@ -364,7 +365,7 @@ export function PurchasePostingsPage() {
         <main>
             <h1>Contabilizar compra</h1>
             <form onSubmit={handleSubmit} aria-label="Contabilizar compra">
-                <input value={purchaseDocumentId} onChange={(event) => setPurchaseDocumentId(event.target.value)} placeholder="ID do documento de compra" />
+                <EntityAutocomplete label="Documento de compra aprovado" endpoint="/api/purchases/documents" value={purchaseDocumentId} onChange={setPurchaseDocumentId} />
                 <button type="submit" disabled={loading}>{loading ? "A contabilizar..." : "Criar lançamento"}</button>
             </form>
             {error && <p role="alert">{error}</p>}
@@ -564,8 +565,11 @@ Sem evidência de testes, não pedir revisão final.
 
 O `BK-MF3-01` deve ler `JournalEntry` com `source=PURCHASE` e contas de IVA para apurar IVA dedutível.
 
+- Próximo BK recomendado: `BK-MF1-10`.
+
 ## Changelog
 
+- `2026-07-10`: handoff imediato sincronizado com o próximo BK canónico, preservando o consumidor futuro MF3.
 - `2026-06-01`: Dependências técnicas canónicas alinhadas com a matriz, backlog e risco de PR da MF1.
 - `2026-05-31`: Corrigida fundamentação documental, helper transacional de contabilização, auditoria do lançamento e teste autocontido.
 - `2026-05-31`: Guia consolidado com contrato técnico completo, código por camada, validações e handoff MF1.

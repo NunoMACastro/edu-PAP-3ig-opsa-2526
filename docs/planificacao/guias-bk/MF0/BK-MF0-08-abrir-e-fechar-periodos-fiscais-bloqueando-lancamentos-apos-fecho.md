@@ -17,7 +17,7 @@
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF0-09`
 - `guia_path`: `docs/planificacao/guias-bk/MF0/BK-MF0-08-abrir-e-fechar-periodos-fiscais-bloqueando-lancamentos-apos-fecho.md`
-- `last_updated`: `2026-05-24`
+- `last_updated`: `2026-07-10`
 
 #### BK-MF0-08 - Abrir e fechar períodos fiscais, bloqueando lançamentos após fecho.
 
@@ -25,7 +25,7 @@
 
 Neste BK vamos transformar o requisito RF08 num guia de execução para construir a parte da app relacionada com contabilidade. O foco não é produzir documentação genérica: é deixar claro que modelos, endpoints, validações, UI e evidência devem existir quando a equipa implementar o BK.
 
-A app real ainda está marcada como `sem_codigo`; por isso, os caminhos técnicos propostos seguem o contrato central `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md`. Esse contrato define a stack assumida, a estrutura indicativa e a regra de adaptação quando existir scaffold real, sem alterar RF, BK, owners, dependências ou critérios de aceite.
+A implementação pedagógica usa os caminhos públicos `apps/api` e `apps/web` e segue os contratos atuais de `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md` e `docs/planificacao/CONTRATO-INTERFACES-IMPLEMENTACAO.md`. O estado `TODO` descreve apenas o progresso dos alunos; não significa ausência de uma implementação privada de referência.
 
 Como a fase alvo é MF0, não existem BKs de fases anteriores a reutilizar. A continuidade nasce aqui: os outputs deste BK devem ser contratos estáveis para BK-MF0-09 e para os BKs de vendas, compras, inventário, contabilidade e segurança das fases seguintes.
 
@@ -43,6 +43,7 @@ Como a fase alvo é MF0, não existem BKs de fases anteriores a reutilizar. A co
 - Permitir abrir período sem sobreposições.
 - Permitir fechar período com registo de quem fechou e quando.
 - Criar helper assertOpenFiscalPeriod(date, companyId) para BKs futuros.
+- Coordenar fecho e lançamento com lock transacional e materializar `RetentionHold`.
 - Ligar UI de configurações a estados Aberto/Fechado.
 
 ##### O que não entra (scope-out)
@@ -50,7 +51,7 @@ Como a fase alvo é MF0, não existem BKs de fases anteriores a reutilizar. A co
 - Lançamentos contabilísticos manuais, porque pertencem ao BK-MF2-06.
 - Regras legais completas de reabertura, se não estiverem documentadas.
 - Fechos anuais avançados ou apuramento automático.
-- Auditoria completa, que será reforçada em MF4/MF6.
+- Reabertura destrutiva: correções históricas exigem reversão auditada.
 
 ##### Como saber que isto ficou bem
 
@@ -69,14 +70,14 @@ Como a fase alvo é MF0, não existem BKs de fases anteriores a reutilizar. A co
 - Owner: `Oleksii` (CANONICO)
 - Apoio: `Pedro` (CANONICO)
 - Dependências (BK IDs): `BK-MF0-07` (CANONICO)
-- Pré-condições: Depende de BK-MF0-07. App real pode ainda não existir; nesse caso criar a estrutura técnica assumida antes dos ficheiros alvo. (DERIVADO)
+- Pré-condições: Depende de BK-MF0-07. O scaffold pedagógico pode ainda estar incompleto; usar `apps/api` e `apps/web` e respeitar os contratos centrais atuais. (DERIVADO)
 - Ref. Plano: `PLANO-IMPLEMENTACAO-TOTAL.md` MF0; `PLANO-SPRINTS.md` S01-S02. (CANONICO)
 - Flow ID: `FLOW-FISCAL-PERIODS` (DERIVADO)
 - Fonte de verdade: `docs/RF.md` -> `RF08` (CANONICO)
 - Fonte de verdade: `docs/planificacao/backlogs/BACKLOG-MVP.md` (CANONICO)
 - Fonte de verdade: `docs/planificacao/backlogs/MATRIZ-CANONICA-BK.md` e `docs/planificacao/backlogs/MF-VIEWS.md` (CANONICO)
 - Descrição: Abrir e fechar períodos fiscais, bloqueando lançamentos após fecho. (CANONICO)
-- Stack decidida: `DERIVADO` e centralizada em `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md`; este BK usa essa stack apenas como assunção técnica até existir scaffold real.
+- Stack decidida: `DERIVADO` e centralizada em `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md`; este BK ensina o mesmo contrato seguro nos caminhos públicos dos alunos.
 - Mockup usado: `mockup/` existe e foi usado como referência de fluxo, hierarquia e nomes visíveis; não é contrato pixel-perfect.
 
 #### O que vamos fazer neste BK (DERIVADO):
@@ -87,7 +88,7 @@ Como a fase alvo é MF0, não existem BKs de fases anteriores a reutilizar. A co
 - Dependências de BK anteriores e uso: Depende de BK-MF0-07.
 - Impacto na arquitetura: reforça separação entre routes, controllers, services, validators e UI.
 - Impacto frontend: liga o fluxo visual do mockup a API real com estados loading/error/empty/success quando aplicável.
-- Impacto backend/dados: cria ou prepara `FiscalPeriod` e endpoints `GET /api/fiscal-periods, POST /api/fiscal-periods, POST /api/fiscal-periods/:id/close, POST /api/fiscal-periods/:id/reopen`.
+- Impacto backend/dados: cria ou prepara `FiscalPeriod`, `RetentionHold` e endpoints `GET /api/fiscal-periods`, `POST /api/fiscal-periods` e `POST /api/fiscal-periods/:id/close`.
 - Impacto segurança: valida inputs no backend, aplica sessão/permissão quando aplicável e evita exposição de dados sensíveis.
 - Impacto testes: exige smoke e 3 negativos concretos.
 - Handoff: BK-MF0-09 deve reutilizar os contratos aqui criados.
@@ -122,9 +123,17 @@ Como a fase alvo é MF0, não existem BKs de fases anteriores a reutilizar. A co
 - **Erros comuns a evitar:** implementar só no frontend, confiar em dados enviados pelo browser, esquecer `companyId` nos dados por empresa, devolver mensagens técnicas cruas ao utilizador ou criar campos que não aparecem nos RF/RNF.
 - **Negativos de segurança/robustez:** todos os casos inválidos devem falhar de forma controlada, sem stack traces, sem dados sensíveis e sem escrita parcial na base de dados.
 
+##### Contrato de paridade obrigatório (2026-07-10)
+
+- Datas civis passam pelo parser estrito partilhado `parseStrictDateOnly`: aceitam apenas `YYYY-MM-DD` existente no calendário. `2026-02-30` e `2026-04-31` devolvem `400 INVALID_DATE`; `new Date(string)` não é validação.
+- Criar/fechar período e criar lançamentos adquirem o mesmo lock transacional por empresa/período, em ordem estável. O fecho usa claim `updateMany` com estado esperado `OPEN`; quem perde recebe `409 STALE_STATE`.
+- Fecho, `AuditLog` e materialização idempotente de `RetentionHold` para entidades contabilísticas do período acontecem na mesma transação.
+- Depois do fecho/hold, mutações destrutivas são recusadas. Correções históricas fazem reversão auditada; não reabrem nem apagam linhas silenciosamente.
+- O teste concorrente inicia fecho e lançamento em paralelo e prova que nunca existe lançamento posterior ao fecho.
+
 #### Tutorial técnico linear (DERIVADO):
 
-Este tutorial organiza o BK em passos lineares. O aluno deve seguir de cima para baixo: confirmar contratos, modelar dados, validar entradas, implementar regras de negócio, expor HTTP, testar e deixar handoff. Sempre que o scaffold real ainda não existir, usar a estrutura prevista em `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md` e registar a adaptação na evidence.
+Este tutorial organiza o BK em passos lineares. O aluno deve seguir de cima para baixo: confirmar contratos, modelar dados, validar entradas, implementar regras de negócio, expor HTTP, testar e deixar handoff. Se o scaffold pedagógico ainda estiver incompleto, usar `apps/api` e `apps/web`, seguir os contratos centrais atuais e registar a adaptação na evidence.
 
 ### Passo 1 - Confirmar contrato, scope e ligação aos BKs vizinhos
 
@@ -256,6 +265,7 @@ Validar entradas antes da regra de negócio e isolar detalhes técnicos como coo
 
 2. Ficheiros envolvidos:
     - CRIAR:
+    - apps/api/src/lib/strictDate.js (se ainda não existir; depois é partilhado por vendas, compras, tesouraria e contabilidade)
     - apps/api/src/modules/fiscal-periods/fiscalPeriodValidators.js
     - EDITAR:
     - Nenhum ficheiro existente neste passo.
@@ -274,29 +284,7 @@ Localização: criar `apps/api/src/modules/fiscal-periods/fiscalPeriodValidators
 
 ```js
 import { httpError } from "../../lib/httpErrors.js";
-
-function parseDateOnly(value, field) {
-    if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-        throw httpError(
-            400,
-            "INVALID_DATE",
-            `${field} deve usar formato YYYY-MM-DD`,
-        );
-    }
-
-    const [year, month, day] = value.split("-").map(Number);
-    const date = new Date(Date.UTC(year, month - 1, day));
-    if (
-        Number.isNaN(date.getTime()) ||
-        date.getUTCFullYear() !== year ||
-        date.getUTCMonth() !== month - 1 ||
-        date.getUTCDate() !== day
-    ) {
-        throw httpError(400, "INVALID_DATE", `${field} inválida`);
-    }
-
-    return date;
-}
+import { parseStrictDateOnly } from "../../lib/strictDate.js";
 
 export function validateFiscalPeriodPayload(body) {
     if (!body || typeof body !== "object" || Array.isArray(body)) {
@@ -307,8 +295,8 @@ export function validateFiscalPeriodPayload(body) {
         throw httpError(400, "INVALID_PERIOD_NAME", "Nome do período inválido");
     }
 
-    const startDate = parseDateOnly(body.startDate, "startDate");
-    const endDate = parseDateOnly(body.endDate, "endDate");
+    const startDate = parseStrictDateOnly(body.startDate, { code: "INVALID_DATE", field: "startDate" });
+    const endDate = parseStrictDateOnly(body.endDate, { code: "INVALID_DATE", field: "endDate" });
 
     if (endDate <= startDate) {
         throw httpError(
@@ -364,6 +352,8 @@ Localização: criar `apps/api/src/modules/fiscal-periods/fiscalPeriodService.js
 
 ```js
 import { httpError } from "../../lib/httpErrors.js";
+import { parseStrictDateOnly } from "../../lib/strictDate.js";
+import { materializeRetentionHoldsForPeriod } from "../compliance/retentionPolicy.js";
 
 function serialize(period) {
     return {
@@ -418,41 +408,42 @@ export async function closeFiscalPeriod(
     prisma,
     { companyId, periodId, actorUserId, now = new Date() },
 ) {
-    const period = await prisma.fiscalPeriod.findFirst({
-        where: { id: periodId, companyId },
-    });
-    if (!period)
-        throw httpError(
-            404,
-            "FISCAL_PERIOD_NOT_FOUND",
-            "Período fiscal não encontrado",
-        );
-    if (period.status === "CLOSED") {
-        throw httpError(
-            409,
-            "FISCAL_PERIOD_ALREADY_CLOSED",
-            "Período fiscal já está fechado",
-        );
-    }
+    return prisma.$transaction(async (tx) => {
+        await tx.$queryRaw`SELECT id FROM "Company" WHERE id = ${companyId} FOR UPDATE`;
+        const period = await tx.fiscalPeriod.findFirst({
+            where: { id: periodId, companyId },
+        });
+        if (!period) {
+            throw httpError(404, "FISCAL_PERIOD_NOT_FOUND", "Período fiscal não encontrado");
+        }
 
-    const closed = await prisma.fiscalPeriod.update({
-        where: { id: period.id },
-        data: {
-            status: "CLOSED",
-            closedAt: now,
-            closedById: actorUserId,
-        },
-    });
+        const claim = await tx.fiscalPeriod.updateMany({
+            where: { id: period.id, companyId, status: "OPEN" },
+            data: { status: "CLOSED", closedAt: now, closedById: actorUserId },
+        });
+        if (claim.count !== 1) {
+            throw httpError(409, "STALE_STATE", "O período foi alterado por outra operação");
+        }
 
-    return serialize(closed);
+        await materializeRetentionHoldsForPeriod(tx, {
+            companyId,
+            fiscalPeriodId: period.id,
+            actorUserId,
+        });
+        await tx.auditLog.create({
+            data: { companyId, userId: actorUserId, action: "FISCAL_PERIOD_CLOSED", entity: "FiscalPeriod", entityId: period.id },
+        });
+        return serialize(await tx.fiscalPeriod.findUnique({ where: { id: period.id } }));
+    });
 }
 
 export async function assertOpenFiscalPeriod(
     prisma,
     { companyId, documentDate },
 ) {
-    const date =
-        documentDate instanceof Date ? documentDate : new Date(documentDate);
+    const date = documentDate instanceof Date
+        ? documentDate
+        : parseStrictDateOnly(documentDate, { code: "INVALID_DATE", field: "documentDate" });
 
     const period = await prisma.fiscalPeriod.findFirst({
         where: {
@@ -742,7 +733,7 @@ Se falta fonte documental ou decisão de arquitetura, não inventes. Regista exa
 
 Decisões em falta a manter visíveis durante a implementação:
 
-- O guia original lista `POST /api/fiscal-periods/:id/reopen`, mas RF08 só documenta abrir/fechar e bloquear lançamentos após fecho. Reabertura pode ter impacto legal/auditoria; parar esse ponto até existir regra documental.
+- Não existe endpoint de reabertura neste contrato. Uma correção posterior ao fecho/hold é feita por reversão auditada, nunca por reabertura silenciosa.
 - Falta BK de auditoria operacional. Enquanto não existir, o fecho deve registar `closedById` e `closedAt`; quando auditoria estiver disponível, adicionar evento de auditoria sem mudar a regra principal.
 
 5. Explicação do código.
@@ -780,7 +771,10 @@ Se o handoff diz para usar algo que não foi criado neste BK ou num BK anterior,
 
 Clientes não dependem diretamente de período fiscal, mas faturação futura depende. A partir deste BK, qualquer documento fiscal/contabilístico deve chamar `assertOpenFiscalPeriod` antes de persistir alterações com data fiscal.
 
+- Próximo BK recomendado: `BK-MF0-09`.
+
 ## Changelog
 
+- `2026-07-10`: handoff sincronizado explicitamente com o próximo BK canónico do header.
 - `2026-05-24`: guia refinado para estrutura step-by-step executável, com continuidade MF0, mockup, negativos, critérios e evidence.
 - `2026-04-19`: metadados canónicos preservados da vaga de normalização.

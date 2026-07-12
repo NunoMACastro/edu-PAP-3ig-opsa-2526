@@ -1,3 +1,10 @@
+> [!WARNING]
+> `SNAPSHOT_HISTORICO_SUPERSEDED` — estado `SUPERSEDED` em 2026-07-10.
+>
+> Este relatório preserva um snapshot histórico e não representa o estado corrente.
+> Fonte atual: [relatório canónico](./CORRECAO-AUDITORIA-END-TO-END-REAL_DEV-2026-07-09.md).
+> Não reutilizar contagens, comandos, paths ou decisões deste corpo como evidence atual.
+
 ## Resultado Geral
 
 - Projeto: OPSA
@@ -206,7 +213,7 @@ Sem findings.
   - `bash scripts/validate-planificacao.sh`: passou com `overall_pass: true`; `advisory_pass: false` por avisos consultivos/outdated docs.
   - `npm --prefix real_dev/api run syntax:check`: passou.
   - `npm --prefix real_dev/api run prisma:validate`: falhou sem `DATABASE_URL`.
-  - `DATABASE_URL=postgresql://opsa:opsa@localhost:5432/opsa_audit npm --prefix real_dev/api run prisma:validate`: passou.
+  - `DATABASE_URL=<URL_AUTHENTICATED_REDACTED> npm --prefix real_dev/api run prisma:validate`: passou.
   - `npm --prefix real_dev/api run test:unit`: passou, 41/41.
   - `npm --prefix real_dev/api run test:contracts`: passou, 19/19.
   - `npm --prefix real_dev/api run test:integration`: falhou por falta de `TEST_DATABASE_URL`.

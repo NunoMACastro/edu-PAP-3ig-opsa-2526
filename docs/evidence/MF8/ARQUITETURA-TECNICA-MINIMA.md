@@ -1,139 +1,227 @@
-<<<<<<< HEAD
-# Arquitetura técnica mínima MF8
-
-## Arquitetura
-
-API Express por módulos, frontend React/Vite e Prisma como contrato de persistência.
-
-## Modelos
-
-Documentar apenas modelos existentes ou criados pelos BKs.
-
-## Fluxos
-
-Separar vendas, compras, tesouraria, contabilidade, IA e subscrição simulada.
-
-## Subscrição simulada
-
-Funcionalidade pedagógica sem pagamento real.
-
-## Limites
-
-Não declarar certificação fiscal nem automatismos não implementados.
-=======
 # Arquitetura tecnica minima MF8
 
 ## Contexto
 
-Esta nota tecnica responde ao `RNF30` e resume a arquitetura real do OPSA em `real_dev`, para apoio a manutencao, revisao e defesa da PAP. O objetivo e explicar como os modulos principais encaixam, quais os modelos persistidos mais relevantes e que limites existem no MVP.
+- Projeto: `OPSA`
+- Implementação observada: `real_dev/api` e `real_dev/web`
+- Data da revalidação documental: `2026-07-10`
+- Contrato central: `docs/planificacao/CONTRATO-INTERFACES-IMPLEMENTACAO.md`
+- Estado funcional canónico: `NO_GO`
 
-O documento descreve factos observados no codigo atual. Nao declara certificacao fiscal, nao promete integracoes bancarias reais, nao transforma a subscricao simulada em cobranca real e nao alarga o comportamento da IA.
+Esta nota responde a `RNF30` e descreve a arquitetura realmente observada. Não
+declara certificação fiscal, deployment permanente, scheduler 24/7, serviços
+remotos disponíveis ou conclusão dos testes bloqueados pelo ambiente.
 
 ## Arquitetura
 
-A API em `real_dev/api` usa Node.js, Express e ES Modules. O entrypoint `src/server.js` cria o `PrismaClient`, aplica hardening HTTP basico, monta `GET /api/health` como rota publica e depois regista routers por dominio. A regra de negocio fica nos services e a camada HTTP fica nos routers/controllers.
+A referência separa `real_dev/api` e `real_dev/web`. A composição da API vive
+em `src/server.js`, instancia `PrismaClient` apenas no runtime e deixa a app
+Express importável. O frontend compõe as rotas e páginas em `src/App.tsx`.
 
-Dominios backend principais:
+## Composição da API
 
-- Autenticacao e sessao: `auth`, com cookies HttpOnly e middleware de autenticacao.
-- Empresa ativa e utilizadores: `companies`, `company-users`, `permissions` e `company-profile`.
-- Dados mestre: `customers`, `suppliers`, `items`, `warehouses`, `vat-rates` e `fiscal-periods`.
-- Vendas e recebimentos: `sales`, `sales-approval`, `receipts`, `open-items` e `accounting/sale-postings`.
-- Compras e pagamentos: `purchases`, `purchase-approval`, `payments` e `accounting/purchase-postings`.
-- Inventario: `inventory`, incluindo movimentos, contagens, FIFO e alertas.
-- Tesouraria e reporting: `treasury`, `reports`, `accounting-reports`, `financial-statements` e `tax`.
-- Compliance e integracoes: `imports`, `exports`, `compliance`, `integrations`, `audit` e `notifications`.
-- IA assistiva: `ai`, `reminders`, `tasks` e notificacoes, sempre como apoio explicavel.
-- MF8 operacional: `ops` para health-check e `subscriptions` para subscricoes simuladas.
+A API usa Node.js, ES Modules, Express e Prisma. A composição separa dois
+níveis:
 
-O frontend em `real_dev/web` usa React, Vite e TypeScript. `src/App.tsx` agrega as paginas por macrofase e reutiliza componentes partilhados como `PageFrame`, `StatusMessage`, `ResponsiveDataTable` e `useActionFeedback`. O cliente HTTP central em `src/lib/apiClient.ts` envia cookies com `credentials: "include"`; a UI nao decide ownership, role ou empresa ativa.
+- `createApp(deps)` constrói a aplicação HTTP sem abrir um listener e recebe
+  Prisma, Redis/rate limiter, `EmailOutbox`, object storage e o boundary SAF-T
+  por injeção. Isto permite testes HTTP sem efeitos laterais de processo.
+- `startServer(options)` carrega e valida configuração, liga Redis e storage,
+  cria as dependências, abre o socket e devolve uma função `stop()` idempotente.
+
+O arranque falha de forma conservadora quando falta uma dependência obrigatória.
+O JSON global mantém o limite de 1 MiB; anexos e importações usam rotas
+`multipart/form-data` com streaming e limites próprios.
+
+## Serviços externos e workers
+
+- PostgreSQL é a fonte persistente e transacional.
+- Redis suporta rate limiting distribuído, TTL e chaves derivadas por HMAC.
+- SMTP recebe mensagens exclusivamente através de `EmailOutbox` persistente e
+  cifrada.
+- S3 compatível guarda anexos, SAF-T e bundles de backup; o adapter local existe
+  apenas para desenvolvimento explícito.
+- `worker:email` executa continuamente o outbox; `worker:email:drain` drena um
+  lote controlado para gates. O worker reclama mensagens por lease, confirma
+  SMTP antes de processar, aplica retry/backoff e suporta shutdown.
+- O parser XLSX usa um worker terminável para impor limites e timeout.
+
+O contrato académico descreve supervisão e agendamento, mas não afirma que há
+um processo 24/7 instalado.
+
+## Segurança, sessão e autorização
+
+A sessão vive num cookie HttpOnly. O backend resolve o utilizador, a empresa
+ativa e as permissões; `companyId` enviado pelo browser nunca decide ownership.
+O onboarding cria `Company`, `CompanyProfile`, membership `ADMIN`,
+`activeCompanyId` e `AuditLog` na mesma transação.
+
+Convites suportam preview, aceitação, reenvio e revogação. O token entra no
+browser pelo fragmento, segue no body da API e é removido da URL depois de lido.
+Eventos de login, logout, falha e reset são persistidos em
+`SecurityAuditEvent` sem email ou IP em claro. `TRUST_PROXY_HOPS` tem default
+zero e forwarded headers só são usados quando a topologia é configurada.
+
+## Integridade e concorrência
+
+Datas civis são validadas como calendário estrito `YYYY-MM-DD`. Transições de
+estado usam claims com estado esperado e devolvem `409 STALE_STATE` ao perder
+uma corrida. Alteração, histórico e auditoria pertencem à mesma transação.
+
+Fecho fiscal e lançamento coordenam-se por lock empresarial/período. Stock,
+FIFO e contagens bloqueiam saldos/camadas numa ordem estável; alterações ao
+último `ADMIN` são verificadas sob lock. `RetentionHold` é materializado no
+fecho e consumido pelas mutações finais. Antes de substituir linhas de um
+lançamento manual, `JournalEntryRevision` guarda snapshots before/after e o
+motivo.
 
 ## Modelos
 
-Os modelos Prisma em `real_dev/api/prisma/schema.prisma` estao organizados por empresa. O campo `companyId` aparece nas entidades de negocio para filtragem backend e rastreabilidade, mas nao deve ser aceite do browser para decidir ownership.
+Além dos modelos funcionais de vendas, compras, inventário, tesouraria,
+contabilidade e IA assistiva, o schema atual inclui:
 
-Modelos estruturais e de seguranca:
+- `EmailOutbox`, com payload cifrado, estado, tentativas, próxima tentativa,
+  lease e resultado do envio;
+- `SecurityAuditEvent`, com hashes de IP/subject e detalhes minimizados;
+- `CompanyInvitation`, com aceitação/revogação e ator de aceitação;
+- `JournalEntryRevision`, com snapshot anterior/posterior, motivo e ator;
+- `JournalAttachment`, com storage key, SHA-256, provider, estado, metadata e
+  chave de idempotência;
+- `SaftExportRun`, ligado a `FiscalPeriod`, storage, SHA-256 e resultados de
+  validação;
+- `FiscalPeriod.fiscalYear`, que evita inferir o exercício pelo ano civil.
+- `CompanyAiSettings`, `AiRuleSetting` e `AiUserConsent`, para opt-in, quotas,
+  regras e consentimento da IA por empresa/utilizador;
+- `AiChatSession` e `AiChatMessage`, com conteúdo, fontes, resumo e aliases
+  cifrados por AES-256-GCM;
+- `AiAnalysisRun`, `AiUsageEvent` e `AiDeletionAudit`, para worker, métricas
+  operacionais minimizadas e hard-delete auditável.
 
-- `User`, `Session`, `PasswordResetToken`, `Company`, `CompanyMembership` e `CompanyInvitation` suportam autenticacao, sessao e multiempresa.
-- `CompanyProfile`, `Account`, `FiscalPeriod`, `VatRate` e `NumberSequence` suportam configuracao financeira e fiscal minima.
-- `AuditLog`, `IntegrationLog` e `RetentionHold` suportam auditoria, integracoes e retencao.
+O domínio inclui ainda `CompanySubscription`, `JournalEntry`, `SaleDocument`,
+`PurchaseDocument`, `Receipt`, `Payment`, `AiInsight`, `AiActionSuggestion` e
+`SmartAlert`. Os três últimos incluem lifecycle, score, período, evidência,
+fingerprint e ocorrência conforme o tipo.
 
-Modelos operacionais:
-
-- `Customer`, `SaleDocument`, `SaleDocumentLine` e `Receipt` suportam vendas e recebimentos.
-- `Supplier`, `PurchaseDocument`, `PurchaseDocumentLine` e `Payment` suportam compras e pagamentos.
-- `Item`, `Warehouse`, `WarehouseLocation`, `StockMovement`, `StockBalance`, `StockCostLayer`, `StockCostConsumption`, `InventoryCount`, `InventoryCountLine` e `StockAlertSetting` suportam inventario.
-- `JournalEntry`, `JournalEntryLine` e `JournalAttachment` representam lancamentos e suporte documental contabilistico.
-
-Modelos analiticos e de IA:
-
-- `OperationalReportRun`, `ExecutiveKpiRun`, `VatMapRun`, `TreasuryBalanceSnapshot`, `CashflowForecastRun` e `SaftExportRun` representam resultados calculados ou exportacoes controladas.
-- `AiInsight`, `AiActionSuggestion` e `AiQuestionRun` guardam explicacao, origem e sugestoes. A IA nao executa automaticamente a acao sugerida.
-
-Modelo MF8:
-
-- `CompanySubscription` guarda uma subscricao simulada por empresa, com `planCode`, `status`, `startsAt`, `endsAt` e `simulated=true`. O modelo nao guarda fornecedor de pagamento, checkout, cartao, invoice, recibo ou gateway externo.
+Índices compostos acompanham isolamento multiempresa, paginação keyset e os
+locks. As migrations de 2026-07-09 e 2026-07-10 seguem expand-and-contract; a
+aplicação real numa PostgreSQL remota continua por demonstrar.
 
 ## Fluxos
 
-### Autenticacao e multiempresa
+Os fluxos de venda/recebimento, compra/pagamento, inventário, contabilidade,
+tesouraria, compliance e IA mantêm entidades separadas e usam sempre a empresa
+ativa resolvida no backend. A IA permanece recomendatória e não executa ações
+(`nao executa acoes`, marcador técnico do gate).
 
-O utilizador autentica-se pela API e a sessao fica em cookie HttpOnly. As rotas protegidas resolvem utilizador, role/permissao e empresa ativa no backend. O frontend recolhe intencao e apresenta estado, mas nao escolhe a empresa final nem decide autorizacao.
+PostgreSQL e `aiMetricCatalog.js` são a única fonte dos valores. Insights e
+alertas são atualizados por `AiAnalysisRun` manual ou por worker. O chat em
+`/ai/chat` classifica localmente a intenção e fixa uma tool/período read-only.
+A Responses API opcional recebe apenas sinais qualitativos e redige uma
+narrativa sem números. Pergunta, histórico, IDs e valores não saem da API;
+factos e referências são sempre compostos no backend. Provider desativado,
+timeout, recusa ou narrativa inválida acionam fallback determinístico.
 
-### Vendas, recebimentos e contabilidade
+OpenAI requer configuração global, opt-in da empresa por `ADMIN` e
+consentimento individual. Usa `store: false`, sem Conversations API, pesquisa
+web, ficheiros, Code Interpreter ou MCP externo. O histórico local é cifrado,
+apagável e retido no máximo 90 dias. A arquitetura detalhada está em
+`docs/ARQUITETURA-IA-OPSA-V2.md`.
 
-O fluxo de vendas cria documentos operacionais em `SaleDocument` e linhas em `SaleDocumentLine`. A emissao definitiva e aprovacao seguem regras dos services de vendas. Recebimentos ficam em `Receipt` e reduzem saldos em aberto. Lancamentos contabilisticos relacionados com vendas usam `JournalEntry` e `JournalEntryLine` atraves do dominio `accounting/sale-postings`.
+O processo separado `npm run worker:ai` agenda e processa análises e retenção;
+o processo `npm run worker:email` continua responsável apenas pela outbox SMTP.
 
-Documento operacional, recebimento e lancamento contabilistico sao entidades separadas. Esta separacao evita que um recibo ou uma venda sejam confundidos com o registo contabilistico final.
+## Ficheiros, importações, SAF-T e backup
 
-### Compras, pagamentos e contabilidade
+Uploads usam parsing multipart streaming, limite de 10 MiB, validação de
+assinatura/MIME/extensão, SHA-256, nomes aleatórios, quarentena, promoção e
+cleanup com pós-condição. O download de anexos volta a validar empresa e
+permissão e usa headers de download, `nosniff` e `no-store`.
 
-O fluxo de compras usa `PurchaseDocument` e `PurchaseDocumentLine`. A aprovacao de compras fica em `PurchaseApprovalHistory`. Pagamentos usam `Payment`. Lancamentos contabilisticos de compras usam `accounting/purchase-postings`.
+CSV, OFX e XLSX entram como ficheiro real. O XLSX tem limites de tamanho
+comprimido/descomprimido, linhas, colunas, células e duração.
 
-O fluxo de fornecedor nao deve ser misturado com o fluxo de cliente. Pagamentos a fornecedores e recebimentos de clientes tambem ficam separados por modelo e service.
+SAF-T é criado por execução associada a `fiscalPeriodId`, usa estrutura oficial
+`1.04_01`, namespace correto e Windows-1252. Os bytes finais ficam no storage e
+PostgreSQL guarda metadata/hash. O exportador permanece fail-closed com
+`SAFT_EXPORT_ENABLED=false` até existirem XSD externo, reconciliação e revisão
+contabilística aceites. O estado atual não constitui conformidade legal.
 
-### Inventario
+O backup produz dump PostgreSQL, manifesto de objetos, hashes, cifragem e
+retenção. A prova suficiente exige restaurar numa base descartável, comparar
+entidades e voltar a descarregar objetos por hash. Esse roundtrip remoto ainda
+está bloqueado pelo ambiente.
 
-Movimentos de stock ficam em `StockMovement`, saldos em `StockBalance` e custos em `StockCostLayer` e `StockCostConsumption`. Contagens de inventario usam `InventoryCount` e `InventoryCountLine`. Alertas de stock usam `StockAlertSetting` e sao reutilizados pela IA para insights explicaveis.
+## Frontend
 
-### Tesouraria, reporting e fiscalidade
+O frontend usa React, TypeScript, Vite e React Router. `BrowserRouter` envolve
+um `AuthProvider` deny-by-default com estados `bootstrapping`, `anonymous`,
+`authenticated` e `error`. `/api/auth/me` e `/api/permissions/me` são as fontes
+de verdade; uma resposta 401 limpa o estado em memória.
 
-Contas de tesouraria, importacoes de extrato, linhas bancarias e sugestoes de reconciliacao vivem no dominio `treasury`. Relatorios operacionais, KPIs executivos, mapas de IVA e demonstracoes financeiras sao gerados como leituras controladas sobre dados existentes.
+`App.tsx` mantém um registry único de rotas públicas/protegidas, permissão
+necessária, componentes lazy, 404, deep links e Back/Forward. O cliente HTTP
+central envia cookies com `credentials: include`, aplica timeout/abort e não
+repete automaticamente mutações. A navegação mobile usa drawer e os formulários
+preservam dados após 400/409/500.
 
-O MVP pode gerar evidencias e exportacoes tecnicas, mas nao declara certificacao legal nem SAF-T completo certificado.
+Listagens críticas usam cursor opaco com limite 50 por omissão e máximo 100:
+`{ items, pageInfo: { nextCursor, hasNextPage } }`. A UI acumula páginas e
+mantém as anteriores quando a página seguinte falha.
 
-### IA assistiva
+A interface usa selects/autocomplete e editores de linhas, datas civis locais
+PT, IVA isento exatamente zero, skip link, labels, ARIA de erro, foco
+controlado, diálogos acessíveis e componentes responsivos. Resultados técnicos
+não são expostos em blocos de debug na UI de produção.
 
-A IA cria insights com explicacao e origem dos dados. As fontes sao dados reais da empresa ativa, como relatorios, KPIs, documentos em aberto ou alertas de stock. A IA pode sugerir revisao de stock, cobranca, precos ou cashflow, mas nao aprova documentos, nao altera dados contabilisticos, nao cria movimentos, nao envia pagamentos e nao executa a sugestao.
+O assistente OPSA tem página `/ai/chat` e drawer global para `ADMIN`, `GESTOR`
+e `CONTABILISTA`. Ambas as superfícies partilham sessões e API SSE e apresentam
+empresa, período, `asOf`, modo OpenAI/determinístico, fontes, qualidade,
+limitações e consentimento. `/ai/settings` é reservado a `ADMIN`.
+
+O cliente central envia o cookie com `credentials: "include"`; não guarda
+sessão em Web Storage.
 
 ## Subscricao simulada
 
-A MF8 introduz uma subscricao simulada para demonstrar planos e ciclo de vida sem gateway de pagamento. O catalogo de planos vive em `src/modules/subscriptions/subscriptionPlans.js`; o estado por empresa vive em `CompanySubscription`; as rotas em `subscriptionRoutes.js` expõem consulta, ativacao e acoes de ciclo de vida.
+`CompanySubscription` suporta catálogo, ativação, renovação, cancelamento e
+reativação por empresa ativa. É uma subscricao simulada sem gateway de pagamento,
+checkout, cartão, invoice ou efeito contabilístico automático.
 
-Contratos principais:
+## Observabilidade, health e shutdown
 
-- `GET /api/subscriptions/plans` devolve planos simulados em EUR.
-- `GET /api/subscriptions/current` devolve a subscricao da empresa ativa.
-- `POST /api/subscriptions/current/activate` ativa uma subscricao simulada para a empresa ativa.
-- `POST /api/subscriptions/current/actions` permite renovar, cancelar e reativar conforme transicoes permitidas.
+`GET /api/health/live` prova apenas que o processo responde.
+`GET /api/health/ready` testa PostgreSQL, Redis e storage e devolve 503 quando
+algum está indisponível. `GET /api/health` é alias de readiness.
 
-A subscricao e pedagogica e nao cria cobranca real, fatura, recibo, pagamento, checkout, webhook, invoice ou lancamento contabilistico automatico.
+Cada request recebe um ID e logs JSON de início/fim, duração, método, route
+template e estado, com erros redigidos. `SIGINT`/`SIGTERM` deixam de aceitar
+trabalho, drenam HTTP com timeout, fecham Redis e executam
+`prisma.$disconnect()`.
 
 ## Limites
 
-- O OPSA MVP nao declara certificacao fiscal.
-- O SAF-T e tratado como prontidao/checklist/exportacao controlada, nao como promessa de submissao legal completa.
-- Integracoes bancarias reais, OCR, RAG, embeddings e automacoes contabilisticas nao estao prometidos neste BK.
-- A IA e recomendacao explicavel; nao executa acoes operacionais nem contabilisticas.
-- A subscricao MF8 e simulada; nao existe fornecedor de pagamento real.
-- O frontend nao guarda token, role, empresa ativa ou sessao em `localStorage` ou `sessionStorage`.
-- Qualquer validacao fiscal, contabilistica ou legal que exija decisao externa deve ficar marcada como limite ou blocker, nao inventada no codigo.
+- API local: 299/299 unitários e 157/157 contratos na execução integral de
+  2026-07-11; Prisma validate/generate e gates MF6-MF8 passaram.
+- Frontend local: 31/31 Vitest, typecheck e build na execução de 2026-07-11.
+- Integração: 2/7; cinco cenários falham de forma conservadora sem os serviços
+  remotos.
+- Playwright: zero testes iniciados porque o preflight detetou Google Chrome e
+  Microsoft Edge em falta; Firefox não foi executado porque a matriz aborta
+  integralmente antes dos testes.
+- O cenário E2E de chat com provider fake existe mas permanece sem prova runtime
+  neste ambiente; o smoke OpenAI live não foi executado e é sempre manual,
+  opt-in e sem dados reais.
+- Node observado: 24.11.1, abaixo do contrato `>=24.17 <25`.
+- SAF-T externo e backup/restore remoto continuam por provar.
+
+O estado corrente e as contagens só são canónicos no relatório de 2026-07-09 e
+na evidence corrente. Relatórios com o banner
+`SNAPSHOT_HISTORICO_SUPERSEDED` não devem ser usados como estado atual.
 
 ## Checklist de atualizacao documental
 
-- Atualizar este documento quando for criado novo dominio backend, pagina frontend principal ou modelo Prisma relevante.
-- Manter a separacao entre documento operacional, pagamento/recebimento e lancamento contabilistico.
-- Registar explicitamente se uma funcionalidade e simulada, local, deterministica ou dependente de ambiente externo.
-- Confirmar que novos fluxos multiempresa continuam a resolver `companyId` no backend.
-- Rever os limites antes de qualquer apresentacao para evitar promessas legais, fiscais, bancarias ou de IA que nao existam no MVP.
->>>>>>> 81619f4 (Update: Mid)
+- Atualizar este documento e o contrato central quando mudar uma interface.
+- Manter separados estado pedagógico dos alunos e estado da referência.
+- Não guardar secrets, cookies, tokens, URLs autenticadas ou dados pessoais.
+- Não transformar build, scanner, skip ou teste com doubles em prova runtime.
+- Manter `NO_GO` enquanto existir um blocker crítico registado.

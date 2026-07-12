@@ -60,7 +60,7 @@ Validação executada:
 
 ✓ from=abc devolve 400 INVALID_DATE_RANGE.
 
-✓ from=2026-02-01&to=2026-01-01 devolve 400 INVALID_DATE_RANGE. 
+✓ from=2026-02-01&to=2026-01-01 devolve 400 INVALID_DATE_RANGE.
 
 - PS D:\PAP\edu-PAP-3ig-opsa-2526> node apps/api/tests/temp-vat-test.js
 {

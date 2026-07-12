@@ -1,40 +1,38 @@
-<!-- docs/evidence/MF8/BK-MF8-15.md -->
+# Evidence MF8 / BK-MF8-15
 
-# Evidence BK-MF8-15 - Datas, moedas e separadores PT-PT
+## Identificacao
 
-## Contrato
+- Projeto: `OPSA`
+- BK: `BK-MF8-15`
+- Tema: datas, moedas e separadores PT-PT
+- RF/RNF: `RNF36`
+- Data de revalidacao: `2026-07-10`
+- Implementation root validado: `real_dev`
 
-- BK: BK-MF8-15
-- RNF: RNF36
-- Ficheiro central: apps/web/src/lib/formatters.ts
-- Gate: apps/web/scripts/check-mf8-formatters.mjs
-- Script: npm run test:mf8:formatters
+## Artefactos verificados
 
-## Comandos executados
+- Formatadores: `real_dev/web/src/lib/formatters.ts`
+- Gate: `real_dev/web/scripts/check-mf8-formatters.mjs`
+- Script npm: `test:mf8:formatters`
 
-```bash
-cd apps/web
-npm run test:mf8:formatters
-npm run typecheck
-```
+## Comando executado
 
-## Resultado observado
+| Diretorio | Comando | Resultado observado |
+| --- | --- | --- |
+| `real_dev/web` | `npm run test:mf8:formatters` | `PASS`; `BK-MF8-15 formatters: OK`. |
 
-- `npm run test:mf8:formatters`: registar output real observado.
-- `npm run typecheck`: registar output real observado.
+## Contrato observado
 
-## Positivos
+- Montantes em centimos sao apresentados em EUR com locale `pt-PT`.
+- Datas civis `YYYY-MM-DD` sao apresentadas sem conversao UTC que altere o dia.
+- Taxas em basis points usam percentagem e separador decimal PT-PT.
+- Valores nulos ou invalidos seguem o fallback explicito do modulo.
 
-- `123456` em campo `amountCents` é apresentado como euros em PT-PT.
-- `2026-12-31` é apresentado como `31/12/2026`.
-- `2300` em campo `rateBps` é apresentado como `23,00 %`.
+## Limites
 
-## Negativos
+- O gate e estatico e nao substitui a verificacao visual em browser.
+- O typecheck e o build pertencem ao gate frontend agregado e nao foram inferidos deste comando focado.
 
-- `formatEuroFromCents(12.5)` falha porque cêntimos devem ser inteiros.
-- `formatPortugueseDate("2026-02-31")` falha porque a data não existe.
+## Decisao
 
-## Decisão
-
-- Estado: registar `PASS` ou `FAIL`.
-- Observações: registar riscos observados ou `sem riscos adicionais`.
+`PASS_ESTATICO`; foram removidos placeholders de output e caminhos da implementacao `apps/`.

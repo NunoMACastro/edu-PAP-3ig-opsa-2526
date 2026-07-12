@@ -99,6 +99,19 @@
 | RNF33 | Alertas configuráveis (ativar/desativar tipos). | UX | Should |
 | RNF34 | IA deve evitar enviesamentos e sugerir ações baseadas em dados reais. | Ética | Should |
 
+### Contrato técnico atual da IA v2
+
+- **Explicabilidade e exatidão:** cada resultado inclui período, `asOf`, fórmula, contagens, qualidade, limitações e referências estruturadas. Claims numéricos do provider são revalidados contra as tools internas.
+- **Privacidade:** nenhuma pergunta livre, histórico textual, entidade, ID, alias ou valor financeiro é enviado externamente. O payload qualitativo canónico continua sujeito ao gate de dados proibidos; nomes, NIF, IBAN, emails, telefones, moradas, credenciais, documentos, anexos e SAF-T nunca saem da API.
+- **Consentimento e controlo:** OpenAI requer provider global configurado, opt-in da empresa por `ADMIN` e consentimento individual para a política atual.
+- **Retenção:** conteúdo, fontes, resumo e aliases são cifrados com AES-256-GCM e chave exclusiva. O histórico é apagável e eliminado fisicamente após, no máximo, 90 dias.
+- **Minimização:** a Responses API usa `store: false`; não usa Conversations API, pesquisa web, ficheiros, Code Interpreter ou MCP externo. `store: false` não é comunicado como Zero Data Retention.
+- **Disponibilidade:** indisponibilidade, timeout, rate limit, recusa ou resposta inválida do provider acionam fallback determinístico. A OpenAI não é necessária para arrancar a aplicação.
+- **Autorização:** sessões e fontes são isoladas por empresa e utilizador; o backend valida role, permissão, ownership e contexto em cada pedido.
+- **Observabilidade:** logs e `AiUsageEvent` guardam apenas metadados operacionais, nunca prompts, respostas financeiras ou aliases.
+
+Ver o contrato completo em `docs/ARQUITETURA-IA-OPSA-V2.md`.
+
 ---
 
 <a id="rnf-7-localizacao-mockup-e-internacionalizacao"></a>

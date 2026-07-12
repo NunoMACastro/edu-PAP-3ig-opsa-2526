@@ -16,7 +16,7 @@
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF3-08`
 - `guia_path`: `docs/planificacao/guias-bk/MF3/BK-MF3-07-relatorios-de-vendas-compras-margens-e-stock.md`
-- `last_updated`: `2026-06-15`
+- `last_updated`: `2026-07-10`
 
 #### Objetivo
 
@@ -73,14 +73,14 @@ RF37 é a base de reporting para gestores e operacionais. Também prepara BK-MF3
 
 #### Ficheiros a criar/editar/rever
 
-- CRIAR: `real_dev/api/src/modules/reports/operationalReportFilters.js`
-- CRIAR: `real_dev/api/src/modules/reports/operationalReportService.js`
-- CRIAR: `real_dev/api/src/modules/reports/operationalReportRoutes.js`
-- CRIAR: `real_dev/web/src/lib/reportApi.ts`
-- CRIAR: `real_dev/web/src/pages/OperationalReportsPage.tsx`
-- EDITAR: `real_dev/api/prisma/schema.prisma`
-- EDITAR: `real_dev/api/src/server.js`
-- EDITAR: `real_dev/web/src/App.tsx`
+- CRIAR: `apps/api/src/modules/reports/operationalReportFilters.js`
+- CRIAR: `apps/api/src/modules/reports/operationalReportService.js`
+- CRIAR: `apps/api/src/modules/reports/operationalReportRoutes.js`
+- CRIAR: `apps/web/src/lib/reportApi.ts`
+- CRIAR: `apps/web/src/pages/OperationalReportsPage.tsx`
+- EDITAR: `apps/api/prisma/schema.prisma`
+- EDITAR: `apps/api/src/server.js`
+- EDITAR: `apps/web/src/App.tsx`
 - REVER: BK-MF1-02, BK-MF1-07, BK-MF2-02.
 
 #### Tutorial técnico linear
@@ -128,7 +128,7 @@ Guardar resumo do relatório.
 
 2. Ficheiros envolvidos:
     - CRIAR: nenhum.
-    - EDITAR: `real_dev/api/prisma/schema.prisma`
+    - EDITAR: `apps/api/prisma/schema.prisma`
     - REVER: modelos transacionais.
     - LOCALIZAÇÃO: modelos de reporting.
 
@@ -176,7 +176,7 @@ Sem run, BK-MF3-08 não tem ponto de apoio para KPIs.
 Validar período do relatório.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `real_dev/api/src/modules/reports/operationalReportFilters.js`
+    - CRIAR: `apps/api/src/modules/reports/operationalReportFilters.js`
     - EDITAR: nenhum.
     - REVER: `httpErrors.js`.
     - LOCALIZAÇÃO: ficheiro completo.
@@ -188,7 +188,7 @@ Usa validator de datas simples.
 4. Código completo, correto e integrado com a app final.
 
 ```js
-// real_dev/api/src/modules/reports/operationalReportFilters.js
+// apps/api/src/modules/reports/operationalReportFilters.js
 import { httpError } from "../../lib/httpErrors.js";
 
 /**
@@ -239,7 +239,7 @@ Período invertido devolve `400`.
 Somar vendas, compras, margem e stock com dados reais.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `real_dev/api/src/modules/reports/operationalReportService.js`
+    - CRIAR: `apps/api/src/modules/reports/operationalReportService.js`
     - EDITAR: nenhum.
     - REVER: modelos de dependências.
     - LOCALIZAÇÃO: ficheiro completo.
@@ -251,7 +251,7 @@ Filtra sempre por `companyId`.
 4. Código completo, correto e integrado com a app final.
 
 ```js
-// real_dev/api/src/modules/reports/operationalReportService.js
+// apps/api/src/modules/reports/operationalReportService.js
 import { httpError } from "../../lib/httpErrors.js";
 
 /**
@@ -321,8 +321,8 @@ Sem empresa ativa devolve `401`.
 Publicar relatório para gestor e operacional.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `real_dev/api/src/modules/reports/operationalReportRoutes.js`
-    - EDITAR: `real_dev/api/src/server.js`
+    - CRIAR: `apps/api/src/modules/reports/operationalReportRoutes.js`
+    - EDITAR: `apps/api/src/server.js`
     - REVER: middlewares.
     - LOCALIZAÇÃO: ficheiro completo e montagem.
 
@@ -333,7 +333,7 @@ Cria `GET /api/reports/operational`.
 4. Código completo, correto e integrado com a app final.
 
 ```js
-// real_dev/api/src/modules/reports/operationalReportRoutes.js
+// apps/api/src/modules/reports/operationalReportRoutes.js
 import { Router } from "express";
 import { requireAuth } from "../auth/authMiddleware.js";
 import { requireCompanyContext } from "../companies/companyContext.js";
@@ -366,7 +366,7 @@ export function buildOperationalReportRoutes({ prisma }) {
 ```
 
 ```js
-// real_dev/api/src/server.js
+// apps/api/src/server.js
 import { buildOperationalReportRoutes } from "./modules/reports/operationalReportRoutes.js";
 
 app.use("/api/reports/operational", buildOperationalReportRoutes({ prisma }));
@@ -391,7 +391,7 @@ Sem sessão devolve `401`.
 Tipar relatório operacional no frontend.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `real_dev/web/src/lib/reportApi.ts`
+    - CRIAR: `apps/web/src/lib/reportApi.ts`
     - EDITAR: nenhum.
     - REVER: cliente comum.
     - LOCALIZAÇÃO: ficheiro completo.
@@ -403,7 +403,7 @@ Cria tipos de totais e listas.
 4. Código completo, correto e integrado com a app final.
 
 ```ts
-// real_dev/web/src/lib/reportApi.ts
+// apps/web/src/lib/reportApi.ts
 import { apiClient } from "./apiClient";
 
 /**
@@ -450,8 +450,8 @@ Erro `403` aparece como mensagem.
 Mostrar totais e listas principais.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `real_dev/web/src/pages/OperationalReportsPage.tsx`
-    - EDITAR: `real_dev/web/src/App.tsx`
+    - CRIAR: `apps/web/src/pages/OperationalReportsPage.tsx`
+    - EDITAR: `apps/web/src/App.tsx`
     - REVER: `reportApi.ts`.
     - LOCALIZAÇÃO: ficheiro completo e menu.
 
@@ -462,7 +462,7 @@ Cria formulario e resumo.
 4. Código completo, correto e integrado com a app final.
 
 ```tsx
-// real_dev/web/src/pages/OperationalReportsPage.tsx
+// apps/web/src/pages/OperationalReportsPage.tsx
 import { FormEvent, useState } from "react";
 import { fetchOperationalReport, type OperationalReport } from "../lib/reportApi";
 
@@ -594,6 +594,6 @@ BK-MF3-08 usa `OperationalReportRun` e os mesmos modelos para KPIs executivos.
 
 ## Changelog
 
-- `2026-06-15`: alinhados caminhos técnicos da MF3 com `real_dev/api` e `real_dev/web`, preservando contratos RF/RNF, dependências e escopo.
+- `2026-06-15`: alinhados caminhos técnicos da MF3 com `apps/api` e `apps/web`, preservando contratos RF/RNF, dependências e escopo.
 - `2026-06-13`: corrigido para agregar vendas, compras, margem MVP e stock com fontes reais, JSDoc e `apiClient`.
 - `2026-06-13`: alinhado com MF1/MF2, usando estados reais de venda, `supplierNumber` em compras e conversão numérica de `StockBalance.quantity`.

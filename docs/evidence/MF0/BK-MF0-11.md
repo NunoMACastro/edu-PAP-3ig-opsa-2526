@@ -26,7 +26,7 @@ Imports validados com Node:
 [ 'validateItemPayload' ]
 
 Cenários negativos:
-- PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> node -e "import('./src/modules/items/itemValidators.js').then(m => { try { m.validateItemPayload(null); } catch (e) { console.log(e.status, e.code, e.message); 
+- PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> node -e "import('./src/modules/items/itemValidators.js').then(m => { try { m.validateItemPayload(null); } catch (e) { console.log(e.status, e.code, e.message);
 } })"
 400 INVALID_BODY O corpo do pedido deve ser JSON
 
@@ -36,7 +36,7 @@ Cenários negativos:
 - PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> node -e "import('./src/modules/items/itemValidators.js').then(m => { try { m.validateItemPayload({ sku:'A1', name:'Produto', type:'PRODUCT', costCents:100, priceCents:0, vatRateBps:2300 }); } catch (e) { console.log(e.status, e.code, e.message); } })"
 400 INVALID_MONEY priceCents tem valor invalido
 
-- PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> node -e "import('./src/modules/items/itemValidators.js').then(m => { try { m.validateItemPayload({ sku:'A1', name:'Produto', type:'PRODUCT', costCents:100, priceCents:200, vatRateBps:15000 }); } catch (e) { console.log(e.status, e.code, e.message); } })"                                       
+- PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> node -e "import('./src/modules/items/itemValidators.js').then(m => { try { m.validateItemPayload({ sku:'A1', name:'Produto', type:'PRODUCT', costCents:100, priceCents:200, vatRateBps:15000 }); } catch (e) { console.log(e.status, e.code, e.message); } })"
 400 INVALID_VAT_RATE IVA deve estar entre 0 e 10000 basis points
 
 Nota:
@@ -66,18 +66,18 @@ itemService OK
 
 - PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> Select-String -Path ".\src\modules\items\itemService.js" -Pattern "companyId"
 
-src\modules\items\itemService.js:16:async function assertUniqueSku(prisma, companyId, sku, ignoreId = undefined) 
+src\modules\items\itemService.js:16:async function assertUniqueSku(prisma, companyId, sku, ignoreId = undefined)
 src\modules\items\itemService.js:18:        where: { companyId, sku, id: ignoreId ? { not: ignoreId } : undefined },
-src\modules\items\itemService.js:28:export async function listItems(prisma, companyId) 
+src\modules\items\itemService.js:28:export async function listItems(prisma, companyId)
 src\modules\items\itemService.js:30:        where: { companyId, isActive: true },
-src\modules\items\itemService.js:36:export async function createItem(prisma, companyId, input) 
+src\modules\items\itemService.js:36:export async function createItem(prisma, companyId, input)
 src\modules\items\itemService.js:37:    await assertUniqueSku(prisma, companyId, input.sku);
 src\modules\items\itemService.js:38:    const item = await prisma.item.create({ data: { companyId, ...input } });
-src\modules\items\itemService.js:42:export async function updateItem(prisma, companyId, itemId, input) 
+src\modules\items\itemService.js:42:export async function updateItem(prisma, companyId, itemId, input)
 src\modules\items\itemService.js:43:    await assertUniqueSku(prisma, companyId, input.sku, itemId);
 src\modules\items\itemService.js:45:        where: { id: itemId, companyId },
 src\modules\items\itemService.js:52:        where: { id: itemId, companyId },
-src\modules\items\itemService.js:57:export async function deactivateItem(prisma, companyId, itemId) 
+src\modules\items\itemService.js:57:export async function deactivateItem(prisma, companyId, itemId)
 src\modules\items\itemService.js:59:        where: { id: itemId, companyId },
 
 

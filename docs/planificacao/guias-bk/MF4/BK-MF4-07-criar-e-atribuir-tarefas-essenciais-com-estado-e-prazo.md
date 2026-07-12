@@ -16,7 +16,11 @@
 - `core_or_reforco`: `Core`
 - `proximo_bk`: `BK-MF4-08`
 - `guia_path`: `docs/planificacao/guias-bk/MF4/BK-MF4-07-criar-e-atribuir-tarefas-essenciais-com-estado-e-prazo.md`
-- `last_updated`: `2026-06-16`
+- `last_updated`: `2026-07-10`
+
+#### Contrato transacional atualizado
+
+Listagem usa `{ items, pageInfo }`; prazo usa data calendário estrita. Escrita e auditoria são atómicas. Mudança de estado reclama `expectedStatus`, devolve `409 STALE_STATE` em corrida e a UI recarrega sem apagar o formulário.
 
 #### Objetivo
 
@@ -196,6 +200,7 @@ Cria validator explícito.
 ```js
 // apps/api/src/modules/tasks/taskValidators.js
 import { httpError } from "../../lib/httpErrors.js";
+import { parseCalendarDate } from "../../lib/calendarDate.js";
 
 const allowedTaskStatuses = new Set(["OPEN", "IN_PROGRESS", "DONE", "CANCELLED"]);
 
@@ -210,12 +215,10 @@ function requiredText(value, field) {
 /** Valida data obrigatória de uma tarefa. */
 function requiredDate(value, field) {
     const raw = requiredText(value, field);
-    // A conversão para Date transforma a string recebida num valor que pode ser persistido.
-    const date = new Date(raw);
-    if (Number.isNaN(date.getTime())) {
-        throw httpError(400, "INVALID_OPERATIONALTASK", field + " deve ser uma data válida");
-    }
-    return date;
+    return parseCalendarDate(raw, {
+        code: "INVALID_OPERATIONALTASK",
+        message: field + " deve ser uma data real no formato YYYY-MM-DD",
+    });
 }
 
 /** Valida status dentro da lista permitida. */
@@ -385,8 +388,12 @@ export function buildOperationalTaskRoutes({ prisma }) {
 
     router.get("/", guards, async (req, res) => {
         // A listagem fica automaticamente limitada à empresa ativa.
-        const items = await listOperationalTasks(prisma, { companyId: req.companyId });
-        return res.status(200).json({ items });
+        const page = await listOperationalTasks(prisma, {
+            companyId: req.companyId,
+            cursor: req.query.cursor,
+            limit: Number(req.query.limit ?? 50),
+        });
+        return res.status(200).json(page);
     });
 
     router.post("/", guards, async (req, res) => {
@@ -476,7 +483,7 @@ export interface OperationalTaskInput {
 
 /** Lista tarefas operacionais. */
 export function loadOperationalTasks() {
-  return client.request<{ items: OperationalTask[] }>("GET", "/tasks");
+  return client.request<CursorPage<OperationalTask>>("GET", "/tasks");
 }
 
 /** Cria tarefa atribuída a um membro ativo da empresa. */

@@ -29,7 +29,7 @@ Comando:
 
 ```bash
 - PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> $env:OPSA_MF7_SIMULATE_MISSING="src/modules/ai/aiRoutes.js"
->> npm run check:mf7:backend-modules 
+>> npm run check:mf7:backend-modules
 ```
 
 Resultado observado:
@@ -58,7 +58,7 @@ server.js importa ficheiros internos de domínio: from "./modules/sales/saleDocu
 Comando:
 
 ```bash
-- PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> $env:OPSA_MF7_SIMULATE_MISSING="src/modules/inventory/stockMovementService.js" 
+- PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> $env:OPSA_MF7_SIMULATE_MISSING="src/modules/inventory/stockMovementService.js"
 >> npm run check:mf7:backend-modules
 ```
 

@@ -1,5 +1,7 @@
 # BK-MF4-04 - Emitir alertas inteligentes (cashflow, desvios, ruturas).
 
+> **Atualização IA v2:** `GET /api/ai/alerts` é leitura pura; a geração ocorre por `AiAnalysisRun` e worker. Alertas têm regras versionadas, fingerprints, score, ocorrências e lifecycle, incluindo resolução automática. Ver [`../SINCRONIZACAO-IA-V2.md`](../SINCRONIZACAO-IA-V2.md).
+
 ## Header
 
 - `doc_id`: `GUIA-BK-MF4-04`
@@ -17,7 +19,11 @@
 - `core_or_reforco`: `Core`
 - `proximo_bk`: `BK-MF4-05`
 - `guia_path`: `docs/planificacao/guias-bk/MF4/BK-MF4-04-emitir-alertas-inteligentes-cashflow-desvios-ruturas.md`
-- `last_updated`: `2026-06-16`
+- `last_updated`: `2026-07-10`
+
+#### Contrato de listagem atualizado
+
+Alertas usam cursor pagination `{ items, pageInfo }`, fontes reais e datas estritas. Lista vazia permanece um estado válido, mas nunca é substituída por dados inventados.
 
 #### Objetivo
 
@@ -349,11 +355,13 @@ export function buildSmartAlertRoutes({ prisma }) {
     router.get("/alerts", guards, async (req, res) => {
         try {
             // A rota não recebe companyId; usa o contexto multiempresa resolvido no backend.
-            const alerts = await generateSmartAlerts(prisma, {
+            const page = await generateSmartAlerts(prisma, {
                 companyId: req.companyId,
                 userId: req.user.id,
+                cursor: req.query.cursor,
+                limit: Number(req.query.limit ?? 50),
             });
-            return res.status(200).json({ alerts });
+            return res.status(200).json(page);
         } catch (error) {
             return sendError(res, error);
         }
@@ -419,7 +427,7 @@ export interface SmartAlert {
 export function getSmartAlerts() {
     // O backend decide a empresa ativa. O frontend só pede a lista de alertas
     // que o utilizador autenticado tem autorização para ver.
-    return client.request<{ alerts: SmartAlert[] }>("GET", "/ai/alerts");
+    return client.request<CursorPage<SmartAlert>>("GET", "/ai/alerts");
 }
 
 // apps/web/src/pages/SmartAlertsPage.tsx
@@ -436,7 +444,7 @@ export function SmartAlertsPage() {
             const result = await getSmartAlerts();
             // Guardamos o array tipado para renderizar título, severidade e fonte
             // sem depender de JSON bruto.
-            setAlerts(result.alerts);
+            setAlerts(result.items);
             setError(null);
         } catch (caught) {
             setError(

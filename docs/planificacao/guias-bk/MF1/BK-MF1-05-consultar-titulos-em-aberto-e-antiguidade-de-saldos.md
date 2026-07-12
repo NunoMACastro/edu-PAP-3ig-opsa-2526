@@ -17,7 +17,7 @@
 - `core_or_reforco`: `Core`
 - `proximo_bk`: `BK-MF1-06`
 - `guia_path`: `docs/planificacao/guias-bk/MF1/BK-MF1-05-consultar-titulos-em-aberto-e-antiguidade-de-saldos.md`
-- `last_updated`: `2026-06-01`
+- `last_updated`: `2026-07-10`
 
 ## Objetivo
 
@@ -179,6 +179,12 @@ Este passo usa os modelos `SaleDocument`, `Customer` e `Receipt` criados nos BKs
 Localização: `apps/api/src/modules/open-items/salesOpenItemsService.js`.
 
 ```js
+import {
+    buildCursorPage,
+    buildKeysetCondition,
+    decodePageCursor,
+    parsePageLimit,
+} from "../../lib/cursorPagination.js";
 import { httpError } from "../../lib/httpErrors.js";
 
 function parseAsOfDate(value) {
@@ -195,22 +201,38 @@ function bucketFor(daysOverdue) {
     return "DAYS_90_PLUS";
 }
 
-export async function listSalesOpenItems(prisma, companyId, query) {
+export async function listSalesOpenItems(prisma, companyId, query = {}) {
     const asOfDate = parseAsOfDate(query.asOfDate);
+    const limit = parsePageLimit(query.limit);
+    const cursor = decodePageCursor(query.cursor, "date");
+    const keyset = buildKeysetCondition(cursor, {
+        sortField: "issuedAt",
+        direction: "asc",
+    });
+    const baseWhere = {
+        companyId,
+        totalCents: { gt: 0 },
+        status: "ISSUED",
+        kind: { not: "CREDIT_NOTE" },
+    };
     const documents = await prisma.saleDocument.findMany({
-        where: { companyId, totalCents: { gt: 0 }, status: "ISSUED", kind: { not: "CREDIT_NOTE" } },
+        where: keyset ? { AND: [baseWhere, keyset] } : baseWhere,
         include: { customer: true },
-        orderBy: [{ dueDate: "asc" }, { issuedAt: "asc" }],
+        orderBy: [{ issuedAt: "asc" }, { id: "asc" }],
+        take: limit + 1,
     });
 
-    return documents
-        .map((document) => {
+    return buildCursorPage(documents, {
+        limit,
+        sortField: "issuedAt",
+        sortType: "date",
+        serialize: (document) => {
             const openAmountCents = document.totalCents - document.amountPaidCents;
             const dueDate = document.dueDate ?? document.issuedAt;
             const daysOverdue = Math.floor((asOfDate.getTime() - dueDate.getTime()) / 86400000);
             return { id: document.id, number: document.number, customerName: document.customer.name, issuedAt: document.issuedAt, dueDate, totalCents: document.totalCents, amountPaidCents: document.amountPaidCents, openAmountCents, daysOverdue, bucket: bucketFor(daysOverdue) };
-        })
-        .filter((item) => item.openAmountCents > 0);
+        },
+    });
 }
 ```
 
@@ -234,8 +256,8 @@ export function buildSalesOpenItemsRoutes({ prisma }) {
     const guards = [requireAuth(prisma), requireCompanyContext(prisma), requireRole("ADMIN", "GESTOR", "CONTABILISTA", "AUDITOR")];
     router.get("/", guards, async (req, res) => {
         try {
-            const data = await listSalesOpenItems(prisma, req.companyId, req.query);
-            return res.status(200).json({ data });
+            const page = await listSalesOpenItems(prisma, req.companyId, req.query);
+            return res.status(200).json(page);
         } catch (error) {
             return sendError(res, error);
         }
@@ -290,7 +312,10 @@ import { apiClient } from "./apiClient";
 export type SalesOpenItem = { id: string; number: string; customerName: string; openAmountCents: number; daysOverdue: number; bucket: string };
 
 export async function fetchSalesOpenItems(asOfDate: string) {
-    return apiClient.get<{ data: SalesOpenItem[] }>("/api/sales/open-items?asOfDate=" + encodeURIComponent(asOfDate));
+    return apiClient.get<{
+        items: SalesOpenItem[];
+        pageInfo: { nextCursor: string | null; hasNextPage: boolean };
+    }>("/api/sales/open-items?asOfDate=" + encodeURIComponent(asOfDate));
 }
 ```
 
@@ -300,9 +325,10 @@ Localização: `apps/web/src/pages/SalesOpenItemsPage.tsx`.
 // apps/web/src/pages/SalesOpenItemsPage.tsx
 import { FormEvent, useEffect, useState } from "react";
 import { fetchSalesOpenItems, type SalesOpenItem } from "../lib/salesOpenItemsApi";
+import { todayInPortugal } from "../lib/localDate";
 
 export function SalesOpenItemsPage() {
-    const [asOfDate, setAsOfDate] = useState(new Date().toISOString().slice(0, 10));
+    const [asOfDate, setAsOfDate] = useState(todayInPortugal());
     const [items, setItems] = useState<SalesOpenItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -312,7 +338,7 @@ export function SalesOpenItemsPage() {
         setError(null);
         try {
             const response = await fetchSalesOpenItems(date);
-            setItems(response.data);
+            setItems(response.items);
         } catch (err) {
             setError(err instanceof Error ? err.message : "Não foi possível carregar títulos em aberto.");
         } finally {
@@ -373,10 +399,11 @@ test("coloca documento vencido ha 45 dias no bucket correto", async () => {
         },
     };
 
-    const rows = await listSalesOpenItems(prisma, "company-1", { asOfDate: "2026-05-31" });
+    const page = await listSalesOpenItems(prisma, "company-1", { asOfDate: "2026-05-31" });
 
-    assert.equal(rows[0].openAmountCents, 10000);
-    assert.equal(rows[0].bucket, "DAYS_31_60");
+    assert.equal(page.items[0].openAmountCents, 10000);
+    assert.equal(page.items[0].bucket, "DAYS_31_60");
+    assert.deepEqual(page.pageInfo, { nextCursor: null, hasNextPage: false });
 });
 ```
 

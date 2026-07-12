@@ -43,7 +43,7 @@ Nota:
 
 Passo 4:
 Import validado com Node
-- PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> node -e "import('./src/modules/fiscal-periods/fiscalPeriodService.js').then(m => console.log(Object.keys(m)))"                                                  
+- PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> node -e "import('./src/modules/fiscal-periods/fiscalPeriodService.js').then(m => console.log(Object.keys(m)))"
 [
   'assertOpenFiscalPeriod',
   'closeFiscalPeriod',
@@ -69,7 +69,7 @@ Passo 5:
 - API iniciou com sucesso
 
 Cenários negativos:
-- PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> curl.exe -i http://localhost:3000/api/fiscal-periods                                                                                                            
+- PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> curl.exe -i http://localhost:3000/api/fiscal-periods
 HTTP/1.1 401 Unauthorized
 X-Powered-By: Express
 Content-Type: application/json; charset=utf-8

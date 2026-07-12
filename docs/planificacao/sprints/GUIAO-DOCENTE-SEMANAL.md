@@ -6,7 +6,7 @@
 - `area`: `project`
 - `owner`: `Nuno`
 - `status`: `ativo`
-- `last_updated`: `2026-04-18`
+- `last_updated`: `2026-07-10`
 
 ## Objetivo
 Fornecer guiao pratico de intervencao docente por sprint, com foco em risco, carga realista e consistencia documental.
@@ -41,9 +41,10 @@ Fornecer guiao pratico de intervencao docente por sprint, com foco em risco, car
 
 ## Script de revisao rapida (15 min)
 1. Confirmar `carga_real_u` vs `carga_planeada_u` no scorecard.
-2. Auditar 1 BK `P0` e 1 BK `P1/P2` (bloco pedagogico + operacional).
-3. Verificar snippet tecnico concreto e aplicavel.
+2. Auditar 1 BK `P0` e 1 BK `P1/P2` (objetivo, scope, tutorial linear, validacao, evidence e handoff).
+3. Verificar que os blocos tecnicos sao concretos, completos no contexto do BK e acompanhados de explicacao.
 4. Registar decisao docente e proxima acao.
 
 ## Changelog
+- `2026-07-10`: revisão semanal alinhada com o contrato tutorial atual, removendo referências à estrutura editorial retirada.
 - `2026-04-18`: guiao docente normalizado para contrato canónico v2 cross-PAP.

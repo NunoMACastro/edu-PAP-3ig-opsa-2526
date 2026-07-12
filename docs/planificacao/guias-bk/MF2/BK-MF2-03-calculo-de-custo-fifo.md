@@ -17,7 +17,7 @@
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF2-04`
 - `guia_path`: `docs/planificacao/guias-bk/MF2/BK-MF2-03-calculo-de-custo-fifo.md`
-- `last_updated`: `2026-06-08`
+- `last_updated`: `2026-07-10`
 
 ## Objetivo
 
@@ -83,6 +83,10 @@ Cada saída pode explicar que camadas consumiu e qual foi o custo total em cênt
 - **Transação de custo e movimento:** movimento, saldo, camada e consumo têm de ser coerentes. O pedido entra pelo service de movimentos, chama `consumeFifoLayers` dentro da mesma transação, grava tudo ou nada, serve para preservar inventário e custo, e evita movimentos físicos sem custo ou custo sem movimento.
 - **Preview sem escrita:** a página de preview mostra o custo previsto sem alterar dados. O pedido vem da UI, consulta camadas filtradas por empresa, devolve uma simulação, serve para o utilizador antecipar impacto, e evita alterações acidentais durante análise.
 - **Segurança e governação de custos:** custos são dados sensíveis. A empresa e a role vêm da sessão, o backend filtra por `companyId`, serve para limitar visibilidade, e evita expor margens ou custos de outra empresa.
+
+## Contrato de paridade obrigatório (2026-07-10)
+
+O consumo bloqueia as camadas elegíveis com `SELECT ... FOR UPDATE` em ordem `createdAt, id`, dentro da mesma transação serializável que bloqueia o saldo e grava movimento/consumos/auditoria. O preview é estritamente read-only e não reserva camadas. Retries são limitados a três e apenas para conflitos serializáveis; uma insuficiência real devolve `409` sem retry automático.
 
 ## Arquitetura do BK
 
@@ -295,10 +299,16 @@ export async function createFifoLayer(tx, { companyId, itemId, warehouseId, sour
 
 export async function consumeFifoLayers(tx, { companyId, itemId, warehouseId, movementId, quantity }) {
   let remaining = Number(quantity);
-  const layers = await tx.stockCostLayer.findMany({
-    where: { companyId, itemId, warehouseId, remainingQuantity: { gt: 0 } },
-    orderBy: [{ createdAt: "asc" }, { id: "asc" }],
-  });
+  const layers = await tx.$queryRaw`
+    SELECT *
+    FROM "StockCostLayer"
+    WHERE "companyId" = ${companyId}
+      AND "itemId" = ${itemId}
+      AND "warehouseId" = ${warehouseId}
+      AND "remainingQuantity" > 0
+    ORDER BY "createdAt" ASC, id ASC
+    FOR UPDATE
+  `;
   const consumptions = [];
 
   for (const layer of layers) {

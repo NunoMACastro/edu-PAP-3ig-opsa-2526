@@ -6,7 +6,7 @@
 - `area`: `project`
 - `owner`: `Nuno`
 - `status`: `ativo`
-- `last_updated`: `2026-06-30`
+- `last_updated`: `2026-07-10`
 
 ## Padrão de naming dos guias BK
 - Formato obrigatório: `BK-MF*-**-slug-semantico.md`.
@@ -14,10 +14,15 @@
 - Regra: manter ID canónico (`BK-MF*-**`) e acrescentar slug PT-PT semântico.
 
 ## Contrato editorial
-- Todos os guias devem conter `Bloco pedagogico` e `Bloco operacional`.
-- Snippet técnico obrigatório e aplicável ao BK real (não placeholder).
-- Reutilização técnica orientada por `SNIPPETS-POR-MACRO.md`.
+- Todos os guias seguem o contrato tutorial de `_TEMPLATE-BK.md`: objetivo, importância, scope, estado antes/depois, pré-requisitos, glossário, teoria, arquitetura, ficheiros e tutorial técnico linear.
+- Cada passo técnico identifica ficheiros, instruções, código completo no contexto, explicação, validação e cenário negativo controlado.
+- O fecho contém critérios de aceite, validação final, evidence, handoff e changelog.
+- Blocos de código placeholder não são aceites; o código deve estar ligado ao `bk_id`, a `rf_rnf` e ao contrato real do BK.
 - Campos de header obrigatórios: `bk_id`, `macro`, `sprint`, `owner`, `rf_rnf`, `dependencias`, `guia_path`, `core_or_reforco`.
+
+## Sincronização da IA v2
+
+Os guias MF3, MF4 e MF8 anteriores à reestruturação devem ser lidos com [`SINCRONIZACAO-IA-V2.md`](SINCRONIZACAO-IA-V2.md). O documento separa o percurso pedagógico dos alunos da implementação privada atual e regista chat OpenAI controlado, métricas v2, worker, lifecycle, privacidade, permissões e validação.
 
 ## Indice completo por macro
 ### MF0
@@ -132,6 +137,7 @@
 - [BK-MF8-18 - Correção dos erros encontrados e reexecução dos testes afetados.](MF8/BK-MF8-18-correcao-dos-erros-encontrados-e-reexecucao-dos-testes-afetados.md)
 
 ## Changelog
+- `2026-07-10`: contrato editorial sincronizado com `_TEMPLATE-BK.md` e com a estrutura tutorial vigente.
 - `2026-06-30`: MF8 atualizada para 18 guias com subscrições simuladas e renumeração canónica.
 - `2026-06-29`: MF8 atualizada para 12 BKs com fecho de UI, testes finais e correção de erros.
 - `2026-04-19`: índice de guias regenerado para baseline reduzido (84 BK).

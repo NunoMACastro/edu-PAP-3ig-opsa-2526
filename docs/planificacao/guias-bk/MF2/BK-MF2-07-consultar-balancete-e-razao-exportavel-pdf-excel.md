@@ -242,16 +242,32 @@ Implementar agregação.
 
 ```js
 // apps/api/src/modules/accounting-reports/accountingReportService.js
+import {
+  buildCursorPage,
+  buildKeysetCondition,
+  decodePageCursor,
+  parsePageLimit,
+} from "../../lib/cursorPagination.js";
 import { httpError } from "../../lib/httpErrors.js";
 
-export async function buildTrialBalance(prisma, { companyId, from, to }) {
+export async function buildTrialBalance(prisma, { companyId, from, to, cursor: opaqueCursor, limit: rawLimit }) {
+  const limit = parsePageLimit(rawLimit);
+  const cursor = decodePageCursor(opaqueCursor, "string");
+  const keyset = buildKeysetCondition(cursor, { sortField: "code", direction: "asc" });
+  const baseWhere = { companyId, isActive: true };
   const accounts = await prisma.account.findMany({
-    where: { companyId, isActive: true },
-    orderBy: { code: "asc" },
+    where: keyset ? { AND: [baseWhere, keyset] } : baseWhere,
+    orderBy: [{ code: "asc" }, { id: "asc" }],
+    take: limit + 1,
+  });
+  const accountPage = buildCursorPage(accounts, {
+    limit,
+    sortField: "code",
+    sortType: "string",
   });
   const rows = [];
 
-  for (const account of accounts) {
+  for (const account of accountPage.items) {
     const lines = await prisma.journalEntryLine.findMany({
       where: {
         accountId: account.id,
@@ -273,10 +289,10 @@ export async function buildTrialBalance(prisma, { companyId, from, to }) {
     }
   }
 
-  return { from, to, rows };
+  return { from, to, rows, pageInfo: accountPage.pageInfo };
 }
 
-export async function buildLedger(prisma, { companyId, accountId, from, to }) {
+export async function buildLedger(prisma, { companyId, accountId, from, to, cursor: opaqueCursor, limit: rawLimit }) {
   const account = await prisma.account.findFirst({
     where: { id: accountId, companyId, isActive: true },
     select: { id: true, code: true, name: true },
@@ -284,35 +300,82 @@ export async function buildLedger(prisma, { companyId, accountId, from, to }) {
 
   if (!account) throw httpError(404, "ACCOUNT_NOT_FOUND", "Conta SNC não encontrada.");
 
-  const lines = await prisma.journalEntryLine.findMany({
-    where: {
-      accountId,
-      journalEntry: { companyId, entryDate: { gte: from, lte: to } },
-    },
+  const limit = parsePageLimit(rawLimit);
+  const cursor = decodePageCursor(opaqueCursor, "date");
+  const baseWhere = {
+    accountId,
+    journalEntry: { companyId, entryDate: { gte: from, lte: to } },
+  };
+  const afterCursor = cursor ? {
+    OR: [
+      { journalEntry: { entryDate: { gt: cursor.sortValue } } },
+      { journalEntry: { entryDate: cursor.sortValue }, id: { gt: cursor.id } },
+    ],
+  } : null;
+  const beforeCursor = cursor ? {
+    OR: [
+      { journalEntry: { entryDate: { lt: cursor.sortValue } } },
+      { journalEntry: { entryDate: cursor.sortValue }, id: { lt: cursor.id } },
+    ],
+  } : null;
+  const [lines, prior] = await Promise.all([prisma.journalEntryLine.findMany({
+    where: afterCursor ? { AND: [baseWhere, afterCursor] } : baseWhere,
     orderBy: [{ journalEntry: { entryDate: "asc" } }, { id: "asc" }],
     include: {
       journalEntry: {
         select: { id: true, entryDate: true, description: true, source: true },
       },
     },
+    take: limit + 1,
+  }), beforeCursor ? prisma.journalEntryLine.aggregate({
+    where: { AND: [baseWhere, beforeCursor] },
+    _sum: { debitCents: true, creditCents: true },
+  }) : Promise.resolve({ _sum: null })]);
+
+  let runningBalanceCents = (prior._sum?.debitCents ?? 0) - (prior._sum?.creditCents ?? 0);
+  const page = buildCursorPage(lines.map((line) => ({
+    ...line,
+    entryDate: line.journalEntry.entryDate,
+  })), {
+    limit,
+    sortField: "entryDate",
+    sortType: "date",
+    serialize: (line) => {
+      runningBalanceCents += line.debitCents - line.creditCents;
+      return {
+        entryId: line.journalEntry.id,
+        lineId: line.id,
+        date: line.entryDate,
+        description: line.journalEntry.description,
+        source: line.journalEntry.source,
+        debitCents: line.debitCents,
+        creditCents: line.creditCents,
+        balanceCents: runningBalanceCents,
+      };
+    },
   });
 
-  let runningBalanceCents = 0;
-  const rows = lines.map((line) => {
-    runningBalanceCents += line.debitCents - line.creditCents;
-    return {
-      entryId: line.journalEntry.id,
-      lineId: line.id,
-      date: line.journalEntry.entryDate,
-      description: line.journalEntry.description,
-      source: line.journalEntry.source,
-      debitCents: line.debitCents,
-      creditCents: line.creditCents,
-      balanceCents: runningBalanceCents,
-    };
-  });
+  return { from, to, account, rows: page.items, pageInfo: page.pageInfo };
+}
 
-  return { from, to, account, rows };
+async function collectAllPages(loader) {
+  const rows = [];
+  let cursor;
+  let report;
+  do {
+    report = await loader({ cursor, limit: 100 });
+    rows.push(...report.rows);
+    cursor = report.pageInfo.nextCursor ?? undefined;
+  } while (report.pageInfo.hasNextPage);
+  return { ...report, rows, pageInfo: { nextCursor: null, hasNextPage: false } };
+}
+
+export function buildTrialBalanceForExport(prisma, input) {
+  return collectAllPages((page) => buildTrialBalance(prisma, { ...input, ...page }));
+}
+
+export function buildLedgerForExport(prisma, input) {
+  return collectAllPages((page) => buildLedger(prisma, { ...input, ...page }));
 }
 ```
 
@@ -406,7 +469,12 @@ import { requireCompanyContext } from "../companies/companyContext.js";
 import { requireRole } from "../permissions/permissionMiddleware.js";
 import { toHttpError } from "../../lib/httpErrors.js";
 import { parseDateRange } from "./accountingReportFilters.js";
-import { buildLedger, buildTrialBalance } from "./accountingReportService.js";
+import {
+  buildLedger,
+  buildLedgerForExport,
+  buildTrialBalance,
+  buildTrialBalanceForExport,
+} from "./accountingReportService.js";
 import { ledgerToPdf, trialBalanceToXlsx } from "./accountingReportExporters.js";
 
 export function createAccountingReportRouter(prisma) {
@@ -420,8 +488,13 @@ export function createAccountingReportRouter(prisma) {
   router.get("/trial-balance", guards, async (req, res) => {
     try {
       const filters = parseDateRange(req.query);
-      const report = await buildTrialBalance(prisma, { companyId: req.companyId, ...filters });
-      return res.json({ report });
+      const report = await buildTrialBalance(prisma, {
+        companyId: req.companyId,
+        ...filters,
+        cursor: req.query.cursor,
+        limit: req.query.limit,
+      });
+      return res.json({ items: report.rows, pageInfo: report.pageInfo });
     } catch (error) {
       return sendError(res, error);
     }
@@ -434,9 +507,11 @@ export function createAccountingReportRouter(prisma) {
         companyId: req.companyId,
         accountId: String(req.query.accountId ?? ""),
         ...filters,
+        cursor: req.query.cursor,
+        limit: req.query.limit,
       });
 
-      return res.json({ report });
+      return res.json({ items: report.rows, pageInfo: report.pageInfo });
     } catch (error) {
       return sendError(res, error);
     }
@@ -445,7 +520,7 @@ export function createAccountingReportRouter(prisma) {
   router.get("/trial-balance.xlsx", guards, async (req, res) => {
     try {
       const filters = parseDateRange(req.query);
-      const report = await buildTrialBalance(prisma, { companyId: req.companyId, ...filters });
+      const report = await buildTrialBalanceForExport(prisma, { companyId: req.companyId, ...filters });
       const buffer = await trialBalanceToXlsx(report);
 
       res.setHeader("content-type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
@@ -459,7 +534,7 @@ export function createAccountingReportRouter(prisma) {
   router.get("/ledger.pdf", guards, async (req, res) => {
     try {
       const filters = parseDateRange(req.query);
-      const report = await buildLedger(prisma, {
+      const report = await buildLedgerForExport(prisma, {
         companyId: req.companyId,
         accountId: String(req.query.accountId ?? ""),
         ...filters,
@@ -522,7 +597,10 @@ export async function fetchTrialBalance(params: { from: string; to: string }) {
     credentials: "include",
   });
 
-  return readJson<{ report: { rows: TrialBalanceRow[] } }>(response);
+  return readJson<{
+    items: TrialBalanceRow[];
+    pageInfo: { nextCursor: string | null; hasNextPage: boolean };
+  }>(response);
 }
 
 export async function fetchLedger(params: { from: string; to: string; accountId: string }) {
@@ -530,7 +608,10 @@ export async function fetchLedger(params: { from: string; to: string; accountId:
     credentials: "include",
   });
 
-  return readJson<{ report: { rows: LedgerRow[] } }>(response);
+  return readJson<{
+    items: LedgerRow[];
+    pageInfo: { nextCursor: string | null; hasNextPage: boolean };
+  }>(response);
 }
 ```
 
@@ -557,10 +638,10 @@ export function AccountingReportsPage() {
     try {
       const [trialBalance, ledger] = await Promise.all([
         fetchTrialBalance({ from, to }),
-        accountId ? fetchLedger({ from, to, accountId }) : Promise.resolve({ report: { rows: [] } }),
+        accountId ? fetchLedger({ from, to, accountId }) : Promise.resolve({ items: [], pageInfo: { nextCursor: null, hasNextPage: false } }),
       ]);
-      setTrialBalanceRows(trialBalance.report.rows);
-      setLedgerRows(ledger.report.rows);
+      setTrialBalanceRows(trialBalance.items);
+      setLedgerRows(ledger.items);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Não foi possível carregar relatórios.");
     } finally {

@@ -29,14 +29,14 @@ Imports validados com Node
 ok
 
 Cenários negativos:
-- PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> node -e "import('./src/modules/accounting/accounts/accountValidators.js').then(m => { try { m.validateAccountPayload(null); } catch (e) { console.log(e.status, 
+- PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> node -e "import('./src/modules/accounting/accounts/accountValidators.js').then(m => { try { m.validateAccountPayload(null); } catch (e) { console.log(e.status,
 e.code, e.message); } })"
 400 INVALID_BODY O corpo do pedido deve ser JSON
 
 - PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> node -e "import('./src/modules/accounting/accounts/accountValidators.js').then(m => { try { m.validateAccountPayload({ code: 'ABC', name: 'Caixa' }); } catch (e) { console.log(e.status, e.code, e.message); } })"
 400 INVALID_ACCOUNT_CODE Codigo SNC deve ser numerico e ter entre 1 e 8 digitos
 
-- PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> node -e "import('./src/modules/accounting/accounts/accountValidators.js').then(m => { try { m.validateAccountPayload({ code: '11', name: 'Cx' }); } catch (e) { 
+- PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> node -e "import('./src/modules/accounting/accounts/accountValidators.js').then(m => { try { m.validateAccountPayload({ code: '11', name: 'Cx' }); } catch (e) {
 console.log(e.status, e.code, e.message); } })"
 400 INVALID_ACCOUNT_NAME Nome da conta deve ter pelo menos 3 caracteres
 

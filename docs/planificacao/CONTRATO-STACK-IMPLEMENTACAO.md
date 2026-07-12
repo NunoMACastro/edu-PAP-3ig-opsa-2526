@@ -1,78 +1,111 @@
 # CONTRATO-STACK-IMPLEMENTACAO
 
 ## Header
+
 - `doc_id`: `CONTRATO-STACK-IMPLEMENTACAO`
 - `path`: `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md`
 - `area`: `project`
 - `owner`: `Nuno`
 - `status`: `ativo`
-- `last_updated`: `2026-06-01`
+- `last_updated`: `2026-07-10`
 
-## Objetivo
-Centralizar a stack técnica assumida para os guias BK enquanto a aplicação real ainda não tem scaffold definitivo. Este ficheiro evita que cada guia repita decisões de estrutura e reduz o risco de drift entre documentação, implementação futura e defesa PAP.
+## Objetivo e âmbito
 
-Este contrato é uma **assunção técnica documental**, não uma alteração de requisitos. Serve para orientar os caminhos sugeridos nos guias e deve ser revisto quando a equipa criar o scaffold real.
+Fixar a stack ensinada pelos guias e impedir drift com a implementação privada de referência. Existe scaffold funcional em `real_dev`; os alunos continuam, contudo, a implementar exclusivamente em `apps/api` e `apps/web`.
 
-## Stack assumida até existir scaffold real
-- Frontend: React + Vite + TypeScript.
-- Backend: Node.js LTS + Express com JavaScript moderno e ES Modules.
-- Persistência: PostgreSQL.
-- ORM/migrations: Prisma ORM ou equivalente justificado.
-- Sessão web: cookies HttpOnly, `Secure` em produção e `SameSite` configurado.
-- Estrutura indicativa:
-  - `apps/api` para backend/API;
-  - `apps/web` para frontend;
-  - `apps/api/prisma/schema.prisma` para schema/migrations quando Prisma for usado;
-  - `apps/web/src/lib/apiClient.ts` para cliente HTTP do frontend.
+Este documento não altera RF/RNF nem demonstra readiness. O estado de `real_dev` pertence ao [relatório canónico](auditorias/CORRECAO-AUDITORIA-END-TO-END-REAL_DEV-2026-07-09.md), e as interfaces concretas pertencem ao [`CONTRATO-INTERFACES-IMPLEMENTACAO.md`](CONTRATO-INTERFACES-IMPLEMENTACAO.md).
 
-## Natureza da assunção
-Enquanto não existir código real da app fora do mockup, os caminhos acima são apenas a estrutura de referência para tornar os guias executáveis. Os BKs podem indicar ficheiros dentro de `apps/api` e `apps/web`, mas esses caminhos devem ser ajustados se a equipa criar outra estrutura.
+## Toolchain obrigatório
 
-Se a equipa optar por outra organização, deve manter a mesma separação de responsabilidades:
-- backend separado por routes/router, controllers, services, validators, middlewares e modelos/repositorios quando aplicável;
-- frontend separado por páginas, componentes, cliente API, estado local e validação de formulários;
-- persistência com migrations/schema versionado;
-- testes e smoke documentados por BK.
+- Node.js `>=24.17 <25`.
+- npm `>=11 <12`.
+- JavaScript moderno com ES Modules na API.
+- TypeScript no frontend.
+- Lockfiles instalados por `npm ci`; qualquer alteração de dependências exige justificação e regeneração controlada do respetivo lockfile.
 
-## Regras de adaptação de caminhos
-Ao adaptar caminhos, a equipa deve documentar no PR ou evidence do BK:
-- caminho indicado no guia;
-- caminho real criado no scaffold;
-- motivo da adaptação;
-- confirmação de que o contrato funcional do BK se manteve.
+Uma máquina fora deste intervalo não pode produzir evidence de release final. O gate deve falhar explicitamente; não se altera o contrato para coincidir com uma instalação local mais antiga.
 
-Exemplo:
+## Backend e persistência
 
-```text
-Guia: apps/api/src/modules/vendas/services.js
-Real: packages/api/src/domains/vendas/services.js
-Motivo: scaffold monorepo usa packages/*
-Impacto: sem alteração de RF, BK, owner, dependências ou critérios de aceite
-```
+- Node.js + Express 5, com `createApp(...)` separado de `startServer()` para testes HTTP sem listener externo.
+- PostgreSQL como sistema de registo e Prisma 6 para schema, migrations e transações.
+- Validação de configuração no arranque, isolamento por empresa e autorização deny-by-default.
+- Datas de calendário validadas estritamente como `YYYY-MM-DD`, sem normalização silenciosa de dias impossíveis.
+- Claims atómicos com estado esperado e `409 STALE_STATE`; locks transacionais para período fiscal, stock/FIFO e proteção do último `ADMIN`.
+- Auditoria e mutação sensível na mesma transação; retenção e revisões contabilísticas persistentes.
 
-## Limites de alteração
-Alterar stack, pastas ou ferramentas não pode alterar:
-- RF/RNF associados ao BK;
-- `bk_id`;
-- owner e apoio;
-- prioridade;
-- dependências canónicas;
-- critérios de aceite;
-- número mínimo de passos/negativos;
-- evidence exigida;
-- regras de segurança e validação.
+### Serviços externos
 
-Qualquer mudança que afete comportamento funcional, dados canónicos, roles, permissões, endpoints públicos ou critérios de aceite deve ser tratada como drift e revista com o orientador antes de ser aplicada.
+- Redis através do cliente `redis`: rate limiting distribuído, operações atómicas e chaves derivadas por HMAC, sem email ou IP em claro.
+- SMTP através de `nodemailer`: a API grava na `EmailOutbox` cifrada e um worker separado executa lease, retry exponencial e entrega.
+- S3 compatível através de `@aws-sdk/client-s3`: anexos, exportações SAF-T e bundles de backup fora da base de dados.
+- Multipart streaming através de `busboy`: limite por rota, quarentena, validação de assinatura/MIME/extensão, SHA-256, promoção e cleanup compensatório.
+- XML SAF-T com `xmlbuilder2` e conversão Windows-1252 com `iconv-lite`.
+- XLSX com `exceljs`, sujeito a limites de ficheiro, workbook, linhas, colunas, células e tempo.
+- OpenAI através do SDK oficial `openai`, usado apenas no backend para Responses API, streaming, function calling e Structured Outputs. `AI_PROVIDER_MODE=disabled` mantém o provider opcional e a aplicação determinística funcional.
 
-## Dependências técnicas bloqueantes
-As dependências canónicas dos BKs representam dependências técnicas bloqueantes, não apenas dependências formais dos RF/RNF. Quando um BK usa diretamente modelo, helper, service, middleware ou endpoint criado por outro BK, essa relação deve entrar em `dependencias` na matriz, no backlog, no contrato de campos e no header do guia.
+Os adapters locais, mocks e SMTP de log são permitidos apenas em desenvolvimento ou testes explícitos. Fora de development não existe fallback silencioso quando Redis, SMTP ou S3 estão ausentes.
 
-Reutilizações meramente estruturais da stack, como Express, Prisma, cliente HTTP, layout de pastas ou convenções de testes, não criam dependência entre BKs. Já o uso direto de um contrato funcional entregue por outro BK cria dependência canónica.
+## Frontend
 
-Na `MF1`, `BK-MF0-03` é baseline explícito porque fornece autenticação aplicada ao contexto multiempresa e roles de forma transitiva. `BK-MF0-08` deve aparecer nos BKs que criam, alteram ou contabilizam documentos financeiros/contabilísticos, porque esses fluxos dependem de `assertOpenFiscalPeriod`.
+- React 19 + Vite 8 + TypeScript.
+- React Router como registry único de rotas públicas/protegidas, com deep links, 404, Back/Forward, componentes lazy e requisitos de permissão.
+- `AuthProvider` com estados `bootstrapping`, `anonymous`, `authenticated` e `error`, usando `/api/auth/me` e `/api/permissions/me` como fontes de verdade.
+- Cliente HTTP central com timeout e `AbortController`; uma mutação nunca é repetida automaticamente.
+- Formulários sem UUID/JSON manual quando existe domínio selecionável; dados preservados em `400`, `409` e `500`.
+- Acessibilidade AA: skip link, labels, ARIA de erro, foco controlado e diálogos acessíveis.
+- Chat de IA em página e drawer partilhados, com parser SSE central, `aria-live`, focus trap, fecho por `Escape` e contexto de página mínimo revalidado no backend.
 
-Quando a implementação real adaptar caminhos ou nomes, a equipa deve preservar a relação técnica. Se o BK continuar a usar o contrato funcional de outro BK, a dependência mantém-se.
+## Testes e gates
+
+### API
+
+- `node:test` para unitários, contratos e integração persistida.
+- Supertest para o contrato HTTP criado por `createApp(...)`.
+- PostgreSQL e Redis remotos de teste para persistência e concorrência reais.
+- SMTP sandbox e bucket/prefixo S3 exclusivos de teste.
+
+### Web e browser
+
+- Vitest, Testing Library, `jest-dom`, `user-event` e MSW para testes unitários e de integração do frontend.
+- Playwright em Chromium, Edge e Firefox para E2E real.
+- `@axe-core/playwright` para a11y nas páginas críticas.
+- Provider OpenAI fake para testes do schema qualitativo, timeout, cancelamento, quotas, fallback e captura do payload canónico sem pergunta/valores; smoke live é sempre manual e sem dados reais.
+
+Um scanner, typecheck ou build isolado não substitui teste funcional. Um skip ou teste que não chegou a iniciar permanece blocker e nunca equivale a PASS.
+
+## Estrutura pública ensinada
+
+- `apps/api` — API, Prisma, migrations, workers, scripts e testes.
+- `apps/web` — frontend, Router, providers, cliente HTTP e testes.
+- `apps/api/prisma/schema.prisma` — schema canónico do trabalho dos alunos.
+- `apps/web/src/lib/apiClient.ts` — cliente HTTP central sugerido.
+
+Os snippets dos guias não devem mencionar `real_dev`. Durante uma revisão de paridade, o orientador compara o contrato com a referência privada e traduz qualquer correção para os caminhos públicos acima.
+
+## Regras para dependências
+
+Adicionar uma dependência só é aceitável quando a plataforma não cobre o protocolo ou a função de forma segura e sustentável. Redis, SMTP, S3, multipart streaming, XML/encoding, browser automation e o SDK oficial OpenAI justificam as bibliotecas listadas; helpers pequenos, validação de formulários e abstrações sem valor funcional devem permanecer código local.
+
+O SDK OpenAI é a única dependência nova da IA v2. Evita manter manualmente contratos de streaming e tool calling da Responses API; não substitui a chave de API, que continua server-side, nem adiciona autonomia ao provider. JSON Schema e validação de domínio permanecem código local.
+
+Não se adiciona uma biblioteca de formulários: componentes simples, tipados e coerentes com o design existente são suficientes.
+
+## Dependências técnicas bloqueantes entre BK
+
+As dependências canónicas dos BK representam contratos funcionais, não apenas reutilização estrutural. Quando um BK usa diretamente modelo, helper, service, middleware ou endpoint criado por outro BK, essa relação deve constar em `dependencias` na matriz, no backlog, no contrato de campos e no header do guia.
+
+- `BK-MF0-03` fornece autenticação aplicada ao contexto multiempresa e roles de forma transitiva.
+- `BK-MF0-08` é dependência dos fluxos que criam, alteram ou contabilizam documentos sujeitos a `assertOpenFiscalPeriod`.
+- Reutilizar Express, Prisma, Router, o cliente HTTP ou convenções de testes não cria por si só uma dependência entre BK.
+
+## Limites de adaptação
+
+Uma adaptação de pastas ou nomes não pode alterar RF/RNF, `bk_id`, owner, prioridade, dependências, critérios de aceite, evidence, autorização, endpoints ou modelos do contrato central. Qualquer divergência funcional é drift e deve ser corrigida ou decidida explicitamente pelo orientador.
 
 ## Changelog
+
+- `2026-07-11`: acrescentados SDK oficial OpenAI opcional, contrato SSE/UI e provider fake da IA v2.
+- `2026-07-10`: substituída a assunção de scaffold futuro pelo contrato da referência atual; fixados toolchain, serviços externos, Router/AuthProvider, multipart e toolchain de testes.
 - `2026-06-01`: dependências técnicas diretas passam a ser bloqueantes e devem constar em `dependencias`.
 - `2026-05-25`: contrato criado para centralizar a stack assumida dos guias MF0 e reduzir drift com a implementação futura.

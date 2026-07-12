@@ -17,7 +17,7 @@
 - `core_or_reforco`: `Core`
 - `proximo_bk`: `BK-MF2-06`
 - `guia_path`: `docs/planificacao/guias-bk/MF2/BK-MF2-05-alertas-de-stock-minimos-maximos-artigos-parados.md`
-- `last_updated`: `2026-06-08`
+- `last_updated`: `2026-07-10`
 
 ## Objetivo
 
@@ -227,6 +227,11 @@ Validar configuração e listar alertas.
 
 ```js
 // apps/api/src/modules/inventory/stockAlertService.js
+import {
+  buildCursorPage,
+  decodePageCursor,
+  parsePageLimit,
+} from "../../lib/cursorPagination.js";
 import { httpError } from "../../lib/httpErrors.js";
 
 export function parseStockAlertSetting(input) {
@@ -278,7 +283,7 @@ export async function saveStockAlertSetting(prisma, { companyId, input }) {
   });
 }
 
-export async function listStockAlerts(prisma, { companyId, now = new Date() }) {
+export async function listStockAlerts(prisma, { companyId, now = new Date(), cursor: opaqueCursor, limit: rawLimit }) {
   const settings = await prisma.stockAlertSetting.findMany({
     where: { companyId },
     include: {
@@ -346,7 +351,25 @@ export async function listStockAlerts(prisma, { companyId, now = new Date() }) {
     }
   }
 
-  return alerts;
+  const limit = parsePageLimit(rawLimit);
+  const cursor = decodePageCursor(opaqueCursor, "string");
+  const records = alerts
+    .map((alert) => ({
+      ...alert,
+      id: `${alert.type}:${alert.item.id}:${alert.warehouse.id}`,
+      sortKey: `${alert.type}:${alert.item.id}:${alert.warehouse.id}`,
+    }))
+    .sort((left, right) => left.sortKey.localeCompare(right.sortKey));
+  const afterCursor = cursor
+    ? records.filter((record) => record.sortKey > cursor.sortValue)
+    : records;
+
+  return buildCursorPage(afterCursor.slice(0, limit + 1), {
+    limit,
+    sortField: "sortKey",
+    sortType: "string",
+    serialize: ({ sortKey, ...alert }) => alert,
+  });
 }
 ```
 
@@ -400,8 +423,12 @@ export function createStockAlertRouter(prisma) {
 
   router.get("/", readGuards, async (req, res) => {
     try {
-      const items = await listStockAlerts(prisma, { companyId: req.companyId });
-      return res.json({ items });
+      const page = await listStockAlerts(prisma, {
+        companyId: req.companyId,
+        cursor: req.query.cursor,
+        limit: req.query.limit,
+      });
+      return res.json(page);
     } catch (error) {
       return sendError(res, error);
     }
@@ -487,12 +514,16 @@ async function readJson<T>(response: Response): Promise<T> {
   return response.json() as Promise<T>;
 }
 
-export async function fetchStockAlerts() {
-  const response = await fetch("/api/inventory/stock-alerts", {
+export async function fetchStockAlerts(cursor?: string) {
+  const query = cursor ? `?cursor=${encodeURIComponent(cursor)}` : "";
+  const response = await fetch(`/api/inventory/stock-alerts${query}`, {
     credentials: "include",
   });
 
-  return readJson<{ items: StockAlert[] }>(response);
+  return readJson<{
+    items: StockAlert[];
+    pageInfo: { nextCursor: string | null; hasNextPage: boolean };
+  }>(response);
 }
 
 export async function saveStockAlertSetting(data: StockAlertSettingInput) {
@@ -738,6 +769,9 @@ Se existir bloqueio real, marcar no relatório e evidence com erro observado e i
 
 MF4-04 pode consumir estes alertas como fonte explicável.
 
+- Próximo BK recomendado: `BK-MF2-06`.
+
 ## Changelog
 
+- `2026-07-10`: handoff imediato sincronizado com o próximo BK canónico, preservando o consumidor futuro MF4.
 - `2026-06-07`: guia reescrito como tutorial técnico linear, autocontido e alinhado com RF/RNF, MF0, MF1 e contrato de stack.

@@ -1,3 +1,8 @@
+> [!WARNING]
+> `SNAPSHOT_HISTORICO_SUPERSEDED` — estado `SUPERSEDED` em 2026-07-10.
+>
+> Esta evidence preserva a execução pedagógica original e não representa o contrato SAF-T corrente. A fonte atual é o [contrato central](../../planificacao/CONTRATO-INTERFACES-IMPLEMENTACAO.md) e o [relatório canónico](../../planificacao/auditorias/CORRECAO-AUDITORIA-END-TO-END-REAL_DEV-2026-07-09.md). Não reutilizar endpoints, outputs ou decisões deste corpo como estado atual.
+
 Passo 1
 * BK: BK-MF3-06
 * Macrofase: MF3
@@ -43,7 +48,7 @@ Prisma schema loaded from prisma\schema.prisma
 Passo 3
 Ficheiros criados:
 - apps/api/src/modules/compliance/saftValidators.js
-Temporario 
+Temporario
 - D:\PAP\edu-PAP-3ig-opsa-2526\test-saft-validator.js
 
 Regras implementadas:
@@ -70,7 +75,7 @@ Comandos executados:
   code: 'INVALID_SAFT_RANGE',
   message: 'from deve ser uma data válida'
 }
- 
+
 - PS D:\PAP\edu-PAP-3ig-opsa-2526> node test-saft-validator.js
 {
   status: 400,
@@ -81,7 +86,7 @@ Comandos executados:
 Passo 4
 Ficheiros criados:
 - apps/api/src/modules/compliance/saftService.js
-Temporario 
+Temporario
 - D:\PAP\edu-PAP-3ig-opsa-2526\test-saft-service.js
 
 Regras implementadas:

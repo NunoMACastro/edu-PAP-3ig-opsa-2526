@@ -1,5 +1,7 @@
 # BK-MF8-10 - Insights devem incluir explicação e origem dos dados usados.
 
+> **Atualização IA v2:** explicações incluem evidência estruturada, fórmula, período, `asOf`, contagens, qualidade, limitações e `sourceRefs`. A OpenAI não produz claims; todos os factos e fontes são compostos pelo backend. Ver [`../SINCRONIZACAO-IA-V2.md`](../SINCRONIZACAO-IA-V2.md).
+
 ## Header
 
 - `doc_id`: `GUIA-BK-MF8-10`

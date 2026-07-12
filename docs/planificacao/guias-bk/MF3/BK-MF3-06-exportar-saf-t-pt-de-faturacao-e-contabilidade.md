@@ -1,6 +1,7 @@
-# BK-MF3-06 - Exportar SAF-T (PT) de faturação e contabilidade.
+# BK-MF3-06 - Exportar SAF-T (PT) de faturação e contabilidade
 
 ## Header
+
 - `doc_id`: `GUIA-BK-MF3-06`
 - `bk_id`: `BK-MF3-06`
 - `macro`: `MF3`
@@ -16,589 +17,295 @@
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF3-07`
 - `guia_path`: `docs/planificacao/guias-bk/MF3/BK-MF3-06-exportar-saf-t-pt-de-faturacao-e-contabilidade.md`
-- `last_updated`: `2026-06-15`
+- `last_updated`: `2026-07-10`
 
-#### Objetivo
+## Objetivo
 
-Neste BK vais criar uma exportação SAF-T (PT) MVP em XML com dados da empresa, clientes, fornecedores, documentos de venda, compras e lançamentos. O guia não promete certificação legal completa fora da documentação.
+Implementar uma exportação SAF-T (PT) rastreável, baseada num período fiscal existente e compatível com a versão oficial `1.04_01`. A geração permanece desativada até passarem validação XSD, reconciliação contabilística e revisão externa.
 
-#### Importância
+Este guia segue o catálogo central [CONTRATO-INTERFACES-IMPLEMENTACAO.md](../../CONTRATO-INTERFACES-IMPLEMENTACAO.md). O contrato antigo de exportação síncrona foi retirado e não deve ser recriado.
 
-RF36 exige exportação SAF-T. Como é artefacto legal português, o BK deve ser rigoroso e honesto: gerar XML estruturado e bloquear quando faltam dados obrigatórios.
+## Conceitos essenciais
 
-#### Scope-in
+- O período não é um intervalo livre: o pedido recebe `fiscalPeriodId` e o backend obtém as datas do `FiscalPeriod` da empresa ativa.
+- O XML usa namespace e estrutura SAF-T (PT) `1.04_01`, incluindo `Header`, master files, tabela de impostos, documentos e movimentos contabilísticos aplicáveis.
+- O ficheiro final é codificado em Windows-1252. Não basta trocar o texto do encoding no prólogo XML.
+- O XML fica em storage S3 compatível. PostgreSQL guarda apenas estado, metadata, hash SHA-256 e resultados de validação.
+- `SAFT_EXPORT_ENABLED=false` é fail-closed: responde com indisponibilidade controlada e não gera um ficheiro parcial.
+- XSD válido não prova coerência dos dados; os totais do XML têm de reconciliar com as fontes contabilísticas.
 
-- Validar perfil fiscal da empresa.
-- Gerar XML MVP com blocos documentados.
-- Guardar execução em `SaftExportRun`.
-- Aplicar role `CONTABILISTA` ou `AUDITOR`.
+## Contrato público
 
-#### Scope-out
+```http
+POST /api/compliance/saft/exports
+Content-Type: application/json
 
-- Certificação legal completa.
-- Todas as variantes oficiais da especificação.
-- Envio automático para Autoridade Tributária.
+{
+  "type": "FULL",
+  "fiscalPeriodId": "<uuid-do-periodo-da-empresa-ativa>"
+}
+```
 
-#### Estado antes e depois
+Resposta inicial:
 
-- Estado antes: não existia XML SAF-T gerado.
-- Estado depois: `GET /api/compliance/saft` devolve XML e resumo da exportação.
+```json
+{
+  "export": {
+    "id": "<export-run-id>",
+    "status": "READY",
+    "type": "FULL",
+    "fiscalPeriodId": "<uuid-do-periodo>",
+    "fileName": "saft-...xml",
+    "sha256": "<hash-sha256>",
+    "sizeBytes": 1234,
+    "validation": {
+      "xsdStatus": "VALID",
+      "totalsStatus": "VALID",
+      "externalReviewStatus": "APPROVED"
+    },
+    "downloadAvailable": true
+  }
+}
+```
 
-#### Pre-requisitos
+Consulta e download:
 
-- Rever RF36 e RNF24.
-- Rever RF14, RF16, RF19, RF21 e RF28.
-- Rever BK-MF0-06, BK-MF0-09, BK-MF0-10, BK-MF1-02, BK-MF1-04, BK-MF1-07, BK-MF1-09 e BK-MF2-06.
-- Rever BK-MF7-07 antes de promessa legal final.
+```text
+GET /api/compliance/saft/exports/:exportId
+GET /api/compliance/saft/exports/:exportId/download
+```
 
-#### Glossário
+O `POST` só persiste e devolve o run depois de concluir gerador interno,
+validação externa, reconciliação, revisão, upload e transação; apesar do HTTP
+`202`, não cria um `PENDING` para processamento posterior. Qualquer pré-condição
+em falta falha antes do run. O download só é permitido quando o run está
+`READY`, pertence à empresa ativa e tem `xsdStatus=VALID`,
+`totalsStatus=VALID` e `externalReviewStatus=APPROVED`. Deve responder com
+`Content-Disposition: attachment`, `X-Content-Type-Options: nosniff` e
+`Cache-Control: private, no-store`.
 
-- **SAF-T (PT):** ficheiro XML português usado para auditoria fiscal.
-- **Header:** bloco com dados da empresa e período.
-- **Source document:** documento de venda ou compra exportado.
-- **Export run:** registo da exportação.
+## Ficheiros a criar ou editar
 
-#### Conceitos teóricos essenciais
+- EDITAR: `apps/api/prisma/schema.prisma`
+- CRIAR/EDITAR: `apps/api/src/modules/compliance/saftRoutes.js`
+- CRIAR/EDITAR: `apps/api/src/modules/compliance/saftService.js`
+- CRIAR/EDITAR: `apps/api/src/modules/compliance/saftXml.js`
+- CRIAR/EDITAR: `apps/api/src/modules/compliance/saftValidation.js`
+- REUTILIZAR: adapter privado de storage em `apps/api/src/lib/storage/`
+- CRIAR/EDITAR: `apps/api/tests/contracts/saft.contract.test.js`
+- CRIAR/EDITAR: `apps/api/tests/integration/saft.integration.test.js`
+- CRIAR/EDITAR: `apps/web/src/pages/SaftExportPage.tsx`
+- CRIAR/EDITAR: `apps/web/src/lib/api/saft.ts`
 
-- SAF-T é legalmente sensível; dados incompletos devem bloquear exportação.
-- XML deve escapar caracteres especiais.
-- O sistema gera ficheiro; não submete oficialmente.
-- Logs de integração são importantes para rastrear quem exportou.
+## Tutorial técnico linear
 
-#### Arquitetura do BK
+### Passo 1 - Modelar o run de exportação
 
-- Endpoint: `GET /api/compliance/saft`.
-- Roles: `CONTABILISTA`, `AUDITOR`.
-- Modelos: `SaftExportRun`, `CompanyProfile`, `Customer`, `Supplier`, `SaleDocument`, `PurchaseDocument`, `JournalEntry`.
-- Frontend: `SaftExportPage`.
-
-#### Ficheiros a criar/editar/rever
-
-- CRIAR: `real_dev/api/src/modules/compliance/saftValidators.js`
-- CRIAR: `real_dev/api/src/modules/compliance/saftService.js`
-- CRIAR: `real_dev/api/src/modules/compliance/saftRoutes.js`
-- CRIAR: `real_dev/web/src/lib/complianceApi.ts`
-- CRIAR: `real_dev/web/src/pages/SaftExportPage.tsx`
-- EDITAR: `real_dev/api/prisma/schema.prisma`
-- EDITAR: `real_dev/api/src/server.js`
-- EDITAR: `real_dev/web/src/App.tsx`
-- REVER: RF36, RNF24, BK-MF0-06, BK-MF0-09, BK-MF0-10, BK-MF1-02, BK-MF1-04, BK-MF1-07, BK-MF1-09, BK-MF2-06, BK-MF7-07.
-
-#### Tutorial técnico linear
-
-### Passo 1 - Confirmar limite legal do MVP
-
-1. Objetivo funcional do passo no ERP.
-
-Separar exportação MVP de conformidade legal total.
-
-2. Ficheiros envolvidos:
-    - CRIAR: nenhum.
-    - EDITAR: nenhum.
-    - REVER: RF36, RNF24.
-    - LOCALIZAÇÃO: documentos canónicos.
-
-3. Instruções do que fazer.
-
-Regista no PR que BK-MF7-07 reforça conformidade legal.
-
-- `CANONICO`: RF36 exige exportação SAF-T (PT) de faturação e contabilidade.
-- `DERIVADO`: este BK entrega XML MVP estruturado e rastreável, mas a conformidade legal completa fica limitada ao que estiver documentado e será reforçada em `BK-MF7-07`.
-
-4. Código completo, correto e integrado com a app final.
-
-Sem código neste passo.
-
-5. Explicação do código.
-
-Não há código porque a decisão principal é não prometer mais do que o MVP documentado.
-
-6. Validação do passo.
-
-Evidence deve indicar escopo SAF-T MVP.
-
-7. Cenário negativo/erro esperado.
-
-Não apresentar XML MVP como certificação legal final.
-
-### Passo 2 - Modelar execução SAF-T
-
-1. Objetivo funcional do passo no ERP.
-
-Guardar quem exportou, período e estado.
-
-2. Ficheiros envolvidos:
-    - CRIAR: nenhum.
-    - EDITAR: `real_dev/api/prisma/schema.prisma`
-    - REVER: `Company`.
-    - LOCALIZAÇÃO: modelos de compliance.
-
-3. Instruções do que fazer.
-
-Adiciona modelo `SaftExportRun`.
-
-4. Código completo, correto e integrado com a app final.
+O modelo deve permitir provar a origem e o resultado sem guardar XML na base de dados.
 
 ```prisma
-/// Registo de uma exportação SAF-T MVP.
-/// Mantém período, ficheiro e utilizador para auditoria de compliance.
 model SaftExportRun {
-  id           String   @id @default(uuid())
-  companyId    String
-  fromDate     DateTime
-  toDate       DateTime
-  fileName     String
-  status       String
-  exportedById String
-  exportedAt   DateTime @default(now())
-  warnings     Json?
+  id                    String   @id @default(uuid())
+  companyId             String
+  fromDate              DateTime
+  toDate                DateTime
+  fileName              String
+  saleDocumentCount     Int
+  purchaseDocumentCount Int
+  journalEntryCount     Int
+  exportedById          String
+  exportedAt            DateTime @default(now())
+  type                  String   @default("FULL")
+  fiscalPeriodId        String?
+  storageKey            String?
+  sha256                String?
+  sizeBytes             Int?
+  status                String   @default("LEGACY")
+  xsdStatus             String   @default("PENDING")
+  totalsStatus          String   @default("PENDING")
+  externalReviewStatus  String   @default("PENDING")
+  validationDetails     Json?
+  completedAt           DateTime?
 
   @@index([companyId, fromDate, toDate])
+  @@index([companyId, fiscalPeriodId, type, exportedAt])
+  @@index([status, exportedAt])
 }
 ```
 
-5. Explicação do código.
+Este é o shape transicional realmente implementado. Não inventes provider ou
+booleans paralelos; usa os estados e `validationDetails`. A migration é
+expand-only. `FiscalPeriod.fiscalYear` permanece nullable para registos legados
+e tem de ser classificado por pessoa autorizada; nunca o infiras nem faças
+backfill automático a partir das datas.
 
-O modelo é log de integração da exportação. `warnings` guarda avisos sem bloquear.
+### Passo 2 - Validar o pedido e o período
 
-6. Validação do passo.
+O validator aceita apenas tipos conhecidos e UUIDs. No service, procura o período por `{ id: fiscalPeriodId, companyId }`; um período de outra empresa deve parecer inexistente. Rejeita períodos incompletos e nunca aceita datas substitutas no body ou query.
 
-Migration cria a tabela.
+Erros mínimos:
 
-7. Cenário negativo/erro esperado.
+- `400 INVALID_SAFT_REQUEST` para formato inválido;
+- `400 INVALID_SAFT_EXPORT_TYPE` quando `type` não é `FULL`;
+- `404 FISCAL_PERIOD_NOT_FOUND` para período fora da empresa ativa;
+- `409 SAFT_FISCAL_PERIOD_NOT_CLOSED` para período ainda aberto;
+- `422 SAFT_SOURCE_NOT_READY` para dados fiscais obrigatórios em falta;
+- `503 SAFT_EXPORT_DISABLED` quando a feature flag está desligada.
 
-Sem run, não há rastreio de exportação.
+### Passo 3 - Construir XML estruturado
 
-### Passo 3 - Validar query e perfil fiscal
-
-1. Objetivo funcional do passo no ERP.
-
-Bloquear exportação sem datas válidas.
-
-2. Ficheiros envolvidos:
-    - CRIAR: `real_dev/api/src/modules/compliance/saftValidators.js`
-    - EDITAR: nenhum.
-    - REVER: perfil de empresa de BK-MF0-06.
-    - LOCALIZAÇÃO: ficheiro completo.
-
-3. Instruções do que fazer.
-
-Valida datas e deixa perfil para o service confirmar.
-
-4. Código completo, correto e integrado com a app final.
+Usa um XML builder; não concatena strings com dados do utilizador. O gerador recebe um snapshot normalizado e produz, no mínimo, os blocos exigidos para o tipo pedido.
 
 ```js
-// real_dev/api/src/modules/compliance/saftValidators.js
-import { httpError } from "../../lib/httpErrors.js";
+const xml = buildSaftXml({
+  version: "1.04_01",
+  namespace: "urn:OECD:StandardAuditFile-Tax:PT_1.04_01",
+  company,
+  fiscalPeriod,
+  masterFiles,
+  taxTable,
+  sourceDocuments,
+  generalLedgerEntries,
+});
 
-/**
- * Converte uma data de query string para Date.
- *
- * @param {unknown} value Valor recebido em `req.query`.
- * @param {string} field Nome do campo para mensagem de erro.
- * @returns {Date} Data validada.
- * @throws {import("../../lib/httpErrors.js").HttpError} 400 quando a data é inválida.
- */
-function parseDate(value, field) {
-    const date = new Date(value);
-    if (typeof value !== "string" || Number.isNaN(date.getTime())) throw httpError(400, "INVALID_SAFT_RANGE", `${field} deve ser uma data válida`);
-    return date;
-}
-
-/**
- * Valida o período pedido para exportação SAF-T.
- *
- * @param {Record<string, unknown>} query Query string Express.
- * @returns {{ fromDate: Date, toDate: Date }} Período validado.
- * @throws {import("../../lib/httpErrors.js").HttpError} 400 quando o intervalo é inválido.
- */
-export function validateSaftExportQuery(query) {
-    const fromDate = parseDate(query.from, "from");
-    const toDate = parseDate(query.to, "to");
-    if (fromDate > toDate) throw httpError(400, "INVALID_SAFT_RANGE", "Data inicial posterior a data final");
-    return { fromDate, toDate };
-}
+const encoded = iconv.encode(xml, "windows-1252");
 ```
 
-5. Explicação do código.
+Qualquer carácter não representável deve gerar erro explícito ou ser tratado por uma política documentada e testada. Nunca publiques bytes UTF-8 com prólogo Windows-1252.
 
-Datas inválidas bloqueiam consulta. O erro tem código de SAF-T para a UI explicar o problema. O JSDoc deixa claro que a route entrega datas já validadas ao service.
+### Passo 4 - Validar e reconciliar
 
-6. Validação do passo.
+Antes de qualquer escrita no object storage:
 
-Testa `from=abc`.
+1. valida o XML contra o XSD indicado por `SAFT_XSD_PATH`;
+2. recalcula contagens e totais monetários a partir do XML;
+3. compara-os com o snapshot da base de dados;
+4. regista os resultados no run;
+5. só escreve a chave privada final depois de todas as validações internas e
+   externas passarem.
 
-7. Cenário negativo/erro esperado.
+Uma revisão externa/contabilística continua obrigatória para fechar a evidence legal. Um teste com fixture não substitui essa revisão.
 
-Data inválida devolve `400 INVALID_SAFT_RANGE`.
+### Passo 5 - Guardar no S3 e disponibilizar download
 
-### Passo 4 - Implementar gerador XML MVP
+Escreve o artefacto validado numa chave privada aleatória e calcula o SHA-256
+dos bytes finais. Se a transação PostgreSQL falhar depois do upload, executa
+cleanup compensatório. Se o upload falhar ou a transação não confirmar, a
+operação falha e não persiste um run enganador `FAILED`/`READY`.
 
-1. Objetivo funcional do passo no ERP.
+Nunca devolvas o XML dentro de JSON. O browser consulta o run e descarrega o ficheiro através do endpoint autorizado.
 
-Gerar XML com dados reais e bloquear perfil incompleto.
+### Passo 6 - Implementar a página
 
-2. Ficheiros envolvidos:
-    - CRIAR: `real_dev/api/src/modules/compliance/saftService.js`
-    - EDITAR: nenhum.
-    - REVER: modelos de empresa, documentos e lançamentos.
-    - LOCALIZAÇÃO: ficheiro completo.
+A página deve:
 
-3. Instruções do que fazer.
+- carregar períodos fiscais autorizados num `select`/autocomplete;
+- enviar apenas `type` e `fiscalPeriodId`;
+- preservar a seleção quando recebe `400`, `409` ou `503`;
+- mostrar estado e erros de validação em componentes próprios, sem `<pre>` técnico;
+- ativar o botão de download apenas para runs concluídos;
+- tratar `401` através do `AuthProvider` comum.
 
-Escapa XML e inclui fontes principais.
+### Passo 7 - Testar positivos e negativos
 
-4. Código completo, correto e integrado com a app final.
+Testes obrigatórios:
 
-```js
-// real_dev/api/src/modules/compliance/saftService.js
-import { httpError } from "../../lib/httpErrors.js";
-
-/**
- * Escapa texto antes de o colocar em XML.
- *
- * @param {unknown} value Valor vindo da base de dados.
- * @returns {string} Texto seguro para XML.
- */
-function xml(value) {
-    return String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
-}
-
-/**
- * Bloqueia exportação quando faltam dados fiscais mínimos da empresa.
- *
- * @param {{ profile?: { nif?: string | null, legalName?: string | null, currency?: string | null } | null } | null} company Empresa com perfil fiscal.
- * @returns {void}
- * @throws {import("../../lib/httpErrors.js").HttpError} 422 quando NIF, nome legal ou moeda faltam.
- */
-function assertCompanyProfile(company) {
-    if (!company?.profile?.nif || !company?.profile?.legalName || !company?.profile?.currency) {
-        throw httpError(422, "COMPANY_PROFILE_INCOMPLETE", "Dados fiscais da empresa incompletos");
-    }
-}
-
-/**
- * Gera XML SAF-T MVP para a empresa ativa e regista a exportação.
- *
- * Este service não submete ficheiros a Autoridade Tributária e não declara conformidade legal completa.
- *
- * @param {import("@prisma/client").PrismaClient} prisma Cliente Prisma da app.
- * @param {{ companyId: string, userId: string, fromDate: Date, toDate: Date }} input Contexto multiempresa e período.
- * @returns {Promise<{ fileName: string, xml: string, counts: Record<string, number> }>} XML e contagens para evidence.
- * @throws {import("../../lib/httpErrors.js").HttpError} 401 sem empresa ativa ou 422 com perfil fiscal incompleto.
- */
-export async function buildSaftXml(prisma, { companyId, userId, fromDate, toDate }) {
-    if (!companyId) throw httpError(401, "COMPANY_CONTEXT_REQUIRED", "Empresa ativa obrigatória");
-
-    const [company, customers, suppliers, sales, purchases, entries] = await Promise.all([
-        prisma.company.findUnique({ where: { id: companyId }, include: { profile: true } }),
-        prisma.customer.findMany({ where: { companyId } }),
-        prisma.supplier.findMany({ where: { companyId } }),
-        prisma.saleDocument.findMany({ where: { companyId, status: { in: ["ISSUED", "SETTLED"] }, issuedAt: { gte: fromDate, lte: toDate } } }),
-        prisma.purchaseDocument.findMany({ where: { companyId, issuedAt: { gte: fromDate, lte: toDate } } }),
-        prisma.journalEntry.findMany({ where: { companyId, entryDate: { gte: fromDate, lte: toDate } } }),
-    ]);
-
-    assertCompanyProfile(company);
-    const profile = company.profile;
-
-    // Cada valor de base de dados passa por xml() para evitar XML malformado por caracteres especiais.
-    const body = [
-        `<?xml version="1.0" encoding="UTF-8"?>`,
-        `<AuditFile>`,
-        `<Header><CompanyName>${xml(profile.legalName)}</CompanyName><TaxRegistrationNumber>${xml(profile.nif)}</TaxRegistrationNumber><CurrencyCode>${xml(profile.currency)}</CurrencyCode></Header>`,
-        `<MasterFiles>`,
-        ...customers.map((item) => `<Customer><CustomerID>${xml(item.id)}</CustomerID><CompanyName>${xml(item.name)}</CompanyName><TaxRegistrationNumber>${xml(item.nif)}</TaxRegistrationNumber></Customer>`),
-        ...suppliers.map((item) => `<Supplier><SupplierID>${xml(item.id)}</SupplierID><CompanyName>${xml(item.name)}</CompanyName><TaxRegistrationNumber>${xml(item.nif)}</TaxRegistrationNumber></Supplier>`),
-        `</MasterFiles>`,
-        `<SourceDocuments>`,
-        ...sales.map((doc) => `<SalesInvoice><InvoiceNo>${xml(doc.number)}</InvoiceNo><InvoiceDate>${doc.issuedAt.toISOString().slice(0, 10)}</InvoiceDate></SalesInvoice>`),
-        ...purchases.map((doc) => `<PurchaseInvoice><InvoiceNo>${xml(doc.supplierNumber)}</InvoiceNo><InvoiceDate>${doc.issuedAt.toISOString().slice(0, 10)}</InvoiceDate></PurchaseInvoice>`),
-        `</SourceDocuments>`,
-        `<GeneralLedgerEntries>${entries.map((entry) => `<Journal><JournalID>${xml(entry.id)}</JournalID></Journal>`).join("")}</GeneralLedgerEntries>`,
-        `</AuditFile>`,
-    ].join("");
-
-    const fileName = `saft-${companyId}-${fromDate.toISOString().slice(0, 10)}-${toDate.toISOString().slice(0, 10)}.xml`;
-    // O run é o log de integração que prova quem exportou, quando e para que período.
-    await prisma.saftExportRun.create({ data: { companyId, fromDate, toDate, fileName, status: "GENERATED", exportedById: userId } });
-    return { fileName, xml: body, counts: { customers: customers.length, suppliers: suppliers.length, sales: sales.length, purchases: purchases.length, entries: entries.length } };
-}
-```
-
-5. Explicação do código.
-
-`xml` evita quebrar o ficheiro com caracteres especiais. `assertCompanyProfile` bloqueia falta de NIF, nome legal ou moeda no `CompanyProfile`, que é o modelo fiscal criado na MF0. O service lê dados reais por empresa, usa `supplierNumber` nas compras, gera XML e regista a exportação. O JSDoc e os comentários deixam explícito que isto é um SAF-T MVP, não certificação legal completa.
-
-6. Validação do passo.
-
-Empresa com `CompanyProfile`, cliente e fatura deve gerar XML com `AuditFile`.
-
-7. Cenário negativo/erro esperado.
-
-Empresa sem perfil fiscal completo devolve `422 COMPANY_PROFILE_INCOMPLETE`.
-
-### Passo 5 - Expor route protegida
-
-1. Objetivo funcional do passo no ERP.
-
-Disponibilizar XML a contabilista e auditor.
-
-2. Ficheiros envolvidos:
-    - CRIAR: `real_dev/api/src/modules/compliance/saftRoutes.js`
-    - EDITAR: `real_dev/api/src/server.js`
-    - REVER: middlewares.
-    - LOCALIZAÇÃO: ficheiro completo e montagem.
-
-3. Instruções do que fazer.
-
-Cria `GET /api/compliance/saft`.
-
-4. Código completo, correto e integrado com a app final.
-
-```js
-// real_dev/api/src/modules/compliance/saftRoutes.js
-import { Router } from "express";
-import { requireAuth } from "../auth/authMiddleware.js";
-import { requireCompanyContext } from "../companies/companyContext.js";
-import { requireRole } from "../permissions/permissionMiddleware.js";
-import { toHttpError } from "../../lib/httpErrors.js";
-import { validateSaftExportQuery } from "./saftValidators.js";
-import { buildSaftXml } from "./saftService.js";
-
-/**
- * Constrói a route de exportação SAF-T MVP.
- *
- * @param {{ prisma: import("@prisma/client").PrismaClient }} deps Dependências da route.
- * @returns {import("express").Router} Router montado em `/api/compliance/saft`.
- */
-export function buildSaftRoutes({ prisma }) {
-    const router = Router();
-    const guards = [requireAuth(prisma), requireCompanyContext(prisma), requireRole("CONTABILISTA", "AUDITOR")];
-    router.get("/", guards, async (req, res) => {
-        try {
-            const filters = validateSaftExportQuery(req.query);
-            // companyId vem do contexto autenticado para impedir exportação de outra empresa.
-            return res.status(200).json(await buildSaftXml(prisma, { companyId: req.companyId, userId: req.user.id, ...filters }));
-        } catch (error) {
-            const httpError = toHttpError(error);
-            return res.status(httpError.status).json({ error: httpError.code, message: httpError.message });
-        }
-    });
-    return router;
-}
-```
-
-```js
-// real_dev/api/src/server.js
-import { buildSaftRoutes } from "./modules/compliance/saftRoutes.js";
-
-app.use("/api/compliance/saft", buildSaftRoutes({ prisma }));
-```
-
-5. Explicação do código.
-
-O endpoint devolve JSON com XML para a página mostrar e descarregar. Roles ficam no backend, e o comentário mostra a regra multiempresa aplicada antes da exportação.
-
-6. Validação do passo.
-
-Auditor recebe `200`.
-
-7. Cenário negativo/erro esperado.
-
-Operacional recebe `403`.
-
-### Passo 6 - Criar cliente API
-
-1. Objetivo funcional do passo no ERP.
-
-Obter XML SAF-T no frontend.
-
-2. Ficheiros envolvidos:
-    - CRIAR: `real_dev/web/src/lib/complianceApi.ts`
-    - EDITAR: nenhum.
-    - REVER: cliente comum.
-    - LOCALIZAÇÃO: ficheiro completo.
-
-3. Instruções do que fazer.
-
-Tipa resposta.
-
-4. Código completo, correto e integrado com a app final.
-
-```ts
-// real_dev/web/src/lib/complianceApi.ts
-import { apiClient } from "./apiClient";
-
-/**
- * Resultado da exportação SAF-T MVP.
- */
-export type SaftExportResult = { fileName: string; xml: string; counts: Record<string, number> };
-
-/**
- * Consulta a API de exportação SAF-T.
- *
- * @param {string} from Data inicial `YYYY-MM-DD`.
- * @param {string} to Data final `YYYY-MM-DD`.
- * @returns {Promise<SaftExportResult>} XML, nome de ficheiro e contagens.
- */
-export async function fetchSaftExport(from: string, to: string): Promise<SaftExportResult> {
-    const params = new URLSearchParams({ from, to });
-    return apiClient.get<SaftExportResult>(`/api/compliance/saft?${params.toString()}`);
-}
-```
-
-5. Explicação do código.
-
-O cliente devolve nome do ficheiro, XML e contagens. O pedido usa `apiClient`, logo o cookie de sessão vai com o pedido sem expor tokens.
-
-6. Validação do passo.
-
-Confirma que `fileName` termina em `.xml`.
-
-7. Cenário negativo/erro esperado.
-
-Perfil incompleto mostra mensagem do backend.
-
-### Passo 7 - Criar página de exportação
-
-1. Objetivo funcional do passo no ERP.
-
-Permitir gerar e descarregar XML.
-
-2. Ficheiros envolvidos:
-    - CRIAR: `real_dev/web/src/pages/SaftExportPage.tsx`
-    - EDITAR: `real_dev/web/src/App.tsx`
-    - REVER: `complianceApi.ts`.
-    - LOCALIZAÇÃO: ficheiro completo.
-
-3. Instruções do que fazer.
-
-Mostra resumo e conteúdo XML.
-
-4. Código completo, correto e integrado com a app final.
-
-```tsx
-// real_dev/web/src/pages/SaftExportPage.tsx
-import { FormEvent, useState } from "react";
-import { fetchSaftExport, type SaftExportResult } from "../lib/complianceApi";
-
-/**
- * Página de exportação SAF-T MVP.
- *
- * Gere datas, loading, erro e resultado. O XML pode ser inspecionado no ecrã e descarregado sem
- * fazer submissão automática a entidades externas.
- *
- * @returns {JSX.Element} Interface de compliance.
- */
-export function SaftExportPage() {
-    const [result, setResult] = useState<SaftExportResult | null>(null);
-    const [error, setError] = useState("");
-    const [loading, setLoading] = useState(false);
-
-    async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-        event.preventDefault();
-        const form = new FormData(event.currentTarget);
-        setLoading(true);
-        setError("");
-        try {
-            // A API valida perfil fiscal e roles; a UI apenas recolhe o período.
-            setResult(await fetchSaftExport(String(form.get("from")), String(form.get("to"))));
-        } catch (err) {
-            setResult(null);
-            setError(err instanceof Error ? err.message : "Erro inesperado");
-        } finally {
-            setLoading(false);
-        }
-    }
-
-    return (
-        <main>
-            <h1>Exportar SAF-T (PT)</h1>
-            <form onSubmit={handleSubmit}><input name="from" type="date" required /><input name="to" type="date" required /><button disabled={loading}>{loading ? "A gerar..." : "Gerar XML"}</button></form>
-            {error && <p role="alert">{error}</p>}
-            {result && <section><p>Ficheiro: {result.fileName}</p><a download={result.fileName} href={`data:text/xml;charset=utf-8,${encodeURIComponent(result.xml)}`}>Descarregar XML</a><pre>{result.xml}</pre></section>}
-        </main>
-    );
-}
-```
-
-5. Explicação do código.
-
-A página mostra o XML para defesa e permite confirmar que os blocos foram gerados. `result.xml` e `result.fileName` ficam disponíveis para descarga local, sem submissão automática. O JSDoc reforça a fronteira legal e operacional.
-
-6. Validação do passo.
-
-Gerar XML de um período com documentos.
-
-7. Cenário negativo/erro esperado.
-
-Sem NIF de empresa, mostrar erro.
-
-### Passo 8 - Validar entrega e handoff
-
-1. Objetivo funcional do passo no ERP.
-
-Confirmar que SAF-T alimenta compliance e reporting seguintes.
-
-2. Ficheiros envolvidos:
-    - CRIAR: nenhum.
-    - EDITAR: evidence.
-    - REVER: XML e run.
-    - LOCALIZAÇÃO: checklist final.
-
-3. Instruções do que fazer.
-
-Anexa XML de exemplo e negativos.
-
-4. Código completo, correto e integrado com a app final.
-
-Sem código novo neste passo.
-
-5. Explicação do código.
-
-A evidence prova que a exportação usa dados reais e bloqueia perfil incompleto.
-
-6. Validação do passo.
-
-Confirmar `SaftExportRun` criado.
-
-7. Cenário negativo/erro esperado.
-
-Role errada devolve `403`.
-
-## Expected results
-
-- `200` com `fileName`, `xml` e contagens.
-- `422 COMPANY_PROFILE_INCOMPLETE` sem dados fiscais.
-- `403` para role sem permissão.
-
-## Critérios de aceite
-
-- XML gerado com `AuditFile`.
-- Dados por empresa.
-- Export run criado.
-- Escopo legal limitado ao MVP documentado.
-- Cliente frontend usa `apiClient`.
+- feature flag desligada bloqueia criação;
+- período de outra empresa devolve `404`;
+- pedido com intervalo livre é rejeitado;
+- XSD inválido impede storage e download;
+- encoding final é Windows-1252;
+- hash guardado coincide com o objeto descarregado;
+- totais de vendas, impostos e movimentos reconciliam;
+- download exige sessão, permissão e empresa correta;
+- falha S3 não deixa objeto nem metadata órfãos;
+- o contrato retirado não volta a ser montado.
 
 ## Validação final
 
-- Confirmar escaping XML.
-- Confirmar bloqueio de perfil incompleto.
-- Confirmar role.
+```bash
+cd apps/api
+npm run syntax:check
+npm run test:contracts
+npm run test:integration
+
+cd ../web
+npm run typecheck
+npm run test
+npm run build
+```
+
+Não marques integração, XSD, storage ou revisão externa como PASS se não foram executados. `skip` e ambiente ausente são `BLOQUEADO_AMBIENTE`.
+
+## Critérios de aceite
+
+- O pedido usa `fiscalPeriodId`, nunca datas livres.
+- O XML declara e cumpre `1.04_01` e Windows-1252.
+- XSD e reconciliação falham em modo fechado.
+- O objeto fica privado no S3 e a base guarda metadata/hash.
+- O download é autorizado e não expõe o XML em JSON.
+- A feature flag permanece desligada até existir toda a evidence obrigatória.
+- A revisão externa é registada honestamente.
 
 ## Evidence para PR/defesa
 
-- XML gerado.
-- JSON de contagens.
-- Provas de `422` e `403`.
+- migration e contagens antes/depois;
+- comando XSD, exit code e resumo;
+- reconciliação de totais;
+- SHA-256 local e do objeto descarregado;
+- negativo multiempresa e negativo da feature flag;
+- estado da revisão externa;
+- confirmação de que não foram registados tokens, cookies, credenciais ou URLs com password.
+
+## Importância
+
+SAF-T é um artefacto fiscal sensível: XML bem formado sem XSD e reconciliação pode continuar materialmente errado.
+
+## Scope-in
+
+- Run por período fiscal, geração `1.04_01`, XSD, reconciliação, S3 e download.
+- Feature flag fail-closed e revisão externa.
+
+## Scope-out
+
+- Submissão automática à AT, certificação da aplicação ou intervalos livres.
+
+## Estado antes e depois
+
+- Antes: contrato síncrono parcial e sem validações suficientes.
+- Depois: exportação persistente, privada, verificável e desativada até os gates passarem.
+
+## Pre-requisitos
+
+- Dados fiscais completos, períodos e lançamentos implementados.
+- XSD oficial controlado e storage de teste disponível.
+
+## Glossário
+
+- **XSD:** schema que valida a estrutura XML.
+- **Reconciliação:** comparação independente entre XML e fontes.
+- **Export run:** estado persistente da geração e validações.
+
+## Conceitos teóricos essenciais
+
+Encoding é uma propriedade dos bytes; XSD não prova coerência; a feature flag impede disponibilizar uma exportação incompleta.
+
+## Arquitetura do BK
+
+POST de run → snapshot do período → XML → Windows-1252 → XSD/reconciliação → S3 → consulta/download autorizado.
+
+## Ficheiros a criar/editar/rever
+
+Implementa apenas em `apps/api/...` e `apps/web/...`; revê schema, migrations, XSD, adapter S3 e testes.
+
+## Cenários negativos mínimos
+
+Executa pelo menos 3 cenários negativos: período de outra empresa, XSD inválido e flag desligada, mais encoding/hash/cleanup.
 
 ## Handoff
 
-BK-MF3-07 usa os mesmos documentos e dados mestres para relatórios operacionais.
+Entrega a `BK-MF3-07` dados fiscais exportáveis apenas quando os gates forem demonstrados; qualquer blocker mantém a feature desativada.
 
 ## Changelog
 
-- `2026-06-15`: alinhados caminhos técnicos da MF3 com `real_dev/api` e `real_dev/web`, preservando contratos RF/RNF, dependências e escopo.
-- `2026-06-13`: corrigido para gerar XML MVP, validar perfil fiscal, usar `apiClient`, documentar limite legal e registar exportação com JSDoc.
-- `2026-06-13`: alinhado com MF0/MF1, lendo `CompanyProfile` para dados fiscais e `supplierNumber` para documentos de compra.
+- `2026-07-10`: removido o exportador parcial e introduzido contrato por run, período fiscal, XSD, encoding, S3 e revisão externa.

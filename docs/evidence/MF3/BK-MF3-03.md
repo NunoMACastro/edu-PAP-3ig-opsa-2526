@@ -35,7 +35,7 @@ Environment variables loaded from .env
 Prisma schema loaded from prisma\schema.prisma
 The schema at prisma\schema.prisma is valid 🚀
 
-- PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> npm run prisma:generate          
+- PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> npm run prisma:generate
 
 > @opsa/api@1.0.0 prisma:generate
 > prisma generate
@@ -399,7 +399,7 @@ edu-PAP-3ig-opsa-2526/test-statement-validator.js
 
 commands
 npm --prefix apps/api run prisma:validate
-npm run prisma:generate 
+npm run prisma:generate
 node test-statement-validator.js
 node test-statement-service.js
 npm --prefix apps/api run test:contracts

@@ -17,7 +17,7 @@
 - `core_or_reforco`: `Core`
 - `proximo_bk`: `BK-MF2-01`
 - `guia_path`: `docs/planificacao/guias-bk/MF1/BK-MF1-10-aprovacao-de-compras-com-estados-rascunho-aprovado-lancado.md`
-- `last_updated`: `2026-06-01`
+- `last_updated`: `2026-07-10`
 
 ## Objetivo
 
@@ -78,6 +78,10 @@ A compra tem transições controladas: DRAFT para APPROVED e APPROVED para POSTE
 - **Auditoria:** cada aprovação/lançamento regista utilizador e ação em `AuditLog`.
 - **Segregação de funções:** gestor aprova e contabilista lança; o backend aplica roles.
 - **Handoff:** BK-MF2-01 pode acrescentar histórico detalhado e justificações.
+
+## Contrato de paridade obrigatório (2026-07-10)
+
+As transições usam claim `updateMany` com `expectedStatuses` dentro da transação. Conflitos devolvem `409 STALE_STATE`; aprovação/lançamento, histórico contabilístico e `AuditLog` são atómicos. O lançamento e o fecho fiscal usam o mesmo lock empresarial/período, pelo que nunca pode surgir um `JournalEntry` posterior ao fecho. Datas de compra usam `parseStrictDateOnly` e o frontend preserva formulário/seleção após qualquer erro.
 
 ## Arquitetura do BK
 
@@ -215,6 +219,7 @@ Localização: `apps/api/src/modules/purchases/purchaseDocumentService.js`.
 
 ```js
 import { httpError } from "../../lib/httpErrors.js";
+import { parseOptionalStrictDateOnly, parseStrictDateOnly } from "../../lib/strictDate.js";
 import { assertOpenFiscalPeriod } from "../fiscal-periods/fiscalPeriodService.js";
 
 const kinds = new Set(["SUPPLIER_INVOICE", "SUPPLIER_CREDIT_NOTE"]);
@@ -235,10 +240,8 @@ export async function createPurchaseDocument(prisma, companyId, userId, input) {
     if (!kinds.has(kind)) throw httpError(400, "INVALID_KIND", "Tipo de compra inválido");
     const supplierNumber = String(input.supplierNumber ?? "").trim();
     if (!supplierNumber) throw httpError(400, "INVALID_SUPPLIER_NUMBER", "Numero do fornecedor obrigatório");
-    const issuedAt = new Date(input.issuedAt);
-    if (Number.isNaN(issuedAt.getTime())) throw httpError(400, "INVALID_DATE", "Data inválida");
-    const dueDate = input.dueDate ? new Date(input.dueDate) : null;
-    if (dueDate && Number.isNaN(dueDate.getTime())) throw httpError(400, "INVALID_DUE_DATE", "Data de vencimento inválida");
+    const issuedAt = parseStrictDateOnly(input.issuedAt, { code: "INVALID_DATE", field: "issuedAt" });
+    const dueDate = parseOptionalStrictDateOnly(input.dueDate, { code: "INVALID_DUE_DATE", field: "dueDate" });
     const lines = Array.isArray(input.lines) ? input.lines.map(parseLine) : [];
     if (lines.length === 0) throw httpError(400, "EMPTY_LINES", "Documento sem linhas");
     await assertOpenFiscalPeriod(prisma, { companyId, documentDate: issuedAt });
@@ -319,11 +322,20 @@ async function recordPurchaseApprovalAudit(tx, companyId, userId, purchaseDocume
     });
 }
 
+async function claimPurchaseStatus(tx, { id, companyId, expectedStatuses, data }) {
+    const claim = await tx.purchaseDocument.updateMany({
+        where: { id, companyId, status: { in: expectedStatuses } },
+        data,
+    });
+    if (claim.count !== 1) {
+        throw httpError(409, "STALE_STATE", "O documento foi alterado por outra operação");
+    }
+    return tx.purchaseDocument.findUnique({ where: { id } });
+}
+
 export async function approvePurchaseDocument(prisma, companyId, userId, id) {
-    const document = await findPurchaseDocument(prisma, companyId, id);
-    if (document.status !== "DRAFT") throw httpError(409, "INVALID_STATUS", "Apenas rascunhos podem ser aprovados");
     return prisma.$transaction(async (tx) => {
-        const updated = await tx.purchaseDocument.update({ where: { id }, data: { status: "APPROVED", approvedAt: new Date(), approvedById: userId } });
+        const updated = await claimPurchaseStatus(tx, { id, companyId, expectedStatuses: ["DRAFT"], data: { status: "APPROVED", approvedAt: new Date(), approvedById: userId } });
         await recordPurchaseApprovalAudit(tx, companyId, userId, id, "PURCHASE_DOCUMENT_APPROVED");
         return updated;
     });
@@ -332,7 +344,7 @@ export async function approvePurchaseDocument(prisma, companyId, userId, id) {
 export async function markPurchaseDocumentPosted(prisma, companyId, userId, id) {
     return prisma.$transaction(async (tx) => {
         const document = await findPurchaseDocument(tx, companyId, id);
-        if (document.status !== "APPROVED") throw httpError(409, "INVALID_STATUS", "Apenas compras aprovadas podem ser lançadas");
+        await claimPurchaseStatus(tx, { id, companyId, expectedStatuses: ["APPROVED"], data: { status: "POSTED" } });
         const entry = await postPurchaseDocumentInTransaction(tx, companyId, userId, id);
         // O estado POSTED só fica registado depois de existir diário contabilístico.
         await tx.purchaseDocument.update({ where: { id }, data: { postedAt: new Date(), postedById: userId } });
@@ -436,6 +448,7 @@ Localização: `apps/web/src/pages/PurchaseApprovalPage.tsx`.
 // apps/web/src/pages/PurchaseApprovalPage.tsx
 import { useState } from "react";
 import { approvePurchaseDocument, markPurchaseDocumentPosted } from "../lib/purchaseApprovalApi";
+import { EntityAutocomplete } from "../components/forms/EntityAutocomplete";
 
 export function PurchaseApprovalPage() {
     const [purchaseDocumentId, setPurchaseDocumentId] = useState("");
@@ -465,7 +478,7 @@ export function PurchaseApprovalPage() {
     return (
         <main>
             <h1>Aprovação de compras</h1>
-            <input value={purchaseDocumentId} onChange={(event) => setPurchaseDocumentId(event.target.value)} placeholder="ID do documento de compra" />
+            <EntityAutocomplete label="Documento de compra" endpoint="/api/purchases/documents" value={purchaseDocumentId} onChange={setPurchaseDocumentId} />
             <button type="button" disabled={loadingAction !== null} onClick={() => void runAction("approve")}>Aprovar</button>
             <button type="button" disabled={loadingAction !== null} onClick={() => void runAction("post")}>Marcar como lançada</button>
             {loadingAction && <p>A processar...</p>}

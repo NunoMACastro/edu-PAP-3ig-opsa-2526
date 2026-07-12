@@ -17,7 +17,11 @@
 - `core_or_reforco`: `Core`
 - `proximo_bk`: `BK-MF8-17`
 - `guia_path`: `docs/planificacao/guias-bk/MF8/BK-MF8-16-verificacao-dos-testes-atuais-e-criacao-dos-testes-em-falta.md`
-- `last_updated`: `2026-07-03`
+- `last_updated`: `2026-07-10`
+
+#### Matriz de testes atualizada
+
+O inventário separa unitários, contratos HTTP com app importável, integração PostgreSQL, Redis partilhado, SMTP sandbox, S3, backup/restore, concorrência, SAF-T XSD/reconciliação, frontend Vitest/MSW, Playwright multi-browser, axe, carga e health negativo. Cada linha regista `PASS`, `FAIL` ou `BLOQUEADO_AMBIENTE`; `skip` nunca é PASS. O gate académico exige zero skips e conta Playwright como “0 iniciado” se os browsers não chegaram a arrancar.
 
 #### Objetivo
 

@@ -16,7 +16,7 @@
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF3-03`
 - `guia_path`: `docs/planificacao/guias-bk/MF3/BK-MF3-02-criar-contas-bancarias-caixa-e-respetivos-saldos.md`
-- `last_updated`: `2026-06-15`
+- `last_updated`: `2026-07-10`
 
 #### Objetivo
 
@@ -69,19 +69,19 @@ RF32 cria a entidade central da tesouraria. Sem contas reais, BK-MF3-03 não sab
 
 - Endpoint: `GET /api/treasury/accounts` e `POST /api/treasury/accounts`.
 - Roles: leitura `CONTABILISTA`, `OPERACIONAL`, `GESTOR`; escrita `CONTABILISTA`, `OPERACIONAL`.
-- Backend: `real_dev/api/src/modules/treasury`.
+- Backend: `apps/api/src/modules/treasury`.
 - Frontend: `TreasuryAccountsPage`.
 
 #### Ficheiros a criar/editar/rever
 
-- CRIAR: `real_dev/api/src/modules/treasury/bankAccountValidators.js`
-- CRIAR: `real_dev/api/src/modules/treasury/bankAccountService.js`
-- CRIAR: `real_dev/api/src/modules/treasury/bankAccountRoutes.js`
-- CRIAR: `real_dev/web/src/lib/treasuryApi.ts`
-- CRIAR: `real_dev/web/src/pages/TreasuryAccountsPage.tsx`
-- EDITAR: `real_dev/api/prisma/schema.prisma`
-- EDITAR: `real_dev/api/src/server.js`
-- EDITAR: `real_dev/web/src/App.tsx`
+- CRIAR: `apps/api/src/modules/treasury/bankAccountValidators.js`
+- CRIAR: `apps/api/src/modules/treasury/bankAccountService.js`
+- CRIAR: `apps/api/src/modules/treasury/bankAccountRoutes.js`
+- CRIAR: `apps/web/src/lib/treasuryApi.ts`
+- CRIAR: `apps/web/src/pages/TreasuryAccountsPage.tsx`
+- EDITAR: `apps/api/prisma/schema.prisma`
+- EDITAR: `apps/api/src/server.js`
+- EDITAR: `apps/web/src/App.tsx`
 - REVER: RF32, RNF05, BK-MF0-03, BK-MF0-06.
 
 #### Tutorial técnico linear
@@ -129,7 +129,7 @@ Guardar contas e saldos por empresa.
 
 2. Ficheiros envolvidos:
     - CRIAR: nenhum.
-    - EDITAR: `real_dev/api/prisma/schema.prisma`
+    - EDITAR: `apps/api/prisma/schema.prisma`
     - REVER: modelo `Company`.
     - LOCALIZAÇÃO: zona de tesouraria.
 
@@ -203,7 +203,7 @@ Sem o campo inverso em `Company`, o Prisma rejeita a relação. Sem `@@unique([c
 Validar nome, tipo, IBAN, moeda e saldo antes de gravar.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `real_dev/api/src/modules/treasury/bankAccountValidators.js`
+    - CRIAR: `apps/api/src/modules/treasury/bankAccountValidators.js`
     - EDITAR: nenhum.
     - REVER: `httpErrors.js`.
     - LOCALIZAÇÃO: ficheiro completo.
@@ -215,7 +215,7 @@ Valida tudo no backend. O IBAN fica simplificado para PT50 + 21 algarismos no MV
 4. Código completo, correto e integrado com a app final.
 
 ```js
-// real_dev/api/src/modules/treasury/bankAccountValidators.js
+// apps/api/src/modules/treasury/bankAccountValidators.js
 import { httpError } from "../../lib/httpErrors.js";
 
 const accountTypes = new Set(["BANK", "CASH"]);
@@ -310,7 +310,7 @@ Testa conta `BANK` com IBAN válido e conta `CASH` sem IBAN.
 Criar conta e snapshot do saldo inicial na mesma transação.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `real_dev/api/src/modules/treasury/bankAccountService.js`
+    - CRIAR: `apps/api/src/modules/treasury/bankAccountService.js`
     - EDITAR: nenhum.
     - REVER: schema criado no passo 2.
     - LOCALIZAÇÃO: ficheiro completo.
@@ -322,7 +322,13 @@ Usa `companyId` da sessão e nunca do body.
 4. Código completo, correto e integrado com a app final.
 
 ```js
-// real_dev/api/src/modules/treasury/bankAccountService.js
+// apps/api/src/modules/treasury/bankAccountService.js
+import {
+    buildCursorPage,
+    buildKeysetCondition,
+    decodePageCursor,
+    parsePageLimit,
+} from "../../lib/cursorPagination.js";
 import { httpError } from "../../lib/httpErrors.js";
 
 /**
@@ -330,16 +336,29 @@ import { httpError } from "../../lib/httpErrors.js";
  *
  * @param {import("@prisma/client").PrismaClient} prisma Cliente Prisma da app.
  * @param {{ companyId: string }} input Contexto multiempresa vindo da sessão.
- * @returns {Promise<Array<object>>} Contas ativas com o snapshot mais recente.
+ * @returns {Promise<{items: object[], pageInfo: object}>} Página de contas ativas.
  * @throws {import("../../lib/httpErrors.js").HttpError} 401 quando não há empresa ativa.
  */
-export async function listTreasuryAccounts(prisma, { companyId }) {
+export async function listTreasuryAccounts(prisma, { companyId, cursor: opaqueCursor, limit: rawLimit }) {
     if (!companyId) throw httpError(401, "COMPANY_CONTEXT_REQUIRED", "Empresa ativa obrigatória");
 
-    return prisma.treasuryAccount.findMany({
-        where: { companyId, isActive: true },
-        orderBy: { name: "asc" },
+    const pageSize = parsePageLimit(rawLimit);
+    const cursor = decodePageCursor(opaqueCursor, "string");
+    const keyset = buildKeysetCondition(cursor, {
+        sortField: "name",
+        direction: "asc",
+    });
+    const baseWhere = { companyId, isActive: true };
+    const rows = await prisma.treasuryAccount.findMany({
+        where: keyset ? { AND: [baseWhere, keyset] } : baseWhere,
+        orderBy: [{ name: "asc" }, { id: "asc" }],
+        take: pageSize + 1,
         include: { snapshots: { orderBy: { capturedAt: "desc" }, take: 1 } },
+    });
+    return buildCursorPage(rows, {
+        limit: pageSize,
+        sortField: "name",
+        sortType: "string",
     });
 }
 
@@ -408,8 +427,8 @@ Nome duplicado na mesma empresa devolve `409 TREASURY_ACCOUNT_EXISTS`.
 Permitir listar e criar contas com roles adequadas.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `real_dev/api/src/modules/treasury/bankAccountRoutes.js`
-    - EDITAR: `real_dev/api/src/server.js`
+    - CRIAR: `apps/api/src/modules/treasury/bankAccountRoutes.js`
+    - EDITAR: `apps/api/src/server.js`
     - REVER: middlewares MF0.
     - LOCALIZAÇÃO: ficheiro completo e montagem.
 
@@ -420,7 +439,7 @@ Permitir listar e criar contas com roles adequadas.
 4. Código completo, correto e integrado com a app final.
 
 ```js
-// real_dev/api/src/modules/treasury/bankAccountRoutes.js
+// apps/api/src/modules/treasury/bankAccountRoutes.js
 import { Router } from "express";
 import { requireAuth } from "../auth/authMiddleware.js";
 import { requireCompanyContext } from "../companies/companyContext.js";
@@ -442,8 +461,12 @@ export function buildTreasuryAccountRoutes({ prisma }) {
 
     router.get("/", readGuards, async (req, res) => {
         try {
-            const accounts = await listTreasuryAccounts(prisma, { companyId: req.companyId });
-            return res.status(200).json(accounts);
+            const page = await listTreasuryAccounts(prisma, {
+                companyId: req.companyId,
+                cursor: req.query.cursor,
+                limit: Number(req.query.limit ?? 50),
+            });
+            return res.status(200).json(page);
         } catch (error) {
             const httpError = toHttpError(error);
             return res.status(httpError.status).json({ error: httpError.code, message: httpError.message });
@@ -467,7 +490,7 @@ export function buildTreasuryAccountRoutes({ prisma }) {
 ```
 
 ```js
-// real_dev/api/src/server.js
+// apps/api/src/server.js
 import { buildTreasuryAccountRoutes } from "./modules/treasury/bankAccountRoutes.js";
 
 app.use("/api/treasury/accounts", buildTreasuryAccountRoutes({ prisma }));
@@ -492,7 +515,7 @@ As routes separam leitura e escrita. `GET` e `POST` convertem erros para HTTP co
 Dar ao frontend funções tipadas para listar e criar contas.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `real_dev/web/src/lib/treasuryApi.ts`
+    - CRIAR: `apps/web/src/lib/treasuryApi.ts`
     - EDITAR: nenhum.
     - REVER: cliente API comum.
     - LOCALIZAÇÃO: ficheiro completo.
@@ -504,7 +527,7 @@ Usa tipos específicos de tesouraria.
 4. Código completo, correto e integrado com a app final.
 
 ```ts
-// real_dev/web/src/lib/treasuryApi.ts
+// apps/web/src/lib/treasuryApi.ts
 import { apiClient } from "./apiClient";
 
 /**
@@ -530,10 +553,10 @@ export type TreasuryAccount = TreasuryAccountPayload & {
 /**
  * Lista contas de tesouraria usando o cliente HTTP comum da MF1.
  *
- * @returns {Promise<TreasuryAccount[]>} Contas ativas da empresa atual.
+ * @returns {Promise<{items: TreasuryAccount[], pageInfo: {nextCursor: string | null, hasNextPage: boolean}}>} Página de contas.
  */
 export function listTreasuryAccounts() {
-    return apiClient.get<TreasuryAccount[]>("/api/treasury/accounts");
+    return apiClient.get<{items: TreasuryAccount[]; pageInfo: {nextCursor: string | null; hasNextPage: boolean}}>("/api/treasury/accounts");
 }
 
 /**
@@ -566,8 +589,8 @@ Se o backend devolver `400 INVALID_IBAN`, a página mostra a mensagem sem quebra
 Permitir criar e consultar contas de tesouraria.
 
 2. Ficheiros envolvidos:
-    - CRIAR: `real_dev/web/src/pages/TreasuryAccountsPage.tsx`
-    - EDITAR: `real_dev/web/src/App.tsx`
+    - CRIAR: `apps/web/src/pages/TreasuryAccountsPage.tsx`
+    - EDITAR: `apps/web/src/App.tsx`
     - REVER: `treasuryApi.ts`.
     - LOCALIZAÇÃO: ficheiro completo e menu.
 
@@ -578,7 +601,7 @@ Mostra formulario e lista com saldo mais recente.
 4. Código completo, correto e integrado com a app final.
 
 ```tsx
-// real_dev/web/src/pages/TreasuryAccountsPage.tsx
+// apps/web/src/pages/TreasuryAccountsPage.tsx
 import { FormEvent, useEffect, useState } from "react";
 import { createTreasuryAccount, listTreasuryAccounts, type TreasuryAccount } from "../lib/treasuryApi";
 
@@ -606,7 +629,7 @@ export function TreasuryAccountsPage() {
     const [loading, setLoading] = useState(false);
 
     async function load() {
-        setAccounts(await listTreasuryAccounts());
+        setAccounts((await listTreasuryAccounts()).items);
     }
 
     useEffect(() => { void load().catch((err) => setError(err instanceof Error ? err.message : "Erro inesperado")); }, []);
@@ -731,5 +754,5 @@ BK-MF3-03 usa `TreasuryAccount.id` para associar extratos bancários a uma conta
 
 ## Changelog
 
-- `2026-06-15`: alinhados caminhos técnicos da MF3 com `real_dev/api` e `real_dev/web`, preservando contratos RF/RNF, dependências e escopo.
+- `2026-06-15`: alinhados caminhos técnicos da MF3 com `apps/api` e `apps/web`, preservando contratos RF/RNF, dependências e escopo.
 - `2026-06-13`: corrigido para criar contas e snapshots reais, com validator, service transacional, routes com erros controlados, frontend com `apiClient`, JSDoc e comentários didáticos.

@@ -17,7 +17,11 @@
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF8-15`
 - `guia_path`: `docs/planificacao/guias-bk/MF8/BK-MF8-14-aproximacao-da-ui-a-ui-do-mockup.md`
-- `last_updated`: `2026-07-02`
+- `last_updated`: `2026-07-10`
+
+#### Contrato funcional da UI atualizado
+
+A aproximação visual assenta em React Router, registry única de rotas, `AuthProvider` deny-by-default, 404, deep links e histórico Back/Forward. Em `401`, limpa sessão e conserva apenas `returnTo` interno validado. A navegação mobile é um drawer fechado por omissão; em 375 px não há overflow horizontal e o conteúdo começa até 120 px do topo. Formulários usam selects/autocomplete e editores de linhas, preservam dados em erro e não mostram dumps técnicos. O gate inclui teclado, foco, diálogos e axe, mais E2E real em Chrome, Edge e Firefox nos três viewports contratados.
 
 #### Objetivo
 

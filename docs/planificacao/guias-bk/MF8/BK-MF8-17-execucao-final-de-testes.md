@@ -17,7 +17,11 @@
 - `core_or_reforco`: `Core`
 - `proximo_bk`: `BK-MF8-18`
 - `guia_path`: `docs/planificacao/guias-bk/MF8/BK-MF8-17-execucao-final-de-testes.md`
-- `last_updated`: `2026-07-03`
+- `last_updated`: `2026-07-10`
+
+#### Gate final atualizado
+
+Executa migrations desde zero, API, integração, Redis, SMTP, S3, restore, concorrência, SAF-T, web, Playwright/axe, carga, health, audits, builds e validadores documentais. O gate documental pode devolver `documentation_sync_pass=true` enquanto `overall_pass=false` por blockers runtime legítimos. Nenhum comando ignorado ou browser não iniciado é convertido em sucesso; o defect report continua fail-closed enquanto a decisão global for `NO_GO`.
 
 #### Objetivo
 
@@ -261,7 +265,7 @@ const finalCommands = [
         command: "bash",
         args: ["scripts/validate-planificacao.sh"],
         cwd: repoRoot,
-        expected: "overall_pass=true no relatório JSON do validador."
+        expected: "documentation_sync_pass=true; overall_pass reflete separadamente blockers runtime."
     }
 ];
 

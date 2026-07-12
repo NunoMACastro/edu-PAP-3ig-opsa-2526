@@ -1,3 +1,10 @@
+> [!WARNING]
+> `SNAPSHOT_HISTORICO_SUPERSEDED` — estado `SUPERSEDED` em 2026-07-10.
+>
+> Este relatório preserva um snapshot histórico e não representa o estado corrente.
+> Fonte atual: [relatório canónico](../auditorias/CORRECAO-AUDITORIA-END-TO-END-REAL_DEV-2026-07-09.md).
+> Não reutilizar contagens, comandos, paths ou decisões deste corpo como evidence atual.
+
 # Auditoria de implementacao real_dev - MF6
 
 ## Execucao atual - auditoria consolidada de toda a MF6 - 2026-06-25
@@ -110,7 +117,7 @@ O estado nao e `PASS` absoluto porque as provas executadas continuam maioritaria
 | `git status --short` | `PASS_COM_OBSERVACOES` | Os tres relatorios MF6 ja estavam untracked antes desta execucao. |
 | `git check-ignore -v real_dev real_dev/api real_dev/web` | `PASS` | `real_dev/` esta ignorado por `.gitignore:4`, comportamento esperado nesta PAP. |
 | `npm --prefix real_dev/api run syntax:check` | `PASS` | `node --check` em `src`, `tests` e `scripts`. |
-| `DATABASE_URL=postgresql://user:pass@localhost:5432/opsa_dev npm --prefix real_dev/api run prisma:validate` | `PASS` | Schema Prisma valido. |
+| `DATABASE_URL=<URL_AUTHENTICATED_REDACTED> npm --prefix real_dev/api run prisma:validate` | `PASS` | Schema Prisma valido. |
 | `npm --prefix real_dev/api run test:mf6` | `PASS_COM_RESSALVAS` | 10 smokes MF6 passaram; concorrencia correu em `mode: local-contract`. |
 | `npm --prefix real_dev/api run test:unit` | `PASS` | 65 testes passaram. |
 | `npm --prefix real_dev/api run test:contracts` | `PASS` | 30 testes passaram. |
@@ -272,7 +279,7 @@ Nao foram encontrados findings `P0`, `P1` ou `P2`. O estado nao e `PASS` absolut
 | `git status --short` | `PASS_COM_OBSERVACOES` | Tres relatorios MF6 ja estavam untracked antes desta execucao. |
 | `git check-ignore -v real_dev real_dev/api real_dev/web` | `PASS` | `real_dev/` esta gitignored por `.gitignore:4`, comportamento esperado nesta PAP. |
 | `npm --prefix real_dev/api run syntax:check` | `PASS` | `node --check` em `src`, `tests` e `scripts`. |
-| `DATABASE_URL=postgresql://user:pass@localhost:5432/opsa_dev npm --prefix real_dev/api run prisma:validate` | `PASS` | Schema Prisma valido. |
+| `DATABASE_URL=<URL_AUTHENTICATED_REDACTED> npm --prefix real_dev/api run prisma:validate` | `PASS` | Schema Prisma valido. |
 | `npm --prefix real_dev/api run test:mf6:env` | `PASS_COM_RISCO_P3` | Passou, mas nao faz scanner source-wide nem negativo de `DATABASE_URL` ausente em producao. |
 | `npm --prefix real_dev/api run test:mf6:audit` | `PASS_COM_RISCO_P3` | Passou, mas so valida textualmente a integracao em `saleDocumentService.js`. |
 | `npm --prefix real_dev/api run test:mf6` | `PASS_COM_RESSALVAS` | 10 smokes MF6 passaram; concorrencia continua em `mode: local-contract`; BK9/BK10 mantem gaps P3 de cobertura. |
@@ -422,7 +429,7 @@ Nao foram confirmados findings `P0`, `P1` ou `P2` nos BKs alvo. O estado nao e `
 | `git status --short` | `PASS_COM_OBSERVACOES` | Relatorios MF6 ja estavam untracked antes desta execucao. |
 | `git check-ignore -v real_dev real_dev/api real_dev/web` | `PASS` | `real_dev/` esta gitignored por `.gitignore:4`, comportamento esperado nesta PAP. |
 | `npm --prefix real_dev/api run syntax:check` | `PASS` | `node --check` em `src`, `tests` e `scripts`. |
-| `DATABASE_URL=postgresql://user:pass@localhost:5432/opsa_dev npm --prefix real_dev/api run prisma:validate` | `PASS` | Schema Prisma valido. |
+| `DATABASE_URL=<URL_AUTHENTICATED_REDACTED> npm --prefix real_dev/api run prisma:validate` | `PASS` | Schema Prisma valido. |
 | `npm --prefix real_dev/api run test:mf6:session-cookie` | `PASS` | Smoke dedicado de `BK-MF6-07` passou. |
 | `npm --prefix real_dev/api run test:mf6:hardening` | `PASS` | Smoke dedicado de `BK-MF6-08` passou. |
 | `npm --prefix real_dev/api run test:unit` | `PASS` | 65 testes passaram. |
@@ -435,7 +442,7 @@ Nao foram confirmados findings `P0`, `P1` ou `P2` nos BKs alvo. O estado nao e `
 | Scan largo da prompt com `rg` | `PASS_COM_OBSERVACOES` | Apenas matches contextuais/defensivos de `secret`/`token`; sem finding funcional. |
 | Scan de drift de dominio com `rg` | `PASS` | Sem referencias a outros produtos/domínios. |
 | `git diff --check` | `PASS` | Sem whitespace errors antes da escrita deste bloco. |
-| `DATABASE_URL=postgresql://user:pass@localhost:5432/opsa_dev NODE_ENV=production APP_BASE_URL=https://opsa.example.test PORT=4188 npm --prefix real_dev/api run dev` | `INCONCLUSIVO` | Imprimiu `api_started`, mas terminou com exit code 0; nao ficou disponivel para `curl`. |
+| `DATABASE_URL=<URL_AUTHENTICATED_REDACTED> NODE_ENV=production APP_BASE_URL=https://opsa.example.test PORT=4188 npm --prefix real_dev/api run dev` | `INCONCLUSIVO` | Imprimiu `api_started`, mas terminou com exit code 0; nao ficou disponivel para `curl`. |
 
 ### Validacoes nao executadas
 
@@ -534,7 +541,7 @@ O finding historico `MF6-AUD-20260625-BK06-F01` continua `CORRIGIDO`: `rg -n "@p
 | `git status --short` | `PASS_COM_OBSERVACOES` | Tres relatorios MF6 ja estavam untracked antes desta execucao. |
 | `git check-ignore -v real_dev real_dev/api real_dev/web` | `PASS` | `real_dev/` esta gitignored por `.gitignore:4`, comportamento esperado nesta PAP. |
 | `npm --prefix real_dev/api run syntax:check` | `PASS` | `node --check` em `src`, `tests` e `scripts`. |
-| `DATABASE_URL=postgresql://user:pass@localhost:5432/opsa_dev npm --prefix real_dev/api run prisma:validate` | `PASS` | Schema Prisma valido. |
+| `DATABASE_URL=<URL_AUTHENTICATED_REDACTED> npm --prefix real_dev/api run prisma:validate` | `PASS` | Schema Prisma valido. |
 | `npm --prefix real_dev/api run test:mf6:https` | `PASS` | Smoke dedicado de `BK-MF6-05` passou. |
 | `npm --prefix real_dev/api run test:mf6:bcrypt` | `PASS` | Smoke dedicado de `BK-MF6-06` passou. |
 | `npm --prefix real_dev/api run test:unit` | `PASS` | 65 testes passaram. |
@@ -545,8 +552,8 @@ O finding historico `MF6-AUD-20260625-BK06-F01` continua `CORRIGIDO`: `rg -n "@p
 | `npm --prefix real_dev/web run build` | `PASS` | Vite build passou. |
 | `bash scripts/validate-planificacao.sh` | `PASS_COM_OBSERVACOES` | `overall_pass=true`; `advisory_pass=false` por divida documental/global fora deste modo. |
 | `git diff --check` | `PASS` | Sem whitespace errors em ficheiros tracked. |
-| `PORT=4176 NODE_ENV=production APP_BASE_URL=https://opsa.example.test DATABASE_URL=postgresql://user:pass@localhost:5432/opsa_dev npm --prefix real_dev/api run dev` | `INCONCLUSIVO` | Imprimiu `api_started`, mas terminou de imediato com exit code 0. |
-| `PORT=4176 NODE_ENV=production APP_BASE_URL=https://opsa.example.test DATABASE_URL=postgresql://user:pass@localhost:5432/opsa_dev node src/server.js` | `INCONCLUSIVO` | Mesmo comportamento: `api_started` e termino imediato. |
+| `PORT=4176 NODE_ENV=production APP_BASE_URL=https://opsa.example.test DATABASE_URL=<URL_AUTHENTICATED_REDACTED> npm --prefix real_dev/api run dev` | `INCONCLUSIVO` | Imprimiu `api_started`, mas terminou de imediato com exit code 0. |
+| `PORT=4176 NODE_ENV=production APP_BASE_URL=https://opsa.example.test DATABASE_URL=<URL_AUTHENTICATED_REDACTED> node src/server.js` | `INCONCLUSIVO` | Mesmo comportamento: `api_started` e termino imediato. |
 | `curl -i -H 'x-forwarded-proto: http' http://127.0.0.1:4176/api/auth/me` | `BLOQUEADO` | `curl: (7) Failed to connect`, sem servidor persistente. |
 
 ### Validacoes nao executadas
@@ -704,7 +711,7 @@ Nao ha findings `P0`, `P1` ou `P2` ativos para estes dois BKs.
 | `git status --short` | `PASS_COM_OBSERVACOES` | Tres relatorios MF6 estavam untracked antes desta execucao. |
 | `git check-ignore -v real_dev real_dev/api real_dev/web` | `PASS` | `real_dev/` esta gitignored por `.gitignore:4`, comportamento esperado. |
 | `npm --prefix real_dev/api run syntax:check` | `PASS` | `node --check` em `src`, `tests` e `scripts`. |
-| `DATABASE_URL=postgresql://user:pass@localhost:5432/opsa_dev npm --prefix real_dev/api run prisma:validate` | `PASS` | Schema Prisma valido. |
+| `DATABASE_URL=<URL_AUTHENTICATED_REDACTED> npm --prefix real_dev/api run prisma:validate` | `PASS` | Schema Prisma valido. |
 | `npm --prefix real_dev/api run test:mf6:https` | `PASS` | Smoke dedicado de `BK-MF6-05` passou. |
 | `npm --prefix real_dev/api run test:mf6:bcrypt` | `PASS` | Smoke dedicado de `BK-MF6-06` passou. |
 | `npm --prefix real_dev/api run test:unit` | `PASS` | 65 testes passaram. |
@@ -713,7 +720,7 @@ Nao ha findings `P0`, `P1` ou `P2` ativos para estes dois BKs.
 | `OPSA_SKIP_PERSISTENCE_TESTS=true npm --prefix real_dev/api run test:integration` | `PASS_COM_RESSALVAS` | 2 testes saltados explicitamente por falta de `TEST_DATABASE_URL`. |
 | `npm --prefix real_dev/web run typecheck` | `PASS` | TypeScript sem erros. |
 | `npm --prefix real_dev/web run build` | `PASS` | Vite build passou. |
-| `PORT=4176 NODE_ENV=production APP_BASE_URL=https://opsa.example.test DATABASE_URL=postgresql://user:pass@localhost:5432/opsa_dev npm --prefix real_dev/api run dev` | `INCONCLUSIVO` | Imprimiu `api_started`, mas o processo terminou antes de permitir `curl` persistente. |
+| `PORT=4176 NODE_ENV=production APP_BASE_URL=https://opsa.example.test DATABASE_URL=<URL_AUTHENTICATED_REDACTED> npm --prefix real_dev/api run dev` | `INCONCLUSIVO` | Imprimiu `api_started`, mas o processo terminou antes de permitir `curl` persistente. |
 | `curl -i -H 'x-forwarded-proto: http' http://127.0.0.1:4176/api/auth/me` | `BLOQUEADO` | `curl: (7) Failed to connect`; sem servidor persistente. |
 | `curl -i -H 'x-forwarded-proto: https' http://127.0.0.1:4176/api/auth/me` | `BLOQUEADO` | `curl: (7) Failed to connect`; sem servidor persistente. |
 | Scans estaticos com `rg` | `PASS_COM_OBSERVACOES` | Sem P0/P1/P2 acionavel; um P3 de JSDoc em auth. |
@@ -817,7 +824,7 @@ Os findings anteriores `MF6-AUD-20260625-BK03-F01` e `MF6-AUD-20260625-BK04-F01`
 | `git status --short --untracked-files=all` | `PASS_COM_OBSERVACOES` | Tres relatorios MF6 estavam untracked antes desta execucao. |
 | `git check-ignore -v real_dev real_dev/api real_dev/web` | `PASS` | `real_dev/` esta gitignored por `.gitignore:4`, comportamento esperado nesta PAP. |
 | `npm --prefix real_dev/api run syntax:check` | `PASS` | `node --check` em `src`, `tests` e `scripts`. |
-| `DATABASE_URL=postgresql://user:pass@localhost:5432/opsa_dev npm --prefix real_dev/api run prisma:validate` | `PASS` | Schema Prisma valido. |
+| `DATABASE_URL=<URL_AUTHENTICATED_REDACTED> npm --prefix real_dev/api run prisma:validate` | `PASS` | Schema Prisma valido. |
 | `npm --prefix real_dev/api run test:mf6:reconciliation` | `PASS` | Smoke dedicado de `BK-MF6-03` passou. |
 | `npm --prefix real_dev/api run test:mf6:fifo` | `PASS` | Smoke dedicado de `BK-MF6-04` passou. |
 | `npm --prefix real_dev/api run test:unit` | `PASS` | 65 testes passaram. |
@@ -970,7 +977,7 @@ Nao ha findings `P0`, `P1` ou `P2` ativos nos dois BKs. Existem dois findings `P
 | `git status --short --untracked-files=all` | `PASS_COM_OBSERVACOES` | Tres relatorios MF6 estavam untracked antes desta execucao. |
 | `git check-ignore -v real_dev real_dev/api real_dev/web` | `PASS` | `real_dev/` esta gitignored por `.gitignore:4`. |
 | `npm --prefix real_dev/api run syntax:check` | `PASS` | `node --check` em `src`, `tests` e `scripts`. |
-| `DATABASE_URL=postgresql://user:pass@localhost:5432/opsa_dev npm --prefix real_dev/api run prisma:validate` | `PASS` | Schema Prisma valido. |
+| `DATABASE_URL=<URL_AUTHENTICATED_REDACTED> npm --prefix real_dev/api run prisma:validate` | `PASS` | Schema Prisma valido. |
 | `npm --prefix real_dev/api run test:mf6:reconciliation` | `PASS` | Smoke dedicado de `BK-MF6-03` passou. |
 | `npm --prefix real_dev/api run test:mf6:fifo` | `PASS` | Smoke dedicado de `BK-MF6-04` passou. |
 | `npm --prefix real_dev/api run test:unit` | `PASS` | 65 testes passaram, incluindo negativos de reconciliacao parcial e stock FIFO insuficiente. |
@@ -1066,7 +1073,7 @@ Decisao de avanco: `BK-MF6-02` fica marcado como `CONCLUIDO_COM_NOTA_DE_TESTE_PO
 | `git status --short --untracked-files=all` | `PASS_COM_OBSERVACOES` | Tres relatorios MF6 estavam untracked antes desta execucao. |
 | `git check-ignore -v real_dev real_dev/api real_dev/web` | `PASS` | `real_dev/` esta gitignored por `.gitignore:4`. |
 | `npm --prefix real_dev/api run syntax:check` | `PASS` | `node --check` em `src`, `tests` e `scripts`. |
-| `DATABASE_URL=postgresql://user:pass@localhost:5432/opsa_dev npm --prefix real_dev/api run prisma:validate` | `PASS` | Schema Prisma valido. |
+| `DATABASE_URL=<URL_AUTHENTICATED_REDACTED> npm --prefix real_dev/api run prisma:validate` | `PASS` | Schema Prisma valido. |
 | `npm --prefix real_dev/api run test:mf6:documents` | `PASS` | Contrato de performance de documentos OK. |
 | `npm --prefix real_dev/api run test:mf6:concurrency` | `PASS_COM_RESSALVAS` | Passou em `mode: local-contract`, sem HTTP autenticado real. |
 | `npm --prefix real_dev/api run test:unit` | `PASS` | 65 testes passaram. |
@@ -1094,7 +1101,7 @@ Nao foram alterados codigo em `real_dev`, BKs, RF/RNF, backlog, matriz, sprints,
 
 ### Nota para teste posterior
 
-Executar `OPSA_SESSION_COOKIES_JSON='[...]' OPSA_API_BASE_URL='http://127.0.0.1:3000' npm --prefix real_dev/api run test:mf6:concurrency` com 25 cookies validos da mesma empresa e uma DB de teste preparada. Se passar, reauditar `BK-MF6-02` e substituir a nota de teste posterior por evidencia operacional completa.
+Executar `OPSA_SESSION_COOKIES_JSON=<SECRET_REDACTED> OPSA_API_BASE_URL='http://127.0.0.1:3000' npm --prefix real_dev/api run test:mf6:concurrency` com 25 cookies validos da mesma empresa e uma DB de teste preparada. Se passar, reauditar `BK-MF6-02` e substituir a nota de teste posterior por evidencia operacional completa.
 
 ## Execucao atual - reauditoria BK-MF6-01 e BK-MF6-02 - 2026-06-25
 
@@ -1181,7 +1188,7 @@ Estado geral: `PASS_COM_RISCOS`
 | `git status --short --untracked-files=all` | `PASS_COM_OBSERVACOES` | Tres relatorios MF6 ja estavam untracked antes desta reauditoria. |
 | `git check-ignore -v real_dev real_dev/api real_dev/web` | `PASS` | `real_dev/` esta gitignored por `.gitignore:4`, esperado. |
 | `npm run syntax:check` em `real_dev/api` | `PASS` | `node --check` em `src`, `tests` e `scripts`. |
-| `DATABASE_URL=postgresql://user:pass@localhost:5432/opsa_dev npm run prisma:validate` em `real_dev/api` | `PASS` | Schema Prisma valido. |
+| `DATABASE_URL=<URL_AUTHENTICATED_REDACTED> npm run prisma:validate` em `real_dev/api` | `PASS` | Schema Prisma valido. |
 | `npm run test:mf6:documents` em `real_dev/api` | `PASS` | Contrato de performance de documentos OK. |
 | `npm run test:mf6:concurrency` em `real_dev/api` | `PASS_COM_RESSALVAS` | Passou em `mode: local-contract`, sem HTTP autenticado real. |
 | `npm run test:unit` em `real_dev/api` | `PASS` | 65 testes passaram. |
@@ -1338,7 +1345,7 @@ Estado geral: `PASS_COM_RISCOS`
 | `git status --short` | `PASS_COM_OBSERVACOES` | Ja existiam tres relatorios MF6 untracked antes desta auditoria. |
 | `git check-ignore -v real_dev real_dev/api real_dev/web` | `PASS` | `.gitignore:4` ignora `real_dev/`, esperado. |
 | `npm run syntax:check` em `real_dev/api` | `PASS` | `node --check` em `src`, `tests` e `scripts`. |
-| `DATABASE_URL=postgresql://user:pass@localhost:5432/opsa_dev npm run prisma:validate` em `real_dev/api` | `PASS` | Schema Prisma valido. |
+| `DATABASE_URL=<URL_AUTHENTICATED_REDACTED> npm run prisma:validate` em `real_dev/api` | `PASS` | Schema Prisma valido. |
 | `npm run test:mf6:documents` em `real_dev/api` | `PASS` | Contrato de performance de documentos OK. |
 | `npm run test:mf6:concurrency` em `real_dev/api` | `PASS_COM_RESSALVAS` | Passou em `mode: local-contract`, sem HTTP autenticado. |
 | `npm run test:unit` em `real_dev/api` | `PASS` | 65 testes passaram. |
@@ -1477,7 +1484,7 @@ Classificacao: `OK_COM_RISCOS`.
 - `localStorage`/`sessionStorage`: sem ocorrencias acionaveis em `real_dev/web`.
 - `dangerouslySetInnerHTML`, `eval`, `new Function`: sem ocorrencias acionaveis.
 - Drift de outros produtos: pesquisa por `FaithFlix`, `StudyFlow`, `Orelle`, cosmetica, biometria, streaming, pool solidaria, turma, professor, sala e material de estudo nao encontrou ocorrencias.
-- `.env.example`: contem placeholders locais, incluindo `DATABASE_URL=postgresql://user:password@localhost:5432/opsa_dev`; nao contem segredo real.
+- `.env.example`: contem placeholders locais, incluindo `DATABASE_URL=<URL_AUTHENTICATED_REDACTED>`; nao contem segredo real.
 
 ## Comandos executados
 

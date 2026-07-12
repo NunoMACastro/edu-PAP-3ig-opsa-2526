@@ -17,7 +17,7 @@
 - `core_or_reforco`: `Core`
 - `proximo_bk`: `BK-MF2-05`
 - `guia_path`: `docs/planificacao/guias-bk/MF2/BK-MF2-04-contagem-fisica-e-ajustes.md`
-- `last_updated`: `2026-06-08`
+- `last_updated`: `2026-07-10`
 
 ## Objetivo
 
@@ -78,6 +78,10 @@ A equipa consegue publicar diferenças físicas com auditoria e sem alterar sald
 - **Publicação transacional:** uma contagem publicada não pode ficar a meio. O pedido vem da rota de publicação, o backend valida linhas, cria movimentos de ajuste e marca a contagem como publicada na mesma transação, serve para manter rasto completo, e evita contagens fechadas sem movimentos ou movimentos repetidos.
 - **Integração com FIFO:** excedentes físicos precisam de custo unitário e faltas consomem custo pelo mecanismo FIFO. A informação vem da contagem e das camadas do BK-MF2-03, segue para `createStockMovementWithCostInTransaction`, serve para valorizar o ajuste, e evita quantidades sem custo contabilístico.
 - **Segurança e governação:** só a empresa ativa é alterada e a publicação fica auditável. Empresa e utilizador vêm da sessão, o backend filtra recursos por `companyId`, serve para separar inventários, e evita que uma contagem de outra empresa seja publicada por engano.
+
+## Contrato de paridade obrigatório (2026-07-10)
+
+`countedAt` é uma data civil estrita `YYYY-MM-DD`. Publicar faz primeiro o claim `DRAFT -> POSTED`; quem perde recebe `409 STALE_STATE`. Dentro da mesma transação serializável, os saldos e camadas FIFO são bloqueados em ordem estável, os ajustes são criados e a auditoria é gravada. A transação inteira faz rollback se qualquer linha falhar.
 
 ## Arquitetura do BK
 
@@ -248,16 +252,16 @@ Usar transação e service de movimentos.
 ```js
 // apps/api/src/modules/inventory/inventoryCountService.js
 import { httpError } from "../../lib/httpErrors.js";
+import { parseStrictDateOnly } from "../../lib/strictDate.js";
 import { createStockMovementWithCostInTransaction } from "./stockMovementService.js";
 
 function parseInventoryCount(input) {
   const warehouseId = String(input?.warehouseId ?? "").trim();
   const reason = String(input?.reason ?? "").trim();
-  const countedAt = new Date(String(input?.countedAt ?? new Date().toISOString()));
+  const countedAt = parseStrictDateOnly(input?.countedAt, { code: "INVALID_COUNT_DATE", field: "countedAt" });
 
   if (!warehouseId) throw httpError(400, "WAREHOUSE_REQUIRED", "Indica o armazém da contagem.");
   if (reason.length < 4) throw httpError(400, "COUNT_REASON_REQUIRED", "Indica o motivo da contagem.");
-  if (Number.isNaN(countedAt.getTime())) throw httpError(400, "INVALID_COUNT_DATE", "Data de contagem inválida.");
 
   return { warehouseId, reason, countedAt };
 }
@@ -389,8 +393,15 @@ export async function postInventoryCount(prisma, { companyId, userId, countId })
     });
 
     if (!count) throw httpError(404, "INVENTORY_COUNT_NOT_FOUND", "Contagem não encontrada.");
-    if (count.status !== "DRAFT") throw httpError(409, "INVENTORY_COUNT_ALREADY_POSTED", "Contagem já publicada.");
     if (count.lines.length === 0) throw httpError(400, "INVENTORY_COUNT_LINES_REQUIRED", "A contagem não tem linhas.");
+
+    const claim = await tx.inventoryCount.updateMany({
+      where: { id: count.id, companyId, status: "DRAFT" },
+      data: { status: "POSTED", postedAt: new Date() },
+    });
+    if (claim.count !== 1) {
+      throw httpError(409, "STALE_STATE", "A contagem foi publicada por outra operação");
+    }
 
     for (const line of count.lines) {
       const difference = Number(line.countedQuantity) - Number(line.expectedQuantity);
@@ -429,9 +440,8 @@ export async function postInventoryCount(prisma, { companyId, userId, countId })
       });
     }
 
-    const posted = await tx.inventoryCount.update({
+    const posted = await tx.inventoryCount.findUnique({
       where: { id: count.id },
-      data: { status: "POSTED", postedAt: new Date() },
       include: { lines: true },
     });
 

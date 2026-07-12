@@ -17,7 +17,7 @@
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF0-06`
 - `guia_path`: `docs/planificacao/guias-bk/MF0/BK-MF0-05-recuperacao-de-password-via-email.md`
-- `last_updated`: `2026-05-24`
+- `last_updated`: `2026-07-10`
 
 #### BK-MF0-05 - Recuperação de password via email.
 
@@ -25,7 +25,7 @@
 
 Neste BK vamos transformar o requisito RF05 num guia de execução para construir a parte da app relacionada com identidade. O foco não é produzir documentação genérica: é deixar claro que modelos, endpoints, validações, UI e evidência devem existir quando a equipa implementar o BK.
 
-A app real ainda está marcada como `sem_codigo`; por isso, os caminhos técnicos propostos seguem o contrato central `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md`. Esse contrato define a stack assumida, a estrutura indicativa e a regra de adaptação quando existir scaffold real, sem alterar RF, BK, owners, dependências ou critérios de aceite.
+A implementação pedagógica usa os caminhos públicos `apps/api` e `apps/web` e segue os contratos atuais de `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md` e `docs/planificacao/CONTRATO-INTERFACES-IMPLEMENTACAO.md`. O estado `TODO` descreve apenas o progresso dos alunos; não significa ausência de uma implementação privada de referência.
 
 Como a fase alvo é MF0, não existem BKs de fases anteriores a reutilizar. A continuidade nasce aqui: os outputs deste BK devem ser contratos estáveis para BK-MF0-06 e para os BKs de vendas, compras, inventário, contabilidade e segurança das fases seguintes.
 
@@ -49,7 +49,7 @@ Como a fase alvo é MF0, não existem BKs de fases anteriores a reutilizar. A co
 
 - Gestão de convites, porque pertence ao BK-MF0-04.
 - 2FA e políticas avançadas de password, não descritas nos RF/RNF.
-- Envio real de email se o serviço ainda não estiver aprovado; pode ficar com adapter/mock documentado.
+- Personalização avançada do template SMTP; o envio real através de outbox continua obrigatório.
 - Alteração de email da conta.
 
 ##### Como saber que isto ficou bem
@@ -69,14 +69,14 @@ Como a fase alvo é MF0, não existem BKs de fases anteriores a reutilizar. A co
 - Owner: `Oleksii` (CANONICO)
 - Apoio: `Pedro` (CANONICO)
 - Dependências (BK IDs): `-` (CANONICO)
-- Pré-condições: Sem dependências anteriores declaradas. App real pode ainda não existir; nesse caso criar a estrutura técnica assumida antes dos ficheiros alvo. (DERIVADO)
+- Pré-condições: Sem dependências anteriores declaradas. O scaffold pedagógico pode ainda estar incompleto; usar `apps/api` e `apps/web` e respeitar os contratos centrais atuais. (DERIVADO)
 - Ref. Plano: `PLANO-IMPLEMENTACAO-TOTAL.md` MF0; `PLANO-SPRINTS.md` S01-S02. (CANONICO)
 - Flow ID: `FLOW-PASSWORD-RESET` (DERIVADO)
 - Fonte de verdade: `docs/RF.md` -> `RF05` (CANONICO)
 - Fonte de verdade: `docs/planificacao/backlogs/BACKLOG-MVP.md` (CANONICO)
 - Fonte de verdade: `docs/planificacao/backlogs/MATRIZ-CANONICA-BK.md` e `docs/planificacao/backlogs/MF-VIEWS.md` (CANONICO)
 - Descrição: Recuperação de password via email. (CANONICO)
-- Stack decidida: `DERIVADO` e centralizada em `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md`; este BK usa essa stack apenas como assunção técnica até existir scaffold real.
+- Stack decidida: `DERIVADO` e centralizada em `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md`; este BK ensina o mesmo contrato seguro nos caminhos públicos dos alunos.
 - Mockup usado: `mockup/` existe e foi usado como referência de fluxo, hierarquia e nomes visíveis; não é contrato pixel-perfect.
 
 #### O que vamos fazer neste BK (DERIVADO):
@@ -119,13 +119,21 @@ Como a fase alvo é MF0, não existem BKs de fases anteriores a reutilizar. A co
 - A resposta ao pedido de recuperação deve ser igual para email existente e inexistente. Isto evita revelar contas válidas.
 - O token funciona como segredo. Por isso, guarda-se tokenHash na base de dados e mostra-se o token bruto apenas no link enviado.
 - A nova password deve passar pela mesma estratégia de hash do BK-MF0-01.
-- Um adapter de email reduz acoplamento: em desenvolvimento pode registar no log; em produção envia pelo serviço escolhido.
+- Um adapter de email reduz acoplamento, mas a entrega segue sempre `EmailOutbox` + worker SMTP; logs nunca substituem a entrega nem contêm email/token/link.
 - **Erros comuns a evitar:** implementar só no frontend, confiar em dados enviados pelo browser, esquecer `companyId` nos dados por empresa, devolver mensagens técnicas cruas ao utilizador ou criar campos que não aparecem nos RF/RNF.
 - **Negativos de segurança/robustez:** todos os casos inválidos devem falhar de forma controlada, sem stack traces, sem dados sensíveis e sem escrita parcial na base de dados.
 
+##### Contrato de paridade obrigatório (2026-07-10)
+
+- `POST /api/auth/password/forgot` usa o rate limiter Redis/HMAC comum e responde sempre de forma indistinguível, exista ou não conta.
+- Quando a conta existe, `PasswordResetToken`, item cifrado em `EmailOutbox` e `SecurityAuditEvent` são criados na mesma transação. O worker SMTP usa lease, retry exponencial, tentativas e deduplicação; modo log/mock é proibido em produção.
+- O link usa fragmento (`/recuperar-password#token=...`). O browser lê o segredo, remove-o da URL e envia-o apenas no body de `POST /api/auth/password/reset`. Tokens, email, IP, cookie e URL nunca entram em logs.
+- Reset bem-sucedido altera o hash, marca o token como usado, revoga todas as sessões anteriores e grava o evento de segurança atomicamente.
+- Os testes obrigatórios validam entrega na sandbox SMTP, resposta anti-enumeração, token expirado/usado e revogação efetiva das sessões.
+
 #### Tutorial técnico linear (DERIVADO):
 
-Este tutorial organiza o BK em passos lineares. O aluno deve seguir de cima para baixo: confirmar contratos, modelar dados, validar entradas, implementar regras de negócio, expor HTTP, testar e deixar handoff. Sempre que o scaffold real ainda não existir, usar a estrutura prevista em `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md` e registar a adaptação na evidence.
+Este tutorial organiza o BK em passos lineares. O aluno deve seguir de cima para baixo: confirmar contratos, modelar dados, validar entradas, implementar regras de negócio, expor HTTP, testar e deixar handoff. Se o scaffold pedagógico ainda estiver incompleto, usar `apps/api` e `apps/web`, seguir os contratos centrais atuais e registar a adaptação na evidence.
 
 ### Passo 1 - Confirmar contrato, scope e ligação aos BKs vizinhos
 
@@ -323,27 +331,22 @@ Localização: criar `apps/api/src/modules/auth/passwordResetRateLimit.js`.
 ```js
 import { httpError } from "../../lib/httpErrors.js";
 
-const WINDOW_MS = 15 * 60 * 1000;
-const MAX_ATTEMPTS = 5;
-const attempts = new Map();
-
-export function assertPasswordResetRateLimit(key, now = Date.now()) {
-    const entry = attempts.get(key);
-
-    if (!entry || entry.resetAt <= now) {
-        attempts.set(key, { count: 1, resetAt: now + WINDOW_MS });
-        return;
-    }
-
-    if (entry.count >= MAX_ATTEMPTS) {
+export function buildPasswordResetRateLimit({ redisRateLimiter }) {
+    return async function assertPasswordResetRateLimit({ ip, email }) {
+        // O limiter comum cria a chave com HMAC; os identificadores não são persistidos em claro.
+        const result = await redisRateLimiter.consume({
+            scope: "password-reset",
+            identifiers: [ip, email],
+            limit: 5,
+            windowSeconds: 15 * 60,
+        });
+        if (result.allowed) return;
         throw httpError(
             429,
             "RATE_LIMITED",
             "Demasiados pedidos de recuperação",
         );
-    }
-
-    entry.count += 1;
+    };
 }
 ```
 
@@ -352,17 +355,15 @@ Localização: criar `apps/api/src/modules/auth/passwordResetEmailAdapter.js`.
 ```js
 export function buildPasswordResetEmailAdapter({
     appBaseUrl,
-    logger = console,
+    emailOutbox,
 }) {
     return {
-        async sendPasswordReset({ email, token }) {
-            const resetUrl = `${appBaseUrl}/recuperar-password/${token}`;
-
-            // Em desenvolvimento, isto da evidence sem acoplar o service a um provider de email.
-            logger.info({
-                event: "password_reset_requested",
-                email,
-                resetUrl,
+        async enqueuePasswordReset(tx, { resetTokenId, email, token }) {
+            const resetUrl = `${appBaseUrl}/recuperar-password#token=${encodeURIComponent(token)}`;
+            return emailOutbox.enqueue(tx, {
+                kind: "PASSWORD_RESET",
+                dedupeKey: `password-reset:${resetTokenId}`,
+                payload: { to: email, resetUrl },
             });
         },
     };
@@ -432,15 +433,23 @@ export async function requestPasswordReset(
     if (!user || !user.isActive) return GENERIC_RESPONSE;
 
     const token = createToken();
-    await prisma.passwordResetToken.create({
-        data: {
-            userId: user.id,
-            tokenHash: hashToken(token),
-            expiresAt: new Date(now.getTime() + RESET_TTL_MS),
-        },
+    await prisma.$transaction(async (tx) => {
+        const resetToken = await tx.passwordResetToken.create({
+            data: {
+                userId: user.id,
+                tokenHash: hashToken(token),
+                expiresAt: new Date(now.getTime() + RESET_TTL_MS),
+            },
+        });
+        await emailAdapter.enqueuePasswordReset(tx, {
+            resetTokenId: resetToken.id,
+            email: user.email,
+            token,
+        });
+        await tx.securityAuditEvent.create({
+            data: { actorUserId: user.id, action: "PASSWORD_RESET_REQUESTED" },
+        });
     });
-
-    await emailAdapter.sendPasswordReset({ email: user.email, token });
     return GENERIC_RESPONSE;
 }
 
@@ -463,20 +472,23 @@ export async function resetPassword(
 
     const passwordHash = await hashPassword(password);
 
-    await prisma.$transaction([
-        prisma.user.update({
+    await prisma.$transaction(async (tx) => {
+        await tx.user.update({
             where: { id: resetToken.userId },
             data: { passwordHash },
-        }),
-        prisma.passwordResetToken.update({
+        });
+        await tx.passwordResetToken.update({
             where: { id: resetToken.id },
             data: { usedAt: now },
-        }),
-        prisma.session.updateMany({
+        });
+        await tx.session.updateMany({
             where: { userId: resetToken.userId, revokedAt: null },
             data: { revokedAt: now },
-        }),
-    ]);
+        });
+        await tx.securityAuditEvent.create({
+            data: { actorUserId: resetToken.userId, action: "PASSWORD_RESET_COMPLETED" },
+        });
+    });
 
     return GENERIC_RESPONSE;
 }
@@ -522,7 +534,7 @@ Localização: criar `apps/api/src/modules/auth/passwordResetController.js`.
 
 ```js
 import { toHttpError } from "../../lib/httpErrors.js";
-import { assertPasswordResetRateLimit } from "./passwordResetRateLimit.js";
+import { buildPasswordResetRateLimit } from "./passwordResetRateLimit.js";
 import {
     validateForgotPasswordPayload,
     validateResetPasswordPayload,
@@ -536,12 +548,13 @@ function sendError(res, error) {
         .json({ error: httpError.code, message: httpError.message });
 }
 
-export function buildPasswordResetController({ prisma, emailAdapter }) {
+export function buildPasswordResetController({ prisma, emailAdapter, redisRateLimiter }) {
+    const assertPasswordResetRateLimit = buildPasswordResetRateLimit({ redisRateLimiter });
     return {
         async forgot(req, res) {
             try {
                 const input = validateForgotPasswordPayload(req.body);
-                assertPasswordResetRateLimit(`${req.ip}:${input.email}`);
+                await assertPasswordResetRateLimit({ ip: req.ip, email: input.email });
                 const result = await requestPasswordReset(
                     prisma,
                     emailAdapter,
@@ -574,8 +587,10 @@ import { buildPasswordResetController } from "./passwordResetController.js";
 
 const passwordResetController = buildPasswordResetController({
     prisma,
+    redisRateLimiter,
     emailAdapter: buildPasswordResetEmailAdapter({
         appBaseUrl: process.env.APP_BASE_URL,
+        emailOutbox,
     }),
 });
 
@@ -696,8 +711,8 @@ Se falta fonte documental ou decisão de arquitetura, não inventes. Regista exa
 
 Decisões em falta a manter visíveis durante a implementação:
 
-- Falta escolher provider real de email e template final, conforme RNF21.
-- O rate limit em memória é aceitável apenas para desenvolvimento. Em produção deve ser substituído por armazenamento partilhado quando a arquitetura de deploy estiver definida.
+- O provider real é SMTP através de `EmailOutbox`; a sandbox SMTP é aceitável para teste, logs não são entrega.
+- O rate limit partilhado é Redis/HMAC. O store local existe apenas em desenvolvimento e em testes unitários explícitos; produção sem Redis/HMAC falha no arranque.
 
 5. Explicação do código.
 

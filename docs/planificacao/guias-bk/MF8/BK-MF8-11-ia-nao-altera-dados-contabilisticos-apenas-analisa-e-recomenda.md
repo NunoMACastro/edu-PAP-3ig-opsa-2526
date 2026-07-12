@@ -1,5 +1,7 @@
 # BK-MF8-11 - IA não altera dados contabilísticos; apenas analisa e recomenda.
 
+> **Atualização IA v2:** a OpenAI recebe apenas intenção, módulo, qualidade, limitações codificadas e sinais qualitativos. Não recebe pergunta, histórico, valores, SQL, Prisma, IDs ou tools; respostas inválidas acionam fallback determinístico. `assertAiRecommendationOnly` continua a proteger sugestões persistidas. Ver [`../SINCRONIZACAO-IA-V2.md`](../SINCRONIZACAO-IA-V2.md).
+
 ## Header
 
 - `doc_id`: `GUIA-BK-MF8-11`

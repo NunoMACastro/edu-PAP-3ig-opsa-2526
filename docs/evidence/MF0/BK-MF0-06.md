@@ -107,7 +107,7 @@ Smoke principal:
 >>   fiscalYearStartMonth = 1
 >>   fiscalYearStartDay = 1
 >> } | ConvertTo-Json
->> 
+>>
 >> try {
 >>   Invoke-RestMethod -Method Put "http://localhost:3000/api/company/profile" `
 >>     -ContentType "application/json" `

@@ -17,7 +17,7 @@
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF0-11`
 - `guia_path`: `docs/planificacao/guias-bk/MF0/BK-MF0-10-criar-e-gerir-fornecedores.md`
-- `last_updated`: `2026-05-24`
+- `last_updated`: `2026-07-10`
 
 #### BK-MF0-10 - Criar e gerir fornecedores.
 
@@ -25,7 +25,7 @@
 
 Neste BK vamos transformar o requisito RF10 num guia de execução para construir a parte da app relacionada com compras. O foco não é produzir documentação genérica: é deixar claro que modelos, endpoints, validações, UI e evidência devem existir quando a equipa implementar o BK.
 
-A app real ainda está marcada como `sem_codigo`; por isso, os caminhos técnicos propostos seguem o contrato central `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md`. Esse contrato define a stack assumida, a estrutura indicativa e a regra de adaptação quando existir scaffold real, sem alterar RF, BK, owners, dependências ou critérios de aceite.
+A implementação pedagógica usa os caminhos públicos `apps/api` e `apps/web` e segue os contratos atuais de `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md` e `docs/planificacao/CONTRATO-INTERFACES-IMPLEMENTACAO.md`. O estado `TODO` descreve apenas o progresso dos alunos; não significa ausência de uma implementação privada de referência.
 
 Como a fase alvo é MF0, não existem BKs de fases anteriores a reutilizar. A continuidade nasce aqui: os outputs deste BK devem ser contratos estáveis para BK-MF0-11 e para os BKs de vendas, compras, inventário, contabilidade e segurança das fases seguintes.
 
@@ -69,14 +69,14 @@ Como a fase alvo é MF0, não existem BKs de fases anteriores a reutilizar. A co
 - Owner: `Pedro` (CANONICO)
 - Apoio: `Oleksii` (CANONICO)
 - Dependências (BK IDs): `-` (CANONICO)
-- Pré-condições: Sem dependências anteriores declaradas. App real pode ainda não existir; nesse caso criar a estrutura técnica assumida antes dos ficheiros alvo. (DERIVADO)
+- Pré-condições: Sem dependências anteriores declaradas. O scaffold pedagógico pode ainda estar incompleto; usar `apps/api` e `apps/web` e respeitar os contratos centrais atuais. (DERIVADO)
 - Ref. Plano: `PLANO-IMPLEMENTACAO-TOTAL.md` MF0; `PLANO-SPRINTS.md` S01-S02. (CANONICO)
 - Flow ID: `FLOW-SUPPLIERS` (DERIVADO)
 - Fonte de verdade: `docs/RF.md` -> `RF10` (CANONICO)
 - Fonte de verdade: `docs/planificacao/backlogs/BACKLOG-MVP.md` (CANONICO)
 - Fonte de verdade: `docs/planificacao/backlogs/MATRIZ-CANONICA-BK.md` e `docs/planificacao/backlogs/MF-VIEWS.md` (CANONICO)
 - Descrição: Criar e gerir fornecedores. (CANONICO)
-- Stack decidida: `DERIVADO` e centralizada em `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md`; este BK usa essa stack apenas como assunção técnica até existir scaffold real.
+- Stack decidida: `DERIVADO` e centralizada em `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md`; este BK ensina o mesmo contrato seguro nos caminhos públicos dos alunos.
 - Mockup usado: `mockup/` existe e foi usado como referência de fluxo, hierarquia e nomes visíveis; não é contrato pixel-perfect.
 
 #### O que vamos fazer neste BK (DERIVADO):
@@ -125,7 +125,7 @@ Como a fase alvo é MF0, não existem BKs de fases anteriores a reutilizar. A co
 
 #### Tutorial técnico linear (DERIVADO):
 
-Este tutorial organiza o BK em passos lineares. O aluno deve seguir de cima para baixo: confirmar contratos, modelar dados, validar entradas, implementar regras de negócio, expor HTTP, testar e deixar handoff. Sempre que o scaffold real ainda não existir, usar a estrutura prevista em `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md` e registar a adaptação na evidence.
+Este tutorial organiza o BK em passos lineares. O aluno deve seguir de cima para baixo: confirmar contratos, modelar dados, validar entradas, implementar regras de negócio, expor HTTP, testar e deixar handoff. Se o scaffold pedagógico ainda estiver incompleto, usar `apps/api` e `apps/web`, seguir os contratos centrais atuais e registar a adaptação na evidence.
 
 ### Passo 1 - Confirmar contrato, scope e ligação aos BKs vizinhos
 
@@ -367,6 +367,12 @@ Localização: criar `apps/api/src/modules/suppliers/supplierService.js`.
 
 ```js
 import { httpError } from "../../lib/httpErrors.js";
+import {
+    buildCursorPage,
+    buildKeysetCondition,
+    decodePageCursor,
+    parsePageLimit,
+} from "../../lib/cursorPagination.js";
 
 function serialize(supplier) {
     return {
@@ -398,12 +404,25 @@ async function assertUniqueNif(prisma, companyId, nif, ignoreId = undefined) {
     }
 }
 
-export async function listSuppliers(prisma, companyId) {
-    const suppliers = await prisma.supplier.findMany({
-        where: { companyId, isActive: true },
-        orderBy: { name: "asc" },
+export async function listSuppliers(prisma, companyId, page = {}) {
+    const limit = parsePageLimit(page.limit);
+    const cursor = decodePageCursor(page.cursor, "string");
+    const keyset = buildKeysetCondition(cursor, {
+        sortField: "name",
+        direction: "asc",
     });
-    return suppliers.map(serialize);
+    const baseWhere = { companyId, isActive: true };
+    const suppliers = await prisma.supplier.findMany({
+        where: keyset ? { AND: [baseWhere, keyset] } : baseWhere,
+        orderBy: [{ name: "asc" }, { id: "asc" }],
+        take: limit + 1,
+    });
+    return buildCursorPage(suppliers, {
+        limit,
+        sortField: "name",
+        sortType: "string",
+        serialize,
+    });
 }
 
 export async function createSupplier(prisma, companyId, input) {
@@ -499,11 +518,8 @@ export function buildSupplierController({ prisma }) {
     return {
         async list(req, res) {
             try {
-                return res
-                    .status(200)
-                    .json({
-                        suppliers: await listSuppliers(prisma, req.companyId),
-                    });
+                const page = await listSuppliers(prisma, req.companyId, req.query);
+                return res.status(200).json(page);
             } catch (error) {
                 return sendError(res, error);
             }
@@ -728,7 +744,10 @@ Se o handoff diz para usar algo que não foi criado neste BK ou num BK anterior,
 
 Artigos e serviços vão referenciar fornecedores em compras futuras, mas este BK não cria essa relação ainda. O próximo BK deve manter o mesmo isolamento por empresa e validar IVA/preços com rigor.
 
+- Próximo BK recomendado: `BK-MF0-11`.
+
 ## Changelog
 
+- `2026-07-10`: handoff sincronizado explicitamente com o próximo BK canónico do header.
 - `2026-05-24`: guia refinado para estrutura step-by-step executável, com continuidade MF0, mockup, negativos, critérios e evidence.
 - `2026-04-19`: metadados canónicos preservados da vaga de normalização.

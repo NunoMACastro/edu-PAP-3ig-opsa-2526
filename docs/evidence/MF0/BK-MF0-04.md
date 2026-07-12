@@ -68,7 +68,7 @@ Keep-Alive: timeout=5
 
 {"error":"SESSION_REQUIRED","message":"Sessao obrigatoria"}
 
-- PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> try {                                                                                                                                                           
+- PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> try {
 >>   Invoke-RestMethod -Method Post "http://localhost:3000/api/company/invitations" `
 >>     -ContentType "application/json" `
 >>     -Body '{"email":"joao.contabilista@example.pt","role":"CONTABILISTA"}'

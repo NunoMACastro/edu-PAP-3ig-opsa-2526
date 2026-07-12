@@ -17,7 +17,7 @@
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF2-03`
 - `guia_path`: `docs/planificacao/guias-bk/MF2/BK-MF2-02-movimentos-de-stock-entradas-saidas-transferencias-devolucoes.md`
-- `last_updated`: `2026-06-08`
+- `last_updated`: `2026-07-10`
 
 ## Objetivo
 
@@ -76,6 +76,10 @@ O backend cria movimentos, atualiza saldos na mesma transação e expõe API/UI 
 - **Transação de inventário:** movimento e saldo são gravados juntos. O pedido vem da rota protegida, o service valida tipo, quantidade e armazéns, atualiza saldo em transação, serve para impedir escritas parciais, e evita movimentos registados sem impacto no saldo ou saldos alterados sem movimento.
 - **Regras negativas de stock:** saídas não podem ultrapassar saldo e transferências não podem usar o mesmo armazém como origem e destino. A informação vem do formulário, é validada no backend, devolve erro controlado, serve para manter consistência física, e evita stock negativo ou movimentos sem significado.
 - **Segurança multiempresa no frontend e backend:** a UI envia apenas dados operacionais; empresa e utilizador vêm da sessão. O backend filtra artigos, armazéns e movimentos por `companyId`, serve para separar dados de clientes, e evita que um pedido manipulado mova stock de outra empresa.
+
+## Contrato de paridade obrigatório (2026-07-10)
+
+Antes de calcular qualquer saldo, a transação bloqueia `StockBalance` com `SELECT ... FOR UPDATE`; transferências bloqueiam os dois saldos numa ordem estável. Movimento, saldo, FIFO e `AuditLog` são atómicos sob isolamento `Serializable`, com no máximo três retries apenas para conflitos serializáveis. Duas saídas concorrentes de 4 sobre saldo 5 produzem exatamente um sucesso e um `409 STALE_STATE`/stock insuficiente, nunca saldo negativo.
 
 ## Arquitetura do BK
 
@@ -259,7 +263,14 @@ Criar validadores antes do service e fazer a escrita principal numa transação 
 
 ```js
 // apps/api/src/modules/inventory/stockMovementService.js
+import {
+  buildCursorPage,
+  buildKeysetCondition,
+  decodePageCursor,
+  parsePageLimit,
+} from "../../lib/cursorPagination.js";
 import { httpError } from "../../lib/httpErrors.js";
+import { withSerializableRetry } from "../../lib/serializableRetry.js";
 
 const MOVEMENT_TYPES = new Set(["ENTRY", "EXIT", "TRANSFER", "RETURN", "ADJUSTMENT"]);
 
@@ -320,11 +331,19 @@ async function assertItemAndWarehousesBelongToCompany(tx, { companyId, itemId, f
 }
 
 async function changeBalance(tx, { companyId, itemId, warehouseId, delta }) {
-  const current = await tx.stockBalance.upsert({
+  await tx.stockBalance.upsert({
     where: { companyId_itemId_warehouseId: { companyId, itemId, warehouseId } },
     update: {},
     create: { companyId, itemId, warehouseId, quantity: 0 },
   });
+  const [current] = await tx.$queryRaw`
+    SELECT id, quantity
+    FROM "StockBalance"
+    WHERE "companyId" = ${companyId}
+      AND "itemId" = ${itemId}
+      AND "warehouseId" = ${warehouseId}
+    FOR UPDATE
+  `;
 
   const nextQuantity = Number(current.quantity) + delta;
   if (nextQuantity < 0) throw httpError(409, "INSUFFICIENT_STOCK", "Saldo insuficiente.");
@@ -382,7 +401,33 @@ export async function createStockMovementInTransaction(tx, { companyId, userId, 
 }
 
 export async function createStockMovement(prisma, context) {
-  return prisma.$transaction((tx) => createStockMovementInTransaction(tx, context));
+  return withSerializableRetry(
+    () => prisma.$transaction(
+      (tx) => createStockMovementInTransaction(tx, context),
+      { isolationLevel: "Serializable" },
+    ),
+    { maxAttempts: 3 },
+  );
+}
+
+export async function listStockMovements(prisma, companyId, page = {}) {
+  const limit = parsePageLimit(page.limit);
+  const cursor = decodePageCursor(page.cursor, "date");
+  const keyset = buildKeysetCondition(cursor, {
+    sortField: "createdAt",
+    direction: "desc",
+  });
+  const baseWhere = { companyId };
+  const records = await prisma.stockMovement.findMany({
+    where: keyset ? { AND: [baseWhere, keyset] } : baseWhere,
+    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+    take: limit + 1,
+  });
+  return buildCursorPage(records, {
+    limit,
+    sortField: "createdAt",
+    sortType: "date",
+  });
 }
 ```
 
@@ -422,7 +467,7 @@ import { requireAuth } from "../auth/authMiddleware.js";
 import { requireCompanyContext } from "../companies/companyContext.js";
 import { requireRole } from "../permissions/permissionMiddleware.js";
 import { toHttpError } from "../../lib/httpErrors.js";
-import { createStockMovement } from "./stockMovementService.js";
+import { createStockMovement, listStockMovements } from "./stockMovementService.js";
 
 export function createStockMovementRouter(prisma) {
   const router = Router();
@@ -443,12 +488,13 @@ export function createStockMovementRouter(prisma) {
   });
 
   router.get("/", guards, async (req, res) => {
-    const items = await prisma.stockMovement.findMany({
-      where: { companyId: req.companyId },
-      orderBy: { createdAt: "desc" },
-      take: 50,
-    });
-    return res.json({ items });
+    try {
+      const page = await listStockMovements(prisma, req.companyId, req.query);
+      return res.status(200).json(page);
+    } catch (error) {
+      const response = toHttpError(error);
+      return res.status(response.status).json(response.body);
+    }
   });
 
   return router;

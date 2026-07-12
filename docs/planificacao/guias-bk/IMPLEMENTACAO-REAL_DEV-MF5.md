@@ -1,3 +1,10 @@
+> [!WARNING]
+> `SNAPSHOT_HISTORICO_SUPERSEDED` — estado `SUPERSEDED` em 2026-07-10.
+>
+> Este relatório preserva um snapshot histórico e não representa o estado corrente.
+> Fonte atual: [relatório canónico](../auditorias/CORRECAO-AUDITORIA-END-TO-END-REAL_DEV-2026-07-09.md).
+> Não reutilizar contagens, comandos, paths ou decisões deste corpo como evidence atual.
+
 # IMPLEMENTACAO-REAL_DEV-MF5
 
 ## Header
@@ -611,7 +618,7 @@ Nao foram abertos findings. A validacao local foi adicionada como barreira de UX
 | `npm --prefix real_dev/web run build` | `0`; Vite build passou |
 | `npm --prefix real_dev/api run syntax:check` | `0`; syntax check passou |
 | `npm --prefix real_dev/api run prisma:validate` | `1`; esperado sem `DATABASE_URL` no ambiente |
-| `DATABASE_URL=postgresql://opsa:opsa@127.0.0.1:5432/opsa npm run prisma:validate` em `real_dev/api` | `0`; schema Prisma valido |
+| `DATABASE_URL=<URL_AUTHENTICATED_REDACTED> npm run prisma:validate` em `real_dev/api` | `0`; schema Prisma valido |
 | `npm run test:unit` em `real_dev/api` | `0`; 59 testes passaram |
 | `npm run test:contracts` em `real_dev/api` | `0`; 26 testes passaram |
 | `npm run test:integration` em `real_dev/api` | `1`; esperado sem `TEST_DATABASE_URL` seguro para testes persistentes |

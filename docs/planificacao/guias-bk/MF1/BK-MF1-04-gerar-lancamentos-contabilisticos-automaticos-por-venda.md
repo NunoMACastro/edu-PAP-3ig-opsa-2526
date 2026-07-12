@@ -17,7 +17,7 @@
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF1-05`
 - `guia_path`: `docs/planificacao/guias-bk/MF1/BK-MF1-04-gerar-lancamentos-contabilisticos-automaticos-por-venda.md`
-- `last_updated`: `2026-06-01`
+- `last_updated`: `2026-07-10`
 
 ## Objetivo
 
@@ -403,6 +403,7 @@ Localização: `apps/web/src/pages/SalePostingsPage.tsx`.
 // apps/web/src/pages/SalePostingsPage.tsx
 import { FormEvent, useState } from "react";
 import { postSaleDocument } from "../lib/accountingApi";
+import { EntityAutocomplete } from "../components/forms/EntityAutocomplete";
 
 export function SalePostingsPage() {
     const [saleDocumentId, setSaleDocumentId] = useState("");
@@ -433,7 +434,7 @@ export function SalePostingsPage() {
         <main>
             <h1>Contabilizar venda</h1>
             <form onSubmit={handleSubmit} aria-label="Contabilizar venda">
-                <input value={saleDocumentId} onChange={(event) => setSaleDocumentId(event.target.value)} placeholder="ID do documento de venda" />
+                <EntityAutocomplete label="Documento de venda aprovado" endpoint="/api/sales/documents" value={saleDocumentId} onChange={setSaleDocumentId} />
                 <button type="submit" disabled={loading}>{loading ? "A contabilizar..." : "Criar lançamento"}</button>
             </form>
             {error && <p role="alert">{error}</p>}
@@ -633,8 +634,11 @@ Sem evidência de testes, não pedir revisão final.
 
 O `BK-MF3-01` deve ler `JournalEntry` com `source=SALE` e contas de IVA para apurar IVA liquidado.
 
+- Próximo BK recomendado: `BK-MF1-05`.
+
 ## Changelog
 
+- `2026-07-10`: handoff imediato sincronizado com o próximo BK canónico, preservando o consumidor futuro MF3.
 - `2026-06-01`: Dependências técnicas canónicas alinhadas com a matriz, backlog e risco de PR da MF1.
 - `2026-05-31`: Corrigida fundamentação documental, relações inversas contabilísticas, auditoria do lançamento e teste autocontido.
 - `2026-05-31`: Guia consolidado com contrato técnico completo, código por camada, validações e handoff MF1.

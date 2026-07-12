@@ -17,7 +17,11 @@
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF7-09`
 - `guia_path`: `docs/planificacao/guias-bk/MF7/BK-MF7-08-backend-modular-por-dominio-vendas-compras-inventario-bancos-contabilidade-ia.md`
-- `last_updated`: `2026-06-27`
+- `last_updated`: `2026-07-10`
+
+#### Contrato modular atualizado
+
+`createApp(...)` compõe middleware, routes e dependências sem listener. `startServer()` valida configuração, abre HTTP, inicia/supervisiona workers e instala graceful shutdown. Redis, SMTP/outbox e S3 vivem atrás de adapters/serviços coesos; o worker de email é separado e retomável. Request ID/logging e readiness são transversais. Nenhum domínio importa o listener nem lê secrets fora da camada de configuração.
 
 #### Objetivo
 

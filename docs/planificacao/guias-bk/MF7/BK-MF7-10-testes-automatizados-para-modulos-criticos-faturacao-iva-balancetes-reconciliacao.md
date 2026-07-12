@@ -17,7 +17,11 @@
 - `core_or_reforco`: `Core`
 - `proximo_bk`: `BK-MF8-01`
 - `guia_path`: `docs/planificacao/guias-bk/MF7/BK-MF7-10-testes-automatizados-para-modulos-criticos-faturacao-iva-balancetes-reconciliacao.md`
-- `last_updated`: `2026-06-27`
+- `last_updated`: `2026-07-10`
+
+#### Contrato de testes atualizado
+
+Os módulos críticos exigem testes persistidos PostgreSQL, concorrência e isolamento multiempresa, além de unitários/contratos. A matriz cobre Redis entre duas instâncias, SMTP sandbox, S3, backup/restore, SAF-T XSD/reconciliação, health negativo, browser Playwright/axe e 25 utilizadores autenticados concorrentes. Um check por imports/regex não substitui comportamento. `skip`, suite não iniciada ou serviço ausente é `BLOQUEADO_AMBIENTE`, nunca PASS, e o gate académico exige zero skips.
 
 #### Objetivo
 

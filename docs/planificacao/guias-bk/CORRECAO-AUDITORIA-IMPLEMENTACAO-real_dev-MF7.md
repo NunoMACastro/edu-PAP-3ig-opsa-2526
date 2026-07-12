@@ -1,3 +1,10 @@
+> [!WARNING]
+> `SNAPSHOT_HISTORICO_SUPERSEDED` — estado `SUPERSEDED` em 2026-07-10.
+>
+> Este relatório preserva um snapshot histórico e não representa o estado corrente.
+> Fonte atual: [relatório canónico](../auditorias/CORRECAO-AUDITORIA-END-TO-END-REAL_DEV-2026-07-09.md).
+> Não reutilizar contagens, comandos, paths ou decisões deste corpo como evidence atual.
+
 # Correcao da auditoria de implementacao real_dev - MF7
 
 ## Execucao atual - BK-MF7-03 - 2026-06-30
@@ -80,7 +87,7 @@ Nao foram feitas alteracoes em `real_dev`, porque preencher `real_dev/web/eviden
 | `npm run test:mf7` em `real_dev/api` | `PASS` | Retencao, email, exports, imports, SAF-T, modulos backend e modulos criticos passaram. |
 | `npm run test:mf6` em `real_dev/api` | `PASS` | Gates MF6 passaram; concorrencia em `mode: local-contract`. |
 | `npm run syntax:check` em `real_dev/api` | `PASS` | Sintaxe JS de `src`, `tests` e `scripts` valida. |
-| `DATABASE_URL=postgresql://opsa:opsa@localhost:5432/opsa npm run prisma:validate` em `real_dev/api` | `PASS` | Schema Prisma valido. |
+| `DATABASE_URL=<URL_AUTHENTICATED_REDACTED> npm run prisma:validate` em `real_dev/api` | `PASS` | Schema Prisma valido. |
 | `npm run test:unit` em `real_dev/api` | `PASS` | 74 testes passaram. |
 | `npm run test:contracts` em `real_dev/api` | `PASS` | 53 testes passaram. |
 | `OPSA_SKIP_PERSISTENCE_TESTS=true npm run test:integration` em `real_dev/api` | `PASS_COM_SKIP_EXPLICITO` | 2 testes saltados por falta de `TEST_DATABASE_URL` persistente. |
@@ -183,7 +190,7 @@ Foi reconfirmado que o contrato `RNF19` de retencao legal contabilistica ja esta
 | `git check-ignore -v real_dev real_dev/api real_dev/web` | `PASS` | `real_dev/` confirmado como root ignorado por Git. |
 | `npm run test:mf7:retention` em `real_dev/api` | `PASS` | 9 testes de retencao passaram. |
 | `npm run syntax:check` em `real_dev/api` | `PASS` | Sintaxe JS de `src`, `tests` e `scripts` valida. |
-| `DATABASE_URL=postgresql://opsa:opsa@localhost:5432/opsa npm run prisma:validate` em `real_dev/api` | `PASS` | Schema Prisma valido. |
+| `DATABASE_URL=<URL_AUTHENTICATED_REDACTED> npm run prisma:validate` em `real_dev/api` | `PASS` | Schema Prisma valido. |
 | `npm run test:mf7` em `real_dev/api` | `PASS` | Retencao, email, exports, imports, SAF-T, modulos backend e modulos criticos passaram. |
 | `npm run test:mf6` em `real_dev/api` | `PASS` | Gates MF6 passaram; concorrencia em `mode: local-contract`. |
 | `npm run test:unit` em `real_dev/api` | `PASS` | 74 testes passaram. |
@@ -257,7 +264,7 @@ Nao foram feitas alteracoes em `real_dev`, porque substituir a prova real por si
 - `real_dev/api/scripts/verify-backup-restore.mjs` chama `spawnSync("pg_restore", ["--list", backupPath])`.
 - `command -v pg_dump` e `command -v pg_restore` terminaram com exit code `1`.
 - Caminhos comuns verificados sem ferramenta encontrada: `/opt/homebrew/bin`, `/opt/homebrew/opt/libpq/bin`, `/usr/local/bin` e `/Applications/Postgres.app/Contents/Versions/latest/bin`.
-- `DATABASE_URL=postgresql://opsa:opsa@localhost:5432/opsa_test OPSA_BACKUP_DIR=/private/tmp/opsa-mf7-backup-validation npm --prefix real_dev/api run mf7:backup` falhou com `pg_dump nao arrancou`.
+- `DATABASE_URL=<URL_AUTHENTICATED_REDACTED> OPSA_BACKUP_DIR=/private/tmp/opsa-mf7-backup-validation npm --prefix real_dev/api run mf7:backup` falhou com `pg_dump nao arrancou`.
 - `OPSA_BACKUP_FILE=/private/tmp/opsa-mf7-backup-validation/fake.dump npm --prefix real_dev/api run mf7:backup:verify` falhou com `pg_restore nao arrancou`.
 
 ### Decisoes de correcao
@@ -289,13 +296,13 @@ Nao foram feitas alteracoes em `real_dev`, porque substituir a prova real por si
 | `command -v pg_restore` | `BLOQUEADO_AMBIENTE` | Exit code `1`; ferramenta ausente. |
 | `ls -l` em caminhos comuns de PostgreSQL tools | `BLOQUEADO_AMBIENTE` | Sem `pg_dump`/`pg_restore`. |
 | `npm --prefix real_dev/api run mf7:backup` | `NEGATIVO_PASS` | Falhou com `DATABASE_URL em falta para executar backup`. |
-| `DATABASE_URL=postgresql://opsa:opsa@localhost:5432/opsa_test OPSA_BACKUP_DIR=/private/tmp/opsa-mf7-backup-validation npm --prefix real_dev/api run mf7:backup` | `BLOQUEADO_AMBIENTE` | Falhou com `pg_dump nao arrancou`. |
+| `DATABASE_URL=<URL_AUTHENTICATED_REDACTED> OPSA_BACKUP_DIR=/private/tmp/opsa-mf7-backup-validation npm --prefix real_dev/api run mf7:backup` | `BLOQUEADO_AMBIENTE` | Falhou com `pg_dump nao arrancou`. |
 | `npm --prefix real_dev/api run mf7:backup:verify` | `NEGATIVO_PASS` | Falhou com falta de `--file`/`OPSA_BACKUP_FILE`. |
 | `OPSA_BACKUP_FILE=/private/tmp/opsa-mf7-backup-validation/inexistente.dump npm --prefix real_dev/api run mf7:backup:verify` | `NEGATIVO_PASS` | Falhou com backup inexistente. |
 | `OPSA_BACKUP_FILE=/private/tmp/opsa-mf7-backup-validation/empty.dump npm --prefix real_dev/api run mf7:backup:verify` | `NEGATIVO_PASS` | Falhou com ficheiro vazio. |
 | `OPSA_BACKUP_FILE=/private/tmp/opsa-mf7-backup-validation/fake.dump npm --prefix real_dev/api run mf7:backup:verify` | `BLOQUEADO_AMBIENTE` | Falhou com `pg_restore nao arrancou`. |
 | `npm --prefix real_dev/api run syntax:check` | `PASS` | Sintaxe JS de `src`, `tests` e `scripts` valida. |
-| `DATABASE_URL=postgresql://opsa:opsa@localhost:5432/opsa npm --prefix real_dev/api run prisma:validate` | `PASS` | Schema Prisma valido. |
+| `DATABASE_URL=<URL_AUTHENTICATED_REDACTED> npm --prefix real_dev/api run prisma:validate` | `PASS` | Schema Prisma valido. |
 | `npm --prefix real_dev/api run test:mf6` | `PASS` | Gates MF6 passaram; concorrencia em `mode: local-contract`. |
 | `npm --prefix real_dev/api run test:mf7` | `PASS` | Retencao, email, exports, imports, SAF-T, backend modules e critical modules passaram. |
 | `npm --prefix real_dev/api run test:unit` | `PASS` | 74 testes passaram. |
@@ -376,7 +383,7 @@ Nao foram feitas alteracoes de codigo, porque os gates automaticos MF7, MF6, uni
 | `command -v pg_restore` | `BLOQUEADO_AMBIENTE` | Exit code `1`; ferramenta ausente no `PATH`. |
 | `ls -l` em caminhos comuns de PostgreSQL tools | `BLOQUEADO_AMBIENTE` | Sem `pg_dump`/`pg_restore` em Homebrew, libpq, `/usr/local/bin` ou Postgres.app. |
 | `DATABASE_URL= npm --prefix real_dev/api run mf7:backup` | `NEGATIVO_PASS` | Falhou com `DATABASE_URL em falta para executar backup`. |
-| `DATABASE_URL=postgresql://opsa:opsa@localhost:5432/opsa_test OPSA_BACKUP_DIR=/private/tmp/opsa-mf7-backup-validation npm --prefix real_dev/api run mf7:backup` | `BLOQUEADO_AMBIENTE` | Falhou com `pg_dump nao arrancou`. |
+| `DATABASE_URL=<URL_AUTHENTICATED_REDACTED> OPSA_BACKUP_DIR=/private/tmp/opsa-mf7-backup-validation npm --prefix real_dev/api run mf7:backup` | `BLOQUEADO_AMBIENTE` | Falhou com `pg_dump nao arrancou`. |
 | `npm --prefix real_dev/api run mf7:backup:verify` | `NEGATIVO_PASS` | Falhou com falta de `--file`/`OPSA_BACKUP_FILE`. |
 | `OPSA_BACKUP_FILE=/private/tmp/opsa-mf7-backup-validation/inexistente.dump npm --prefix real_dev/api run mf7:backup:verify` | `NEGATIVO_PASS` | Falhou com backup inexistente. |
 | `OPSA_BACKUP_FILE=/private/tmp/opsa-mf7-backup-validation/vazio.dump npm --prefix real_dev/api run mf7:backup:verify` | `NEGATIVO_PASS` | Falhou com ficheiro vazio. |
@@ -391,7 +398,7 @@ Nao foram feitas alteracoes de codigo, porque os gates automaticos MF7, MF6, uni
 | `git status --short --untracked-files=all` | `PASS_COM_OBSERVACOES` | Existem alteracoes preexistentes fora do escopo; preservadas. |
 | `git check-ignore -v real_dev real_dev/api real_dev/web` | `PASS` | `real_dev/` esta ignorado por `.gitignore`, por isso foi validado por leitura direta e comandos. |
 | `npm --prefix real_dev/api run syntax:check` | `PASS` | Sintaxe JS de `src`, `tests` e `scripts` valida. |
-| `DATABASE_URL=postgresql://opsa:opsa@localhost:5432/opsa npm --prefix real_dev/api run prisma:validate` | `PASS` | Schema Prisma valido. |
+| `DATABASE_URL=<URL_AUTHENTICATED_REDACTED> npm --prefix real_dev/api run prisma:validate` | `PASS` | Schema Prisma valido. |
 | `npm --prefix real_dev/api run test:mf7` | `PASS` | Agregador MF7 backend passou: retencao, email, exports, imports, SAF-T e modulos criticos. |
 | `npm --prefix real_dev/web run test:mf7` | `PASS` | Browser compatibility gate, frontend modules, typecheck e build passaram. |
 | `npm --prefix real_dev/api run test:unit` | `PASS` | 74 testes, 0 falhas. |
@@ -479,7 +486,7 @@ A correcao nao altera a validacao funcional de CSV/XLSX, nao muda o endpoint, na
 | `rg -n "INVALID_IMPORT_FILE_TYPE|INVALID_IMPORT_FILE_FORMAT" ...` | `PASS` | Apenas `INVALID_IMPORT_FILE_FORMAT` ficou em parser/teste do BK; sem ocorrencias restantes do codigo antigo no core auditado. |
 | `npm --prefix real_dev/api run test:mf7` | `PASS` | Agregador MF7 passou, incluindo importacoes, exportacoes, SAF-T, email e modulos criticos. |
 | `npm --prefix real_dev/api run test:contracts` | `PASS` | 53 testes, 1 suite, 0 falhas. |
-| `DATABASE_URL=postgresql://opsa:opsa@localhost:5432/opsa npm --prefix real_dev/api run prisma:validate` | `PASS` | Schema Prisma valido com URL dummy. |
+| `DATABASE_URL=<URL_AUTHENTICATED_REDACTED> npm --prefix real_dev/api run prisma:validate` | `PASS` | Schema Prisma valido com URL dummy. |
 | `rg -n "INVALID_IMPORT_FILE_TYPE" real_dev/api/src real_dev/api/tests real_dev/api/evidence` | `PASS` | Sem ocorrencias do codigo antigo no core auditado apos correcao. |
 | `git diff --check` | `PASS` | Sem erros de whitespace. |
 | `rg -n "[[:blank:]]$" ...` | `PASS` | Sem trailing whitespace nos ficheiros tocados nesta correcao. |
@@ -574,13 +581,13 @@ Nao foram feitas alteracoes de codigo porque isso mascararia um requisito operac
 | `command -v pg_restore` | `BLOQUEADO_AMBIENTE` | Exit code `1`; ferramenta ausente no PATH. |
 | `ls -l` em caminhos comuns de PostgreSQL tools | `BLOQUEADO_AMBIENTE` | Sem `pg_dump`/`pg_restore` em Homebrew, libpq, `/usr/local/bin` ou Postgres.app. |
 | `npm run syntax:check` em `real_dev/api` | `PASS` | Sintaxe dos ficheiros `src`, `tests` e `scripts` valida. |
-| `DATABASE_URL='postgresql://user:password@localhost:5432/opsa' npm run prisma:validate` em `real_dev/api` | `PASS` | Schema Prisma valido. |
+| `DATABASE_URL='<URL_AUTHENTICATED_REDACTED> npm run prisma:validate` em `real_dev/api` | `PASS` | Schema Prisma valido. |
 | `npm run test:mf7:retention` em `real_dev/api` | `PASS` | 9 testes passaram. |
 | `npm run test:unit` em `real_dev/api` | `PASS` | 74 testes passaram. |
 | `npm run test:contracts` em `real_dev/api` | `PASS` | 30 testes passaram. |
 | `OPSA_SKIP_PERSISTENCE_TESTS=true npm run test:integration` em `real_dev/api` | `PASS_COM_RESSALVAS` | 2 testes saltados explicitamente por falta de `TEST_DATABASE_URL`. |
 | `DATABASE_URL= npm run mf7:backup` em `real_dev/api` | `NEGATIVO_PASS` | Falhou com `DATABASE_URL em falta para executar backup`. |
-| `DATABASE_URL='postgresql://user:password@localhost:5432/opsa_test' OPSA_BACKUP_DIR=/private/tmp/opsa-mf7-backup-validation npm run mf7:backup` | `BLOQUEADO_AMBIENTE` | Falhou com `pg_dump nao arrancou`. |
+| `DATABASE_URL='<URL_AUTHENTICATED_REDACTED> OPSA_BACKUP_DIR=/private/tmp/opsa-mf7-backup-validation npm run mf7:backup` | `BLOQUEADO_AMBIENTE` | Falhou com `pg_dump nao arrancou`. |
 | `npm run mf7:backup:verify` em `real_dev/api` | `NEGATIVO_PASS` | Falhou com falta de `--file`/`OPSA_BACKUP_FILE`. |
 | `OPSA_BACKUP_FILE=/private/tmp/opsa-mf7-backup-validation/inexistente.dump npm run mf7:backup:verify` | `NEGATIVO_PASS` | Falhou com backup nao encontrado. |
 | `OPSA_BACKUP_FILE=/private/tmp/opsa-mf7-backup-validation/vazio.dump npm run mf7:backup:verify` | `NEGATIVO_PASS` | Falhou com ficheiro vazio. |

@@ -1,3 +1,10 @@
+> [!WARNING]
+> `SNAPSHOT_HISTORICO_SUPERSEDED` — estado `SUPERSEDED` em 2026-07-10.
+>
+> Este relatório preserva um snapshot histórico e não representa o estado corrente.
+> Fonte atual: [relatório canónico](../auditorias/CORRECAO-AUDITORIA-END-TO-END-REAL_DEV-2026-07-09.md).
+> Não reutilizar contagens, comandos, paths ou decisões deste corpo como evidence atual.
+
 # AUDITORIA-IMPLEMENTACAO-real_dev-MF3
 
 ## Resultado geral
@@ -126,7 +133,7 @@ Sem findings P1.
 | --- | --- |
 | `git status --short` | Worktree já tinha relatórios MF3 não versionados antes desta auditoria. |
 | `npm --prefix real_dev/api run syntax:check` | PASS |
-| `DATABASE_URL=postgresql://opsa:opsa@localhost:5432/opsa_audit npm --prefix real_dev/api run prisma:validate` | PASS |
+| `DATABASE_URL=<URL_AUTHENTICATED_REDACTED> npm --prefix real_dev/api run prisma:validate` | PASS |
 | `npm --prefix real_dev/api run test:unit` | PASS, 50/50 |
 | `npm --prefix real_dev/api run test:contracts` | PASS, 23/23 |
 | `npm --prefix real_dev/web run test:mf3` | PASS |

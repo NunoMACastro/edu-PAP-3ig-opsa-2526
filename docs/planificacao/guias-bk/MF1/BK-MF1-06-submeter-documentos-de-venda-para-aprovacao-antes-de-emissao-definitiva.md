@@ -17,7 +17,7 @@
 - `core_or_reforco`: `Core`
 - `proximo_bk`: `BK-MF1-07`
 - `guia_path`: `docs/planificacao/guias-bk/MF1/BK-MF1-06-submeter-documentos-de-venda-para-aprovacao-antes-de-emissao-definitiva.md`
-- `last_updated`: `2026-06-01`
+- `last_updated`: `2026-07-10`
 
 ## Objetivo
 
@@ -78,6 +78,10 @@ O documento pode circular entre rascunho, submetido, aprovado e rejeitado, com u
 - **Routes protegidas:** roles diferentes submetem e aprovam; o backend bloqueia mesmo que a UI mostre botão por engano.
 - **Frontend:** exibe ações de submeter, aprovar e rejeitar com motivo e feedback claro.
 - **Handoff:** BK-MF2-01 pode expandir histórico e justificações com base no audit log.
+
+## Contrato de paridade obrigatório (2026-07-10)
+
+Cada transição faz um claim `updateMany` por `id + companyId + expectedStatus`. Se `count !== 1`, devolve `409 STALE_STATE`; nunca decide com base numa leitura feita fora da transação. Histórico e `AuditLog` são persistidos na mesma transação que vence o claim. O teste obrigatório executa aprovação e rejeição em paralelo e prova que só uma transição e um histórico correspondente sobrevivem.
 
 ## Arquitetura do BK
 
@@ -278,22 +282,30 @@ async function recordSaleApprovalAudit(tx, companyId, userId, saleDocumentId, ac
     });
 }
 
+async function claimSaleStatus(tx, { id, companyId, expectedStatus, data }) {
+    const claim = await tx.saleDocument.updateMany({
+        where: { id, companyId, status: expectedStatus },
+        data,
+    });
+    if (claim.count !== 1) {
+        throw httpError(409, "STALE_STATE", "O documento foi alterado por outra operação");
+    }
+    return tx.saleDocument.findUnique({ where: { id } });
+}
+
 export async function submitSaleDocument(prisma, companyId, userId, id) {
-    const document = await findSaleDocument(prisma, companyId, id);
-    if (document.status !== "DRAFT") throw httpError(409, "INVALID_STATUS", "Apenas rascunhos podem ser submetidos");
     return prisma.$transaction(async (tx) => {
-        const updated = await tx.saleDocument.update({ where: { id }, data: { status: "SUBMITTED", submittedAt: new Date(), submittedById: userId, rejectionReason: null } });
+        const updated = await claimSaleStatus(tx, { id, companyId, expectedStatus: "DRAFT", data: { status: "SUBMITTED", submittedAt: new Date(), submittedById: userId, rejectionReason: null } });
         await recordSaleApprovalAudit(tx, companyId, userId, id, "SALE_DOCUMENT_SUBMITTED");
         return updated;
     });
 }
 
 export async function approveSaleDocument(prisma, companyId, userId, id) {
-    const document = await findSaleDocument(prisma, companyId, id);
-    if (document.status !== "SUBMITTED") throw httpError(409, "INVALID_STATUS", "Apenas documentos submetidos podem ser aprovados");
-    if (document.submittedById === userId) throw httpError(403, "SEGREGATION_REQUIRED", "Outro utilizador deve aprovar o documento");
     return prisma.$transaction(async (tx) => {
-        const updated = await tx.saleDocument.update({ where: { id }, data: { status: "APPROVED", approvedAt: new Date(), approvedById: userId } });
+        const document = await findSaleDocument(tx, companyId, id);
+        if (document.submittedById === userId) throw httpError(403, "SEGREGATION_REQUIRED", "Outro utilizador deve aprovar o documento");
+        const updated = await claimSaleStatus(tx, { id, companyId, expectedStatus: "SUBMITTED", data: { status: "APPROVED", approvedAt: new Date(), approvedById: userId } });
         await recordSaleApprovalAudit(tx, companyId, userId, id, "SALE_DOCUMENT_APPROVED");
         return updated;
     });
@@ -302,11 +314,10 @@ export async function approveSaleDocument(prisma, companyId, userId, id) {
 export async function rejectSaleDocument(prisma, companyId, userId, id, input) {
     const reason = String(input?.reason ?? "").trim();
     if (reason.length < 3) throw httpError(400, "INVALID_REASON", "Motivo de rejeição obrigatório");
-    const document = await findSaleDocument(prisma, companyId, id);
-    if (document.status !== "SUBMITTED") throw httpError(409, "INVALID_STATUS", "Apenas documentos submetidos podem ser rejeitados");
-    if (document.submittedById === userId) throw httpError(403, "SEGREGATION_REQUIRED", "Outro utilizador deve rejeitar o documento");
     return prisma.$transaction(async (tx) => {
-        const updated = await tx.saleDocument.update({ where: { id }, data: { status: "REJECTED", rejectedAt: new Date(), rejectedById: userId, rejectionReason: reason } });
+        const document = await findSaleDocument(tx, companyId, id);
+        if (document.submittedById === userId) throw httpError(403, "SEGREGATION_REQUIRED", "Outro utilizador deve rejeitar o documento");
+        const updated = await claimSaleStatus(tx, { id, companyId, expectedStatus: "SUBMITTED", data: { status: "REJECTED", rejectedAt: new Date(), rejectedById: userId, rejectionReason: reason } });
         await recordSaleApprovalAudit(tx, companyId, userId, id, "SALE_DOCUMENT_REJECTED", { reason });
         return updated;
     });
@@ -418,6 +429,7 @@ Localização: `apps/web/src/pages/SaleApprovalPage.tsx`.
 // apps/web/src/pages/SaleApprovalPage.tsx
 import { FormEvent, useState } from "react";
 import { approveSaleDocument, rejectSaleDocument, submitSaleDocument } from "../lib/saleApprovalApi";
+import { EntityAutocomplete } from "../components/forms/EntityAutocomplete";
 
 export function SaleApprovalPage() {
     const [saleDocumentId, setSaleDocumentId] = useState("");
@@ -458,7 +470,7 @@ export function SaleApprovalPage() {
     return (
         <main>
             <h1>Aprovação de vendas</h1>
-            <input value={saleDocumentId} onChange={(event) => setSaleDocumentId(event.target.value)} placeholder="ID do documento de venda" />
+            <EntityAutocomplete label="Documento de venda" endpoint="/api/sales/documents" value={saleDocumentId} onChange={setSaleDocumentId} />
             <button type="button" disabled={loadingAction !== null} onClick={() => void runAction("submit")}>Submeter</button>
             <button type="button" disabled={loadingAction !== null} onClick={() => void runAction("approve")}>Aprovar</button>
             <form onSubmit={handleReject} aria-label="Rejeitar documento de venda">

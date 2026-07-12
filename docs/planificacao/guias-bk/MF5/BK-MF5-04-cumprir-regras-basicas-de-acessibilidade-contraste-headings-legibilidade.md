@@ -16,7 +16,11 @@
 - `core_or_reforco`: `Core`
 - `proximo_bk`: `BK-MF5-05`
 - `guia_path`: `docs/planificacao/guias-bk/MF5/BK-MF5-04-cumprir-regras-basicas-de-acessibilidade-contraste-headings-legibilidade.md`
-- `last_updated`: `2026-06-20`
+- `last_updated`: `2026-07-10`
+
+#### Contrato de acessibilidade atualizado
+
+O gate inclui skip link, landmarks, labels explícitas, `aria-invalid`, `aria-describedby`, foco no primeiro erro, foco após navegação e diálogos com nome, Escape, trap e retorno do foco. A navegação completa funciona por teclado e o contraste cumpre AA. Executa axe nas páginas críticas; zero violações `serious`/`critical` é obrigatório e um smoke por regex não fecha este BK.
 
 #### Objetivo
 

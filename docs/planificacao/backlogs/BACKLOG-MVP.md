@@ -6,7 +6,7 @@
 - `area`: `project`
 - `owner`: `Nuno`
 - `status`: `ativo`
-- `last_updated`: `2026-06-30`
+- `last_updated`: `2026-07-10`
 
 ## Objetivo
 Backlog atomico oficial do MVP com rastreabilidade canónica e contrato pedagógico comum entre as 4 PAPs.
@@ -16,7 +16,7 @@ Backlog atomico oficial do MVP com rastreabilidade canónica e contrato pedagóg
 - Fecho exige validacao automatica em `PASS` + evidencias por gate.
 
 ## Contrato de dados canónico por BK
-Campos obrigatorios: `bk_id`, `owner`, `prioridade`, `estado`, `esforco`, `dependencias`, `rf_rnf`, `sprint`, `core_or_reforco`, `proximo_bk`, `guia_path`.
+Campos obrigatorios: `bk_id`, `owner`, `prioridade`, `estado_alunos`, `esforco`, `dependencias`, `rf_rnf`, `sprint`, `core_or_reforco`, `proximo_bk`, `guia_path`.
 
 ## Contrato pedagogico comum
 - `P0`: minimo `8` passos e `3` cenarios negativos.
@@ -26,7 +26,7 @@ Campos obrigatorios: `bk_id`, `owner`, `prioridade`, `estado`, `esforco`, `depen
 
 ## Legenda
 - Prioridade: `P0` (critico), `P1` (importante), `P2` (melhoria).
-- Estado: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
+- `estado_alunos`: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`; nunca é recalculado a partir da implementação privada de referência.
 - Esforco: `S`, `M`, `L`.
 
 ## Snapshot por macro
@@ -42,8 +42,8 @@ Campos obrigatorios: `bk_id`, `owner`, `prioridade`, `estado`, `esforco`, `depen
 | MF7 | 10 | 7 | 3 | 0 |
 | MF8 | 18 | 9 | 9 | 0 |
 
-## Tabela global de ligacao BK -> guia -> estado documental
-| bk_id | macro | titulo | owner | apoio | prioridade | estado | esforco | dependencias | rf_rnf | fase_documental | proximo_bk | guia |
+## Tabela global de ligacao BK -> guia -> estado dos alunos
+| bk_id | macro | titulo | owner | apoio | prioridade | estado_alunos | esforco | dependencias | rf_rnf | fase_documental | proximo_bk | guia |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | BK-MF0-01 | MF0 | Registo, login e logout com cookies HttpOnly. | Oleksii | Andre | P0 | TODO | M | - | RF01 | Fase 1 | BK-MF0-02 | [guia](../guias-bk/MF0/BK-MF0-01-registo-login-e-logout-com-cookies-httponly.md) |
 | BK-MF0-02 | MF0 | Papéis e permissões (Admin, Gestor, Contabilista, Operacional, Auditor). | Oleksii | Andre | P0 | TODO | M | BK-MF0-01 | RF02 | Fase 1 | BK-MF0-03 | [guia](../guias-bk/MF0/BK-MF0-02-papeis-e-permissoes-admin-gestor-contabilista-operacional-auditor.md) |
@@ -140,7 +140,7 @@ Campos obrigatorios: `bk_id`, `owner`, `prioridade`, `estado`, `esforco`, `depen
 | BK-MF8-18 | MF8 | Correção dos erros encontrados e reexecução dos testes afetados. | Oleksii | Andre | P1 | TODO | S | BK-MF8-17 | RNF39 | Fase 3 | - | [guia](../guias-bk/MF8/BK-MF8-18-correcao-dos-erros-encontrados-e-reexecucao-dos-testes-afetados.md) |
 
 ## MF0 - Fundamentos e governance
-| bk_id | titulo | owner | apoio | prioridade | estado | esforco | dependencias | rf_rnf | proximo_bk |
+| bk_id | titulo | owner | apoio | prioridade | estado_alunos | esforco | dependencias | rf_rnf | proximo_bk |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | BK-MF0-01 | Registo, login e logout com cookies HttpOnly. | Oleksii | Andre | P0 | TODO | M | - | RF01 | BK-MF0-02 |
 | BK-MF0-02 | Papéis e permissões (Admin, Gestor, Contabilista, Operacional, Auditor). | Oleksii | Andre | P0 | TODO | M | BK-MF0-01 | RF02 | BK-MF0-03 |
@@ -156,7 +156,7 @@ Campos obrigatorios: `bk_id`, `owner`, `prioridade`, `estado`, `esforco`, `depen
 | BK-MF0-12 | Criar armazéns e localizações. | Sofia | Oleksii | P1 | TODO | S | - | RF12 | BK-MF1-01 |
 
 ## MF1 - Nucleo funcional I
-| bk_id | titulo | owner | apoio | prioridade | estado | esforco | dependencias | rf_rnf | proximo_bk |
+| bk_id | titulo | owner | apoio | prioridade | estado_alunos | esforco | dependencias | rf_rnf | proximo_bk |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | BK-MF1-01 | Configurar tabelas de IVA (taxas, isenções, códigos). | Oleksii | Andre | P0 | TODO | M | BK-MF0-03 | RF13 | BK-MF1-02 |
 | BK-MF1-02 | Emitir Fatura, Fatura-Recibo, Nota de Crédito, com numeração sequencial. | Oleksii | Andre | P0 | TODO | M | BK-MF0-03, BK-MF0-08, BK-MF0-09, BK-MF0-11, BK-MF1-01 | RF14 | BK-MF1-03 |
@@ -169,7 +169,7 @@ Campos obrigatorios: `bk_id`, `owner`, `prioridade`, `estado`, `esforco`, `depen
 | BK-MF1-09 | Gerar lançamentos contabilísticos automáticos de compras. | Oleksii | Andre | P0 | TODO | M | BK-MF0-03, BK-MF0-08, BK-MF1-04, BK-MF1-07 | RF21 | BK-MF1-10 |
 | BK-MF1-10 | Aprovação de compras com estados “Rascunho → Aprovado → Lançado”. | Andre | Oleksii | P1 | TODO | S | BK-MF0-03, BK-MF0-08, BK-MF1-07, BK-MF1-09 | RF22 | BK-MF2-01 |
 ## MF2 - Nucleo funcional II
-| bk_id | titulo | owner | apoio | prioridade | estado | esforco | dependencias | rf_rnf | proximo_bk |
+| bk_id | titulo | owner | apoio | prioridade | estado_alunos | esforco | dependencias | rf_rnf | proximo_bk |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | BK-MF2-01 | Histórico e justificações para aprovações/reprovações. | Sofia | Oleksii | P1 | TODO | S | BK-MF1-10 | RF23 | BK-MF2-02 |
 | BK-MF2-02 | Movimentos de stock: entradas, saídas, transferências, devoluções. | Oleksii | Andre | P0 | TODO | M | BK-MF0-03, BK-MF0-11, BK-MF0-12 | RF24 | BK-MF2-03 |
@@ -181,7 +181,7 @@ Campos obrigatorios: `bk_id`, `owner`, `prioridade`, `estado`, `esforco`, `depen
 | BK-MF2-08 | Gerar Demonstração de Resultados e Balanço. | Pedro | Andre | P0 | TODO | M | BK-MF2-07 | RF30 | BK-MF3-01 |
 
 ## MF3 - Capacidades de produto I
-| bk_id | titulo | owner | apoio | prioridade | estado | esforco | dependencias | rf_rnf | proximo_bk |
+| bk_id | titulo | owner | apoio | prioridade | estado_alunos | esforco | dependencias | rf_rnf | proximo_bk |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | BK-MF3-01 | Gerar Mapas de IVA (liquidado/dedutível). | Oleksii | Andre | P0 | TODO | M | BK-MF1-01, BK-MF1-02, BK-MF1-04, BK-MF1-07, BK-MF1-09 | RF31 | BK-MF3-02 |
 | BK-MF3-02 | Criar contas bancárias/caixa e respetivos saldos. | Andre | Oleksii | P0 | TODO | M | - | RF32 | BK-MF3-03 |
@@ -193,7 +193,7 @@ Campos obrigatorios: `bk_id`, `owner`, `prioridade`, `estado`, `esforco`, `depen
 | BK-MF3-08 | KPIs executivos (receita, custos, EBITDA, PMR, PMP). | Andre | Oleksii | P1 | TODO | S | BK-MF1-02, BK-MF1-03, BK-MF1-07, BK-MF1-08 | RF38 | BK-MF4-01 |
 
 ## MF4 - Capacidades de produto II
-| bk_id | titulo | owner | apoio | prioridade | estado | esforco | dependencias | rf_rnf | proximo_bk |
+| bk_id | titulo | owner | apoio | prioridade | estado_alunos | esforco | dependencias | rf_rnf | proximo_bk |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | BK-MF4-01 | Gerar insights automáticos (tendências, riscos, clientes, artigos parados). | Oleksii | Pedro | P0 | TODO | M | BK-MF3-07 | RF39 | BK-MF4-02 |
 | BK-MF4-02 | Sugerir ações (ajustar preços, negociar fornecedor, repor stock). | Sofia | Oleksii | P1 | TODO | S | BK-MF4-01 | RF40 | BK-MF4-03 |
@@ -207,7 +207,7 @@ Campos obrigatorios: `bk_id`, `owner`, `prioridade`, `estado`, `esforco`, `depen
 | BK-MF4-10 | Registar logs de integração (uploads, SAF-T, reconciliações). | Pedro | Andre | P0 | TODO | M | - | RF48 | BK-MF5-01 |
 
 ## MF5 - Operacao e fluxos transversais
-| bk_id | titulo | owner | apoio | prioridade | estado | esforco | dependencias | rf_rnf | proximo_bk |
+| bk_id | titulo | owner | apoio | prioridade | estado_alunos | esforco | dependencias | rf_rnf | proximo_bk |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | BK-MF5-01 | Interface intuitiva, clara e consistente entre módulos (Vendas, Compras, Inventário, Contabilidade). | Oleksii | Sofia | P0 | TODO | M | - | RNF01 | BK-MF5-02 |
 | BK-MF5-02 | Layout responsivo (desktop > tablet > mobile) com grelhas e tabelas adaptadas. | Andre | Oleksii | P0 | TODO | M | - | RNF02 | BK-MF5-03 |
@@ -218,7 +218,7 @@ Campos obrigatorios: `bk_id`, `owner`, `prioridade`, `estado`, `esforco`, `depen
 | BK-MF5-07 | Dashboard e listagens devem carregar em ≤ 2 segundos. | Oleksii | Pedro | P0 | TODO | M | - | RNF07 | BK-MF6-01 |
 
 ## MF6 - Qualidade e robustez
-| bk_id | titulo | owner | apoio | prioridade | estado | esforco | dependencias | rf_rnf | proximo_bk |
+| bk_id | titulo | owner | apoio | prioridade | estado_alunos | esforco | dependencias | rf_rnf | proximo_bk |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | BK-MF6-01 | Inserção de documentos (fatura, compra, lançamento) deve ser ≤ 1 segundo. | Oleksii | Andre | P0 | TODO | M | - | RNF08 | BK-MF6-02 |
 | BK-MF6-02 | Suportar ≥ 25 utilizadores simultâneos por empresa sem degradação relevante. | Sofia | Pedro | P1 | TODO | S | - | RNF09 | BK-MF6-03 |
@@ -232,7 +232,7 @@ Campos obrigatorios: `bk_id`, `owner`, `prioridade`, `estado`, `esforco`, `depen
 | BK-MF6-10 | Auditoria obrigatória em operações sensíveis. | Oleksii | Sofia | P0 | TODO | M | - | RNF17 | BK-MF7-01 |
 
 ## MF7 - Privacidade, seguranca e controlo
-| bk_id | titulo | owner | apoio | prioridade | estado | esforco | dependencias | rf_rnf | proximo_bk |
+| bk_id | titulo | owner | apoio | prioridade | estado_alunos | esforco | dependencias | rf_rnf | proximo_bk |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | BK-MF7-01 | Backups automáticos diários com restauração possível. | Pedro | Andre | P1 | TODO | S | - | RNF18 | BK-MF7-02 |
 | BK-MF7-02 | Cumprir obrigações legais de retenção (10 anos, contabilidade). | Andre | Oleksii | P0 | TODO | M | - | RNF19 | BK-MF7-03 |
@@ -246,7 +246,7 @@ Campos obrigatorios: `bk_id`, `owner`, `prioridade`, `estado`, `esforco`, `depen
 | BK-MF7-10 | Testes automatizados para módulos críticos (faturação, IVA, balancetes, reconciliação). | Oleksii | Andre | P1 | TODO | S | - | RNF27 | BK-MF8-01 |
 
 ## MF8 - Integrações, subscrições simuladas, qualidade final e fecho
-| bk_id | titulo | owner | apoio | prioridade | estado | esforco | dependencias | rf_rnf | proximo_bk |
+| bk_id | titulo | owner | apoio | prioridade | estado_alunos | esforco | dependencias | rf_rnf | proximo_bk |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | BK-MF8-01 | Logs estruturados (info, warn, error, audit). | Oleksii | Pedro | P0 | TODO | M | - | RNF28 | BK-MF8-02 |
 | BK-MF8-02 | Endpoint de health-check. | Sofia | Oleksii | P1 | TODO | S | - | RNF29 | BK-MF8-03 |

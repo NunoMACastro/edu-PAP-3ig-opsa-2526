@@ -17,7 +17,7 @@ Nota:
 - Cenário 409 por constraint única não foi aplicável neste passo, porque na BK-MF0-02 eu apenas acrescentei enum Role e não criei nova constraint unique.
 
 Passo 3:
-- PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> node -e "import('./src/modules/permissions/permissions.js').then(m => console.log(Object.keys(m)))"                                                             
+- PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> node -e "import('./src/modules/permissions/permissions.js').then(m => console.log(Object.keys(m)))"
 [ 'Permission', 'getPermissionsForRole', 'hasPermission' ]
 
 Cenario negativo
@@ -38,7 +38,7 @@ Cenários negativos:
 - PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> node -e "import('./src/modules/permissions/permissionMiddleware.js').then(m => { const mw = m.requireRole('ADMIN'); const req = {}; const res = { status(code) { console.log('status', code); return this; }, json(body) { console.log(body); } }; mw(req, res, () => console.log('next')); })"
 status 401
 { error: 'SESSION_REQUIRED', message: 'Sessao obrigatoria' }
-- PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> node -e "import('./src/modules/permissions/permissionMiddleware.js').then(m => { const mw = m.requireRole('ADMIN'); const req = { user: { id: 'user-1' }, role: 
+- PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> node -e "import('./src/modules/permissions/permissionMiddleware.js').then(m => { const mw = m.requireRole('ADMIN'); const req = { user: { id: 'user-1' }, role:
 'AUDITOR' }; const res = { status(code) { console.log('status', code); return this; }, json(body) { console.log(body); } }; mw(req, res, () => console.log('next')); })"
 status 403
 {

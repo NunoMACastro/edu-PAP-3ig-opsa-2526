@@ -17,7 +17,7 @@
 - `core_or_reforco`: `Core`
 - `proximo_bk`: `BK-MF2-02`
 - `guia_path`: `docs/planificacao/guias-bk/MF2/BK-MF2-01-historico-e-justificacoes-para-aprovacoes-reprovacoes.md`
-- `last_updated`: `2026-06-08`
+- `last_updated`: `2026-07-10`
 
 ## Objetivo
 
@@ -82,6 +82,10 @@ O endpoint `/approve` existente passa a gravar histórico, a reprovação fica d
 - **Transação de estado e histórico:** a alteração do estado da compra e a criação do histórico pertencem à mesma operação. O pedido entra pelas rotas existentes de aprovação/reprovação, segue para o service, grava estado e histórico de forma atómica, serve para manter coerência entre UI e base de dados, e evita compras reprovadas sem histórico ou histórico criado sem alteração de estado.
 - **Contexto multiempresa:** `companyId` vem da sessão e nunca do corpo do pedido. A rota recebe o pedido autenticado, o service filtra por empresa ativa, a resposta só inclui dados dessa empresa, serve para separar tenants, e evita exposição ou alteração de compras de outra empresa.
 - **Autorização por role:** só perfis autorizados podem decidir. A role vem da sessão, é validada no middleware e no fluxo protegido, serve para aplicar governação operacional, e evita que utilizadores sem responsabilidade aprovem compras.
+
+## Contrato de paridade obrigatório (2026-07-10)
+
+Estado, histórico e `AuditLog` ficam na mesma transação e só são gravados depois de um claim `updateMany` com `expectedStatus`. Uma corrida devolve `409 STALE_STATE` a quem perde e não cria histórico/auditoria duplicados. A UI preserva a justificação após `409` e recarrega o estado corrente para o utilizador decidir de novo conscientemente.
 
 ## Arquitetura do BK
 
@@ -269,6 +273,12 @@ export function parseRejectionReason(input) {
 
 ```js
 // apps/api/src/modules/purchase-approval/purchaseApprovalService.js
+import {
+  buildCursorPage,
+  buildKeysetCondition,
+  decodePageCursor,
+  parsePageLimit,
+} from "../../lib/cursorPagination.js";
 import { httpError } from "../../lib/httpErrors.js";
 import { postPurchaseDocumentInTransaction } from "../accounting/purchasePostingService.js";
 import { parseApprovalReason, parseRejectionReason } from "./purchaseApprovalHistoryValidators.js";
@@ -308,22 +318,27 @@ async function recordPurchaseApprovalAudit(tx, { companyId, userId, purchaseDocu
   });
 }
 
+async function claimPurchaseStatus(tx, { id, companyId, expectedStatus, data }) {
+  const claim = await tx.purchaseDocument.updateMany({
+    where: { id, companyId, status: expectedStatus },
+    data,
+  });
+  if (claim.count !== 1) {
+    throw httpError(409, "STALE_STATE", "A compra foi alterada por outra operação");
+  }
+  return tx.purchaseDocument.findUnique({ where: { id } });
+}
+
 export async function approvePurchaseDocument(prisma, companyId, userId, id, input = {}) {
   const reason = parseApprovalReason(input);
 
   return prisma.$transaction(async (tx) => {
     const document = await findPurchaseDocument(tx, companyId, id);
 
-    if (document.status !== "DRAFT") {
-      throw httpError(
-        409,
-        "PURCHASE_DECISION_INVALID_STATE",
-        "Só compras em rascunho podem ser decididas."
-      );
-    }
-
-    const updated = await tx.purchaseDocument.update({
-      where: { id: document.id },
+    const updated = await claimPurchaseStatus(tx, {
+      id: document.id,
+      companyId,
+      expectedStatus: "DRAFT",
       data: { status: "APPROVED", approvedAt: new Date(), approvedById: userId },
     });
 
@@ -358,16 +373,10 @@ export async function rejectPurchaseDocument(prisma, companyId, userId, id, inpu
   return prisma.$transaction(async (tx) => {
     const document = await findPurchaseDocument(tx, companyId, id);
 
-    if (document.status !== "DRAFT") {
-      throw httpError(
-        409,
-        "PURCHASE_DECISION_INVALID_STATE",
-        "Só compras em rascunho podem ser decididas."
-      );
-    }
-
-    const updated = await tx.purchaseDocument.update({
-      where: { id: document.id },
+    const updated = await claimPurchaseStatus(tx, {
+      id: document.id,
+      companyId,
+      expectedStatus: "DRAFT",
       data: { status: "REJECTED" },
     });
 
@@ -400,16 +409,16 @@ export async function markPurchaseDocumentPosted(prisma, companyId, userId, id) 
   return prisma.$transaction(async (tx) => {
     const document = await findPurchaseDocument(tx, companyId, id);
 
-    if (document.status !== "APPROVED") {
-      throw httpError(409, "INVALID_STATUS", "Apenas compras aprovadas podem ser lançadas.");
-    }
+    await claimPurchaseStatus(tx, {
+      id,
+      companyId,
+      expectedStatus: "APPROVED",
+      data: { status: "POSTED" },
+    });
 
     const entry = await postPurchaseDocumentInTransaction(tx, companyId, userId, id);
 
-    await tx.purchaseDocument.update({
-      where: { id },
-      data: { postedAt: new Date(), postedById: userId },
-    });
+    await tx.purchaseDocument.update({ where: { id }, data: { postedAt: new Date(), postedById: userId } });
 
     await recordPurchaseApprovalAudit(tx, {
       companyId,
@@ -427,17 +436,30 @@ export async function markPurchaseDocumentPosted(prisma, companyId, userId, id) 
   });
 }
 
-export async function listPurchaseApprovalHistory(prisma, { companyId, purchaseDocumentId }) {
+export async function listPurchaseApprovalHistory(prisma, { companyId, purchaseDocumentId, cursor: opaqueCursor, limit: rawLimit }) {
   await findPurchaseDocument(prisma, companyId, purchaseDocumentId);
 
-  return prisma.purchaseApprovalHistory.findMany({
-    where: { companyId, purchaseDocumentId },
-    orderBy: { decidedAt: "asc" },
+  const limit = parsePageLimit(rawLimit);
+  const cursor = decodePageCursor(opaqueCursor, "date");
+  const keyset = buildKeysetCondition(cursor, {
+    sortField: "decidedAt",
+    direction: "asc",
+  });
+  const baseWhere = { companyId, purchaseDocumentId };
+  const records = await prisma.purchaseApprovalHistory.findMany({
+    where: keyset ? { AND: [baseWhere, keyset] } : baseWhere,
+    orderBy: [{ decidedAt: "asc" }, { id: "asc" }],
     include: {
       decidedBy: {
         select: { id: true, name: true, email: true },
       },
     },
+    take: limit + 1,
+  });
+  return buildCursorPage(records, {
+    limit,
+    sortField: "decidedAt",
+    sortType: "date",
   });
 }
 ```
@@ -528,12 +550,14 @@ export function buildPurchaseApprovalRoutes({ prisma }) {
 
   router.get("/:id/approval-history", historyGuards, async (req, res) => {
     try {
-      const items = await listPurchaseApprovalHistory(prisma, {
+      const page = await listPurchaseApprovalHistory(prisma, {
         companyId: req.companyId,
         purchaseDocumentId: req.params.id,
+        cursor: req.query.cursor,
+        limit: req.query.limit,
       });
 
-      return res.json({ items });
+      return res.json(page);
     } catch (error) {
       return sendError(res, error);
     }
@@ -627,12 +651,16 @@ export async function markPurchaseDocumentPosted(id: string) {
   return readJson<{ data: { id: string } }>(response);
 }
 
-export async function fetchPurchaseApprovalHistory(documentId: string) {
-  const response = await fetch(`/api/purchases/documents/${documentId}/approval-history`, {
+export async function fetchPurchaseApprovalHistory(documentId: string, cursor?: string) {
+  const query = cursor ? `?cursor=${encodeURIComponent(cursor)}` : "";
+  const response = await fetch(`/api/purchases/documents/${documentId}/approval-history${query}`, {
     credentials: "include",
   });
 
-  return readJson<{ items: PurchaseApprovalHistoryItem[] }>(response);
+  return readJson<{
+    items: PurchaseApprovalHistoryItem[];
+    pageInfo: { nextCursor: string | null; hasNextPage: boolean };
+  }>(response);
 }
 ```
 
@@ -667,6 +695,7 @@ Editar a página existente, mantendo os botões de aprovação e lançamento, ac
 
 ```tsx
 import { FormEvent, useEffect, useState } from "react";
+import { EntityAutocomplete } from "../components/forms/EntityAutocomplete";
 import {
   approvePurchaseDocument,
   fetchPurchaseApprovalHistory,
@@ -759,14 +788,12 @@ export function PurchaseApprovalPage() {
       <h1>Aprovação de compras</h1>
 
       <form onSubmit={handleApproveSubmit}>
-        <label>
-          Documento de compra
-          <input
-            value={purchaseDocumentId}
-            onChange={(event) => setPurchaseDocumentId(event.target.value)}
-            placeholder="ID do documento de compra"
-          />
-        </label>
+        <EntityAutocomplete
+          label="Documento de compra"
+          endpoint="/api/purchases/documents"
+          value={purchaseDocumentId}
+          onChange={setPurchaseDocumentId}
+        />
         <label>
           Justificação
           <textarea value={reason} onChange={(event) => setReason(event.target.value)} />

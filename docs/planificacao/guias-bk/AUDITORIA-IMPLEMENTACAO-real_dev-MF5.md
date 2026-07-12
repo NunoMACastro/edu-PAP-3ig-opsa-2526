@@ -1,3 +1,10 @@
+> [!WARNING]
+> `SNAPSHOT_HISTORICO_SUPERSEDED` — estado `SUPERSEDED` em 2026-07-10.
+>
+> Este relatório preserva um snapshot histórico e não representa o estado corrente.
+> Fonte atual: [relatório canónico](../auditorias/CORRECAO-AUDITORIA-END-TO-END-REAL_DEV-2026-07-09.md).
+> Não reutilizar contagens, comandos, paths ou decisões deste corpo como evidence atual.
+
 # Auditoria de implementacao real_dev - MF5
 
 ## Metadados
@@ -154,7 +161,7 @@ A MF5 entrega base de UX, feedback, validacao local, mensagens e medicao de carr
 | `npm --prefix real_dev/web run build` | `PASS` | Vite build concluida. |
 | `npm --prefix real_dev/api run syntax:check` | `PASS` | `node --check` sobre `src`, `tests` e `scripts` sem erros. |
 | `npm --prefix real_dev/api run prisma:validate` | `FAIL_AMBIENTE` | Falhou inicialmente por `DATABASE_URL` ausente, antes de validar schema. |
-| `env DATABASE_URL=postgresql://opsa:opsa@127.0.0.1:5432/opsa npm --prefix real_dev/api run prisma:validate` | `PASS` | Schema Prisma valido. A URL foi usada apenas para satisfazer `env("DATABASE_URL")` no parser. |
+| `env DATABASE_URL=<URL_AUTHENTICATED_REDACTED> npm --prefix real_dev/api run prisma:validate` | `PASS` | Schema Prisma valido. A URL foi usada apenas para satisfazer `env("DATABASE_URL")` no parser. |
 | `npm --prefix real_dev/api run test:unit` | `PASS` | 59 testes passaram. |
 | `npm --prefix real_dev/api run test:contracts` | `PASS` | 26 testes passaram. |
 | `env OPSA_SKIP_PERSISTENCE_TESTS=true npm --prefix real_dev/api run test:integration` | `PASS_COM_SKIP` | 2 suites persistentes saltadas explicitamente por falta de `TEST_DATABASE_URL`. |

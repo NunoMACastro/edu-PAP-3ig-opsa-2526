@@ -17,7 +17,11 @@
 - `core_or_reforco`: `Core`
 - `proximo_bk`: `BK-MF8-16`
 - `guia_path`: `docs/planificacao/guias-bk/MF8/BK-MF8-15-datas-moedas-e-separadores-no-padrao-europeu.md`
-- `last_updated`: `2026-07-02`
+- `last_updated`: `2026-07-10`
+
+#### Contrato de datas civis atualizado
+
+Datas de calendário são strings `YYYY-MM-DD` e não instantes UTC. Defaults de formulários são calculados para `Europe/Lisbon` através de `Intl.DateTimeFormat(...).formatToParts`, sem `toISOString()`. O parser valida ano/mês/dia e a UI apresenta `DD/MM/YYYY` sem converter meia-noite entre fusos.
 
 #### Objetivo
 
@@ -218,6 +222,7 @@ Cria `apps/web/src/lib/formatters.ts` com o conteúdo completo abaixo. Não uses
 
 export const PORTUGAL_LOCALE = "pt-PT";
 export const DEFAULT_CURRENCY = "EUR";
+export const PORTUGAL_TIME_ZONE = "Europe/Lisbon";
 
 const DATE_KEY_PATTERN = /(date|at|from|to)$/i;
 const MONEY_CENTS_KEY_PATTERN = /(cents|amountcents|totalcents|balancecents|pricecents|costcents)$/i;
@@ -256,28 +261,40 @@ function assertIntegerCents(cents: number): number {
 }
 
 /**
- * Converte uma data ISO curta ou uma data ISO com hora numa data UTC estável.
+ * Valida uma data de calendário sem a converter num instante UTC.
  *
  * @param value - Data recebida da API.
- * @returns Data pronta para formatação em PT-PT.
+ * @returns Componentes civis prontos para formatação em PT-PT.
  * @throws Error quando a data não existe ou não está em formato ISO.
  */
-function parseIsoDate(value: string): Date {
+function parseIsoDate(value: string): { year: number; month: number; day: number } {
   const match = /^(\d{4})-(\d{2})-(\d{2})(?:T.*)?$/.exec(value.trim());
   if (!match) {
     throw new Error("A data deve estar em formato ISO, por exemplo 2026-12-31.");
   }
 
-  const [, year, month, day] = match;
-  const isoDate = `${year}-${month}-${day}`;
-  const date = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)));
-
-  // Esta comparação impede que o JavaScript transforme 2026-02-31 em outra data válida.
-  if (date.toISOString().slice(0, 10) !== isoDate) {
+  const [, yearText, monthText, dayText] = match;
+  const year = Number(yearText);
+  const month = Number(monthText);
+  const day = Number(dayText);
+  const daysInMonth = new Date(year, month, 0).getDate();
+  if (month < 1 || month > 12 || day < 1 || day > daysInMonth) {
     throw new Error("A data indicada não existe no calendário.");
   }
 
-  return date;
+  return { year, month, day };
+}
+
+/** Devolve a data civil de hoje em Portugal para defaults de `<input type="date">`. */
+export function todayInPortugal(now = new Date()): string {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: PORTUGAL_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(now);
+  const byType = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return `${byType.year}-${byType.month}-${byType.day}`;
 }
 
 /**
@@ -351,14 +368,8 @@ export function formatPercentFromBasisPoints(basisPoints: number): string {
  * @returns Data curta em português de Portugal.
  */
 export function formatPortugueseDate(isoDate: string): string {
-  const date = parseIsoDate(isoDate);
-
-  return new Intl.DateTimeFormat(PORTUGAL_LOCALE, {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    timeZone: "UTC",
-  }).format(date);
+  const { year, month, day } = parseIsoDate(isoDate);
+  return `${String(day).padStart(2, "0")}/${String(month).padStart(2, "0")}/${year}`;
 }
 
 /**
@@ -805,8 +816,8 @@ function assertNativeIntlBehavior() {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
-    timeZone: "UTC",
-  }).format(new Date(Date.UTC(2026, 11, 31)));
+    timeZone: "Europe/Lisbon",
+  }).format(new Date(2026, 11, 31, 12, 0, 0));
 
   if (date !== "31/12/2026") {
     throw new Error(`Formato de data inesperado: ${date}`);
@@ -815,6 +826,8 @@ function assertNativeIntlBehavior() {
 
 assertContains(formatterSource, 'PORTUGAL_LOCALE = "pt-PT"', "Locale PT-PT");
 assertContains(formatterSource, 'DEFAULT_CURRENCY = "EUR"', "Moeda EUR");
+assertContains(formatterSource, 'PORTUGAL_TIME_ZONE = "Europe/Lisbon"', "Fuso civil de Portugal");
+assertContains(formatterSource, "todayInPortugal", "Default civil de formulário");
 assertContains(formatterSource, "formatEuroFromCents", "Export de euros");
 assertContains(formatterSource, "formatPortugueseDate", "Export de datas");
 assertContains(formatterSource, "formatDisplayValue", "Export de tabela");

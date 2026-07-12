@@ -17,7 +17,13 @@
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF5-03`
 - `guia_path`: `docs/planificacao/guias-bk/MF5/BK-MF5-02-layout-responsivo-desktop-tablet-mobile-com-grelhas-e-tabelas-adaptadas.md`
-- `last_updated`: `2026-06-19`
+- `last_updated`: `2026-07-10`
+
+#### Contrato responsivo atualizado
+
+Além das tabelas adaptadas, a shell usa navegação mobile em drawer fechado por omissão. Em `375×667`, o conteúdo principal começa até 120 px do topo, não existe overflow horizontal e ações essenciais continuam visíveis por teclado. Validar também `768×1024` e `1440×900` em Chrome, Edge e Firefox; screenshots isolados não substituem browser E2E.
+
+Campos aninhados são renderizados por componentes tipados e labels humanas. Não converter objetos arbitrários em texto JSON na UI de produção.
 
 #### Objetivo
 

@@ -17,7 +17,7 @@
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF2-07`
 - `guia_path`: `docs/planificacao/guias-bk/MF2/BK-MF2-06-criar-e-editar-lancamentos-manuais-com-anexos.md`
-- `last_updated`: `2026-06-08`
+- `last_updated`: `2026-07-10`
 
 ## Objetivo
 
@@ -81,11 +81,20 @@ Contabilista cria e edita diário manual reutilizando `JournalEntry`/`JournalEnt
 - **Período fiscal fechado:** representa uma janela contabilística que já não pode receber alterações. Vem da configuração fiscal da empresa, é consultado por `assertOpenFiscalPeriod`, bloqueia criação e edição quando a data antiga ou nova está fechada, serve para preservar fechos e evidência, e evita reabrir resultados já defendidos.
 - **Anexo privado:** é o comprovativo PDF/PNG/JPEG associado ao lançamento. Vem do upload autenticado, é guardado fora de pastas públicas, fica referenciado em `JournalAttachment`, serve para auditoria e defesa do lançamento, e evita exposição de documentos contabilísticos por URL estático.
 
+## Contrato de paridade obrigatório (2026-07-10)
+
+- `entryDate` usa `parseStrictDateOnly`; datas impossíveis devolvem `400 INVALID_ENTRY_DATE`.
+- Antes de substituir linhas, a transação cria `JournalEntryRevision` com snapshots `before`/`after`, motivo e ator. O lançamento, revisão e `AuditLog` são atómicos.
+- `RetentionHold` e período fechado bloqueiam edição e remoção. Correções históricas usam reversão auditada, nunca destruição silenciosa.
+- `POST /api/accounting/manual-journals/:id/attachments` é exclusivamente `multipart/form-data` streaming com `busboy`, limite de 10 MiB, assinatura/MIME/extensão, SHA-256, nome aleatório, quarentena, promoção S3 e cleanup compensatório.
+- `GET /api/accounting/manual-journals/:journalId/attachments/:attachmentId/download` revalida empresa/permissão e devolve `Content-Disposition`, `X-Content-Type-Options: nosniff` e `Cache-Control: no-store`.
+- O browser usa `FormData`; não usa Base64, `ArrayBuffer` como body cru, nome em header ou JSON.
+
 ## Arquitetura do BK
 
-- Endpoints: `POST /api/accounting/manual-journals`, `GET /api/accounting/manual-journals/:id`, `PATCH /api/accounting/manual-journals/:id` e `POST /api/accounting/manual-journals/:id/attachments`.
+- Endpoints: `POST /api/accounting/manual-journals`, `GET /api/accounting/manual-journals/:id`, `PATCH /api/accounting/manual-journals/:id`, `POST /api/accounting/manual-journals/:id/attachments` e `GET /api/accounting/manual-journals/:journalId/attachments/:attachmentId/download`.
 - Reutiliza `JournalEntry`, `JournalEntryLine`, `assertOpenFiscalPeriod` e `AuditLog`.
-- Modelo novo: `JournalAttachment`.
+- Modelos novos: `JournalAttachment` e `JournalEntryRevision`.
 
 ## Ficheiros a criar/editar/rever
 
@@ -184,12 +193,32 @@ model JournalAttachment {
   mimeType       String
   sizeBytes      Int
   storageKey     String
+  contentSha256  String
+  storageProvider String
+  status         String
+  storageMetadata Json?
   uploadedById   String
   uploadedBy     User         @relation(fields: [uploadedById], references: [id])
   createdAt      DateTime     @default(now())
 
   @@index([companyId, journalEntryId])
   @@index([uploadedById])
+}
+
+model JournalEntryRevision {
+  id             String       @id @default(uuid())
+  companyId      String
+  journalEntryId String
+  changedById    String
+  reason         String
+  beforeSnapshot Json
+  afterSnapshot  Json
+  createdAt      DateTime     @default(now())
+  company        Company      @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  journalEntry   JournalEntry @relation(fields: [journalEntryId], references: [id], onDelete: Restrict)
+  changedBy      User         @relation(fields: [changedById], references: [id], onDelete: Restrict)
+
+  @@index([companyId, journalEntryId, createdAt])
 }
 ```
 
@@ -198,14 +227,17 @@ No mesmo ficheiro, acrescentar estas relações aos modelos existentes:
 ```prisma
 model Company {
   journalAttachments JournalAttachment[]
+  journalEntryRevisions JournalEntryRevision[]
 }
 
 model JournalEntry {
   attachments JournalAttachment[]
+  revisions   JournalEntryRevision[]
 }
 
 model User {
   journalAttachments JournalAttachment[]
+  journalEntryRevisions JournalEntryRevision[]
 }
 ```
 
@@ -241,13 +273,21 @@ Validar linhas antes da transação, confirmar contas da empresa, bloquear perí
 ```js
 // apps/api/src/modules/accounting/manualJournalService.js
 import { randomUUID } from "node:crypto";
+import {
+  buildCursorPage,
+  buildKeysetCondition,
+  decodePageCursor,
+  parsePageLimit,
+} from "../../lib/cursorPagination.js";
 import { httpError } from "../../lib/httpErrors.js";
+import { parseStrictDateOnly } from "../../lib/strictDate.js";
+import { assertRetainedRecordDeletionAllowed } from "../compliance/retentionPolicy.js";
 import { assertOpenFiscalPeriod } from "../fiscal-periods/fiscalPeriodService.js";
 
 const MANUAL_SOURCE = "MANUAL";
 
 export function parseManualJournal(input) {
-  const entryDate = new Date(String(input?.entryDate ?? ""));
+  const entryDate = parseStrictDateOnly(input?.entryDate, { code: "INVALID_ENTRY_DATE", field: "entryDate" });
   const description = String(input?.description ?? "").trim() || "Lançamento manual";
   const lines = Array.isArray(input?.lines) ? input.lines : [];
   const parsed = lines.map((line) => {
@@ -272,7 +312,6 @@ export function parseManualJournal(input) {
   const debit = parsed.reduce((sum, line) => sum + line.debitCents, 0);
   const credit = parsed.reduce((sum, line) => sum + line.creditCents, 0);
 
-  if (Number.isNaN(entryDate.getTime())) throw httpError(400, "INVALID_ENTRY_DATE", "Data do lançamento inválida.");
   if (parsed.some((line) => !line.accountId)) throw httpError(400, "ACCOUNT_REQUIRED", "Todas as linhas precisam de conta SNC.");
   if (parsed.length < 2 || debit !== credit) throw httpError(400, "JOURNAL_NOT_BALANCED", "O lançamento tem de estar equilibrado.");
 
@@ -324,6 +363,33 @@ export async function getManualJournal(prisma, { companyId, id }) {
   return prisma.$transaction((tx) => assertManualJournalEditable(tx, { companyId, id }));
 }
 
+export async function listManualJournals(prisma, companyId, page = {}) {
+  const limit = parsePageLimit(page.limit);
+  const cursor = decodePageCursor(page.cursor, "date");
+  const keyset = buildKeysetCondition(cursor, {
+    sortField: "entryDate",
+    direction: "desc",
+  });
+  const baseWhere = { companyId, source: MANUAL_SOURCE };
+  const entries = await prisma.journalEntry.findMany({
+    where: keyset ? { AND: [baseWhere, keyset] } : baseWhere,
+    select: {
+      id: true,
+      entryDate: true,
+      description: true,
+      createdAt: true,
+      _count: { select: { lines: true, attachments: true } },
+    },
+    orderBy: [{ entryDate: "desc" }, { id: "desc" }],
+    take: limit + 1,
+  });
+  return buildCursorPage(entries, {
+    limit,
+    sortField: "entryDate",
+    sortType: "date",
+  });
+}
+
 export async function createManualJournal(prisma, { companyId, userId, input }) {
   const data = parseManualJournal(input);
   return prisma.$transaction(async (tx) => {
@@ -360,13 +426,30 @@ export async function createManualJournal(prisma, { companyId, userId, input }) 
 
 export async function updateManualJournal(prisma, { companyId, userId, id, input }) {
   const data = parseManualJournal(input);
+  const revisionReason = String(input?.revisionReason ?? "").trim();
+  if (revisionReason.length < 3) {
+    throw httpError(400, "REVISION_REASON_REQUIRED", "Indica o motivo da correção");
+  }
 
   return prisma.$transaction(async (tx) => {
     const currentEntry = await assertManualJournalEditable(tx, { companyId, id });
 
+    await assertRetainedRecordDeletionAllowed(tx, { companyId, entity: "JournalEntry", entityId: id });
     await assertOpenFiscalPeriod(tx, { companyId, documentDate: currentEntry.entryDate });
     await assertOpenFiscalPeriod(tx, { companyId, documentDate: data.entryDate });
     await assertAccountsBelongToCompany(tx, { companyId, lines: data.lines });
+
+    const afterSnapshot = { entryDate: data.entryDate, description: data.description, lines: data.lines };
+    await tx.journalEntryRevision.create({
+      data: {
+        companyId,
+        journalEntryId: id,
+        changedById: userId,
+        reason: revisionReason,
+        beforeSnapshot: currentEntry,
+        afterSnapshot,
+      },
+    });
 
     const entry = await tx.journalEntry.update({
       where: { id: currentEntry.id },
@@ -423,7 +506,7 @@ Tentar editar um lançamento automático deve devolver `409` e não pode alterar
 
 1. Objetivo funcional do passo no ERP.
 
-Expor criação, consulta, edição e upload bruto controlado para lançamentos manuais.
+Expor criação, consulta, edição, upload multipart streaming e download autorizado para lançamentos manuais.
 
 2. Ficheiros envolvidos:
     - CRIAR: `apps/api/src/modules/accounting/journalAttachmentStorage.js`.
@@ -432,49 +515,102 @@ Expor criação, consulta, edição e upload bruto controlado para lançamentos 
 
 3. Instruções do que fazer.
 
-Usar `express.raw` para anexo PDF/PNG/JPEG sem dependência extra, reutilizar os guards da app e nunca devolver lançamentos de outra empresa.
+Usar `busboy` para multipart route-scoped, streaming com limite de 10 MiB, validação de assinatura/MIME/extensão, hash SHA-256, quarentena e promoção S3. Reutilizar os guards da app e nunca devolver anexos de outra empresa.
 
 4. Código completo, correto e integrado com a app final.
 
 ```js
 // apps/api/src/modules/accounting/journalAttachmentStorage.js
 import { randomUUID } from "node:crypto";
-import { mkdir, writeFile } from "node:fs/promises";
-import path from "node:path";
 import { httpError } from "../../lib/httpErrors.js";
 
 const ALLOWED_MIME_TYPES = new Set(["application/pdf", "image/png", "image/jpeg"]);
+const MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024;
 
 function safeFileName(fileName) {
   return String(fileName ?? "anexo").replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 120);
 }
 
-export async function writePrivateJournalAttachment({ companyId, journalEntryId, fileName, mimeType, buffer }) {
+function signatureMatches({ mimeType, bytes }) {
+  const hex = Buffer.from(bytes).toString("hex");
+  if (mimeType === "application/pdf") return hex.startsWith("25504446");
+  if (mimeType === "image/png") return hex.startsWith("89504e470d0a1a0a");
+  if (mimeType === "image/jpeg") return hex.startsWith("ffd8ff");
+  return false;
+}
+
+export async function quarantineJournalAttachment({ companyId, journalEntryId, fileName, mimeType, stream, objectStorage }) {
   if (!ALLOWED_MIME_TYPES.has(mimeType)) {
     throw httpError(415, "ATTACHMENT_MIME_NOT_ALLOWED", "Tipo de ficheiro não permitido.");
   }
-  if (!Buffer.isBuffer(buffer) || buffer.byteLength === 0) {
-    throw httpError(400, "ATTACHMENT_EMPTY", "O ficheiro está vazio.");
+  const quarantineKey = `quarantine/${companyId}/${journalEntryId}/${randomUUID()}-${safeFileName(fileName)}`;
+  const uploaded = await objectStorage.putStream({
+    key: quarantineKey,
+    stream,
+    maxBytes: MAX_ATTACHMENT_BYTES,
+    computeSha256: true,
+    captureSignatureBytes: 16,
+  });
+  if (!signatureMatches({ mimeType, bytes: uploaded.signatureBytes })) {
+    await objectStorage.deleteObject({ key: quarantineKey });
+    throw httpError(415, "ATTACHMENT_SIGNATURE_MISMATCH", "Assinatura do ficheiro inválida");
   }
+  return { quarantineKey, ...uploaded };
+}
 
-  const storageKey = path.join(companyId, journalEntryId, `${randomUUID()}-${safeFileName(fileName)}`);
-  const targetPath = path.join(process.cwd(), "var", "private-uploads", storageKey);
-  await mkdir(path.dirname(targetPath), { recursive: true });
-  await writeFile(targetPath, buffer, { flag: "wx" });
+export async function promoteAttachmentTransactionally(input) {
+  const finalKey = `journals/${input.companyId}/${input.journalEntryId}/${randomUUID()}`;
+  await input.objectStorage.promote({ fromKey: input.stored.quarantineKey, toKey: finalKey });
+  try {
+    const attachment = await input.prisma.$transaction(async (tx) => {
+      const created = await tx.journalAttachment.create({
+        data: {
+          companyId: input.companyId,
+          journalEntryId: input.journalEntryId,
+          uploadedById: input.uploadedById,
+          fileName: input.fileName,
+          mimeType: input.mimeType,
+          sizeBytes: input.stored.sizeBytes,
+          contentSha256: input.stored.sha256,
+          storageKey: finalKey,
+          storageProvider: "S3",
+          status: "READY",
+        },
+      });
+      await tx.auditLog.create({ data: { companyId: input.companyId, userId: input.uploadedById, action: "JOURNAL_ATTACHMENT_CREATED", entity: "JournalAttachment", entityId: created.id } });
+      return created;
+    });
+    await input.objectStorage.deleteObject({ key: input.stored.quarantineKey });
+    return attachment;
+  } catch (error) {
+    await input.objectStorage.deleteObject({ key: finalKey });
+    throw error;
+  }
+}
 
-  return { storageKey, sizeBytes: buffer.byteLength };
+export function downloadJournalAttachment({ prisma, objectStorage }) {
+  return async (req, res) => {
+    const attachment = await prisma.journalAttachment.findFirst({ where: { id: req.params.attachmentId, journalEntryId: req.params.journalId, companyId: req.companyId, status: "READY" } });
+    if (!attachment) throw httpError(404, "ATTACHMENT_NOT_FOUND", "Anexo não encontrado");
+    res.setHeader("Content-Disposition", `attachment; filename*=UTF-8''${encodeURIComponent(attachment.fileName)}`);
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    res.setHeader("Cache-Control", "no-store");
+    res.type(attachment.mimeType);
+    return objectStorage.pipeToResponse({ key: attachment.storageKey, res });
+  };
 }
 
 // apps/api/src/modules/accounting/manualJournalRoutes.js
-import express, { Router } from "express";
+import { Router } from "express";
 import { requireAuth } from "../auth/authMiddleware.js";
 import { requireCompanyContext } from "../companies/companyContext.js";
 import { requireRole } from "../permissions/permissionMiddleware.js";
 import { toHttpError } from "../../lib/httpErrors.js";
-import { writePrivateJournalAttachment } from "./journalAttachmentStorage.js";
-import { createManualJournal, getManualJournal, updateManualJournal } from "./manualJournalService.js";
+import { parseMultipartSingleFile } from "../../lib/multipart.js";
+import { downloadJournalAttachment, promoteAttachmentTransactionally, quarantineJournalAttachment } from "./journalAttachmentStorage.js";
+import { createManualJournal, getManualJournal, listManualJournals, updateManualJournal } from "./manualJournalService.js";
 
-export function createManualJournalRouter(prisma) {
+export function createManualJournalRouter({ prisma, objectStorage }) {
   const router = Router();
   const guards = [requireAuth(prisma), requireCompanyContext(prisma), requireRole("ADMIN", "GESTOR", "CONTABILISTA")];
   const sendError = (res, error) => {
@@ -491,6 +627,15 @@ export function createManualJournalRouter(prisma) {
       });
 
       return res.status(201).json({ entry });
+    } catch (error) {
+      return sendError(res, error);
+    }
+  });
+
+  router.get("/", guards, async (req, res) => {
+    try {
+      const page = await listManualJournals(prisma, req.companyId, req.query);
+      return res.status(200).json(page);
     } catch (error) {
       return sendError(res, error);
     }
@@ -527,7 +672,6 @@ export function createManualJournalRouter(prisma) {
   router.post(
     "/:id/attachments",
     guards,
-    express.raw({ limit: "5mb", type: ["application/pdf", "image/png", "image/jpeg"] }),
     async (req, res) => {
       try {
         const entry = await prisma.journalEntry.findFirst({
@@ -537,25 +681,29 @@ export function createManualJournalRouter(prisma) {
 
         if (!entry) return res.status(404).json({ code: "JOURNAL_ENTRY_NOT_FOUND", message: "Lançamento não encontrado." });
 
-        const mimeType = String(req.header("content-type") ?? "").split(";")[0].trim();
-        const stored = await writePrivateJournalAttachment({
+        const file = await parseMultipartSingleFile(req, {
+          fieldName: "file",
+          maxBytes: 10 * 1024 * 1024,
+          allowedExtensions: [".pdf", ".png", ".jpg", ".jpeg"],
+        });
+        const stored = await quarantineJournalAttachment({
           companyId: req.companyId,
           journalEntryId: entry.id,
-          fileName: req.header("x-file-name"),
-          mimeType,
-          buffer: req.body,
+          fileName: file.fileName,
+          mimeType: file.mimeType,
+          stream: file.stream,
+          objectStorage,
         });
 
-        const attachment = await prisma.journalAttachment.create({
-          data: {
-            companyId: req.companyId,
-            journalEntryId: entry.id,
-            uploadedById: req.user.id,
-            fileName: String(req.header("x-file-name") ?? "anexo"),
-            mimeType,
-            sizeBytes: stored.sizeBytes,
-            storageKey: stored.storageKey,
-          },
+        const attachment = await promoteAttachmentTransactionally({
+          prisma,
+          objectStorage,
+          stored,
+          companyId: req.companyId,
+          journalEntryId: entry.id,
+          uploadedById: req.user.id,
+          fileName: file.fileName,
+          mimeType: file.mimeType,
         });
 
         return res.status(201).json({ attachment });
@@ -565,18 +713,19 @@ export function createManualJournalRouter(prisma) {
     }
   );
 
+  router.get("/:journalId/attachments/:attachmentId/download", guards, downloadJournalAttachment({ prisma, objectStorage }));
   return router;
 }
 
 // apps/api/src/server.js
 import { createManualJournalRouter } from "./modules/accounting/manualJournalRoutes.js";
 
-app.use("/api/accounting/manual-journals", createManualJournalRouter(prisma));
+app.use("/api/accounting/manual-journals", createManualJournalRouter({ prisma, objectStorage }));
 ```
 
 5. Explicação do código.
 
-A rota valida sessão, empresa, role e MIME antes de gravar o anexo numa pasta privada que não é servida como ficheiro estático. `GET` e `PATCH` usam o service para aplicar a regra de origem manual.
+A rota valida sessão, empresa, role, multipart, tamanho, extensão, MIME e assinatura antes de promover o objeto da quarentena para S3. Metadata/auditoria e objeto usam cleanup compensatório. `GET`, `PATCH` e download aplicam empresa ativa e regra de origem manual.
 
 6. Validação do passo.
 
@@ -648,6 +797,20 @@ export async function createManualJournal(data: ManualJournalPayload) {
   return response.json() as Promise<{ entry: ManualJournal }>;
 }
 
+export async function listManualJournals(cursor?: string) {
+  const query = cursor ? `?cursor=${encodeURIComponent(cursor)}` : "";
+  const response = await fetch(`/api/accounting/manual-journals${query}`, {
+    credentials: "include",
+  });
+  if (!response.ok) {
+    throw new Error(await readJsonError(response, "Não foi possível listar lançamentos."));
+  }
+  return response.json() as Promise<{
+    items: ManualJournal[];
+    pageInfo: { nextCursor: string | null; hasNextPage: boolean };
+  }>;
+}
+
 export async function getManualJournal(entryId: string) {
   const response = await fetch(`/api/accounting/manual-journals/${entryId}`, {
     credentials: "include",
@@ -676,11 +839,12 @@ export async function updateManualJournal(entryId: string, data: ManualJournalPa
 }
 
 export async function uploadJournalAttachment(entryId: string, file: File) {
+  const formData = new FormData();
+  formData.append("file", file, file.name);
   const response = await fetch(`/api/accounting/manual-journals/${entryId}/attachments`, {
     method: "POST",
-    headers: { "content-type": file.type, "x-file-name": file.name },
     credentials: "include",
-    body: await file.arrayBuffer(),
+    body: formData,
   });
 
   if (!response.ok) {
@@ -688,6 +852,12 @@ export async function uploadJournalAttachment(entryId: string, file: File) {
   }
 
   return response.json();
+}
+
+export async function downloadJournalAttachment(journalId: string, attachmentId: string) {
+  const response = await fetch(`/api/accounting/manual-journals/${journalId}/attachments/${attachmentId}/download`, { credentials: "include" });
+  if (!response.ok) throw new Error(await readJsonError(response, "Não foi possível descarregar o anexo."));
+  return response.blob();
 }
 ```
 

@@ -17,7 +17,7 @@
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF1-04`
 - `guia_path`: `docs/planificacao/guias-bk/MF1/BK-MF1-03-registar-recebimentos-parciais-totais.md`
-- `last_updated`: `2026-06-01`
+- `last_updated`: `2026-07-10`
 
 ## Objetivo
 
@@ -277,6 +277,7 @@ Localização: `apps/api/src/modules/receipts/receiptService.js`.
 
 ```js
 import { httpError } from "../../lib/httpErrors.js";
+import { parseStrictDateOnly } from "../../lib/strictDate.js";
 import { assertOpenFiscalPeriod } from "../fiscal-periods/fiscalPeriodService.js";
 
 const methods = new Set(["CASH", "BANK_TRANSFER", "CARD", "OTHER"]);
@@ -284,10 +285,9 @@ const methods = new Set(["CASH", "BANK_TRANSFER", "CARD", "OTHER"]);
 function parseReceiptInput(input) {
     if (!input || typeof input !== "object") throw httpError(400, "INVALID_BODY", "O corpo do pedido deve ser JSON");
     const amountCents = Number(input.amountCents);
-    const receivedAt = new Date(input.receivedAt);
+    const receivedAt = parseStrictDateOnly(input.receivedAt, { code: "INVALID_DATE", field: "receivedAt" });
     const method = String(input.method ?? "").toUpperCase();
     if (!Number.isInteger(amountCents) || amountCents <= 0) throw httpError(400, "INVALID_AMOUNT", "Valor recebido inválido");
-    if (Number.isNaN(receivedAt.getTime())) throw httpError(400, "INVALID_DATE", "Data de recebimento inválida");
     if (!methods.has(method)) throw httpError(400, "INVALID_METHOD", "Método de recebimento inválido");
     return { amountCents, receivedAt, method, reference: String(input.reference ?? "").trim() || null, notes: String(input.notes ?? "").trim() || null };
 }
@@ -405,17 +405,34 @@ export async function registerReceipt(saleDocumentId: string, input: ReceiptInpu
 }
 ```
 
+Localização: `apps/web/src/lib/localDate.ts` (helper partilhado; criar uma vez e reutilizar).
+
+```ts
+export function todayInPortugal(date = new Date()): string {
+    const parts = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "Europe/Lisbon",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+    }).formatToParts(date);
+    const value = Object.fromEntries(parts.map(({ type, value }) => [type, value]));
+    return `${value.year}-${value.month}-${value.day}`;
+}
+```
+
 Localização: `apps/web/src/pages/ReceiptsPage.tsx`.
 
 ```tsx
 // apps/web/src/pages/ReceiptsPage.tsx
 import { FormEvent, useState } from "react";
 import { registerReceipt, type ReceiptInput } from "../lib/receiptApi";
+import { todayInPortugal } from "../lib/localDate";
+import { EntityAutocomplete } from "../components/forms/EntityAutocomplete";
 
 const emptyForm: ReceiptInput & { saleDocumentId: string } = {
     saleDocumentId: "",
     amountCents: 0,
-    receivedAt: new Date().toISOString().slice(0, 10),
+    receivedAt: todayInPortugal(),
     method: "BANK_TRANSFER",
     reference: "",
     notes: "",
@@ -451,7 +468,7 @@ export function ReceiptsPage() {
         <main>
             <h1>Recebimentos</h1>
             <form onSubmit={handleSubmit} aria-label="Registar recebimento">
-                <input value={form.saleDocumentId} onChange={(event) => setForm({ ...form, saleDocumentId: event.target.value })} placeholder="ID do documento de venda" />
+                <EntityAutocomplete label="Documento de venda" endpoint="/api/sales/documents" value={form.saleDocumentId} onChange={(saleDocumentId) => setForm({ ...form, saleDocumentId })} />
                 <input type="number" value={form.amountCents} onChange={(event) => setForm({ ...form, amountCents: Number(event.target.value) })} />
                 <input type="date" value={form.receivedAt} onChange={(event) => setForm({ ...form, receivedAt: event.target.value })} />
                 <select value={form.method} onChange={(event) => setForm({ ...form, method: event.target.value as ReceiptInput["method"] })}>

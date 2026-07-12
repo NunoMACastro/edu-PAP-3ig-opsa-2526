@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "description": "Waivers temporarios e explicitos para blockers/advisories documentais. Conflict markers nunca sao waivable.",
+  "required_fields": [
+    "issue_id",
+    "owner",
+    "reason",
+    "expires_on"
+  ],
+  "waivers": []
+}

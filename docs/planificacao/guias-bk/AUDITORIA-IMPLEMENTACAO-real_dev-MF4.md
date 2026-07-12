@@ -1,3 +1,10 @@
+> [!WARNING]
+> `SNAPSHOT_HISTORICO_SUPERSEDED` — estado `SUPERSEDED` em 2026-07-10.
+>
+> Este relatório preserva um snapshot histórico e não representa o estado corrente.
+> Fonte atual: [relatório canónico](../auditorias/CORRECAO-AUDITORIA-END-TO-END-REAL_DEV-2026-07-09.md).
+> Não reutilizar contagens, comandos, paths ou decisões deste corpo como evidence atual.
+
 # AUDITORIA-IMPLEMENTACAO-real_dev-MF4
 
 ## Header
@@ -137,7 +144,7 @@ O estado global fica `PASS_COM_RISCOS` por dois motivos objetivos: a integracao 
 | Comando | Resultado |
 | --- | --- |
 | `git status --short` | Antes da auditoria: relatorios MF4 untracked; `real_dev/` e area local conforme prompt. |
-| `env DATABASE_URL='postgresql://opsa:opsa@localhost:5432/opsa_dev?schema=public' npm --prefix real_dev/api run prisma:validate` | `PASS` |
+| `env DATABASE_URL='<URL_AUTHENTICATED_REDACTED> npm --prefix real_dev/api run prisma:validate` | `PASS` |
 | `npm --prefix real_dev/api run syntax:check` | `PASS` |
 | `npm --prefix real_dev/api run test:unit` | `PASS`, 59/59 |
 | `npm --prefix real_dev/api run test:contracts` | `PASS`, 26/26 |

@@ -1,5 +1,7 @@
 # BK-MF4-02 - Sugerir ações (ajustar preços, negociar fornecedor, repor stock).
 
+> **Atualização IA v2:** sugestões têm lifecycle `OPEN`, `ACCEPTED`, `DISMISSED` e `DONE`, feedback controlado, autor preservado e ordenação por score/prioridade. Continuam estritamente recomendatórias. Ver [`../SINCRONIZACAO-IA-V2.md`](../SINCRONIZACAO-IA-V2.md).
+
 ## Header
 - `doc_id`: `GUIA-BK-MF4-02`
 - `bk_id`: `BK-MF4-02`
@@ -16,7 +18,11 @@
 - `core_or_reforco`: `Core`
 - `proximo_bk`: `BK-MF4-03`
 - `guia_path`: `docs/planificacao/guias-bk/MF4/BK-MF4-02-sugerir-acoes-ajustar-precos-negociar-fornecedor-repor-stock.md`
-- `last_updated`: `2026-06-16`
+- `last_updated`: `2026-07-10`
+
+#### Contrato de listagem atualizado
+
+Sugestões continuam read-only e explicáveis. A resposta usa `{ items, pageInfo }` com cursor; não executa ações nem confirma decisões automaticamente.
 
 #### Objetivo
 
@@ -319,8 +325,13 @@ export function buildAiSuggestionRoutes({ prisma }) {
     router.get("/suggestions", guards, async (req, res) => {
         try {
             // A empresa e o utilizador vêm dos middlewares; a UI não controla ownership.
-            const suggestions = await buildActionSuggestions(prisma, { companyId: req.companyId, userId: req.user.id });
-            return res.status(200).json({ suggestions });
+            const page = await buildActionSuggestions(prisma, {
+                companyId: req.companyId,
+                userId: req.user.id,
+                cursor: req.query.cursor,
+                limit: Number(req.query.limit ?? 50),
+            });
+            return res.status(200).json(page);
         } catch (error) {
             return sendError(res, error);
         }
@@ -385,7 +396,7 @@ export interface AiActionSuggestion {
 export function getAiSuggestions() {
   // O endpoint não recebe filtros por empresa. O backend usa a empresa ativa
   // guardada na sessão para escolher os insights e sugestões corretos.
-  return client.request<{ suggestions: AiActionSuggestion[] }>("GET", "/ai/suggestions");
+  return client.request<CursorPage<AiActionSuggestion>>("GET", "/ai/suggestions");
 }
 
 // apps/web/src/pages/AiSuggestionsPage.tsx
@@ -402,7 +413,7 @@ export function AiSuggestionsPage() {
       const result = await getAiSuggestions();
       // Guardamos apenas o array tipado que a página vai renderizar.
       // Não há JSON bruto porque cada campo tem significado pedagógico.
-      setSuggestions(result.suggestions);
+      setSuggestions(result.items);
       setError(null);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Erro inesperado");

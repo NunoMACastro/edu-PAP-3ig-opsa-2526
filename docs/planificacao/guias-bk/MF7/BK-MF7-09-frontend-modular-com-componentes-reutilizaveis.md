@@ -1,4 +1,4 @@
-# BK-MF7-09 - Frontend modular com componentes reutilizáveis.
+# BK-MF7-09 - Frontend modular com routing, autenticação e componentes reutilizáveis
 
 ## Header
 
@@ -17,520 +17,228 @@
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF7-10`
 - `guia_path`: `docs/planificacao/guias-bk/MF7/BK-MF7-09-frontend-modular-com-componentes-reutilizaveis.md`
-- `last_updated`: `2026-06-27`
+- `last_updated`: `2026-07-10`
 
-#### Objetivo
+## Objetivo
 
-Neste BK vais transformar o requisito `RNF26` numa entrega técnica verificável: fica criado um gate de modularidade frontend para reutilizar UI, clientes API e páginas por domínio.
+Organizar o frontend em módulos navegáveis com React Router, autenticação deny-by-default e uma camada HTTP comum. Deep links, Back/Forward, 404, sessão expirada, acessibilidade e mobile fazem parte do contrato, não são melhorias opcionais.
 
-A MF7 fecha temas de operação, compatibilidade, interoperabilidade e manutenção. O guia usa os contratos entregues até MF6 como baseline e escreve sempre caminhos públicos sob `apps/api` e `apps/web`.
-
-#### Importância
-
-O requisito `RNF26` evita que o ERP funcione apenas em ambiente de demonstração. Num ERP financeiro, operação, exportação, importação, retenção, modularidade e testes são parte da segurança do produto.
-
-Este BK prepara `BK-MF7-10` e mantém continuidade com `BK-MF6-10`, que tornou a auditoria obrigatória em operações sensíveis.
-
-#### Scope-in
-
-- Verificar componentes partilhados.
-- Confirmar cliente API central.
-- Evitar lógica HTTP duplicada em páginas.
-- Preparar handoff para PT-PT e formatação europeia em MF8.
-
-#### Scope-out
-
-- Redesenhar a UI.
-- Introduzir biblioteca de componentes nova.
-- Mover todas as páginas existentes.
-
-#### Estado antes e depois
-
-- Antes: MF0..MF6 já entregaram autenticação, empresa ativa, permissões, documentos, relatórios, importações, auditoria e hardening básico.
-- Depois: `BK-MF7-09` deixa um contrato técnico validável: fica criado um gate de modularidade frontend para reutilizar UI, clientes API e páginas por domínio.
-
-#### Pre-requisitos
-
-- Ler `RNF26` em `docs/RNF.md`.
-- Rever `docs/planificacao/backlogs/MATRIZ-CANONICA-BK.md` e `docs/planificacao/backlogs/BACKLOG-MVP.md`.
-- Rever `docs/planificacao/guias-bk/MF6/BK-MF6-10-auditoria-obrigatoria-em-operacoes-sensiveis.md`.
-- Confirmar scripts reais em `apps/web/package.json` antes de acrescentar comandos.
-- Confirmar que a empresa ativa continua resolvida no backend a partir da sessão.
-
-#### Glossário
-
-- Componente reutilizável: peça React usada em vários módulos.
-- Cliente API: camada única para chamadas HTTP.
-- PageFrame: estrutura visual comum da página.
-- Evidence: prova objetiva que mostra o fluxo principal e os negativos.
-- Empresa ativa: contexto autenticado usado pelo backend para filtrar dados por empresa.
-
-#### Conceitos teóricos essenciais
-
-- `CANONICO`: `RNF26` define o requisito deste BK.
-- `CANONICO`: a sequência oficial da MF7 está na matriz e no backlog.
-- `DERIVADO`: os nomes de scripts e ficheiros abaixo são decisões técnicas mínimas para tornar o requisito executável sem trocar a stack.
-
-Frontend modular não é só dividir ficheiros. É partilhar estados, feedback, tabelas, layout e cliente API para que os módulos financeiros se comportem de forma consistente.
-
-A regra de segurança transversal mantém-se: o frontend pode pedir uma ação, mas autorização, empresa ativa, permissões, validação e auditoria pertencem ao backend.
-
-Neste BK, o contrato executável confirma quatro ideias em conjunto: páginas compostas em `App.tsx`, UI partilhada em `apps/web/src/ui`, cliente API central em `apps/web/src/lib/apiClient.ts` e sessão preservada por `credentials: "include"`. Esta combinação evita páginas isoladas com `fetch` próprio, tabelas duplicadas ou mensagens de erro inconsistentes.
-
-Os erros principais a evitar são práticos: procurar `purchases` em `App.tsx` quando a UI usa `purchase-*`, validar `credentials: "include"` apenas em comentários, ou ligar o comando no pacote `apps/api` quando o gate pertence ao frontend. Por isso, o tutorial separa marcadores de UI e marcadores de API antes de criar o script.
-
-#### Arquitetura do BK
-
-- Script: `check-mf7-frontend-modules.mjs`.
-- UI: `src/ui/*`.
-- Clientes API: `src/lib/*`.
-- Páginas: `src/pages/*`.
-- Handoff para o próximo BK: `BK-MF7-10`.
-
-#### Ficheiros a criar/editar/rever
-
-- CRIAR: `apps/web/scripts/check-mf7-frontend-modules.mjs`
-- EDITAR: `apps/web/package.json`, apenas para acrescentar o script de validação indicado neste BK.
-- REVER: `docs/RNF.md`.
-- REVER: `docs/planificacao/backlogs/MATRIZ-CANONICA-BK.md`.
-- REVER: `docs/planificacao/backlogs/BACKLOG-MVP.md`.
-- REVER: `docs/planificacao/guias-bk/MF6/BK-MF6-10-auditoria-obrigatoria-em-operacoes-sensiveis.md`.
-
-#### Tutorial técnico linear
-
-### Passo 1 - Confirmar contrato e risco principal
-
-1. Objetivo funcional do passo no contexto da app.
-
-Confirmar o contrato canónico antes de escrever código, para não misturar requisitos nem alterar a sequência da macrofase.
-
-2. Ficheiros envolvidos:
-    - REVER: `docs/RNF.md`
-    - REVER: `docs/planificacao/backlogs/MATRIZ-CANONICA-BK.md`
-    - REVER: `docs/planificacao/backlogs/BACKLOG-MVP.md`
-    - REVER: `docs/planificacao/guias-bk/MF7/BK-MF7-08-backend-modular-por-dominio-vendas-compras-inventario-bancos-contabilidade-ia.md`
-    - REVER: `docs/planificacao/guias-bk/MF7/BK-MF7-10-testes-automatizados-para-modulos-criticos-faturacao-iva-balancetes-reconciliacao.md`
-
-3. Instruções do que fazer.
-
-Confirma que `RNF26` pede frontend modular e que este BK fica entre o backend modular (`BK-MF7-08`) e os testes automatizados (`BK-MF7-10`). Depois escreve uma checklist técnica com estes contratos mínimos:
-
-- páginas compostas em `apps/web/src/App.tsx`;
-- componentes partilhados em `apps/web/src/ui`;
-- chamadas HTTP concentradas em `apps/web/src/lib/apiClient.ts`;
-- feedback reutilizável com `StatusMessage` e `useActionFeedback`;
-- tabelas reutilizáveis com `ResponsiveDataTable`;
-- sessão por cookie preservada com `credentials: "include"`.
-
-4. Código completo, correto e integrado com a app final.
-
-Sem código neste passo. Este passo é de leitura, desenho técnico ou validação documental antes da implementação.
-
-5. Explicação do código.
-
-Sem código neste passo porque primeiro é preciso separar contrato de implementação. O contrato vem dos documentos canónicos; a implementação concreta vem dos ficheiros em `apps/web`. Esta separação evita dois erros comuns: criar um script que valida nomes inventados, ou escrever um guia que parece correto mas não corresponde à app real.
-
-6. Validação do passo.
-
-Executa pesquisas rápidas a partir da raiz do repositório:
-
-```bash
-rg -n "RNF26|Frontend modular" docs/RNF.md docs/planificacao/backlogs
-rg -n "PageFrame|StatusMessage|ResponsiveDataTable|useActionFeedback|apiClient|credentials:\\s*\"include\"" apps/web/src
-```
-
-A validação deste passo passa quando consegues apontar a fonte canónica (`RNF26`) e pelo menos um uso real de cada contrato frontend.
-
-7. Cenário negativo/erro esperado.
-
-Se o guia ou a evidence usar caminhos privados, nomes não existentes na app ou validação só documental, o BK não está pronto. Corrige primeiro o contrato para apontar apenas para `apps/web` e para marcadores reais da aplicação.
-
-### Passo 2 - Desenhar o contrato técnico mínimo
-
-1. Objetivo funcional do passo no contexto da app.
-
-Definir e validar modularidade frontend com componentes reutilizáveis, cliente API e estados previsíveis.
-
-2. Ficheiros envolvidos:
-    - REVER: `apps/web/src/App.tsx`
-    - REVER: `apps/web/src/lib/apiClient.ts`
-    - REVER: `apps/web/src/ui/opsaUi.tsx`
-    - REVER: `apps/web/src/ui/ResponsiveDataTable.tsx`
-    - REVER: `apps/web/src/ui/useActionFeedback.ts`
-
-3. Instruções do que fazer.
-
-Mapeia cada domínio financeiro para um marcador de página e um marcador do cliente API. Usa nomes reais da app, mesmo quando o singular/plural muda entre rota e API:
-
-- vendas: página `sales-documents`, `SaleDocumentsPage` ou `SalesOpenItemsPage`; API `sales:` ou `/sales/`;
-- compras: página `purchase-documents`, `PurchaseDocumentsPage` ou `PurchaseApprovalPage`; API `purchases:` ou `/purchases/`;
-- inventário: página `inventory-counts`, `StockMovementsPage` ou `FifoCostPage`; API `inventory:` ou `/inventory/`;
-- tesouraria: página `treasury-accounts`, `TreasuryAccountsPage` ou `PaymentsPage`; API `treasury:` ou `/treasury/`;
-- contabilidade: página `accounting-reports`, `AccountingReportsPage` ou `ManualJournalPage`; API `accounting:`, `accountingReports:` ou `/accounting/`.
-
-4. Código completo, correto e integrado com a app final.
-
-Sem código neste passo. Este passo é de leitura, desenho técnico ou validação documental antes da implementação.
-
-5. Explicação do código.
-
-Sem código neste passo porque estás a desenhar a tabela de verdade que o script vai usar no passo seguinte. A regra importante é validar UI e API separadamente. Por exemplo, procurar literalmente `purchases` em `App.tsx` pode falhar de forma injusta, porque as rotas e páginas usam `purchase-*`, enquanto o namespace HTTP vive em `apiClient.ts` como `purchases`.
-
-6. Validação do passo.
-
-Confirma manualmente que cada domínio tem pelo menos um marcador de UI em `apps/web/src/App.tsx` e pelo menos um marcador de API em `apps/web/src/lib/apiClient.ts`.
-
-```bash
-rg -n "sales-documents|purchase-documents|inventory-counts|treasury-accounts|accounting-reports" apps/web/src/App.tsx
-rg -n "sales:|purchases:|inventory:|treasury:|accounting:|accountingReports:" apps/web/src/lib/apiClient.ts
-```
-
-7. Cenário negativo/erro esperado.
-
-Se o script validar apenas nomes de páginas, pode deixar passar chamadas HTTP fora do cliente central. Se validar apenas namespaces de API, pode deixar passar páginas sem composição frontend real. O contrato deve cobrir os dois lados.
-
-### Passo 3 - Criar o ficheiro principal do BK
-
-1. Objetivo funcional do passo no contexto da app.
-
-Definir e validar modularidade frontend com componentes reutilizáveis, cliente API e estados previsíveis.
-
-2. Ficheiros envolvidos:
-    - CRIAR: `apps/web/scripts/check-mf7-frontend-modules.mjs`
-    - LOCALIZAÇÃO: ficheiro completo.
-
-3. Instruções do que fazer.
-
-Cria o ficheiro `apps/web/scripts/check-mf7-frontend-modules.mjs` com o conteúdo completo abaixo. Mantém os imports no topo e não movas regras de segurança para o frontend.
-
-4. Código completo, correto e integrado com a app final.
-
-```js
-/**
- * @file Verifica que o frontend reutiliza páginas, clientes API e componentes comuns.
- */
-
-import assert from "node:assert/strict";
-import { existsSync, readFileSync } from "node:fs";
-import { join } from "node:path";
-import { fileURLToPath } from "node:url";
-
-const webRoot = fileURLToPath(new URL("..", import.meta.url));
-const requiredFiles = [
-  "src/ui/opsaUi.tsx",
-  "src/ui/ResponsiveDataTable.tsx",
-  "src/ui/useActionFeedback.ts",
-  "src/lib/apiClient.ts",
-];
-const requiredDomains = [
-  {
-    id: "sales",
-    pageMarkers: ["sales-documents", "SaleDocumentsPage", "SalesOpenItemsPage"],
-    apiMarkers: ["sales:", "/sales/"],
-  },
-  {
-    id: "purchases",
-    pageMarkers: ["purchase-documents", "PurchaseDocumentsPage", "PurchaseApprovalPage"],
-    apiMarkers: ["purchases:", "/purchases/"],
-  },
-  {
-    id: "inventory",
-    pageMarkers: ["inventory-counts", "StockMovementsPage", "FifoCostPage"],
-    apiMarkers: ["inventory:", "/inventory/"],
-  },
-  {
-    id: "treasury",
-    pageMarkers: ["treasury-accounts", "TreasuryAccountsPage", "PaymentsPage"],
-    apiMarkers: ["treasury:", "/treasury/"],
-  },
-  {
-    id: "accounting",
-    pageMarkers: ["accounting-reports", "AccountingReportsPage", "ManualJournalPage"],
-    apiMarkers: ["accounting:", "accountingReports:", "/accounting/"],
-  },
-];
-
-/**
- * Indica se pelo menos um marcador esperado existe no texto analisado.
- *
- * @param {string} content - Conteúdo textual do ficheiro.
- * @param {string[]} markers - Marcadores que provam o contrato.
- * @returns {boolean} `true` quando o contrato foi encontrado.
- */
-function hasAnyMarker(content, markers) {
-  return markers.some((marker) => content.includes(marker));
-}
-
-/**
- * Remove comentários antes de validar contratos que têm de existir em código executável.
- *
- * @param {string} content - Conteúdo textual do ficheiro.
- * @returns {string} Conteúdo sem comentários de bloco ou de linha.
- */
-function stripComments(content) {
-  return content
-    .replace(/\/\*[\s\S]*?\*\//g, "")
-    .replace(/\/\/.*$/gm, "");
-}
-
-/**
- * Confirma contratos reutilizáveis mínimos do frontend.
- *
- * @returns {void}
- */
-export function checkFrontendModules() {
-  for (const file of requiredFiles) {
-    assert.equal(existsSync(join(webRoot, file)), true, "Contrato frontend em falta: " + file);
-  }
-  const app = readFileSync(join(webRoot, "src/App.tsx"), "utf8");
-  const apiClient = readFileSync(join(webRoot, "src/lib/apiClient.ts"), "utf8");
-  const apiClientExecutable = stripComments(apiClient);
-
-  // A App deve compor páginas e UI partilhada; lógica HTTP nova fica em src/lib.
-  assert.match(app, /PageFrame/);
-  assert.match(app, /StatusMessage/);
-
-  // O cookie HttpOnly só acompanha chamadas feitas com credentials: "include" em código real.
-  assert.match(apiClientExecutable, /credentials:\s*"include"/);
-
-  for (const domain of requiredDomains) {
-    // Validamos a UI e o apiClient em conjunto para não confundir nomes de página com namespaces HTTP.
-    assert.equal(
-      hasAnyMarker(app, domain.pageMarkers),
-      true,
-      "Página ou rota frontend em falta para domínio: " + domain.id,
-    );
-    assert.equal(
-      hasAnyMarker(apiClientExecutable, domain.apiMarkers),
-      true,
-      "Cliente API em falta para domínio: " + domain.id,
-    );
-  }
-}
-
-checkFrontendModules();
-console.log("MF7 frontend modular: OK");
-```
-
-5. Explicação do código.
-
-O bloco cria um contrato pequeno e testável para este BK. Primeiro confirma que os ficheiros partilhados existem: `opsaUi.tsx`, `ResponsiveDataTable.tsx`, `useActionFeedback.ts` e `apiClient.ts`. Depois lê `App.tsx` e `apiClient.ts`, porque a modularidade frontend depende destes dois lados: a UI deve compor páginas reutilizáveis e as chamadas HTTP devem passar pelo cliente central. A função `stripComments` remove comentários antes de validar o cliente API, para impedir que um texto explicativo faça passar um contrato que desapareceu do código real.
-
-A lista `requiredDomains` usa marcadores reais da app. No domínio de compras, por exemplo, a UI usa nomes `purchase-*`, enquanto o cliente API expõe o namespace `purchases`. O script valida ambos em separado para evitar o erro de procurar literalmente `purchases` em `App.tsx`. A validação de `credentials: "include"` protege o contrato de sessão por cookie HttpOnly herdado da MF0/MF6. O aluno pode acrescentar novos marcadores quando criar páginas novas, mas não deve remover a validação do `apiClient`, porque isso permitiria chamadas HTTP soltas sem sessão, feedback comum ou tratamento de erro consistente.
-
-6. Validação do passo.
-
-Executa a validação sintática do ficheiro quando estiver criado: `cd apps/web && node --check scripts/check-mf7-frontend-modules.mjs`. A partir da raiz do repositório, o comando equivalente é `node apps/web/scripts/check-mf7-frontend-modules.mjs`.
-
-7. Cenário negativo/erro esperado.
-
-Componente obrigatório, cliente API ou estado de feedback em falta deve falhar no gate frontend com caminho claro.
-
-### Passo 4 - Ligar o contrato ao módulo certo
-
-1. Objetivo funcional do passo no contexto da app.
-
-Usar o gate frontend para impedir páginas isoladas sem cliente API, feedback ou componentes partilhados.
-
-2. Ficheiros envolvidos:
-    - EDITAR: `apps/web/package.json`
-    - REVER: `apps/web/src/App.tsx`
-    - REVER: `apps/web/src/lib/apiClient.ts`
-    - REVER: `apps/web/src/ui/*`
-    - LOCALIZAÇÃO: scripts web e composição principal da aplicação.
-
-3. Instruções do que fazer.
-
-Acrescenta um script `check:mf7:frontend-modules` em `apps/web/package.json`. Depois confirma que páginas de vendas, compras, inventário, tesouraria e contabilidade reutilizam UI partilhada e fazem chamadas HTTP através de `apiClient`.
-
-4. Código completo, correto e integrado com a app final.
-
-```json
-{
-  "scripts": {
-    "check:mf7:frontend-modules": "node scripts/check-mf7-frontend-modules.mjs"
-  }
-}
-```
-
-5. Explicação do código.
-
-O script fica no pacote web porque valida ficheiros de `apps/web`. O gate exige cliente API com cookies de sessão, UI partilhada e presença dos domínios principais. Isto reduz o risco de cada página criar fetches, tabelas e mensagens de erro próprias.
-
-6. Validação do passo.
-
-Executa `cd apps/web && npm run check:mf7:frontend-modules`. Depois remove temporariamente `credentials: "include"` do cliente API e confirma que o gate falha.
-
-7. Cenário negativo/erro esperado.
-
-Uma página nova que chama `fetch` diretamente sem `apiClient` deve ser corrigida antes de avançar, porque poderia quebrar sessão e feedback comum.
-
-### Passo 5 - Adicionar comando de validação
-
-1. Objetivo funcional do passo no contexto da app.
-
-Tornar o gate executável por qualquer pessoa da equipa sem depender de comandos avulsos.
-
-2. Ficheiros envolvidos:
-    - EDITAR: `apps/web/package.json`
-    - REVER: `apps/web/scripts/check-mf7-frontend-modules.mjs`
-
-3. Instruções do que fazer.
-
-Confirma que o `package.json` de `apps/web` tem o script indicado no passo 4. Depois valida o ficheiro criado antes de executar o gate completo.
-
-4. Código completo, correto e integrado com a app final.
-
-Sem código neste passo. Este passo é de leitura, desenho técnico ou validação documental antes da implementação.
-
-5. Explicação do código.
-
-Sem código adicional neste passo porque o código já foi criado no passo 3 e ligado no passo 4. Aqui o foco é confirmar que o comando oficial chama o ficheiro certo e que a validação sintática não depende do ambiente de browser.
-
-6. Validação do passo.
-
-Executa:
-
-```bash
-cd apps/web && node --check scripts/check-mf7-frontend-modules.mjs
-cd apps/web && npm run check:mf7:frontend-modules
-```
-
-O output esperado do segundo comando é:
+## Arquitetura mínima
 
 ```text
-MF7 frontend modular: OK
+apps/web/src/
+├── app/
+│   ├── router.tsx
+│   ├── routeRegistry.ts
+│   └── AppProviders.tsx
+├── auth/
+│   ├── AuthProvider.tsx
+│   └── ProtectedRoute.tsx
+├── lib/api/
+│   └── apiClient.ts
+├── layout/
+│   ├── AppShell.tsx
+│   └── Navigation.tsx
+├── components/
+│   ├── FormField.tsx
+│   ├── AccessibleDialog.tsx
+│   └── CursorList.tsx
+└── pages/
+    ├── LoginPage.tsx
+    └── NotFoundPage.tsx
 ```
 
-7. Cenário negativo/erro esperado.
+## Registry de rotas
 
-Se o script não existir, o erro esperado é de ficheiro em falta. Se o script existir mas o comando em `package.json` apontar para outro caminho, o `npm run check:mf7:frontend-modules` deve falhar e o caminho do script deve ser corrigido.
+Existe uma única registry tipada com path, visibilidade, permissão e lazy component. A navegação é derivada da mesma registry; não mantém uma segunda lista de 45 links.
 
-### Passo 6 - Executar negativos obrigatórios
+```ts
+type AppRoute = {
+  path: string;
+  public: boolean;
+  requiredPermission?: string;
+  navigationGroup?: string;
+  lazy: () => Promise<{ Component: React.ComponentType }>;
+};
+```
 
-1. Objetivo funcional do passo no contexto da app.
+Rotas não reconhecidas mostram 404. Rotas protegidas esperam pelo bootstrap; nunca renderizam conteúdo privado durante o carregamento.
 
-Provar que o gate não passa apenas em cenário feliz e que apanha regressões importantes.
+## `AuthProvider`
 
-2. Ficheiros envolvidos:
-    - REVER: `apps/web/src/App.tsx`
-    - REVER: `apps/web/src/lib/apiClient.ts`
-    - REVER: `apps/web/scripts/check-mf7-frontend-modules.mjs`
+Estados explícitos:
 
-3. Instruções do que fazer.
+```text
+bootstrapping | anonymous | authenticated | error
+```
 
-Executa negativos em cópias temporárias ou reverte imediatamente as alterações de teste. Não deixes ficheiros permanentes alterados depois dos negativos.
+`/api/auth/me` e `/api/permissions/me` são a fonte de verdade. Ausência, erro ou permissão desconhecida resulta em deny. Em `401`, o cliente cancela pedidos relevantes, limpa estado de sessão e navega para login com um único `returnTo` interno validado. URLs absolutas, `//host` e esquemas externos são rejeitados.
 
-1. Remove temporariamente a propriedade `credentials: "include"` das opções do `fetch` em `apps/web/src/lib/apiClient.ts`.
-2. Remove temporariamente todos os marcadores de página de compras usados pelo contrato, por exemplo `purchase-documents`, `PurchaseDocumentsPage` e `PurchaseApprovalPage`, de `apps/web/src/App.tsx`.
-3. Remove temporariamente todos os marcadores API de compras usados pelo contrato, por exemplo `purchases:` e `/purchases/`, de `apps/web/src/lib/apiClient.ts`.
+## Cliente HTTP
 
-4. Código completo, correto e integrado com a app final.
+- timeout e `AbortSignal` central;
+- JSON apenas nas routes JSON;
+- `FormData` sem definir boundary manual;
+- envelope de erro consistente;
+- nenhuma repetição automática de `POST`, `PATCH`, `PUT` ou `DELETE`;
+- 401 tratado uma vez pelo provider;
+- abort ao desmontar páginas/alterar pesquisa.
 
-Sem código neste passo. Este passo é de leitura, desenho técnico ou validação documental antes da implementação.
+## Cursor pagination
 
-5. Explicação do código.
+Consumidores de listagens usam:
 
-Sem código novo neste passo porque os negativos testam o código já criado. O primeiro negativo protege sessão autenticada por cookie. O segundo protege composição real das páginas. O terceiro protege centralização das chamadas HTTP por domínio.
+```ts
+type CursorPage<T> = {
+  items: T[];
+  pageInfo: {
+    nextCursor: string | null;
+    hasNextPage: boolean;
+  };
+};
+```
 
-6. Validação do passo.
+O componente de lista substitui itens apenas no primeiro pedido e acrescenta-os ao carregar mais. Cancela pesquisa anterior e deduplica por ID.
 
-Cada negativo deve falhar com uma mensagem útil:
+## Formulários e domínio
 
-- sem `credentials: "include"` nas opções do `fetch`: falha no `assert.match(apiClientExecutable, /credentials:\s*"include"/)`;
-- sem marcadores de compras em `App.tsx`: `Página ou rota frontend em falta para domínio: purchases`;
-- sem marcadores API de compras em `apiClient.ts`: `Cliente API em falta para domínio: purchases`.
+- UUIDs técnicos são `select`/autocomplete com labels humanas.
+- Linhas contabilísticas e documentos usam editores de linhas, não JSON manual.
+- IVA isento aceita exatamente `0`; vazio continua distinto de zero.
+- Datas default usam calendário local de Portugal, sem conversão UTC.
+- Erro `400`, `409` ou `500` preserva valores; sucesso confirmado é a única ação que limpa.
+- Reconciliação mostra sugestões, permite rever/aceitar/rejeitar e recupera `409 STALE_STATE` sem confirmação automática.
 
-7. Cenário negativo/erro esperado.
+## Acessibilidade e responsividade
 
-Se um negativo continuar a passar depois de remover o contrato correspondente, o gate está demasiado fraco. Nesse caso, reforça os marcadores do domínio antes de fechar o BK.
+- skip link para o conteúdo principal;
+- `label`/`htmlFor`, `aria-invalid` e `aria-describedby` em erros;
+- foco movido para heading/erro após navegação ou submissão inválida;
+- diálogo com nome, foco preso, Escape e retorno do foco;
+- navegação mobile em drawer fechado por omissão;
+- sem overflow horizontal em 375 px;
+- conteúdo principal começa até 120 px do topo;
+- sem dumps técnicos ou `<pre>` na UI de produção;
+- contraste AA e axe sem violações serious/critical.
 
-### Passo 7 - Fechar evidence e handoff
+## Tutorial técnico linear
 
-1. Objetivo funcional do passo no contexto da app.
+### Passo 1 - Criar Router e registry
 
-Fechar o BK com validação, evidence e handoff mensurável para a próxima entrega.
+Usa `react-router-dom`, cria `routeRegistry.ts`, migra caminhos e deriva a navegação da mesma fonte.
 
-2. Ficheiros envolvidos:
-    - REVER: `apps/web/scripts/check-mf7-frontend-modules.mjs`
-    - REVER: `apps/web/package.json`
-    - REVER: evidence do PR ou pacote de entrega
+### Passo 2 - Proteger com `AuthProvider`
 
-3. Instruções do que fazer.
+Cria `AuthProvider`/`ProtectedRoute` deny-by-default e liga fontes `/auth/me` e `/permissions/me`.
 
-Regista a evidence final com comandos, outputs e negativos. Usa este modelo:
+### Passo 3 - Centralizar HTTP
 
-4. Código completo, correto e integrado com a app final.
+Implementa 401, timeout, abort, multipart e ausência de retry automático de mutações.
 
-```md
-# Evidence BK-MF7-09 - Frontend modular
+### Passo 4 - Migrar componentes de domínio
 
-## Fonte
-- RNF26: frontend modular.
-- Guia: docs/planificacao/guias-bk/MF7/BK-MF7-09-frontend-modular-com-componentes-reutilizaveis.md.
+Usa formulários, editores de linhas e listagens com cursor acessíveis.
 
-## Proof
-- Comando: cd apps/web && node --check scripts/check-mf7-frontend-modules.mjs
-- Resultado: sem erros de sintaxe.
-- Comando: cd apps/web && npm run check:mf7:frontend-modules
-- Resultado: MF7 frontend modular: OK
+### Passo 5 - Completar navegação
 
-## Negativos
-- Sem credentials include nas opções do fetch: falha no contrato de sessão.
-- Sem marcadores de página de compras: falha com Página ou rota frontend em falta para domínio: purchases.
-- Sem marcadores API de compras: falha com Cliente API em falta para domínio: purchases.
+Adiciona 404, deep links, Back/Forward e drawer mobile.
 
-## Multiempresa
-- A empresa ativa continua resolvida no backend a partir da sessão autenticada.
-- O frontend não escolhe empresa por parâmetro livre.
+### Passo 6 - Provar em testes
+
+Adiciona unitários, integração MSW e E2E browser/axe.
+
+## Testes obrigatórios
+
+- bootstrap anonymous/authenticated/error;
+- route privada nunca pisca conteúdo;
+- permissão ausente nega;
+- `returnTo` externo é rejeitado;
+- 401 limpa sessão e preserva apenas destino interno;
+- timeout/abort e ausência de retry de mutações;
+- deep link e Back/Forward;
+- 404;
+- cursor load-more sem duplicados;
+- formulário preservado em erros;
+- IVA zero e data local PT;
+- teclado, foco, diálogo e axe;
+- Chrome, Edge e Firefox em 375×667, 768×1024 e 1440×900.
+
+## Validação final
+
+```bash
+cd apps/web
+npm run typecheck
+npm run test
+npm run build
+npm run test:e2e
+```
+
+Playwright sem browsers instalados ou sem execução iniciada é blocker, não PASS. Não aceites skips no gate final.
+
+## Critérios de aceite
+
+- Uma registry governa Router e navegação.
+- Auth e permissions são deny-by-default.
+- Sessão expirada, timeout e abort têm comportamento comum.
+- Todos os fluxos críticos evitam UUID/JSON manual.
+- Paginação, mobile e acessibilidade funcionam em browsers reais.
+- Deep links, 404 e histórico estão cobertos.
+
+## Evidence para PR/defesa
+
+- matriz rota/permissão;
+- testes AuthProvider/401/returnTo;
+- screenshots nos três viewports sem dados pessoais;
+- relatório Playwright por browser;
+- axe das páginas críticas;
+- comandos, exit codes e contagens reais.
+
+## Importância
+
+Sem routing/autorização central, o menu e as páginas divergem e podem expor conteúdo durante bootstrap ou sessão expirada.
+
+## Scope-in
+
+- Router, AuthProvider, cliente HTTP, paginação, formulários, a11y e mobile.
+
+## Scope-out
+
+- Autorização final no browser ou repetição automática de mutações.
+
+## Estado antes e depois
+
+- Antes: navegação monolítica e decisões espalhadas.
+- Depois: registry única, deny-by-default e componentes reutilizáveis testados.
+
+## Pre-requisitos
+
+- Concluir contratos MF5 e disponibilizar API/MSW/Playwright.
+
+## Glossário
+
+- **Route registry:** fonte única de path, permissão e componente.
+- **Bootstrapping:** estado antes de conhecer a sessão.
+
+## Conceitos teóricos essenciais
+
+Autenticação responde “quem”; autorização responde “pode”; ambas falham fechado quando o estado é desconhecido.
+
+## Arquitetura do BK
+
+Providers → Router/registry → protected routes/layout → pages → API client → backend.
+
+## Ficheiros a criar/editar/rever
+
+Revê os ficheiros `apps/web/...` listados no mapa de arquitetura e os respetivos testes.
+
+## Cenários negativos mínimos
+
+Executa pelo menos 3 cenários negativos: permissão ausente, `returnTo` externo e mutação interrompida sem retry.
 
 ## Handoff
-- BK-MF7-10 pode reutilizar este gate como pré-condição dos testes automatizados.
-```
 
-5. Explicação do código.
+Entrega a `BK-MF7-10` superfícies críticas modularizadas e prontas para testes automatizados reais.
 
-O bloco acima é um modelo de evidence em Markdown, não código da aplicação. Ele separa `proof` positivo, negativos e handoff, o que facilita defesa técnica e revisão por outra pessoa.
+## Changelog
 
-6. Validação do passo.
-
-Antes de fechar, confirma que a evidence contém obrigatoriamente as palavras `proof`, `negativos`, `fonte` e `multiempresa`, além do output `MF7 frontend modular: OK`.
-
-7. Cenário negativo/erro esperado.
-
-Evidence sem negativos executados, ou evidence baseada em caminhos privados, não é aceite para este BK.
-
-#### Critérios de aceite
-
-- O requisito `RNF26` fica demonstrável por ficheiro, script, teste ou output controlado.
-- O código indicado tem JSDoc nos elementos principais e comentários didáticos junto das decisões de segurança ou domínio.
-- O backend mantém autenticação, autorização e empresa ativa como fonte de verdade.
-- Negativos: minimo `3` cenários com resultado esperado documentado.
-- Não há caminhos privados nem linguagem interna no guia.
-
-#### Validação final
-
-- `git diff --check` deve sair limpo.
-- `bash scripts/validate-planificacao.sh` deve manter `overall_pass=true`; advisory antigo fora da MF7 pode continuar registado.
-- Validar o ficheiro criado com `cd apps/web && node --check scripts/check-mf7-frontend-modules.mjs`.
-- Validar o gate com `cd apps/web && npm run check:mf7:frontend-modules`.
-
-#### Evidence para PR/defesa
-
-- `pr`: referência do PR ou pacote de entrega.
-- `proof`: output do script/teste criado neste BK.
-- `neg`: negativos executados e mensagens observadas.
-- `fonte`: `docs/RNF.md`, matriz, backlog e este guia.
-- `multiempresa`: confirmação de que a empresa ativa vem do contexto autenticado no backend.
-
-#### Handoff
-
-- Proximo BK recomendado: `BK-MF7-10`
-- Este BK entrega a `BK-MF7-10` um contrato validado: fica criado um gate de modularidade frontend para reutilizar UI, clientes API e páginas por domínio.
-- Risco restante: decisões externas de fornecedor, certificação ou infraestrutura devem ficar documentadas antes de produção real.
-
-#### Changelog
-
-- `2026-06-27`: removido o layout antigo de blocos introdutórios e comando isolado, mantendo o conteúdo útil dentro das secções obrigatórias.
-- `2026-06-27`: corrigidos marcadores reais de compras, passos 1/2/5/6/7, comandos frontend, evidence obrigatória e blocos reconhecidos pelo validador.
-- `2026-06-25`: guia reescrito para tutorial técnico linear, autocontido e alinhado com a MF7 completa.
+- `2026-07-10`: adicionados Router, AuthProvider, 401/abort, cursor pagination, a11y, mobile e browser E2E.

@@ -18,9 +18,9 @@ Prisma schema loaded from prisma\schema.prisma
 
 ✔ Generated Prisma Client (v6.19.3) to .\node_modules\@prisma\client in 643ms
 
-- PS D:\PAP\edu-PAP-3ig-opsa-2526> npm --prefix apps/api run prisma:validate                                 
-   
-> @opsa/api@1.0.0 prisma:validate   
+- PS D:\PAP\edu-PAP-3ig-opsa-2526> npm --prefix apps/api run prisma:validate
+
+> @opsa/api@1.0.0 prisma:validate
 > prisma validate
 
 Environment variables loaded from .env

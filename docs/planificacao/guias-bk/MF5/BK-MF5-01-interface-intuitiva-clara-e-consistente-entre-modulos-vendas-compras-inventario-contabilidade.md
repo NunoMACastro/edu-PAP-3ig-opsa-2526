@@ -17,7 +17,13 @@
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF5-02`
 - `guia_path`: `docs/planificacao/guias-bk/MF5/BK-MF5-01-interface-intuitiva-clara-e-consistente-entre-modulos-vendas-compras-inventario-contabilidade.md`
-- `last_updated`: `2026-06-19`
+- `last_updated`: `2026-07-10`
+
+#### Contrato transversal atualizado
+
+Esta base visual é montada por React Router e por uma registry única de rotas públicas/protegidas. O menu deriva dessa registry e das permissões carregadas pelo `AuthProvider`; quando o estado é desconhecido, a UI nega acesso. Todas as páginas têm deep link, histórico Back/Forward e 404. Em mobile, a navegação usa drawer fechado por omissão e não empurra o conteúdo para fora do viewport.
+
+Os resultados são apresentados por componentes de domínio (`ResultSummary`, tabelas ou cartões), nunca por dumps técnicos. UUIDs e JSON manual são substituídos por selects/autocomplete e editores de linhas.
 
 #### Objetivo
 
@@ -426,7 +432,7 @@ function ResourcePanel({ resource }: { resource: ResourceConfig }) {
                     />
                 ))}
             </div>
-            <pre className="result">{JSON.stringify(result, null, 2)}</pre>
+            {result ? <ResultSummary result={result} /> : null}
         </PageFrame>
     );
 }

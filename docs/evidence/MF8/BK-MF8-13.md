@@ -4,7 +4,7 @@
 - BK: BK-MF8-13
 - Tema: IA deve evitar enviesamentos e sugerir acoes baseadas em dados reais
 - RF/RNF: RNF34
-- Data: 2026-07-06
+- Data de revalidação documental: 2026-07-10
 - Responsavel: Oleksii
 - Apoio: Pedro
 - Implementation root validado: real_dev
@@ -38,15 +38,15 @@
 | Comando | Resultado |
 | --- | --- |
 | `npm --prefix real_dev/api run syntax:check` | PASS; sintaxe JS de `src`, `tests` e `scripts` valida. |
-| `DATABASE_URL=postgresql://opsa:opsa@localhost:5432/opsa npm --prefix real_dev/api run prisma:validate` | PASS; schema Prisma valido. |
+| `DATABASE_URL=<synthetic-test-url> npm --prefix real_dev/api run prisma:validate` | PASS; schema Prisma valido. |
 | `node --test tests/contracts/mf8-ai-source-guardrails.contract.test.js` em `real_dev/api` | PASS; 5 testes, 5 pass. |
-| `npm --prefix real_dev/api run test:contracts` | PASS; 118 testes, 118 pass. |
-| `npm --prefix real_dev/api run test:unit` | PASS; 79 testes, 79 pass. |
+| `npm --prefix real_dev/api run test:contracts` | Exit `0`; 153 testes, 153 pass, 0 fail, 0 skipped, reexecutados em 2026-07-10. |
+| `npm --prefix real_dev/api run test:unit` | Exit `0`; 278 testes, 278 pass, 0 fail, 0 skipped, reexecutados em 2026-07-10. |
 | `npm --prefix real_dev/web run typecheck` | PASS; TypeScript frontend sem erros. |
 | `npm --prefix real_dev/web run build` | PASS; build Vite concluida. |
 | Pesquisa estatica de risco no escopo AI/BK13 | PASS; sem ocorrencias de marcadores de implementacao pendente, storage sensivel, execucao dinamica, segredos, casts inseguros, operacoes destrutivas globais, CORS permissivo ou ownership pelo pedido HTTP. |
 | Pesquisa de drift de dominio no escopo AI/BK13 | PASS; sem referencias a dominios externos. |
-| `bash scripts/validate-planificacao.sh` | PASS_COM_RESSALVAS; `overall_pass=true`, `advisory_pass=false` por advisories documentais legados fora do scope desta evidence. |
+| `bash scripts/validate-planificacao.sh` | Exit `1` esperado: `documentation_sync_pass=true`, `canonical_runtime_pass=false`, `overall_pass=false`, 3 blockers runtime, 0 advisories e 0 waivers. |
 | `test -f docs/evidence/MF8/BK-MF8-13.md` | PASS; ficheiro de evidence dedicado existe. |
 | `git diff --check` | PASS; sem whitespace errors em ficheiros rastreados. |
 
@@ -65,7 +65,8 @@
 - Nao houve alteracao de codigo nesta correcao; o contrato runtime ja estava implementado em `real_dev`.
 - Nao foram criadas metricas estatisticas avancadas de enviesamento, provider externo de IA, nova persistencia Prisma ou UI frontend.
 - Smoke HTTP autenticado com servidor real e base de dados persistente real nao foram executados; a prova ficou em schema, service, router, testes automatizados e scans estaticos.
-- Os advisories pedagogicos antigos do validador de planificacao permanecem fora desta correcao; o validador manteve `overall_pass=true`.
+- O estado pedagógico dos alunos permanece separado da referência. O gate global
+  não fica verde enquanto os blockers runtime estiverem ativos.
 
 ## Handoff para BK-MF8-14
 

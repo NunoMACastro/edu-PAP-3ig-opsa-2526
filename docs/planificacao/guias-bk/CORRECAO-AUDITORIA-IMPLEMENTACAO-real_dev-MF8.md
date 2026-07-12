@@ -1,3 +1,10 @@
+> [!WARNING]
+> `SNAPSHOT_HISTORICO_SUPERSEDED` — estado `SUPERSEDED` em 2026-07-10.
+>
+> Este relatório preserva um snapshot histórico e não representa o estado corrente.
+> Fonte atual: [relatório canónico](../auditorias/CORRECAO-AUDITORIA-END-TO-END-REAL_DEV-2026-07-09.md).
+> Não reutilizar contagens, comandos, paths ou decisões deste corpo como evidence atual.
+
 # Correcao de auditoria de implementacao real_dev - MF8
 
 ## Execucao 2026-07-07 - Correcao BK-MF8-18 defect report
@@ -22,7 +29,7 @@
 | --- | --- | --- | --- |
 | `P1-BK-MF8-18-DEPENDENCIA-BK17-001` | `P1` | `CORRIGIDO_SEM_VALIDACAO_TOTAL` | `docs/evidence/MF8/EXECUCAO-FINAL-TESTES.md` foi gerado por `npm --prefix real_dev/api run mf8:final-validation` e contem o comando original `npm run test:final:prepare`, decisao `BLOQUEADO_ATE_CORRECAO`, API exit `1`, web exit `0` e planificacao exit `0`. A validacao total continua bloqueada porque a API final sem skip depende de `TEST_DATABASE_URL`. |
 | `P1-BK-MF8-18-DEFECT-REPORT-001` | `P1` | `CORRIGIDO` | Criado `real_dev/api/scripts/check-mf8-defect-report.mjs`; adicionado `mf8:defect-report` a `real_dev/api/package.json`; criado `docs/evidence/MF8/CORRECAO-ERROS-REPORT.md`; `node --check real_dev/api/scripts/check-mf8-defect-report.mjs` passou; `npm --prefix real_dev/api run mf8:defect-report` passou com decisao `BLOQUEADO_AMBIENTE`. |
-| `P2-BK-MF8-18-PERSISTENCE-001` | `P2` | `BLOQUEADO_AMBIENTE` | `npm --prefix real_dev/api run test:integration` falha em MF2/MF3 sem `TEST_DATABASE_URL`; a tentativa `TEST_DATABASE_URL=postgresql://opsa_test:opsa_test@localhost:5432/opsa_test npm --prefix real_dev/api run test:integration` falhou em `npx prisma migrate deploy` com `Schema engine error`; `OPSA_SKIP_PERSISTENCE_TESTS=true npm --prefix real_dev/api run test:final:prepare` passou com 2 skips explicitos. |
+| `P2-BK-MF8-18-PERSISTENCE-001` | `P2` | `BLOQUEADO_AMBIENTE` | `npm --prefix real_dev/api run test:integration` falha em MF2/MF3 sem `TEST_DATABASE_URL`; a tentativa `TEST_DATABASE_URL=<URL_AUTHENTICATED_REDACTED> npm --prefix real_dev/api run test:integration` falhou em `npx prisma migrate deploy` com `Schema engine error`; `OPSA_SKIP_PERSISTENCE_TESTS=true npm --prefix real_dev/api run test:final:prepare` passou com 2 skips explicitos. |
 
 ### Correcao aplicada
 
@@ -41,7 +48,7 @@
 | `npm --prefix real_dev/api run mf8:defect-report` | `PASS`; `BK-MF8-18 validado: BLOQUEADO_AMBIENTE (npm run test:final:prepare)`. |
 | `npm --prefix real_dev/api run mf8:final-validation` | `FAIL_ESPERADO_AMBIENTE`; gerou `EXECUCAO-FINAL-TESTES.md` e registou `BLOQUEADO_ATE_CORRECAO` porque API `test:final:prepare` saiu `1`. |
 | `npm --prefix real_dev/api run test:integration` | `FAIL_AMBIENTE`; MF1 passou, MF2/MF3 exigiram `TEST_DATABASE_URL`. |
-| `TEST_DATABASE_URL=postgresql://opsa_test:opsa_test@localhost:5432/opsa_test npm --prefix real_dev/api run test:integration` | `FAIL_AMBIENTE`; MF2/MF3 falharam em `npx prisma migrate deploy` com `Schema engine error`. |
+| `TEST_DATABASE_URL=<URL_AUTHENTICATED_REDACTED> npm --prefix real_dev/api run test:integration` | `FAIL_AMBIENTE`; MF2/MF3 falharam em `npx prisma migrate deploy` com `Schema engine error`. |
 | `OPSA_SKIP_PERSISTENCE_TESTS=true npm --prefix real_dev/api run test:final:prepare` | `PASS_COM_RISCOS`; API final passou com 2 skips explicitos na integracao persistida MF2/MF3. |
 | `npm --prefix real_dev/web run test:final:prepare` | `PASS`; frontend final passou com gates MF1, MF2, MF3, MF5, MF7, MF8, typecheck e build. |
 | `npm --prefix real_dev/api run syntax:check` | `PASS`; scripts API, incluindo `check-mf8-defect-report.mjs`, sem erro de sintaxe. |
@@ -340,7 +347,7 @@ O `BK-MF8-14` ja estava implementado e auditado em `real_dev`, mas a execucao or
 | `npm --prefix real_dev/web run build` | `PASS`; build Vite concluida. |
 | `node --test tests/contracts/mf8-ai-source-guardrails.contract.test.js` em `real_dev/api` | `PASS`; 5 testes, 5 pass, 0 fail. |
 | `npm --prefix real_dev/api run syntax:check` | `PASS`; sintaxe JS valida. |
-| `DATABASE_URL=postgresql://opsa:opsa@localhost:5432/opsa npm --prefix real_dev/api run prisma:validate` | `PASS`; schema Prisma valido. |
+| `DATABASE_URL=<URL_AUTHENTICATED_REDACTED> npm --prefix real_dev/api run prisma:validate` | `PASS`; schema Prisma valido. |
 | Pesquisa estatica de risco no escopo BK14 | `PASS`; sem matches de risco. |
 | Pesquisa de drift de dominio no escopo BK14 | `PASS`; sem referencias indevidas a outros produtos/dominios. |
 | `bash scripts/validate-planificacao.sh` | `PASS_COM_RESSALVAS`; `overall_pass=true`, `advisory_pass=false` por advisories documentais antigos. |
@@ -413,7 +420,7 @@ O `BK-MF8-13` ja estava implementado e auditado em `real_dev`, mas a execucao de
 | --- | --- |
 | `test -f docs/evidence/MF8/BK-MF8-13.md` | `PASS`; ficheiro existe. |
 | `npm --prefix real_dev/api run syntax:check` | `PASS`; sintaxe JS valida. |
-| `DATABASE_URL=postgresql://opsa:opsa@localhost:5432/opsa npm --prefix real_dev/api run prisma:validate` | `PASS`; schema Prisma valido. |
+| `DATABASE_URL=<URL_AUTHENTICATED_REDACTED> npm --prefix real_dev/api run prisma:validate` | `PASS`; schema Prisma valido. |
 | `node --test tests/contracts/mf8-ai-source-guardrails.contract.test.js` em `real_dev/api` | `PASS`; 5 testes, 5 pass, 0 fail. |
 | `npm --prefix real_dev/api run test:contracts` | `PASS`; 118 testes, 118 pass, 0 fail. |
 | `bash scripts/validate-planificacao.sh` | `PASS_COM_RESSALVAS`; `overall_pass=true`, `advisory_pass=false` por advisories documentais antigos, incluindo `BK-MF8-13`. |
@@ -486,7 +493,7 @@ O `BK-MF8-12` ja estava implementado e auditado em `real_dev`, mas a execucao de
 | Comando | Resultado |
 | --- | --- |
 | `npm --prefix real_dev/api run syntax:check` | `PASS`; sintaxe JS valida. |
-| `DATABASE_URL=postgresql://opsa:opsa@localhost:5432/opsa npm --prefix real_dev/api run prisma:validate` | `PASS`; schema Prisma valido. |
+| `DATABASE_URL=<URL_AUTHENTICATED_REDACTED> npm --prefix real_dev/api run prisma:validate` | `PASS`; schema Prisma valido. |
 | `node --test tests/contracts/mf8-alert-preferences.contract.test.js` em `real_dev/api` | `PASS`; 4 testes, 4 pass, 0 fail. |
 | `npm --prefix real_dev/api run test:contracts` | `PASS`; 113 testes, 113 pass, 0 fail. |
 | `npm --prefix real_dev/api run test:unit` | `PASS`; 79 testes, 79 pass, 0 fail. |
@@ -568,7 +575,7 @@ O ficheiro `docs/planificacao/guias-bk/IMPLEMENTACAO-REAL_DEV-MF8.md` contem uma
 | `rg -n "BK-MF8-12\|RNF33\|Alertas configur" docs/RNF.md docs/planificacao/backlogs/MATRIZ-CANONICA-BK.md docs/planificacao/backlogs/BACKLOG-MVP.md docs/planificacao/backlogs/CONTRATO-CAMPOS-BK.md docs/planificacao/backlogs/MF-VIEWS.md docs/planificacao/sprints/PLANO-SPRINTS.md docs/planificacao/guias-bk/README.md` | `PASS`; confirmou rastreabilidade canonica. |
 | `rg -n "TODO implementar\|FIXME\|temporario\|temporary\|demo only\|implementar depois\|pseudo-codigo\|payload: unknown\|as any\|localStorage\|sessionStorage\|dangerouslySetInnerHTML\|eval\\(\|new Function\|password.*console\|token.*console\|cookie.*console\|console\\.log\\(.*password\|console\\.log\\(.*token\|secret\|api[_-]?key\|deleteMany\\(\\{\\}\\)\|delete\\(\\{\\}\\)\|updateMany\\(\\{\\}\\)\|CORS\|Access-Control-Allow-Origin\|RAG\|embeddings\|OCR\|chunking semantico\|req\\.(body\|query)\\.companyId\|body\\.companyId\|query\\.companyId" real_dev/api/src/modules/notifications real_dev/api/tests/contracts/mf8-alert-preferences.contract.test.js` | `PASS`; exit code `1`, sem matches de risco no escopo BK12 analisado. |
 | `npm --prefix real_dev/api run syntax:check` | `PASS`; sintaxe JS valida. |
-| `DATABASE_URL=postgresql://opsa:opsa@localhost:5432/opsa npm --prefix real_dev/api run prisma:validate` | `PASS`; schema Prisma valido. |
+| `DATABASE_URL=<URL_AUTHENTICATED_REDACTED> npm --prefix real_dev/api run prisma:validate` | `PASS`; schema Prisma valido. |
 | `node --test tests/contracts/mf8-alert-preferences.contract.test.js` em `real_dev/api` | `PASS`; 4 testes, 4 pass, 0 fail. |
 | `npm --prefix real_dev/api run test:contracts` | `PASS`; 113 testes, 113 pass, 0 fail. |
 | `bash scripts/validate-planificacao.sh` | `PASS_COM_RESSALVAS`; `overall_pass=true`, mas `advisory_pass=false` por advisories documentais antigos, incluindo `BK-MF8-12`. Como `PERMITIR_ALTERAR_DOCS=nao`, esses avisos nao foram corrigidos. |

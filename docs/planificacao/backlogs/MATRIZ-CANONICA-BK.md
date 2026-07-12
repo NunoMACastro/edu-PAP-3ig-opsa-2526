@@ -6,10 +6,10 @@
 - `area`: `project`
 - `owner`: `Nuno`
 - `status`: `ativo`
-- `last_updated`: `2026-06-30`
+- `last_updated`: `2026-07-10`
 
 ## Objetivo
-Matriz unica validada para gerar backlog, MF views, sprints e guias BK sem ambiguidades.
+Matriz unica validada para gerar backlog, MF views, sprints e guias BK sem ambiguidades. O campo `estado_alunos` representa apenas o progresso pedagógico e nunca é derivado do estado de `real_dev`.
 
 ## Contrato documental aplicavel
 Os campos obrigatorios por BK estao definidos em `CONTRATO-CAMPOS-BK.md`.
@@ -18,7 +18,7 @@ Quando um campo nao estiver explicito nesta tabela, e derivado dos anexos canón
 - `ANEXO-RF-PARA-BKS.md` e `ANEXO-RNF-PARA-BKS.md` (rastreabilidade reversa)
 
 ## Tabela canonica
-| bk_id | macro | titulo | owner | apoio | prioridade | estado | esforco | dependencias | rf_rnf | fase_documental | proximo_bk_recomendado |
+| bk_id | macro | titulo | owner | apoio | prioridade | estado_alunos | esforco | dependencias | rf_rnf | fase_documental | proximo_bk_recomendado |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | BK-MF0-01 | MF0 | Registo, login e logout com cookies HttpOnly. | Oleksii | Andre | P0 | TODO | M | - | RF01 | Fase 1 | BK-MF0-02 |
 | BK-MF0-02 | MF0 | Papéis e permissões (Admin, Gestor, Contabilista, Operacional, Auditor). | Oleksii | Andre | P0 | TODO | M | BK-MF0-01 | RF02 | Fase 1 | BK-MF0-03 |

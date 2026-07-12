@@ -1,5 +1,7 @@
 # BK-MF8-13 - IA deve evitar enviesamentos e sugerir ações baseadas em dados reais.
 
+> **Atualização IA v2:** o catálogo fechado e os `facts` criados pelo backend impõem grounding. Perguntas fora do domínio são recusadas; narrativa externa com números, referências ou schema inválido aciona fallback determinístico. O corpus PT-PT cobre mais de 100 pedidos. Ver [`../SINCRONIZACAO-IA-V2.md`](../SINCRONIZACAO-IA-V2.md).
+
 ## Header
 
 - `doc_id`: `GUIA-BK-MF8-13`

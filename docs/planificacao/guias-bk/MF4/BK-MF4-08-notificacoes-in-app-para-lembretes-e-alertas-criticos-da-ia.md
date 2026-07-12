@@ -1,5 +1,7 @@
 # BK-MF4-08 - Notificações in-app para lembretes e alertas críticos da IA.
 
+> **Atualização IA v2:** preferências desativadas impedem novas entregas in-app/email, mas não a deteção interna. Notificações acompanham o lifecycle do alerta e itens resolvidos deixam de ser reenviados como ativos. Ver [`../SINCRONIZACAO-IA-V2.md`](../SINCRONIZACAO-IA-V2.md).
+
 ## Header
 - `doc_id`: `GUIA-BK-MF4-08`
 - `bk_id`: `BK-MF4-08`
@@ -16,7 +18,11 @@
 - `core_or_reforco`: `Core`
 - `proximo_bk`: `BK-MF4-09`
 - `guia_path`: `docs/planificacao/guias-bk/MF4/BK-MF4-08-notificacoes-in-app-para-lembretes-e-alertas-criticos-da-ia.md`
-- `last_updated`: `2026-06-16`
+- `last_updated`: `2026-07-10`
+
+#### Contrato de entrega atualizado
+
+Listagem in-app usa `{ items, pageInfo }`. Criação/sincronização e auditoria são atómicas; entrega externa passa pela `EmailOutbox` cifrada e pelo worker SMTP com lease/retry. A leitura não confirma sugestões de IA nem expõe payloads financeiros.
 
 #### Objetivo
 
@@ -286,8 +292,13 @@ export function buildNotificationRoutes({ prisma }) {
 
     router.get("/", guards, async (req, res) => {
         // A lista é filtrada por empresa e pelo utilizador autenticado.
-        const notifications = await prisma.inAppNotification.findMany({ where: { companyId: req.companyId, userId: req.user.id }, orderBy: { createdAt: "desc" } });
-        return res.status(200).json({ notifications });
+        const page = await listNotifications(prisma, {
+            companyId: req.companyId,
+            userId: req.user.id,
+            cursor: req.query.cursor,
+            limit: Number(req.query.limit ?? 50),
+        });
+        return res.status(200).json(page);
     });
 
     router.post("/sync", guards, async (req, res) => {
@@ -381,7 +392,7 @@ export interface InAppNotification {
 
 /** Lista notificações do utilizador autenticado. */
 export function loadNotifications() {
-  return client.request<{ notifications: InAppNotification[] }>("GET", "/notifications");
+  return client.request<CursorPage<InAppNotification>>("GET", "/notifications");
 }
 
 /** Sincroniza notificações a partir de lembretes e alertas. */
@@ -410,7 +421,7 @@ export function NotificationsPage() {
     try {
       // A listagem devolve apenas notificações da sessão atual.
       const result = await loadNotifications();
-      setNotifications(result.notifications);
+      setNotifications(result.items);
       setError(null);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Erro inesperado");

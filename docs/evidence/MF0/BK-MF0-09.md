@@ -25,11 +25,11 @@ Import validado com Node
 [ 'validateCustomerPayload' ]
 
 Cenários negativos:
-- PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> node -e "import('./src/modules/customers/customerValidators.js').then(m => { try { m.validateCustomerPayload(null); } catch (e) { console.log(e.status, e.code, 
+- PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> node -e "import('./src/modules/customers/customerValidators.js').then(m => { try { m.validateCustomerPayload(null); } catch (e) { console.log(e.status, e.code,
 e.message); } })"
 400 INVALID_BODY O corpo do pedido deve ser JSON
 
-- PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> node -e "import('./src/modules/customers/customerValidators.js').then(m => { try { m.validateCustomerPayload({ name: '' }); } catch (e) { console.log(e.status, 
+- PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> node -e "import('./src/modules/customers/customerValidators.js').then(m => { try { m.validateCustomerPayload({ name: '' }); } catch (e) { console.log(e.status,
 e.code, e.message); } })"
 400 INVALID_CUSTOMER_NAME Nome do cliente e obrigatorio
 
@@ -68,7 +68,7 @@ Nota:
 Passo 5:
 - API iniciou com sucesso
 Cenários negativos:
-- PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> curl.exe -i http://localhost:3000/api/customers                                                                                                                 
+- PS D:\PAP\edu-PAP-3ig-opsa-2526\apps\api> curl.exe -i http://localhost:3000/api/customers
 HTTP/1.1 401 Unauthorized
 X-Powered-By: Express
 Content-Type: application/json; charset=utf-8

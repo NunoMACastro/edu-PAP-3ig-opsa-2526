@@ -6,10 +6,10 @@ docs\RNF.md:84:| RNF27 | Testes automatizados para módulos críticos (faturaç�
 docs\planificacao\backlogs\ANEXO-BK-SPRINT-OWNER.md:91:| BK-MF7-10 | MF7 | S11-S12 | Oleksii | Andre | P1 | Core | RNF27 | - | docs/planificacao/guias-bk/MF7/BK-MF7-10-testes-automatizados-para-modulos
 -criticos-faturacao-iva-balancetes-reconciliacao.md |
 docs\planificacao\backlogs\ANEXO-RNF-PARA-BKS.md:43:| RNF27 | 1 | BK-MF7-10 |
-docs\planificacao\backlogs\BACKLOG-MVP.md:121:| BK-MF7-09 | MF7 | Frontend modular com componentes reutilizáveis. | Andre | Sofia | P0 | TODO | M | - | RNF26 | Fase 3 | BK-MF7-10 | [guia](../guias-bk/M
+docs\planificacao\backlogs\BACKLOG-MVP.md:121:| BK-MF7-09 | MF7 | Frontend modular com componentes reutilizáveis. | Andre | Sofia | P0 | TODO | M | - | RNF26 | Fase 3 | BK-MF7-10 | \[guia\](../guias-bk/M
 F7/BK-MF7-09-frontend-modular-com-componentes-reutilizaveis.md) |
 docs\planificacao\backlogs\BACKLOG-MVP.md:122:| BK-MF7-10 | MF7 | Testes automatizados para módulos críticos (faturação, IVA, balancetes, reconciliação). | Oleksii | Andre | P1 | TODO | S | - | RNF27 |
- Fase 3 | BK-MF8-01 | [guia](../guias-bk/MF7/BK-MF7-10-testes-automatizados-para-modulos-criticos-faturacao-iva-balancetes-reconciliacao.md) |
+ Fase 3 | BK-MF8-01 | \[guia\](../guias-bk/MF7/BK-MF7-10-testes-automatizados-para-modulos-criticos-faturacao-iva-balancetes-reconciliacao.md) |
 docs\planificacao\backlogs\BACKLOG-MVP.md:236:| BK-MF7-09 | Frontend modular com componentes reutilizáveis. | Andre | Sofia | P0 | TODO | M | - | RNF26 | BK-MF7-10 |
 docs\planificacao\backlogs\BACKLOG-MVP.md:237:| BK-MF7-10 | Testes automatizados para módulos críticos (faturação, IVA, balancetes, reconciliação). | Oleksii | Andre | P1 | TODO | S | - | RNF27 | BK-MF
 8-01 |
@@ -18,7 +18,7 @@ docs\planificacao\backlogs\MATRIZ-CANONICA-BK.md:96:| BK-MF7-09 | MF7 | Frontend
 docs\planificacao\backlogs\MATRIZ-CANONICA-BK.md:97:| BK-MF7-10 | MF7 | Testes automatizados para módulos críticos (faturação, IVA, balancetes, reconciliação). | Oleksii | Andre | P1 | TODO | S | - | R
 NF27 | Fase 3 | BK-MF8-01 |
 docs\planificacao\backlogs\MF-VIEWS.md:211:BK-MF7-01, BK-MF7-02, BK-MF7-03, BK-MF7-04, BK-MF7-05, BK-MF7-06, BK-MF7-07, BK-MF7-08, BK-MF7-09, BK-MF7-10
-docs\planificacao\backlogs\MF-VIEWS.md:223:- [BK-MF7-10 - Testes automatizados para módulos críticos (faturação, IVA, balancetes, reconciliação).](../guias-bk/MF7/BK-MF7-10-testes-automatizados-para-mo
+docs\planificacao\backlogs\MF-VIEWS.md:223:- \[BK-MF7-10 - Testes automatizados para módulos críticos (faturação, IVA, balancetes, reconciliação).](../guias-bk/MF7/BK-MF7-10-testes-automatizados-para-mo
 dulos-criticos-faturacao-iva-balancetes-reconciliacao.md)
 
 
@@ -391,9 +391,9 @@ test at tests\contracts\mf6-contracts.test.js:34:1
 ✖ MF6: package expõe todos os gates test:mf6 (6.1686ms)
   AssertionError [ERR_ASSERTION]: test:mf6:documents em falta
   actual expected
-  
+
   'undefstrinedg'
-  
+
       at TestContext.<anonymous> (file:///D:/PAP/edu-PAP-3ig-opsa-2526/apps/api/tests/contracts/mf6-contracts.test.js:53:16)
       at Test.runInAsyncScope (node:async_hooks:227:14)
       at Test.run (node:internal/test_runner/test:1306:25)

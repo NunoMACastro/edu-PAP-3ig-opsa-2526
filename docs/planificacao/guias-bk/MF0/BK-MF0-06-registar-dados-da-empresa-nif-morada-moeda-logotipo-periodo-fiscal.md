@@ -17,7 +17,7 @@
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF0-07`
 - `guia_path`: `docs/planificacao/guias-bk/MF0/BK-MF0-06-registar-dados-da-empresa-nif-morada-moeda-logotipo-periodo-fiscal.md`
-- `last_updated`: `2026-05-24`
+- `last_updated`: `2026-07-10`
 
 #### BK-MF0-06 - Registar dados da empresa (NIF, morada, moeda, logótipo, período fiscal).
 
@@ -25,7 +25,7 @@
 
 Neste BK vamos transformar o requisito RF06 num guia de execução para construir a parte da app relacionada com configurações. O foco não é produzir documentação genérica: é deixar claro que modelos, endpoints, validações, UI e evidência devem existir quando a equipa implementar o BK.
 
-A app real ainda está marcada como `sem_codigo`; por isso, os caminhos técnicos propostos seguem o contrato central `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md`. Esse contrato define a stack assumida, a estrutura indicativa e a regra de adaptação quando existir scaffold real, sem alterar RF, BK, owners, dependências ou critérios de aceite.
+A implementação pedagógica usa os caminhos públicos `apps/api` e `apps/web` e segue os contratos atuais de `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md` e `docs/planificacao/CONTRATO-INTERFACES-IMPLEMENTACAO.md`. O estado `TODO` descreve apenas o progresso dos alunos; não significa ausência de uma implementação privada de referência.
 
 Como a fase alvo é MF0, não existem BKs de fases anteriores a reutilizar. A continuidade nasce aqui: os outputs deste BK devem ser contratos estáveis para BK-MF0-07 e para os BKs de vendas, compras, inventário, contabilidade e segurança das fases seguintes.
 
@@ -69,14 +69,14 @@ Como a fase alvo é MF0, não existem BKs de fases anteriores a reutilizar. A co
 - Owner: `Oleksii` (CANONICO)
 - Apoio: `Sofia` (CANONICO)
 - Dependências (BK IDs): `-` (CANONICO)
-- Pré-condições: Sem dependências anteriores declaradas. App real pode ainda não existir; nesse caso criar a estrutura técnica assumida antes dos ficheiros alvo. (DERIVADO)
+- Pré-condições: Sem dependências anteriores declaradas. O scaffold pedagógico pode ainda estar incompleto; usar `apps/api` e `apps/web` e respeitar os contratos centrais atuais. (DERIVADO)
 - Ref. Plano: `PLANO-IMPLEMENTACAO-TOTAL.md` MF0; `PLANO-SPRINTS.md` S01-S02. (CANONICO)
 - Flow ID: `FLOW-COMPANY-PROFILE` (DERIVADO)
 - Fonte de verdade: `docs/RF.md` -> `RF06` (CANONICO)
 - Fonte de verdade: `docs/planificacao/backlogs/BACKLOG-MVP.md` (CANONICO)
 - Fonte de verdade: `docs/planificacao/backlogs/MATRIZ-CANONICA-BK.md` e `docs/planificacao/backlogs/MF-VIEWS.md` (CANONICO)
 - Descrição: Registar dados da empresa (NIF, morada, moeda, logótipo, período fiscal). (CANONICO)
-- Stack decidida: `DERIVADO` e centralizada em `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md`; este BK usa essa stack apenas como assunção técnica até existir scaffold real.
+- Stack decidida: `DERIVADO` e centralizada em `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md`; este BK ensina o mesmo contrato seguro nos caminhos públicos dos alunos.
 - Mockup usado: `mockup/` existe e foi usado como referência de fluxo, hierarquia e nomes visíveis; não é contrato pixel-perfect.
 
 #### O que vamos fazer neste BK (DERIVADO):
@@ -88,7 +88,7 @@ Como a fase alvo é MF0, não existem BKs de fases anteriores a reutilizar. A co
 - Reutilização técnica opcional (sem alterar dependências canónicas): se BK-MF0-03 estiver implementado, usar `companyId` ativo em vez de criar um contexto paralelo de empresa.
 - Impacto na arquitetura: reforça separação entre routes, controllers, services, validators e UI.
 - Impacto frontend: liga o fluxo visual do mockup a API real com estados loading/error/empty/success quando aplicável.
-- Impacto backend/dados: cria ou prepara `CompanyProfile` e endpoints `GET /api/company/profile, PUT /api/company/profile`.
+- Impacto backend/dados: completa `CompanyProfile` criado pelo onboarding e mantém `GET /api/company/profile` e `PUT /api/company/profile`; a criação inicial usa `POST /api/onboarding/company` do BK-MF0-03.
 - Impacto segurança: valida inputs no backend, aplica sessão/permissão quando aplicável e evita exposição de dados sensíveis.
 - Impacto testes: exige smoke e 3 negativos concretos.
 - Handoff: BK-MF0-07 deve reutilizar os contratos aqui criados.
@@ -123,9 +123,13 @@ Como a fase alvo é MF0, não existem BKs de fases anteriores a reutilizar. A co
 - **Erros comuns a evitar:** implementar só no frontend, confiar em dados enviados pelo browser, esquecer `companyId` nos dados por empresa, devolver mensagens técnicas cruas ao utilizador ou criar campos que não aparecem nos RF/RNF.
 - **Negativos de segurança/robustez:** todos os casos inválidos devem falhar de forma controlada, sem stack traces, sem dados sensíveis e sem escrita parcial na base de dados.
 
+##### Contrato de paridade obrigatório (2026-07-10)
+
+`POST /api/onboarding/company` é o único fluxo inicial: cria `Company`, `CompanyProfile`, membership `ADMIN`, `Session.activeCompanyId` e `AuditLog` na mesma transação. Este BK completa e atualiza o perfil já criado; não cria uma empresa ou um perfil órfão por um segundo caminho. NIF, moeda e datas do período são validados no backend, e datas civis usam o parser estrito `YYYY-MM-DD` sem normalização de dias impossíveis.
+
 #### Tutorial técnico linear (DERIVADO):
 
-Este tutorial organiza o BK em passos lineares. O aluno deve seguir de cima para baixo: confirmar contratos, modelar dados, validar entradas, implementar regras de negócio, expor HTTP, testar e deixar handoff. Sempre que o scaffold real ainda não existir, usar a estrutura prevista em `docs/planificacao/CONTRATO-STACK-IMPLEMENTACAO.md` e registar a adaptação na evidence.
+Este tutorial organiza o BK em passos lineares. O aluno deve seguir de cima para baixo: confirmar contratos, modelar dados, validar entradas, implementar regras de negócio, expor HTTP, testar e deixar handoff. Se o scaffold pedagógico ainda estiver incompleto, usar `apps/api` e `apps/web`, seguir os contratos centrais atuais e registar a adaptação na evidence.
 
 ### Passo 1 - Confirmar contrato, scope e ligação aos BKs vizinhos
 
@@ -708,7 +712,10 @@ Se o handoff diz para usar algo que não foi criado neste BK ou num BK anterior,
 
 O plano de contas SNC deve usar o mesmo `companyId` ativo e deve poder consultar NIF/moeda/período fiscal da empresa quando precisar de contexto contabilístico.
 
+- Próximo BK recomendado: `BK-MF0-07`.
+
 ## Changelog
 
+- `2026-07-10`: handoff sincronizado explicitamente com o próximo BK canónico do header.
 - `2026-05-24`: guia refinado para estrutura step-by-step executável, com continuidade MF0, mockup, negativos, critérios e evidence.
 - `2026-04-19`: metadados canónicos preservados da vaga de normalização.

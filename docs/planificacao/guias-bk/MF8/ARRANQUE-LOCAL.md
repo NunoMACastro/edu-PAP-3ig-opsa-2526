@@ -8,24 +8,26 @@
 - `area`: `operacao-local`
 - `publico`: `alunos`
 - `status`: `ativo`
-- `last_updated`: `2026-07-03`
+- `last_updated`: `2026-07-11`
 
 ## Objetivo
 
 Este guia explica como arrancar a OPSA localmente na maquina dos alunos antes de trabalhar nos BKs da MF8.
 
-A OPSA tem dois processos em desenvolvimento:
+A OPSA tem dois processos principais em desenvolvimento:
 
 - API/backend em `apps/api`, com Node.js, Express e Prisma.
 - Frontend em `apps/web`, com React, Vite e TypeScript.
 
 Os dois processos devem ficar abertos em terminais separados. Se um deles for fechado, essa parte da aplicacao deixa de responder.
 
+Existem ainda workers opcionais separados para email e análise de IA. A API e o frontend arrancam com a OpenAI desativada; o worker de IA é necessário para atualização automática horária, não para consultar resultados já persistidos.
+
 ## Pre-requisitos
 
 Antes de comecar, confirma que tens:
 
-- Node.js e npm instalados.
+- Node.js `>=24.17 <25` e npm 11 instalados.
 - PostgreSQL instalado ou uma base PostgreSQL fornecida pela equipa/docente.
 - O codigo do projeto aberto na raiz do repositorio OPSA.
 - A pasta `apps/api` presente.
@@ -39,7 +41,7 @@ Abre um terminal na raiz do projeto e executa:
 
 ```bash
 cd apps/api
-npm install
+npm ci
 ```
 
 Quando terminar, deixa este terminal na pasta `apps/api` para os passos seguintes.
@@ -58,17 +60,25 @@ Em Windows PowerShell, se `cp` nao funcionar, usa:
 Copy-Item .env.example .env
 ```
 
-Abre `apps/api/.env` e confirma os valores principais:
+Abre `apps/api/.env` e confirma os nomes das variáveis principais, preenchendo os valores apenas no ficheiro local:
 
 ```env
 NODE_ENV=development
 PORT=3000
 APP_BASE_URL=http://localhost:5173
-DATABASE_URL=postgresql://user:password@localhost:5432/opsa_dev
-OPSA_PRIVATE_STORAGE_ROOT=./private-storage
+DATABASE_URL=<fornecida-por-canal-seguro>
+REDIS_URL=<fornecida-por-canal-seguro>
+RATE_LIMIT_HMAC_KEY=<fornecida-por-canal-seguro>
+OPSA_PRIVATE_STORAGE_ROOT=<diretorio-local-privado>
+AI_PROVIDER_MODE=disabled
+AI_CHAT_ENABLED=true
+AI_CHAT_ENCRYPTION_KEY=<32-bytes-fornecidos-por-canal-seguro>
+AI_SAFETY_HMAC_KEY=<fornecida-por-canal-seguro>
 ```
 
-Troca `user`, `password`, `localhost`, `5432` e `opsa_dev` pelos dados reais da tua base local.
+SMTP, S3 e SAF-T têm variáveis adicionais no `.env.example` e no contrato central. Mantém Redis/local storage apenas no modo de desenvolvimento permitido; os gates de integração usam serviços remotos dedicados de teste.
+
+Com `AI_PROVIDER_MODE=disabled`, `OPENAI_API_KEY` e `OPENAI_MODEL` não são necessários e a IA determinística continua disponível. Para uma ativação controlada numa empresa demo são ainda necessários `AI_PROVIDER_MODE=openai`, `OPENAI_API_KEY`, `OPENAI_MODEL` explícito, opt-in de `ADMIN` e consentimento do utilizador. `AI_CHAT_ENABLED` é obrigatório em produção; quando vale `true`, a chave de cifra é validada no arranque. A chave OpenAI fica apenas no backend. `AI_CHAT_ENCRYPTION_KEY` não pode ser igual a `EMAIL_OUTBOX_ENCRYPTION_KEY`.
 
 Regra de seguranca: nunca coloques passwords reais em `.env.example`, nos guias, no README ou em commits. Credenciais locais ficam apenas no teu `.env`.
 
@@ -131,7 +141,7 @@ Abre um segundo terminal na raiz do projeto e executa:
 
 ```bash
 cd apps/web
-npm install
+npm ci
 ```
 
 ## Passo 6 - Arrancar o frontend
@@ -158,16 +168,36 @@ Com os dois terminais abertos:
 2. Frontend: `apps/web` com `npm run dev`.
 3. Browser aberto no URL do Vite.
 
-Depois de implementado o `BK-MF8-02`, tambem podes testar o health-check:
+Depois de implementado o `BK-MF8-02`, testa liveness e readiness:
 
 ```bash
-curl -i http://localhost:3000/api/health
+curl -i http://localhost:3000/api/health/live
+curl -i http://localhost:3000/api/health/ready
 ```
 
 Resultado esperado depois desse BK:
 
-- HTTP `200`.
+- Liveness devolve HTTP `200` quando o processo responde.
+- Readiness devolve HTTP `200` apenas quando PostgreSQL, Redis e storage crítico estão disponíveis; caso contrário devolve `503`.
 - Resposta JSON sem credenciais, sem `DATABASE_URL` e sem dados financeiros.
+
+## Passo 8 - Arrancar workers opcionais
+
+Para atualizar insights e alertas automaticamente, abre outro terminal:
+
+```bash
+cd apps/api
+npm run worker:ai
+```
+
+Para processar a outbox SMTP, usa um terminal separado:
+
+```bash
+cd apps/api
+npm run worker:email
+```
+
+Os workers usam a mesma configuração segura da API. Não coloques chaves no frontend nem executes um smoke OpenAI live com dados reais.
 
 ## Comandos de validacao uteis
 
@@ -185,7 +215,9 @@ Frontend:
 ```bash
 cd apps/web
 npm run typecheck
+npm run test
 npm run build
+npm run test:e2e
 ```
 
 Estes comandos nao substituem os testes especificos de cada BK. Servem para confirmar que a base local nao ficou partida antes de continuares.
@@ -209,7 +241,7 @@ Depois revê o valor de `DATABASE_URL`.
 
 A versao de Node.js e demasiado antiga para o carregamento nativo do `.env` usado pela API.
 
-Atualiza o Node.js para uma versao recente aprovada pela equipa/docente ou exporta as variaveis manualmente antes de arrancar a API.
+Atualiza o Node.js para a linha `>=24.17 <25` aprovada no contrato de stack ou exporta as variáveis manualmente antes de arrancar a API.
 
 ### `EADDRINUSE` ou porta ocupada
 
@@ -240,7 +272,8 @@ Nao uses uma base de producao para testes locais.
 - `npm run dev` da API fica ativo.
 - `npm run dev` do frontend fica ativo.
 - O browser abre o frontend.
-- Depois do `BK-MF8-02`, `GET /api/health` responde sem expor dados sensiveis.
+- Depois do `BK-MF8-02`, liveness e readiness têm os estados corretos sem expor dados sensíveis.
+- Testes browser sem browsers instalados ou sem execução iniciada ficam bloqueados; nunca são registados como PASS.
 
 ## Nota final para os alunos
 

@@ -17,7 +17,7 @@
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF6-06`
 - `guia_path`: `docs/planificacao/guias-bk/MF6/BK-MF6-05-toda-a-comunicacao-deve-usar-https-tls-1-2.md`
-- `last_updated`: `2026-06-23`
+- `last_updated`: `2026-07-10`
 
 #### Objetivo
 
@@ -77,6 +77,10 @@ HTTPS não é decoração de deploy. É parte da segurança da aplicação e pre
 - `DERIVADO`: ambiente local pode continuar em HTTP, desde que produção bloqueie pedidos inseguros.
 
 TLS protege transporte, não substitui autenticação, autorização ou validação. Mesmo com HTTPS, a API deve continuar a verificar sessão, empresa ativa e permissões no backend.
+
+#### Contrato de paridade obrigatório (2026-07-10)
+
+`TRUST_PROXY_HOPS` é um inteiro não negativo com default `0`. Com `0`, Express não confia em nenhum header forwarded; com valor positivo, confia apenas no número explicitamente configurado de proxies controlados. Nunca existe confiança global/implícita e a aplicação falha no arranque perante valor inválido. Os testes provam que um cliente direto não consegue forjar `X-Forwarded-Proto` ou IP.
 
 #### Arquitetura do BK
 
@@ -225,14 +229,18 @@ import {
     enforceHttps,
 } from "./modules/security/transportSecurity.js";
 
-app.set("trust proxy", 1);
+const trustProxyHops = Number.parseInt(process.env.TRUST_PROXY_HOPS ?? "0", 10);
+if (!Number.isInteger(trustProxyHops) || trustProxyHops < 0) {
+    throw new Error("TRUST_PROXY_HOPS deve ser um inteiro não negativo");
+}
+app.set("trust proxy", trustProxyHops === 0 ? false : trustProxyHops);
 app.use(enforceHttps({ isProduction }));
 app.use(applyStrictTransportSecurity({ isProduction }));
 ```
 
 5. Explicação do código.
 
-`trust proxy` permite ao Express interpretar o proxy de produção. A regra fica antes dos routers para proteger toda a API.
+O default `0` ignora headers forwarded. Apenas uma configuração explícita permite interpretar o número conhecido de proxies. A regra fica antes dos routers para proteger toda a API.
 
 6. Validação do passo.
 
@@ -240,7 +248,7 @@ app.use(applyStrictTransportSecurity({ isProduction }));
 
 7. Cenário negativo/erro esperado.
 
-Sem `trust proxy`, a API pode não reconhecer HTTPS terminado no proxy.
+Sem `TRUST_PROXY_HOPS` correto, a API deve permanecer fail-closed e não confiar em headers fornecidos pelo cliente.
 
 ### Passo 4 - Verificar frontend em produção
 
@@ -322,8 +330,8 @@ requireMarker(security, "Strict-Transport-Security", "Falta cabeçalho HSTS.");
 
 const trustProxyIndex = requireMarker(
     server,
-    'app.set("trust proxy", 1)',
-    "Falta app.set(\"trust proxy\", 1) antes dos routers.",
+    "TRUST_PROXY_HOPS",
+    "Falta configuração deny-by-default de TRUST_PROXY_HOPS antes dos routers.",
 );
 const enforceHttpsIndex = requireMarker(
     server,

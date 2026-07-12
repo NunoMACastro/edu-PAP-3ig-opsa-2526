@@ -6,7 +6,7 @@
 - `area`: `project`
 - `owner`: `Nuno`
 - `status`: `ativo`
-- `last_updated`: `2026-06-30`
+- `last_updated`: `2026-07-10`
 
 ## Objetivo
 Formalizar os campos obrigatorios por BK para manter coerencia entre `MATRIZ-CANONICA-BK`, `BACKLOG-MVP`, `PLANO-SPRINTS` e `guias-bk`.
@@ -16,6 +16,7 @@ Formalizar os campos obrigatorios por BK para manter coerencia entre `MATRIZ-CAN
 - `mf`: macro funcional (`MF0..MF8`).
 - `sprint`: janela de sprints onde o BK deve ser executado.
 - `owner`: responsavel principal pelo BK.
+- `estado_alunos`: progresso pedagógico `TODO|IN_PROGRESS|BLOCKED|DONE`, independente do estado de `real_dev`.
 - `rf_rnf[]`: requisitos RF/RNF cobertos pelo BK.
 - `deps[]`: dependencias tecnicas explicitas.
 - `guia_path`: caminho canónico do guia BK.
@@ -23,7 +24,7 @@ Formalizar os campos obrigatorios por BK para manter coerencia entre `MATRIZ-CAN
 
 ## Regras de consistencia
 1. `bk_id` deve existir simultaneamente na matriz, backlog e guia correspondente.
-2. `owner`, `rf_rnf[]` e `deps[]` devem ser iguais entre matriz e backlog.
+2. `owner`, `estado_alunos`, `rf_rnf[]` e `deps[]` devem ser iguais entre matriz e backlog.
 3. `guia_path` deve apontar para um ficheiro existente.
 4. `core_or_reforco` e derivado da prioridade (`P0=Reforco`; `P1/P2=Core`).
 5. Alteracoes em RF/RNF ou BK obrigam regeneracao dos anexos no mesmo commit.

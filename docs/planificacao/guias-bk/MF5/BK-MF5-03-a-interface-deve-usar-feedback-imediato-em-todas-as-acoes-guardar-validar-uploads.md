@@ -16,7 +16,11 @@
 - `core_or_reforco`: `Reforco`
 - `proximo_bk`: `BK-MF5-04`
 - `guia_path`: `docs/planificacao/guias-bk/MF5/BK-MF5-03-a-interface-deve-usar-feedback-imediato-em-todas-as-acoes-guardar-validar-uploads.md`
-- `last_updated`: `2026-06-20`
+- `last_updated`: `2026-07-10`
+
+#### Contrato de pedidos e preservação atualizado
+
+O cliente HTTP comum aplica timeout e `AbortSignal`, cancela leituras obsoletas e nunca repete automaticamente mutações. Em `401`, o `AuthProvider` limpa a sessão e encaminha para login com apenas um `returnTo` interno validado. Em `400`, `409` ou `500`, o formulário mantém valores e erros; só é limpo depois de sucesso confirmado. Uploads usam file picker e `FormData`, com progresso/estado acessível, sem serializar ficheiros no JSON.
 
 #### Objetivo
 
@@ -531,7 +535,7 @@ function ResourcePanel({ resource }: { resource: ResourceConfig }) {
                     />
                 ))}
             </div>
-            <pre className="result">{JSON.stringify(result, null, 2)}</pre>
+            {result ? <ResultSummary result={result} /> : null}
         </section>
     );
 }
