@@ -17,6 +17,14 @@ export interface SaftExportSummary {
   fiscalPeriodId: string;
   status: SaftExportStatus;
   createdAt: string;
+  validationMode: "ACADEMIC" | "EXTERNAL" | null;
+  certified: boolean;
+}
+
+export interface SaftRuntimeStatus {
+  mode: "DISABLED" | "ACADEMIC" | "EXTERNAL";
+  available: boolean;
+  certifiedOutput: boolean;
 }
 
 export interface SaftExportDetail extends SaftExportSummary {
@@ -33,6 +41,10 @@ export interface SaftExportDetail extends SaftExportSummary {
 }
 
 const client = createApiClient();
+
+export function getSaftRuntimeStatus() {
+  return client.request<SaftRuntimeStatus>("GET", "/compliance/saft/status");
+}
 
 export function createFullSaftExport(fiscalPeriodId: string) {
   return client.request<{ export: SaftExportSummary }>(
@@ -57,4 +69,3 @@ export function downloadSaftExport(id: string) {
     { timeoutMs: 60_000 },
   );
 }
-

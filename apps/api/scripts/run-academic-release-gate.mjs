@@ -36,6 +36,7 @@ const REQUIRED_ENVIRONMENT = Object.freeze([
     "SMTP_PASSWORD",
     "EMAIL_FROM",
     "EMAIL_OUTBOX_ENCRYPTION_KEY",
+    "DEMO_EMAIL_INBOX_ACCESS_KEY",
     "S3_ENDPOINT",
     "S3_REGION",
     "S3_BUCKET",
@@ -47,7 +48,7 @@ const REQUIRED_ENVIRONMENT = Object.freeze([
     "BACKUP_RETENTION_DAYS",
     "TRUST_PROXY_HOPS",
     "SAFT_EXPORT_ENABLED",
-    "SAFT_XSD_PATH",
+    "SAFT_VALIDATION_MODE",
     "OPSA_API_BASE_URL",
     "OPSA_SESSION_COOKIES_JSON",
 ]);
@@ -105,7 +106,22 @@ function assertEnvironment() {
     }
     if (process.env.SAFT_EXPORT_ENABLED !== "true") {
         throw new Error(
-            "Gate final bloqueado: SAFT_EXPORT_ENABLED tem de ser true após validação do esquema SAF-T 1.04_01 por processador XSD 1.1 e revisão externa.",
+            "Gate académico bloqueado: SAFT_EXPORT_ENABLED tem de ser true.",
+        );
+    }
+    const saftMode = process.env.SAFT_VALIDATION_MODE.trim().toLowerCase();
+    if (!["academic", "external"].includes(saftMode)) {
+        throw new Error(
+            "SAFT_VALIDATION_MODE deve ser academic ou external.",
+        );
+    }
+    if (
+        saftMode === "external" &&
+        (typeof process.env.SAFT_XSD_PATH !== "string" ||
+            process.env.SAFT_XSD_PATH.trim() === "")
+    ) {
+        throw new Error(
+            "SAFT_XSD_PATH é obrigatória quando SAFT_VALIDATION_MODE=external.",
         );
     }
 }
@@ -155,38 +171,74 @@ export function runAcademicReleaseGate() {
     const testEnvironment = {
         ...process.env,
         NODE_ENV: "test",
-        DATABASE_URL: process.env.TEST_DATABASE_URL,
+        EMAIL_PROVIDER: "simulated",
         OPSA_SKIP_PERSISTENCE_TESTS: "false",
     };
-    const npmStep = (label, cwd, script, extraArgs = []) => ({
+    const databaseTestEnvironment = {
+        ...testEnvironment,
+        DATABASE_URL: process.env.TEST_DATABASE_URL,
+    };
+    const integrationTestEnvironment = { ...testEnvironment };
+    delete integrationTestEnvironment.DATABASE_URL;
+
+    const npmStep = (label, cwd, script, extraArgs = [], env = testEnvironment) => ({
         label,
         command: "npm",
         args: ["run", script, ...extraArgs],
         cwd,
-        env: testEnvironment,
+        env,
     });
     const steps = [
         npmStep(
             "Base PostgreSQL descartável vazia",
             apiRoot,
             "migration:assert-empty-test-db",
+            [],
+            databaseTestEnvironment,
         ),
         {
             label: "Migrations desde zero",
             command: "npx",
             args: ["prisma", "migrate", "deploy"],
             cwd: apiRoot,
-            env: testEnvironment,
+            env: databaseTestEnvironment,
         },
         npmStep("API syntax", apiRoot, "syntax:check"),
         npmStep("API unit", apiRoot, "test:unit"),
         npmStep("API contracts", apiRoot, "test:contracts"),
-        npmStep("API PostgreSQL integration", apiRoot, "test:integration"),
-        npmStep("Materialização de notificações", apiRoot, "worker:notifications:drain"),
-        npmStep("SMTP outbox drain", apiRoot, "worker:email:drain"),
+        npmStep(
+            "API PostgreSQL integration",
+            apiRoot,
+            "test:integration",
+            [],
+            integrationTestEnvironment,
+        ),
+        npmStep(
+            "Seed PostgreSQL integration",
+            apiRoot,
+            "test:seed:integration",
+            [],
+            integrationTestEnvironment,
+        ),
+        npmStep("Seed demonstrativa", apiRoot, "db:seed:demo", [], databaseTestEnvironment),
+        npmStep("Verificação da seed", apiRoot, "db:seed:verify", [], databaseTestEnvironment),
+        npmStep(
+            "Materialização de notificações",
+            apiRoot,
+            "worker:notifications:drain",
+            [],
+            databaseTestEnvironment,
+        ),
+        npmStep("SMTP outbox drain", apiRoot, "worker:email:drain", [], databaseTestEnvironment),
         npmStep("API MF6", apiRoot, "test:mf6"),
         npmStep("API MF7", apiRoot, "test:mf7"),
-        npmStep("Backup e restauro PostgreSQL/S3", apiRoot, "mf7:backup:roundtrip"),
+        npmStep(
+            "Backup e restauro PostgreSQL/S3",
+            apiRoot,
+            "mf7:backup:roundtrip",
+            [],
+            databaseTestEnvironment,
+        ),
         npmStep("API MF8", apiRoot, "test:mf8"),
         {
             label: "API npm audit",
@@ -199,6 +251,13 @@ export function runAcademicReleaseGate() {
         npmStep("Frontend typecheck", webRoot, "typecheck"),
         npmStep("Frontend production build", webRoot, "build"),
         npmStep("Browser E2E e axe", webRoot, "test:e2e"),
+        npmStep(
+            "Browser E2E seeded com API/PostgreSQL",
+            webRoot,
+            "test:e2e:seeded",
+            [],
+            databaseTestEnvironment,
+        ),
         {
             label: "Frontend npm audit",
             command: "npm",

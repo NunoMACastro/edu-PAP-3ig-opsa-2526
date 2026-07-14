@@ -358,17 +358,19 @@ async function seedHistoricalCommerce(prisma, context, config) {
             rateBps: vat.rateBps,
         });
         const settled = index % 3 === 0;
+        const kind = index % 17 === 0 ? "CREDIT_NOTE" : "INVOICE";
+        const settledWithReceipt = settled && kind !== "CREDIT_NOTE";
         const document = await prisma.saleDocument.create({
             data: {
                 companyId: context.company.id,
                 customerId: context.refs.customers[index % context.refs.customers.length].id,
-                kind: index % 17 === 0 ? "CREDIT_NOTE" : "INVOICE",
+                kind,
                 status: settled ? "SETTLED" : "ISSUED",
                 number: `DEMO-FT-${String(index + 1).padStart(5, "0")}`,
                 issuedAt: utcDate(issued),
                 dueDate: utcDate(addDays(issued, 20)),
                 ...computed.totals,
-                amountPaidCents: settled ? computed.totals.totalCents : 0,
+                amountPaidCents: settledWithReceipt ? computed.totals.totalCents : 0,
                 createdById: context.users.ADMIN.id,
                 issuedById: context.users.ADMIN.id,
                 issuedDefinitiveAt: utcDate(issued),
@@ -376,7 +378,7 @@ async function seedHistoricalCommerce(prisma, context, config) {
             },
         });
         saleDocuments.push(document);
-        if (settled && document.kind !== "CREDIT_NOTE") {
+        if (settledWithReceipt) {
             await prisma.receipt.create({
                 data: {
                     companyId: context.company.id,
@@ -405,17 +407,19 @@ async function seedHistoricalCommerce(prisma, context, config) {
             purchase: true,
         });
         const paid = index % 3 === 0;
+        const kind = index % 19 === 0 ? "SUPPLIER_CREDIT_NOTE" : "SUPPLIER_INVOICE";
+        const paidWithMovement = paid && kind !== "SUPPLIER_CREDIT_NOTE";
         const document = await prisma.purchaseDocument.create({
             data: {
                 companyId: context.company.id,
                 supplierId: context.refs.suppliers[index % context.refs.suppliers.length].id,
-                kind: index % 19 === 0 ? "SUPPLIER_CREDIT_NOTE" : "SUPPLIER_INVOICE",
+                kind,
                 status: paid ? "PAID" : index % 2 === 0 ? "POSTED" : "APPROVED",
                 supplierNumber: `DEMO-FC-${String(index + 1).padStart(5, "0")}`,
                 issuedAt: utcDate(issued),
                 dueDate: utcDate(addDays(issued, 15)),
                 ...computed.totals,
-                amountPaidCents: paid ? computed.totals.totalCents : 0,
+                amountPaidCents: paidWithMovement ? computed.totals.totalCents : 0,
                 createdById: context.users.ADMIN.id,
                 approvedAt: utcDate(issued),
                 approvedById: context.users.GESTOR.id,
@@ -425,7 +429,7 @@ async function seedHistoricalCommerce(prisma, context, config) {
             },
         });
         purchaseDocuments.push(document);
-        if (paid && document.kind !== "SUPPLIER_CREDIT_NOTE") {
+        if (paidWithMovement) {
             await prisma.payment.create({
                 data: {
                     companyId: context.company.id,
@@ -474,7 +478,7 @@ async function createSaleScenario(prisma, context, descriptor) {
     return issueSaleDocument(prisma, context.company.id, context.users.GESTOR.id, draft.id);
 }
 
-async function seedActionableCommerce(prisma, context, config) {
+async function seedActionableCommerce(prisma, context, config, treasuryAccountId) {
     const issuedAt = addDays(config.anchorDate, -Math.min(5, Number(config.anchorDate.slice(-2)) - 1));
     const scenarios = [
         { state: "DRAFT", index: 0, issuedAt, description: "ACAO 1 - Submeter venda" },
@@ -495,6 +499,7 @@ async function seedActionableCommerce(prisma, context, config) {
         context.users.CONTABILISTA.id,
         sales[5].id,
         {
+            treasuryAccountId,
             amountCents: Math.floor(sales[5].totalCents / 3),
             receivedAt: config.anchorDate,
             method: "BANK_TRANSFER",
@@ -554,13 +559,13 @@ async function seedActionableCommerce(prisma, context, config) {
         if (index === 4) {
             const posted = await prisma.purchaseDocument.findUnique({ where: { id: draft.id } });
             await registerPayment(prisma, context.company.id, context.users.CONTABILISTA.id, draft.id, {
+                treasuryAccountId,
                 amountCents: posted.totalCents,
                 paidAt: config.anchorDate,
                 method: "BANK_TRANSFER",
                 reference: "DEMO-PAYMENT-TOTAL",
                 notes: "Pagamento total preparado pelo seed.",
             });
-            await prisma.purchaseDocument.update({ where: { id: draft.id }, data: { status: "PAID" } });
         }
         purchases.push(await prisma.purchaseDocument.findUnique({ where: { id: draft.id } }));
     }
@@ -759,7 +764,7 @@ async function seedAccountingAttachment(prisma, context, config, objectStorage) 
     }
 }
 
-async function seedTreasuryAndImports(prisma, context, config) {
+async function seedTreasuryAccounts(prisma, context) {
     const treasuryAccounts = [];
     for (const descriptor of [
         { type: "BANK", name: "Banco Principal Demo", iban: "PT50000201231234567890154", initialBalanceCents: 25_000 },
@@ -773,7 +778,35 @@ async function seedTreasuryAndImports(prisma, context, config) {
             input: { ...descriptor, currency: "EUR" },
         }));
     }
+    return treasuryAccounts;
+}
+
+/**
+ * Formata cêntimos para a representação decimal PT usada nos CSV da demo.
+ *
+ * @param {number} amountCents - Montante inteiro em cêntimos.
+ * @returns {string} Montante com vírgula decimal e duas casas.
+ */
+function formatCsvAmountCents(amountCents) {
+    return (amountCents / 100).toFixed(2).replace(".", ",");
+}
+
+async function seedTreasuryAndImports(prisma, context, config, treasuryAccounts) {
     const firstAccount = treasuryAccounts[0];
+    const [receipt, payment] = await Promise.all([
+        prisma.receipt.findFirstOrThrow({
+            where: {
+                companyId: context.company.id,
+                reference: "DEMO-RECEIPT-PARTIAL",
+            },
+        }),
+        prisma.payment.findFirstOrThrow({
+            where: {
+                companyId: context.company.id,
+                reference: "DEMO-PAYMENT-TOTAL",
+            },
+        }),
+    ]);
     await importBankStatement(prisma, {
         companyId: context.company.id,
         userId: context.users.CONTABILISTA.id,
@@ -782,8 +815,9 @@ async function seedTreasuryAndImports(prisma, context, config) {
             fileName: "demo-extrato-valido.csv",
             fileBuffer: Buffer.from(
                 "data;descricao;referencia;valor\n" +
-                `${config.anchorDate};Recebimento demonstrativo;DEMO-RECEIPT-PARTIAL;400,00\n` +
-                `${config.anchorDate};Pagamento demonstrativo;DEMO-PAYMENT-TOTAL;-300,00`,
+                `${config.anchorDate};Recebimento demonstrativo;DEMO-RECEIPT-PARTIAL;${formatCsvAmountCents(receipt.amountCents)}\n` +
+                `${config.anchorDate};Pagamento demonstrativo;DEMO-PAYMENT-TOTAL;-` +
+                formatCsvAmountCents(payment.amountCents),
                 "utf8",
             ),
         },
@@ -883,7 +917,13 @@ async function seedAnalyticsAndAi(prisma, context, config) {
     const claimedBy = "demo-seed";
     await prisma.aiAnalysisRun.update({
         where: { id: run.id },
-        data: { status: "RUNNING", claimedBy, attempts: 1, startedAt: new Date(), leaseExpiresAt: addDays(new Date(), 1) },
+        data: {
+            status: "RUNNING",
+            claimedBy,
+            attempts: 1,
+            startedAt: utcDate(config.anchorDate),
+            leaseExpiresAt: utcDate(addDays(config.anchorDate, 1)),
+        },
     });
     await processAnalysisRun(prisma, { ...run, status: "RUNNING", claimedBy, attempts: 1 });
     const [insights, suggestions, alerts] = await Promise.all([
@@ -1040,10 +1080,21 @@ export async function seedDemoProfile(prisma, input) {
 
     const historical = await seedHistoricalCommerce(prisma, context, input.config);
     await seedHistoricalJournals(prisma, context, historical);
-    const actionable = await seedActionableCommerce(prisma, context, input.config);
+    const treasuryAccounts = await seedTreasuryAccounts(prisma, context);
+    const actionable = await seedActionableCommerce(
+        prisma,
+        context,
+        input.config,
+        treasuryAccounts[0].id,
+    );
     const inventory = await seedInventory(prisma, context, input.config);
     const attachment = await seedAccountingAttachment(prisma, context, input.config, input.objectStorage);
-    const treasury = await seedTreasuryAndImports(prisma, context, input.config);
+    const treasury = await seedTreasuryAndImports(
+        prisma,
+        context,
+        input.config,
+        treasuryAccounts,
+    );
     const analytics = await seedAnalyticsAndAi(prisma, context, input.config);
     await seedOperations(prisma, context, input.config);
     await seedSecurityLifecycle(prisma, context, input.config);

@@ -19,6 +19,7 @@ import {
     approvePurchaseDocument,
     markPurchaseDocumentPosted,
 } from "../../src/modules/purchase-approval/purchaseApprovalService.js";
+import { submitSaleDocument } from "../../src/modules/sales-approval/saleApprovalService.js";
 
 /**
  * Cria um período fiscal aberto reutilizado pelos testes de serviços MF1.
@@ -102,6 +103,7 @@ test("BK-MF1-02: venda calcula totais no backend e usa companyId do contexto", a
         kind: "INVOICE",
         customerId: "customer-1",
         issuedAt: "2026-02-10",
+        dueDate: "2026-02-10",
         lines: [
             {
                 itemId: "item-1",
@@ -117,6 +119,54 @@ test("BK-MF1-02: venda calcula totais no backend e usa companyId do contexto", a
     assert.equal(document.vatCents, 460);
     assert.equal(document.totalCents, 2460);
     assert.equal(document.status, "DRAFT");
+    assert.equal(document.dueDate.toISOString().slice(0, 10), "2026-02-10");
+});
+
+test("BK-MF1-02: venda rejeita vencimento anterior à emissão", async () => {
+    await assert.rejects(
+        () => createSaleDocument({}, "company-1", "user-1", {
+            kind: "INVOICE",
+            customerId: "customer-1",
+            issuedAt: "2026-02-10",
+            dueDate: "2026-02-09",
+            lines: [{
+                itemId: "item-1",
+                vatRateId: "vat-1",
+                quantity: 1,
+                unitPriceCents: 1000,
+            }],
+        }),
+        { code: "DUE_DATE_BEFORE_ISSUE_DATE", status: 400 },
+    );
+});
+
+test("BK-MF1-04: submissão de venda respeita o fecho fiscal", async () => {
+    let writes = 0;
+    const document = {
+        id: "sale-1",
+        companyId: "company-1",
+        status: "DRAFT",
+        issuedAt: new Date("2026-02-10T00:00:00.000Z"),
+    };
+    const prisma = {
+        fiscalPeriod: {
+            findFirst: async () => ({ ...openFiscalPeriod(), status: "CLOSED" }),
+        },
+        saleDocument: {
+            findFirst: async () => document,
+            updateMany: async () => {
+                writes += 1;
+                return { count: 1 };
+            },
+        },
+        $transaction: async (callback) => callback(prisma),
+    };
+
+    await assert.rejects(
+        () => submitSaleDocument(prisma, "company-1", "user-1", "sale-1"),
+        { code: "FISCAL_PERIOD_CLOSED", status: 409 },
+    );
+    assert.equal(writes, 0);
 });
 
 test("BK-MF1-06: emissão definitiva exige venda aprovada", async () => {
@@ -264,6 +314,7 @@ test("BK-MF1-03: recebimento não pode exceder montante em aberto", async () => 
                 "user-1",
                 "sale-1",
                 {
+                    treasuryAccountId: "treasury-1",
                     amountCents: 300,
                     receivedAt: "2026-02-11",
                     method: "BANK_TRANSFER",
@@ -291,6 +342,9 @@ test("BK-MF1-03: recebimento rejeita saldo alterado em concorrência", async () 
                 return { count: 0 };
             },
         },
+        treasuryAccount: {
+            findFirst: async () => ({ id: "treasury-1" }),
+        },
         receipt: {
             create: async () => {
                 throw new Error("receipt must not be created after stale balance");
@@ -307,6 +361,7 @@ test("BK-MF1-03: recebimento rejeita saldo alterado em concorrência", async () 
                 "user-1",
                 "sale-1",
                 {
+                    treasuryAccountId: "treasury-1",
                     amountCents: 700,
                     receivedAt: "2026-02-11",
                     method: "BANK_TRANSFER",
@@ -318,6 +373,7 @@ test("BK-MF1-03: recebimento rejeita saldo alterado em concorrência", async () 
 
 test("BK-MF1-03: recebimento definitivo protege registo e audit log", async () => {
     const retainedEntities = [];
+    let accountBalance = 1000;
     const prisma = {
         fiscalPeriod: { findFirst: async () => openFiscalPeriod() },
         saleDocument: {
@@ -334,6 +390,16 @@ test("BK-MF1-03: recebimento definitivo protege registo e audit log", async () =
         receipt: {
             create: async ({ data }) => ({ id: "receipt-1", ...data }),
         },
+        treasuryAccount: {
+            findFirst: async ({ select }) =>
+                select.currentBalanceCents
+                    ? { currentBalanceCents: accountBalance }
+                    : { id: "treasury-1" },
+            updateMany: async ({ data }) => {
+                accountBalance += data.currentBalanceCents.increment;
+                return { count: 1 };
+            },
+        },
         auditLog: {
             create: async ({ data }) => ({ id: "audit-receipt-1", ...data }),
         },
@@ -347,12 +413,75 @@ test("BK-MF1-03: recebimento definitivo protege registo e audit log", async () =
     };
 
     await registerReceipt(prisma, "company-1", "user-1", "sale-1", {
+        treasuryAccountId: "treasury-1",
         amountCents: 400,
         receivedAt: "2026-02-11",
         method: "BANK_TRANSFER",
     });
 
     assert.deepEqual(retainedEntities, ["Receipt", "AuditLog"]);
+    assert.equal(accountBalance, 1400);
+});
+
+test("BK-MF1-03: recebimento rejeita data anterior ao documento", async () => {
+    const prisma = {
+        fiscalPeriod: { findFirst: async () => openFiscalPeriod() },
+        saleDocument: {
+            findFirst: async () => ({
+                id: "sale-1",
+                kind: "INVOICE",
+                status: "ISSUED",
+                issuedAt: new Date("2026-02-10T00:00:00.000Z"),
+                totalCents: 1000,
+                amountPaidCents: 0,
+            }),
+        },
+        $transaction: async (callback) => callback(prisma),
+    };
+
+    await assert.rejects(
+        () => registerReceipt(prisma, "company-1", "user-1", "sale-1", {
+            treasuryAccountId: "treasury-1",
+            amountCents: 100,
+            receivedAt: "2026-02-09",
+            method: "CASH",
+        }),
+        { code: "INVALID_RECEIPT_CHRONOLOGY" },
+    );
+});
+
+test("BK-MF1-03: recebimento exige conta ativa da empresa", async () => {
+    let documentWrites = 0;
+    const prisma = {
+        fiscalPeriod: { findFirst: async () => openFiscalPeriod() },
+        saleDocument: {
+            findFirst: async () => ({
+                id: "sale-1",
+                kind: "INVOICE",
+                status: "ISSUED",
+                issuedAt: new Date("2026-02-10T00:00:00.000Z"),
+                totalCents: 1000,
+                amountPaidCents: 0,
+            }),
+            updateMany: async () => {
+                documentWrites += 1;
+                return { count: 1 };
+            },
+        },
+        treasuryAccount: { findFirst: async () => null },
+        $transaction: async (callback) => callback(prisma),
+    };
+
+    await assert.rejects(
+        () => registerReceipt(prisma, "company-1", "user-1", "sale-1", {
+            treasuryAccountId: "account-from-another-company",
+            amountCents: 100,
+            receivedAt: "2026-02-10",
+            method: "CASH",
+        }),
+        { code: "TREASURY_ACCOUNT_NOT_FOUND" },
+    );
+    assert.equal(documentWrites, 0);
 });
 
 test("BK-MF1-04: lançamento de venda fica balanceado", async () => {
@@ -478,6 +607,7 @@ test("BK-MF1-07/BK-MF1-10: compra nasce em rascunho com totais backend", async (
             supplierId: "supplier-1",
             supplierNumber: "F2026-1",
             issuedAt: "2026-02-10",
+            dueDate: "2026-02-10",
             lines: [
                 {
                     itemId: "item-1",
@@ -492,6 +622,61 @@ test("BK-MF1-07/BK-MF1-10: compra nasce em rascunho com totais backend", async (
     assert.equal(purchaseCreateData.companyId, "company-1");
     assert.equal(document.status, "DRAFT");
     assert.equal(document.totalCents, 1230);
+    assert.equal(document.dueDate.toISOString().slice(0, 10), "2026-02-10");
+});
+
+test("BK-MF1-07: compra rejeita vencimento anterior à emissão", async () => {
+    await assert.rejects(
+        () => createPurchaseDocument({}, "company-1", "user-1", {
+            kind: "SUPPLIER_INVOICE",
+            supplierId: "supplier-1",
+            supplierNumber: "F2026-2",
+            issuedAt: "2026-02-10",
+            dueDate: "2026-02-09",
+            lines: [{
+                itemId: "item-1",
+                vatRateId: "vat-1",
+                quantity: 1,
+                unitCostCents: 1000,
+            }],
+        }),
+        { code: "DUE_DATE_BEFORE_ISSUE_DATE", status: 400 },
+    );
+});
+
+test("BK-MF1-10: aprovação de compra respeita o fecho fiscal", async () => {
+    let writes = 0;
+    const document = {
+        id: "purchase-1",
+        companyId: "company-1",
+        status: "DRAFT",
+        issuedAt: new Date("2026-02-10T00:00:00.000Z"),
+    };
+    const prisma = {
+        fiscalPeriod: {
+            findFirst: async () => ({ ...openFiscalPeriod(), status: "CLOSED" }),
+        },
+        purchaseDocument: {
+            findFirst: async () => document,
+            updateMany: async () => {
+                writes += 1;
+                return { count: 1 };
+            },
+        },
+        $transaction: async (callback) => callback(prisma),
+    };
+
+    await assert.rejects(
+        () => approvePurchaseDocument(
+            prisma,
+            "company-1",
+            "user-1",
+            "purchase-1",
+            { reason: "Validado" },
+        ),
+        { code: "FISCAL_PERIOD_CLOSED", status: 409 },
+    );
+    assert.equal(writes, 0);
 });
 
 test("BK-MF1-08: pagamento rejeita compra ainda em rascunho", async () => {
@@ -517,6 +702,7 @@ test("BK-MF1-08: pagamento rejeita compra ainda em rascunho", async () => {
                 "user-1",
                 "purchase-1",
                 {
+                    treasuryAccountId: "treasury-1",
                     amountCents: 100,
                     paidAt: "2026-02-11",
                     method: "CASH",
@@ -544,6 +730,9 @@ test("BK-MF1-08: pagamento rejeita saldo alterado em concorrência", async () =>
                 return { count: 0 };
             },
         },
+        treasuryAccount: {
+            findFirst: async () => ({ id: "treasury-1" }),
+        },
         payment: {
             create: async () => {
                 throw new Error("payment must not be created after stale balance");
@@ -560,6 +749,7 @@ test("BK-MF1-08: pagamento rejeita saldo alterado em concorrência", async () =>
                 "user-1",
                 "purchase-1",
                 {
+                    treasuryAccountId: "treasury-1",
                     amountCents: 500,
                     paidAt: "2026-02-11",
                     method: "CASH",
@@ -569,8 +759,9 @@ test("BK-MF1-08: pagamento rejeita saldo alterado em concorrência", async () =>
     );
 });
 
-test("BK-MF1-08: pagamento total não altera estado contabilístico da compra", async () => {
+test("BK-MF1-08: pagamento total marca a compra como paga e atualiza a conta", async () => {
     let paymentUpdateData;
+    let accountBalance = 500;
     const retainedEntities = [];
     const prisma = {
         fiscalPeriod: { findFirst: async () => openFiscalPeriod() },
@@ -591,6 +782,16 @@ test("BK-MF1-08: pagamento total não altera estado contabilístico da compra", 
         payment: {
             create: async ({ data }) => ({ id: "payment-1", ...data }),
         },
+        treasuryAccount: {
+            findFirst: async ({ select }) =>
+                select.currentBalanceCents
+                    ? { currentBalanceCents: accountBalance }
+                    : { id: "treasury-1" },
+            updateMany: async ({ data }) => {
+                accountBalance -= data.currentBalanceCents.decrement;
+                return { count: 1 };
+            },
+        },
         auditLog: { create: async () => ({ id: "audit-1" }) },
         retentionHold: {
             upsert: async ({ create }) => {
@@ -602,14 +803,77 @@ test("BK-MF1-08: pagamento total não altera estado contabilístico da compra", 
     };
 
     await registerPayment(prisma, "company-1", "user-1", "purchase-1", {
+        treasuryAccountId: "treasury-1",
         amountCents: 800,
         paidAt: "2026-02-11",
         method: "CASH",
     });
 
     assert.deepEqual(paymentUpdateData.amountPaidCents, { increment: 800 });
-    assert.equal("status" in paymentUpdateData, false);
+    assert.equal(paymentUpdateData.status, "PAID");
+    assert.equal(accountBalance, -300);
     assert.deepEqual(retainedEntities, ["Payment", "AuditLog"]);
+});
+
+test("BK-MF1-08: pagamento rejeita data anterior ao documento", async () => {
+    const prisma = {
+        fiscalPeriod: { findFirst: async () => openFiscalPeriod() },
+        purchaseDocument: {
+            findFirst: async () => ({
+                id: "purchase-1",
+                kind: "SUPPLIER_INVOICE",
+                status: "APPROVED",
+                issuedAt: new Date("2026-02-10T00:00:00.000Z"),
+                totalCents: 1000,
+                amountPaidCents: 0,
+            }),
+        },
+        $transaction: async (callback) => callback(prisma),
+    };
+
+    await assert.rejects(
+        () => registerPayment(prisma, "company-1", "user-1", "purchase-1", {
+            treasuryAccountId: "treasury-1",
+            amountCents: 100,
+            paidAt: "2026-02-09",
+            method: "CASH",
+        }),
+        { code: "INVALID_PAYMENT_CHRONOLOGY" },
+    );
+});
+
+test("BK-MF1-08: pagamento exige conta ativa da empresa", async () => {
+    let documentWrites = 0;
+    const prisma = {
+        fiscalPeriod: { findFirst: async () => openFiscalPeriod() },
+        purchaseDocument: {
+            findFirst: async () => ({
+                id: "purchase-1",
+                kind: "SUPPLIER_INVOICE",
+                status: "APPROVED",
+                issuedAt: new Date("2026-02-10T00:00:00.000Z"),
+                totalCents: 1000,
+                amountPaidCents: 0,
+            }),
+            updateMany: async () => {
+                documentWrites += 1;
+                return { count: 1 };
+            },
+        },
+        treasuryAccount: { findFirst: async () => null },
+        $transaction: async (callback) => callback(prisma),
+    };
+
+    await assert.rejects(
+        () => registerPayment(prisma, "company-1", "user-1", "purchase-1", {
+            treasuryAccountId: "inactive-account",
+            amountCents: 100,
+            paidAt: "2026-02-10",
+            method: "CASH",
+        }),
+        { code: "TREASURY_ACCOUNT_NOT_FOUND" },
+    );
+    assert.equal(documentWrites, 0);
 });
 
 test("BK-MF1-09: lançamento de compra fica balanceado", async () => {

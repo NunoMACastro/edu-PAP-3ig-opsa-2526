@@ -60,6 +60,7 @@ test("MF4: routers principais expõem endpoints canónicos", () => {
     assert.equal(hasRoute(buildReminderRoutes(deps), "post", "/"), true);
     assert.equal(hasRoute(buildReminderRoutes(deps), "patch", "/:id"), true);
     assert.equal(hasRoute(buildOperationalTaskRoutes(deps), "get", "/"), true);
+    assert.equal(hasRoute(buildOperationalTaskRoutes(deps), "get", "/assignees"), true);
     assert.equal(hasRoute(buildOperationalTaskRoutes(deps), "post", "/"), true);
     assert.equal(hasRoute(buildOperationalTaskRoutes(deps), "patch", "/:id/status"), true);
     assert.equal(hasRoute(buildNotificationRoutes(deps), "get", "/"), true);

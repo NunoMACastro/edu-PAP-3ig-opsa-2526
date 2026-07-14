@@ -9,7 +9,7 @@
 /**
  * Adquire um advisory lock que vive apenas até ao fim da transação atual.
  *
- * O fallback sem `$queryRaw` existe exclusivamente para doubles unitários já
+ * O fallback sem `$executeRaw` existe exclusivamente para doubles unitários já
  * usados no projeto. Clientes Prisma reais executam sempre o lock PostgreSQL.
  *
  * @param {import("@prisma/client").PrismaClient} tx - Cliente da transação Prisma.
@@ -18,8 +18,8 @@
  * @returns {Promise<void>}
  */
 export async function acquireTransactionLock(tx, namespace, ...parts) {
-    if (typeof tx.$queryRaw !== "function") return;
+    if (typeof tx.$executeRaw !== "function") return;
 
     const key = [namespace, ...parts].join(":");
-    await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${key}, 0))`;
+    await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${key}, 0))`;
 }

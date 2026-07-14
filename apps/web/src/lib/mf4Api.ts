@@ -99,6 +99,11 @@ export interface OperationalTaskItem {
   assignedToId?: string | null;
 }
 
+export interface TaskAssignee {
+  id: string;
+  name: string;
+}
+
 export interface InAppNotificationItem {
   id: string;
   type: string;
@@ -271,6 +276,16 @@ export function updateReminderStatus(id: string, status: string) {
  */
 export function getTasks() {
   return client.request<{ tasks: OperationalTaskItem[] }>("GET", "/tasks");
+}
+
+/**
+ * Lista membros ativos que podem receber uma tarefa na empresa atual.
+ * O endpoint devolve apenas identificador e nome, sem exigir users.manage.
+ *
+ * @returns Responsáveis disponíveis para o seletor de tarefas.
+ */
+export function getTaskAssignees() {
+  return client.request<{ assignees: TaskAssignee[] }>("GET", "/tasks/assignees");
 }
 
 /**

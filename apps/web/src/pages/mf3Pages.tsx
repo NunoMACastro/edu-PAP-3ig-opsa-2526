@@ -13,8 +13,10 @@ import {
   createFullSaftExport,
   downloadSaftExport,
   getSaftExport,
+  getSaftRuntimeStatus,
   type SaftExportDetail,
   type SaftExportSummary,
+  type SaftRuntimeStatus,
 } from "../lib/saftApi";
 import { ActionFeedbackMessage, PageFrame, StatusMessage } from "../ui/opsaUi";
 import { useActionFeedback } from "../ui/useActionFeedback";
@@ -627,6 +629,8 @@ export function SaftExportPage() {
   >([]);
   const [periodId, setPeriodId] = useState("");
   const [exportJob, setExportJob] = useState<SaftExportSummary | SaftExportDetail | null>(null);
+  const [runtimeStatus, setRuntimeStatus] = useState<SaftRuntimeStatus | null>(null);
+  const [runtimeStatusError, setRuntimeStatusError] = useState(false);
   const action = useActionFeedback();
 
   useEffect(() => {
@@ -642,6 +646,20 @@ export function SaftExportPage() {
         if (!controller.signal.aborted) setPeriods([]);
       });
     return () => controller.abort();
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    void getSaftRuntimeStatus()
+      .then((status) => {
+        if (active) setRuntimeStatus(status);
+      })
+      .catch(() => {
+        if (active) setRuntimeStatusError(true);
+      });
+    return () => {
+      active = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -709,6 +727,18 @@ export function SaftExportPage() {
       title="Exportação SAF-T"
       description="Gera um único ficheiro integral com faturação e contabilidade para um período fiscal."
     >
+      {runtimeStatus?.mode === "ACADEMIC" ? (
+        <StatusMessage tone="warning" title="Demonstração académica — não certificado">
+          O XML permite demonstrar o fluxo e a reconciliação interna, mas não foi validado por XSD nem revisto externamente.
+        </StatusMessage>
+      ) : null}
+      {(runtimeStatus && !runtimeStatus.available) || runtimeStatusError ? (
+        <StatusMessage tone="warning" title="Exportação indisponível">
+          {runtimeStatus?.mode === "EXTERNAL"
+            ? "O modo SAF-T externo requer o pipeline e o XSD oficiais configurados."
+            : "O SAF-T não está configurado neste ambiente."}
+        </StatusMessage>
+      ) : null}
       <form className="operation" onSubmit={createExport}>
         <h3>Nova exportação integral</h3>
         <div className="fields">
@@ -734,8 +764,15 @@ export function SaftExportPage() {
             </select>
           </label>
         </div>
-        <button type="submit" disabled={action.busy || !periodId}>
-          {action.busy ? "A executar..." : "Gerar SAF-T"}
+        <button
+          type="submit"
+          disabled={action.busy || !periodId || !runtimeStatus?.available}
+        >
+          {action.busy
+            ? "A executar..."
+            : runtimeStatus?.mode === "ACADEMIC"
+              ? "Gerar XML académico"
+              : "Gerar SAF-T"}
         </button>
       </form>
       {action.feedback.message ? (
@@ -747,6 +784,9 @@ export function SaftExportPage() {
         <section className="operation" aria-labelledby="saft-export-state">
           <h3 id="saft-export-state">Estado da exportação</h3>
           <p>{exportJob.status}</p>
+          {exportJob.validationMode === "ACADEMIC" ? (
+            <p><strong>Não certificado:</strong> uso exclusivo para demonstração académica.</p>
+          ) : null}
           {exportJob.status === "FAILED" ? (
             <StatusMessage tone="danger" title="Exportação falhou">
               A exportação não ficou disponível. Revê a configuração do período e tenta novamente.

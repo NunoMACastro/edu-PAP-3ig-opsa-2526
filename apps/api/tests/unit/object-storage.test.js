@@ -3,7 +3,7 @@
  */
 
 import assert from "node:assert/strict";
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -39,6 +39,10 @@ test("adapter local suporta quarentena, promoção, download e cleanup", async (
         const downloaded = await storage.getObject(
             "private/manual-journals/file.pdf",
         );
+        const storedPath = storage.resolve("private/manual-journals/file.pdf");
+        assert.equal((await stat(storage.root)).mode & 0o777, 0o700);
+        assert.equal((await stat(storedPath.filePath)).mode & 0o777, 0o600);
+        assert.equal((await stat(storedPath.metadataPath)).mode & 0o777, 0o600);
         assert.equal((await streamBuffer(downloaded.body)).toString(), "%PDF-test");
         assert.equal(downloaded.metadata.sha256, "abc");
         assert.deepEqual(
@@ -56,6 +60,21 @@ test("adapter local suporta quarentena, promoção, download e cleanup", async (
 test("factory nunca usa storage local silenciosamente em test ou production", () => {
     assert.throws(() => createObjectStorage({ NODE_ENV: "test" }), /S3/);
     assert.throws(() => createObjectStorage({ NODE_ENV: "production" }), /S3/);
+    assert.equal(
+        createObjectStorage(
+            { NODE_ENV: "test" },
+            { provider: "local", localRoot: "private-storage-test" },
+        ).provider,
+        "LOCAL",
+    );
+    assert.throws(
+        () =>
+            createObjectStorage(
+                { NODE_ENV: "test", S3_BUCKET: "partial" },
+                { provider: "local" },
+            ),
+        /fallback/,
+    );
 });
 
 test("S3 remoto exige HTTPS, endpoint sem credenciais e SSE reconhecida", () => {

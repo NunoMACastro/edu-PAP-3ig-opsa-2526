@@ -3,6 +3,8 @@
  */
 
 import { httpError } from "../../lib/httpErrors.js";
+import { acquireTransactionLock } from "../../lib/postgresLocks.js";
+import { assertOpenFiscalPeriod } from "../fiscal-periods/fiscalPeriodService.js";
 
 /**
  * Procura documento de venda dentro da empresa ativa.
@@ -111,6 +113,11 @@ export async function submitSaleDocument(prisma, companyId, userId, id) {
     }
 
     return prisma.$transaction(async (tx) => {
+        await acquireTransactionLock(tx, "fiscal", companyId);
+        await assertOpenFiscalPeriod(tx, {
+            companyId,
+            documentDate: document.issuedAt,
+        });
         const updated = await claimSaleStatus(tx, {
             id,
             companyId,

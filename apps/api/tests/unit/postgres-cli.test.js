@@ -6,7 +6,9 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
     assertDisposableRestoreDatabase,
+    createPostgresCommandRunner,
     postgresCliConnection,
+    resolvePostgresCliMode,
 } from "../../scripts/postgres-cli.mjs";
 import { assertEmptyTestDatabase } from "../../scripts/assert-empty-test-database.mjs";
 
@@ -25,6 +27,31 @@ test("password PostgreSQL fica no ambiente e nunca nos argumentos", () => {
 test("restore recusa nomes que não indicam uma base descartável", () => {
     assert.doesNotThrow(() => assertDisposableRestoreDatabase("opsa_restore_ci"));
     assert.throws(() => assertDisposableRestoreDatabase("opsa_production"));
+});
+
+test("runner nativo é o default e Compose nunca substitui o modo remoto", () => {
+    const nativeRunner = () => ({ status: 0 });
+    assert.equal(resolvePostgresCliMode({}), "native");
+    assert.equal(
+        createPostgresCommandRunner({ env: {}, runCommand: nativeRunner }),
+        nativeRunner,
+    );
+    assert.equal(
+        resolvePostgresCliMode({ OPSA_POSTGRES_CLI_MODE: "compose" }),
+        "compose",
+    );
+    assert.throws(
+        () => createPostgresCommandRunner({
+            env: { OPSA_POSTGRES_CLI_MODE: "compose" },
+            backupMode: "remote",
+            runCommand: nativeRunner,
+        }),
+        /modo remoto exige ferramentas nativas/,
+    );
+    assert.throws(
+        () => resolvePostgresCliMode({ OPSA_POSTGRES_CLI_MODE: "auto" }),
+        /native ou compose/,
+    );
 });
 
 test("gate de migrations exige schema public realmente vazio", async () => {

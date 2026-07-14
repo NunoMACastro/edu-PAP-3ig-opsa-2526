@@ -47,6 +47,33 @@ export function listOperationalTasks(prisma, companyId) {
 }
 
 /**
+ * Lista apenas os dados mínimos necessários para atribuir uma tarefa.
+ *
+ * A consulta é limitada às memberships ativas da empresa em contexto e não
+ * expõe email, role ou dados de outras empresas.
+ *
+ * @param {import("@prisma/client").PrismaClient} prisma - Cliente Prisma.
+ * @param {string} companyId - Empresa ativa.
+ * @returns {Promise<Array<{id: string, name: string}>>} Responsáveis disponíveis.
+ */
+export async function listTaskAssignees(prisma, companyId) {
+    const memberships = await prisma.companyMembership.findMany({
+        where: { companyId, isActive: true },
+        select: {
+            userId: true,
+            user: { select: { name: true } },
+        },
+        orderBy: { createdAt: "asc" },
+        take: 100,
+    });
+
+    return memberships.map((membership) => ({
+        id: membership.userId,
+        name: membership.user.name?.trim() || "Utilizador sem nome",
+    }));
+}
+
+/**
  * Cria tarefa operacional com atribuicao validada.
  *
  * @param {import("@prisma/client").PrismaClient} prisma - Cliente Prisma.

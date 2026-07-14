@@ -1,9 +1,9 @@
 /**
- * @file Processo SMTP separado que consome a EmailOutbox persistente.
+ * @file Processo separado que consome a EmailOutbox persistente.
  *
  * A API apenas grava mensagens cifradas na transação de negócio. Este processo
- * verifica o SMTP antes de trabalhar e pode correr continuamente (`worker:email`)
- * ou drenar a fila de teste de forma limitada (`worker:email:drain`).
+ * verifica o provider selecionado antes de trabalhar e pode correr continuamente
+ * (`worker:email`) ou drenar a fila de forma limitada (`worker:email:drain`).
  */
 
 import { PrismaClient } from "@prisma/client";
@@ -12,7 +12,7 @@ import { fileURLToPath } from "node:url";
 import { loadApiEnv } from "../src/config/env.js";
 import { loadLocalEnvFile } from "../src/config/envFile.js";
 import { createEmailOutboxWorker } from "../src/modules/notifications/emailOutboxWorker.js";
-import { buildSmtpEmailProvider } from "../src/modules/notifications/smtpEmailProvider.js";
+import { createEmailProvider } from "../src/modules/notifications/smtpEmailProvider.js";
 
 /**
  * Inicia o runtime isolado do worker sem abrir qualquer socket HTTP.
@@ -34,7 +34,7 @@ export async function startEmailOutboxWorker({
         throw new Error("EMAIL_OUTBOX_ENCRYPTION_KEY é obrigatória.");
     }
     const prisma = prismaOption ?? new PrismaClient();
-    const provider = providerOption ?? buildSmtpEmailProvider(apiEnv.smtp);
+    const provider = providerOption ?? createEmailProvider(apiEnv);
     let stopped = false;
     const worker = createEmailOutboxWorker({
         prisma,
@@ -47,6 +47,7 @@ export async function startEmailOutboxWorker({
         if (stopped) return;
         stopped = true;
         worker.stop();
+        await provider.close?.();
         await prisma.$disconnect();
     }
 

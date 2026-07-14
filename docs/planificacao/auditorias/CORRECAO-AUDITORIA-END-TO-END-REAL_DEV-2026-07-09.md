@@ -2472,3 +2472,48 @@ Razões:
 `PRONTO_ACADEMICO_COM_RISCO_ACEITE` não foi atingido. Só uma nova execução com
 serviços remotos, migrations desde zero, restore completo, browsers reais e
 validação/revisão SAF-T externa pode alterar esta decisão.
+
+## 12. Apêndice posterior — validação local Docker Compose em 2026-07-13
+
+Esta secção é posterior à decisão de 2026-07-10 e não reescreve a respetiva
+fotografia. A evidência detalhada está em
+`docs/evidence/MF8/EXECUCAO-DOCKER-COMPOSE-POSTGRESQL.md`.
+
+### Runtime e persistência observados
+
+- Docker `29.6.1` e Docker Compose `v5.2.0`.
+- `docker compose config` em PASS.
+- Imagem `postgres:17.10-alpine3.23`, digest observado
+  `sha256:8189a1f6e40904781fc9e2612687877791d21679866db58b1de996b31fc312e4`.
+- Demo persistente healthy em `127.0.0.1:5433`, com `SELECT 1` autenticado,
+  `21` migrations, seed e verify.
+- Integração PostgreSQL `11/11` e seed idempotente/sentinela `1/1`, zero skips.
+- Carga `light` em `901 ms` e `medium` em `4485 ms`.
+- Backup com `429610` bytes; verify/roundtrip PASS; `21` migrations e todas as
+  `69` entidades/tabelas comparadas; cleanup temporário confirmado.
+
+### Regressão posterior
+
+- API: `407/407` unitários, `174/174` contratos e MF6/MF7/MF8 em PASS.
+- Web: `18` ficheiros/`55` testes, typecheck e build em PASS.
+- Playwright normal: `25/25` em três viewports; seeded: `3/3`.
+- npm audit API e web: `0` vulnerabilidades.
+
+### Findings afetados sem fecho excessivo
+
+| Finding | Evidência nova | Estado desta revalidação |
+| --- | --- | --- |
+| `OPSA-E2E-P1-005`, `OPSA-E2E-P1-017` | backup/verify/roundtrip PostgreSQL local real | `VALIDADO_LOCAL`; S3 remoto externo |
+| `OPSA-E2E-P1-006`, `P1-007`, `P1-008` | integração PostgreSQL sem skips | `VALIDADO_LOCAL` |
+| `OPSA-E2E-P1-015` | integração local e E2E Chromium/seeded verdes | `VALIDADO_LOCAL`; suite externa bloqueada |
+| `OPSA-E2E-P2-009`, `P2-015` | PostgreSQL healthy e `SELECT 1` autenticado | `VALIDADO_LOCAL`; providers externos separados |
+| `OPSA-E2E-P2-014` | gate académico executado | `BLOQUEADO_TOOLCHAIN` em Node `24.11.1` |
+
+`test:integration:external` foi executado e falhou fechado pela ausência de
+`TEST_DATABASE_URL` remota, Redis e SMTP. O gate académico parou no preflight
+de Node; as fases posteriores não foram corridas. S3, SAF-T externo e a matriz
+compat Chrome/Edge/Firefox continuam externos.
+
+Decisão posterior limitada: `PASS_LOCAL_COM_BLOQUEIOS_EXTERNOS_E_TOOLCHAIN`.
+Esta evidência remove os antigos bloqueios de PostgreSQL/client tools/Chromium
+locais, mas não autoriza alterar a decisão global para PASS.

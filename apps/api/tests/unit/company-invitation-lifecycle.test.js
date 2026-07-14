@@ -51,7 +51,7 @@ function lifecycleDouble({
     const calls = [];
     let persisted = invitation({ role: invitationRole });
     const tx = {
-        $queryRaw: async () => calls.push("lock"),
+        $executeRaw: async () => calls.push("lock"),
         companyMembership: {
             findFirst: async () => ({ role: actorRole }),
         },
@@ -114,7 +114,7 @@ test("criação preserva o contrato e entrega token apenas ao adapter de outbox"
     let createdData;
     let queued;
     const tx = {
-        $queryRaw: async () => calls.push("lock"),
+        $executeRaw: async () => calls.push("lock"),
         companyMembership: {
             findFirst: async () => ({ role: "ADMIN" }),
         },
@@ -350,7 +350,7 @@ test("GESTOR não pode criar, reenviar ou revogar convites ADMIN", async () => {
         () => inviteUser(
             {
                 $transaction: async (callback) => callback({
-                    $queryRaw: async () => {},
+                    $executeRaw: async () => {},
                     companyMembership: {
                         findFirst: async () => ({ role: "GESTOR" }),
                     },

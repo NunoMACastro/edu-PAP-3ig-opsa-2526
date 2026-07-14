@@ -26,6 +26,9 @@ const DATABASE_URL = "postgresql://backup_user:test@127.0.0.1:5432/opsa_test";
  * @returns {{status: number, stdout: string, stderr: string}} Resultado sintético.
  */
 function successfulPgDump(_command, args) {
+    if (args.includes("--version")) {
+        return { status: 0, stdout: "pg_dump (PostgreSQL) 17", stderr: "" };
+    }
     const outputPath = args[args.indexOf("--file") + 1];
     writeFileSync(outputPath, Buffer.from("PGDMP-test-content"), { mode: 0o600 });
     return { status: 0, stdout: "", stderr: "" };
@@ -43,6 +46,7 @@ test("backup persiste o bundle e remove sempre dump/manifesto plaintext locais",
             contentType: "application/pdf",
         });
         const manifest = await runDailyBackup({
+            mode: "remote",
             backupDir: work,
             databaseUrl: DATABASE_URL,
             now: new Date("2026-07-10T01:00:00.000Z"),
@@ -103,8 +107,26 @@ test("roundtrip parte do manifesto remoto autenticado e nunca do dump removido",
         new URL("../../scripts/run-backup-roundtrip.mjs", import.meta.url),
         "utf8",
     );
-    assert.match(roundtripSource, /verifyBackupRestore\(\{\s*bundle: backup/s);
+    assert.match(
+        roundtripSource,
+        /verifyBackupRestore\(\{[\s\S]*?mode,[\s\S]*?bundle: backup/,
+    );
     assert.doesNotMatch(roundtripSource, /--file|OPSA_BACKUP_FILE/);
+});
+
+test("modo remoto nunca faz fallback implícito para PostgreSQL Compose local", async () => {
+    await assert.rejects(
+        runDailyBackup({
+            mode: "remote",
+            env: { OPSA_POSTGRES_CLI_MODE: "compose" },
+            databaseUrl: DATABASE_URL,
+            retentionDays: 30,
+            runCommand: () => {
+                throw new Error("Docker não deve arrancar para modo remoto");
+            },
+        }),
+        /modo remoto exige ferramentas nativas/,
+    );
 });
 
 test("falha ambígua no upload limpa remoto e plaintext local", async () => {
@@ -123,6 +145,7 @@ test("falha ambígua no upload limpa remoto e plaintext local", async () => {
     try {
         await assert.rejects(
             runDailyBackup({
+                mode: "remote",
                 backupDir: work,
                 databaseUrl: DATABASE_URL,
                 now: new Date("2026-07-10T01:05:00.000Z"),
@@ -163,6 +186,7 @@ test("cleanup remoto deteta DELETE no-op sem ocultar a falha original", async ()
         let failure;
         try {
             await runDailyBackup({
+                mode: "remote",
                 backupDir: work,
                 databaseUrl: DATABASE_URL,
                 now: new Date("2026-07-10T01:10:00.000Z"),
@@ -198,12 +222,16 @@ test("pg_dump falhado também remove o ficheiro parcial", async () => {
     try {
         await assert.rejects(
             runDailyBackup({
+                mode: "remote",
                 backupDir: work,
                 databaseUrl: DATABASE_URL,
                 sourceStorage: source,
                 backupStorage: backup,
                 retentionDays: 30,
                 runCommand: (_command, args) => {
+                    if (args.includes("--version")) {
+                        return { status: 0, stdout: "PostgreSQL 17", stderr: "" };
+                    }
                     const outputPath = args[args.indexOf("--file") + 1];
                     writeFileSync(outputPath, Buffer.from("partial"));
                     return { status: 1, stdout: "", stderr: "private failure" };
@@ -284,6 +312,7 @@ test("falha de pruning posterior preserva integralmente o bundle novo", async ()
 
         await assert.rejects(
             runDailyBackup({
+                mode: "remote",
                 backupDir: work,
                 databaseUrl: DATABASE_URL,
                 now,
@@ -320,6 +349,7 @@ test("prefixos operacionais, traversal e storages sobrepostos são rejeitados", 
     try {
         await assert.rejects(
             runDailyBackup({
+                mode: "remote",
                 backupDir: path.join(root, "work"),
                 databaseUrl: DATABASE_URL,
                 sourceStorage: source,

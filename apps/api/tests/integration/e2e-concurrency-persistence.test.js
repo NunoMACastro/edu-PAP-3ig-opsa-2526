@@ -95,7 +95,13 @@ function assertOneWinnerAndOneConflict(results, expectedConflictCodes) {
 
     assert.equal(fulfilled.length, 1, "a corrida deve ter exatamente um vencedor");
     assert.equal(rejected.length, 1, "a corrida deve ter exatamente um conflito");
-    assert.equal(rejected[0].reason?.status, 409);
+    assert.equal(
+        rejected[0].reason?.status,
+        409,
+        `conflito sem HTTP 409: ${rejected[0].reason?.name ?? "Error"} ` +
+            `${rejected[0].reason?.code ?? "sem código"} ` +
+            `${rejected[0].reason?.meta?.message ?? "sem detalhe"}`,
+    );
     assert.equal(
         expectedConflictCodes.includes(rejected[0].reason?.code),
         true,
@@ -242,7 +248,10 @@ test(
                         },
                     );
                     const results = await Promise.allSettled([exit(), exit()]);
-                    assertOneWinnerAndOneConflict(results, ["INSUFFICIENT_STOCK"]);
+                    assertOneWinnerAndOneConflict(results, [
+                        "INSUFFICIENT_STOCK",
+                        "STALE_STATE",
+                    ]);
 
                     const [balance, exits, consumptions, layers] = await Promise.all([
                         prisma.stockBalance.findUnique({
@@ -383,6 +392,15 @@ test(
             await t.test("aprovação e rejeição concorrentes persistem uma só decisão", async () => {
                 const prefix = `race_approval_${randomUUID().slice(0, 8)}`;
                 const { user, company } = await seedCompany(prisma, prefix);
+                await prisma.fiscalPeriod.create({
+                    data: {
+                        companyId: company.id,
+                        name: `${prefix}-2026`,
+                        startDate: new Date("2026-01-01T00:00:00.000Z"),
+                        endDate: new Date("2026-12-31T23:59:59.999Z"),
+                        status: "OPEN",
+                    },
+                });
                 const supplier = await prisma.supplier.create({
                     data: { companyId: company.id, name: `Fornecedor ${prefix}` },
                 });

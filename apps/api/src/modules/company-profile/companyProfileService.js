@@ -74,6 +74,13 @@ export async function upsertCompanyProfile(prisma, companyId, userId, input) {
                 update: input,
             });
 
+            // CompanyProfile é a fonte fiscal canónica, mas Company.nif ainda é
+            // usado no contexto/listagens. As duas projeções mudam atomicamente.
+            await tx.company.update({
+                where: { id: companyId },
+                data: { nif: profile.nif },
+            });
+
             await recordAuditLog(tx, {
                 companyId,
                 userId,

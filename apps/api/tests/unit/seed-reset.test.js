@@ -5,7 +5,29 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { DEMO_NAMESPACE } from "../../prisma/seeds/config.js";
-import { resetSeedNamespace } from "../../prisma/seeds/reset.js";
+import {
+    acquireSeedLock,
+    releaseSeedLock,
+    resetSeedNamespace,
+} from "../../prisma/seeds/reset.js";
+
+test("lock da seed usa executeRaw sem desserializar o void do PostgreSQL 17", async () => {
+    const calls = [];
+    const prisma = {
+        async $executeRaw(strings, ...values) {
+            calls.push({ sql: strings.join("?"), values });
+            return 1;
+        },
+    };
+
+    await acquireSeedLock(prisma, DEMO_NAMESPACE);
+    await releaseSeedLock(prisma, DEMO_NAMESPACE);
+
+    assert.equal(calls.length, 2);
+    assert.match(calls[0].sql, /pg_advisory_lock/);
+    assert.match(calls[1].sql, /pg_advisory_unlock/);
+    assert.deepEqual(calls[0].values, [`opsa-seed:${DEMO_NAMESPACE}`]);
+});
 
 test("reset rejeita qualquer namespace fora da allowlist", async () => {
     await assert.rejects(

@@ -92,13 +92,16 @@ export function buildTransactionalEmailAdapter({ provider, logger = console } = 
                 throw new Error("Provider SMTP obrigatório para email transaccional.");
             }
             const result = await provider.send(safeMessage);
+            const simulated = result?.status === "SIMULATED";
             logger.info({
-                event: "transactional_email_sent",
+                event: simulated
+                    ? "transactional_email_simulated"
+                    : "transactional_email_sent",
                 reason: safeMessage.reason,
                 emailDomain: getEmailDomain(safeMessage.to),
             });
             return {
-                status: "SENT",
+                status: simulated ? "SIMULATED" : "SENT",
                 reason: safeMessage.reason,
                 providerResult: result,
             };

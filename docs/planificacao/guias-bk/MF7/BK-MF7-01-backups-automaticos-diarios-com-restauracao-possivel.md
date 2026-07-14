@@ -17,208 +17,283 @@
 - `core_or_reforco`: `Core`
 - `proximo_bk`: `BK-MF7-02`
 - `guia_path`: `docs/planificacao/guias-bk/MF7/BK-MF7-01-backups-automaticos-diarios-com-restauracao-possivel.md`
-- `last_updated`: `2026-07-10`
+- `last_updated`: `2026-07-13`
 
 ## Objetivo
 
-Criar um bundle de backup que cubra PostgreSQL e os objetos privados S3, com manifesto, hashes, encriptação, retenção e prova de restauro numa base remota descartável. Ver o conteúdo de um dump não prova que ele restaura.
+Demonstrar um backup PostgreSQL real, guardado localmente com permissões
+privadas, manifesto e SHA-256, e restaurá-lo numa base inequivocamente
+descartável. O percurso S3 continua disponível como capacidade opcional
+production-like, mas não bloqueia a apresentação académica local.
 
-## Limite operacional honesto
+O título e o `RNF18` mantêm a rastreabilidade ao requisito de backup diário.
+Nesta PAP, porém, existe um comando manual demonstrável; sem deployment e
+scheduler permanentes não existe garantia de execução automática 24/7.
 
-O projeto académico fornece o comando, o contrato de agendamento diário e uma demonstração executada. Sem deployment permanente não existe garantia de scheduler 24/7. Não marques “backup automático operacional” apenas porque o script existe.
+## Contratos separados
 
-## Entradas e configuração
+| Capacidade | Contrato da PAP | Estado esperado |
+|---|---|---|
+| Backup local | `pg_dump` custom + manifesto + SHA-256 em diretório `0700` | Gate principal |
+| Restore local | `pg_restore` numa base descartável + migrations + tabelas/contagens | Gate principal |
+| Client tools | serviço Compose `postgres-tools`, sem instalação no host | Gate principal local |
+| Backup/restore remoto | Bundle PostgreSQL + objetos num bucket S3 dedicado | Opcional explícito |
+| Agendamento diário | Comando documentado, sem scheduler instalado | Documental |
+| Retenção | Aplicada apenas ao bundle remoto configurado | Opcional explícito |
 
-- `DATABASE_URL`: base de origem não produtiva durante testes.
-- `RESTORE_DATABASE_URL`: base remota descartável e isolada.
-- `BACKUP_S3_BUCKET`: bucket privado do bundle.
-- `BACKUP_S3_PREFIX`: prefixo dedicado por ambiente.
-- `BACKUP_RETENTION_DAYS`: retenção configurada e validada.
-- credenciais S3 através do ambiente seguro comum.
+Não uses um único `PASS` para representar estas cinco capacidades.
 
-Nunca escrevas estas variáveis em logs, manifests ou documentação. Uma URL PostgreSQL com utilizador/password é sempre secreta, mesmo num exemplo sintético.
+## Entradas e segurança
 
-## Conteúdo do bundle
+- `DATABASE_URL`: base de origem; é lida apenas do ambiente.
+- `OPSA_BACKUP_DIR`: diretório local privado; por omissão
+  `./private-storage/backups`.
+- `RESTORE_DATABASE_URL`: outra base, com token delimitado `restore`, `test`,
+  `audit`, `ci` ou `demo` no nome.
+- `OPSA_BACKUP_MODE=local`: default académico.
+- `BACKUP_S3_BUCKET`, `BACKUP_S3_PREFIX` e `BACKUP_RETENTION_DAYS`: apenas no
+  modo remoto.
+
+A password PostgreSQL segue em `PGPASSWORD`; a URL completa nunca entra no
+`argv`, logs, manifesto ou evidence. O restore recusa a base de origem e nomes
+que não cumpram a regra descartável.
+
+## Artefactos locais
+
+Cada execução bem-sucedida produz:
 
 ```text
-backup/<run-id>/
-├── database.dump.enc
-├── objects-manifest.json.enc
-└── bundle-manifest.json
+private-storage/backups/
+├── opsa-<timestamp>.dump
+├── opsa-<timestamp>.dump.json
+└── opsa-<timestamp>.dump.json.sha256
 ```
 
-O manifesto público/redigido pode incluir versões, tamanhos, hashes e timestamps. Não inclui URLs, access keys, cookies, tokens, paths locais com dados pessoais ou a chave de encriptação.
+O manifesto guarda versão, modo, basename, tamanho, data, engine, SHA-256 do
+dump e nome da base de origem. Não guarda URL, password ou dados de negócio.
 
-## Ficheiros públicos do aluno
-
-- `apps/api/scripts/create-backup-bundle.mjs`
-- `apps/api/scripts/restore-backup-bundle.mjs`
-- `apps/api/src/lib/backup/backupManifest.js`
-- `apps/api/tests/integration/backup-restore.integration.test.js`
-- `apps/api/package.json`
-- `docs/planificacao/OPERACAO-DEPLOY-ROLLBACK.md`
+O dump custom não é cifrado pela aplicação. A proteção académica real é o
+diretório privado e os modos `0700`/`0600`; não copies estes artefactos para
+pastas sincronizadas ou públicas. Elimina-os manualmente depois da evidence.
 
 ## Tutorial técnico linear
 
-### Passo 1 - Fazer preflight
+### Passo 1 - Preparar duas bases distintas
 
-Antes do dump:
+Configura a aplicação com a origem e cria uma segunda base exclusivamente para
+restore, por exemplo `opsa_demo_restore`. Nunca apontes ambas as variáveis para
+a mesma base.
 
-1. confirma que `pg_dump`, `pg_restore` e `psql` existem;
-2. confirma compatibilidade do cliente PostgreSQL com o servidor remoto;
-3. testa ligação à origem, ao destino descartável e ao S3;
-4. confirma que origem e destino não são a mesma base;
-5. recusa hosts/prefixos classificados como produção no modo académico.
+```dotenv
+DATABASE_URL=postgresql://<user>:<password>@127.0.0.1:5433/opsa_dev
+RESTORE_DATABASE_URL=postgresql://<user>:<password>@127.0.0.1:5435/opsa_demo_restore
+OPSA_BACKUP_MODE=local
+OPSA_BACKUP_DIR=./private-storage/backups
+```
 
-O preflight imprime apenas estado redigido e versões.
+Não coloques valores reais na documentação ou na evidence.
 
-### Passo 2 - Criar dump e manifesto S3
+### Passo 2 - Preparar os serviços locais
 
-Executa `pg_dump --format=custom` usando o ambiente do processo, sem interpolar a URL num comando registado. Em paralelo lógico, lista todos os objetos abrangidos pelo storage da aplicação e cria um manifesto com:
+```bash
+npm --prefix apps/api run db:local:check
+npm --prefix apps/api run db:local:start
+npm --prefix apps/api run db:restore:start
+```
 
-- chave lógica redigida;
-- tamanho;
-- ETag quando fiável;
-- SHA-256 calculado/armazenado pela aplicação;
-- provider e versão do manifesto.
+O modo Compose usa `postgres-tools` para executar `pg_dump`, `pg_restore` e
+`psql`; os binários não precisam de estar instalados no host. Os scripts fazem
+preflight e falham com mensagem acionável. O modo nativo continua disponível
+para bases externas autorizadas. Não substituas estas ferramentas por
+exportações JSON.
 
-O dump sozinho é incompleto porque anexos, SAF-T e outros ficheiros vivem no S3.
+### Passo 3 - Criar o backup local
 
-### Passo 3 - Encriptar e enviar
+A partir da raiz do repositório:
 
-Encripta dump e manifesto antes de os guardar no bucket de backup. Calcula hashes dos artefactos cifrados e guarda-os no bundle manifest. Faz upload para prefixo aleatório/imutável e promove o bundle apenas quando todos os objetos existem e os hashes coincidem.
+```bash
+npm --prefix apps/api run mf7:backup
+```
 
-Falha parcial deve remover o prefixo incompleto ou marcá-lo inequivocamente como inválido e não restaurável.
+O comando cria o dump custom e só publica o manifesto depois de confirmar que
+o ficheiro não está vazio e calcular os hashes. Em falha, remove artefactos
+parciais em `finally`.
 
-### Passo 4 - Aplicar retenção
+### Passo 4 - Inspecionar evidence segura
 
-Ordena bundles concluídos por timestamp seguro, nunca pelo nome fornecido pelo utilizador. Remove apenas bundles mais antigos que `BACKUP_RETENTION_DAYS` e preserva uma quantidade mínima definida pelo runbook. A eliminação é auditada sem expor chaves secretas.
+Guarda apenas o JSON redigido devolvido pelo comando: `mode`, nomes de
+ficheiros, tamanhos, hashes, base identificada e timestamp. Confirma que não
+contém `postgresql://`, password, access keys ou caminhos pessoais desnecessários.
 
-### Passo 5 - Restaurar numa base descartável
+### Passo 5 - Restaurar na base descartável
 
-O verificador de restauro deve:
+Usa o caminho devolvido pelo backup:
 
-1. criar/limpar apenas a base indicada por `RESTORE_DATABASE_URL` após guards fortes;
-2. descarregar e verificar hashes do bundle;
-3. desencriptar para diretório temporário com permissões restritas;
-4. executar `pg_restore` contra a base descartável;
-5. correr migrations/compat checks apenas se o runbook o exigir;
-6. comparar entidades e contagens críticas com o manifesto de origem;
-7. descarregar uma amostra determinística de objetos S3 e comparar SHA-256;
-8. eliminar temporários e a base descartável no final.
+```bash
+npm --prefix apps/api run mf7:backup:verify -- \
+  --manifest ./private-storage/backups/opsa-<timestamp>.dump.json
+```
 
-Uma inspeção de catálogo pode ser um preflight adicional, mas nunca é o gate final.
+Também se mantém o alias compatível:
 
-### Passo 6 - Comparar invariantes
+```bash
+npm --prefix apps/api run mf7:backup:verify -- \
+  --file ./private-storage/backups/opsa-<timestamp>.dump
+```
 
-Compara pelo menos:
+Antes de `pg_restore --clean --if-exists`, o script valida o nome descartável e
+confirma que origem e destino não são iguais. Depois verifica migrations,
+inventário integral de tabelas e contagens por tabela.
 
-- empresas, memberships e utilizadores de teste;
-- documentos de venda/compra e estados;
-- lançamentos, linhas, débitos e créditos;
-- períodos fiscais e retention holds;
-- stock balances e camadas FIFO;
-- attachments e export runs;
-- quantidade total de objetos e hashes amostrados.
+### Passo 6 - Executar o roundtrip local
 
-Define tolerâncias apenas para timestamps técnicos inevitáveis. Divergência funcional falha o restore.
+```bash
+npm --prefix apps/api run mf7:backup:roundtrip
+```
 
-### Passo 7 - Contrato de agendamento
+Este comando cria os artefactos num diretório temporário privado, executa o
+restore real e remove os ficheiros temporários no final. Só conta como prova
+operacional quando usa ferramentas PostgreSQL e bases reais autorizadas; testes
+com doubles validam orchestration, não restaurabilidade.
 
-Documenta um job diário que invoca um único comando idempotente, com lock para impedir execuções concorrentes, timeout, alertas e política de retry. No ambiente académico, regista a execução manual demonstrada e deixa explícita a ausência de supervisão permanente.
+### Passo 7 - Usar o modo remoto apenas quando necessário
+
+```bash
+npm --prefix apps/api run mf7:backup:remote
+npm --prefix apps/api run mf7:backup:verify:remote -- \
+  --manifest-key backups/<run-id>/manifest.json \
+  --manifest-sha256 <sha256>
+npm --prefix apps/api run mf7:backup:roundtrip:remote
+```
+
+O modo remoto exige configuração S3 completa, bucket operacional e bucket de
+backup diferentes, server-side encryption e retenção válida. Configuração
+incompleta falha; nunca cai silenciosamente para storage local.
 
 ### Passo 8 - Testar falhas
 
-- dump truncado/hash incorreto;
-- objeto S3 ausente;
-- chave de desencriptação errada;
-- cliente PostgreSQL incompatível;
-- destino igual à origem;
-- destino não descartável;
-- upload parcial;
-- restauro SQL com erro;
-- cleanup interrompido;
-- duas execuções concorrentes.
+Valida pelo menos:
 
-Todos devem falhar fechado sem tocar na origem.
+- indisponibilidade de Docker/`postgres-tools` no modo Compose, ou ausência de
+  `pg_dump`, `pg_restore` ou `psql` no modo nativo;
+- URL PostgreSQL inválida;
+- destino igual à origem ou sem marcador descartável;
+- manifesto alterado;
+- dump truncado ou com hash divergente;
+- falha de dump/upload e cleanup confirmado;
+- configuração remota incompleta sem fallback local.
 
-## Validação final
+## Comandos de validação
 
 ```bash
-cd apps/api
-npm run backup:create
-npm run backup:restore:test
-npm run test:mf7
+npm --prefix apps/api run syntax:check
+npm --prefix apps/api run test:unit
+npm --prefix apps/api run test:contracts
+npm --prefix apps/api run test:mf7:retention
+npm --prefix apps/api run test:mf7
 ```
 
-Regista o comando exato redigido, diretório, exit code, contagens comparadas, hashes e cleanup. Não guardes o valor das variáveis.
+No fim, `npm --prefix apps/api run db:restore:stop` para o serviço descartável e
+`npm --prefix apps/api run db:local:stop` para a origem. Ambos preservam volumes;
+os resets são destrutivos e não são passos normais do roundtrip. O reset local
+exige ainda `--confirm=opsa_dev`.
 
 ## Critérios de aceite
 
-- Bundle inclui dump PostgreSQL e manifesto de objetos S3.
-- Artefactos são cifrados e verificados por hash.
-- Retenção é configurável e segura.
-- O restauro corre numa base remota descartável e compara invariantes reais.
-- Objetos S3 restaurados/descarregados coincidem por SHA-256.
-- Falhas parciais são compensadas.
-- A documentação não confunde script/agendamento com scheduler permanente.
+- O modo local não depende de S3, scheduler ou supervisor.
+- O modo Compose não exige PostgreSQL client tools instaladas no host.
+- O dump e o manifesto existem, têm permissões privadas e hashes coerentes.
+- O restore só começa depois de validar um destino descartável distinto.
+- Migrations, tabelas e contagens coincidem entre origem e restore.
+- Passwords e URLs nunca aparecem em argumentos públicos, logs ou evidence.
+- Cleanup parcial e temporário é confirmado e idempotente.
+- Os três aliases históricos continuam disponíveis.
+- O modo remoto é opt-in, isolado e fail-closed.
+- A evidence distingue testes unitários de roundtrip PostgreSQL real.
 
 ## Evidence para PR/defesa
 
-- versões dos clientes PostgreSQL;
-- ID redigido do bundle e hashes;
-- contagens de origem/restauro;
-- hashes dos objetos amostrados;
-- exit codes de criação e restauro;
-- prova de cleanup;
-- classificação `BLOQUEADO_AMBIENTE` se serviços remotos não estiverem disponíveis.
-
-## Importância
-
-Um backup não restaurado é apenas uma hipótese. A aplicação guarda estado em PostgreSQL e objetos em S3, por isso ambos pertencem à mesma prova de recuperação.
+- versões dos PostgreSQL client tools;
+- comandos executados e exit codes;
+- nomes dos artefactos, bytes e hashes;
+- nome descartável redigido, migrations e tabelas comparadas;
+- resultado do cleanup;
+- `BLOQUEADO_AMBIENTE` se faltarem ferramentas ou uma base autorizada.
 
 ## Scope-in
 
-- Bundle cifrado, manifesto, retenção, agendamento e restore remoto descartável.
+- Backup/restore PostgreSQL local demonstrável.
+- Manifesto, hashes, guards de restore e cleanup.
+- Bundle S3/objetos e retenção apenas no modo remoto opcional existente.
 
 ## Scope-out
 
-- Scheduler permanente garantido, produção ou prova baseada apenas na inspeção do dump.
-
-## Estado antes e depois
-
-- Antes: dump parcial sem recuperação integral demonstrada.
-- Depois: fluxo completo implementado, com estado runtime registado honestamente.
-
-## Pre-requisitos
-
-- Clientes PostgreSQL compatíveis, base de restore e buckets de teste isolados.
-
-## Glossário
-
-- **Bundle:** conjunto coerente de dump, manifesto e hashes.
-- **Restore descartável:** base criada só para a prova e eliminada depois.
-
-## Conceitos teóricos essenciais
-
-RPO/RTO só podem ser medidos em execuções reais; cifra protege confidencialidade e SHA-256 deteta corrupção.
-
-## Arquitetura do BK
-
-Preflight → dump+manifesto → cifra/hash → S3 → retenção → download → restore remoto → comparação → cleanup.
-
-## Ficheiros a criar/editar/rever
-
-Revê scripts sob `apps/api`, package scripts e runbook académico, sem colocar configuração sensível nos ficheiros.
-
-## Cenários negativos mínimos
-
-Executa pelo menos 2 cenários negativos: bundle adulterado e destino não descartável, além das falhas parciais descritas.
+- Scheduler 24/7, supervisão permanente, certificação ou RPO/RTO medidos.
+- Cifra aplicacional do dump local.
+- Restore sobre produção ou sobre a base de origem.
 
 ## Handoff
 
-Entrega a `BK-MF7-02` uma estratégia de preservação técnica; a retenção legal continua a ser aplicada pelo domínio contabilístico.
+Entrega a `BK-MF7-02` uma estratégia de preservação técnica. A retenção legal
+de entidades contabilísticas continua separada da retenção opcional dos bundles.
+
+## Importância
+
+Um backup só é útil quando o dump é íntegro e pode ser restaurado sem destruir
+a origem. A demonstração cobre as duas partes com PostgreSQL real.
+
+## Estado antes e depois
+
+- Antes: o percurso local dependia de client tools e de bases preparadas no
+  host.
+- Depois: origem, restore e ferramentas ficam isolados por Docker Compose, sem
+  transformar a demo num deployment de produção.
+
+## Pré-requisitos
+
+- Docker Compose v2 e portas `5433` e `5435` livres.
+- `.env` local, diretório privado e duas ligações PostgreSQL distintas.
+- Nunca usar dados ou credenciais de produção.
+
+## Glossário
+
+- **Dump custom:** formato PostgreSQL próprio para `pg_restore`.
+- **Manifesto:** metadata e hash usados para verificar o artefacto.
+- **Roundtrip:** backup, restore, comparação e cleanup no mesmo percurso.
+
+## Conceitos teóricos essenciais
+
+O hash prova integridade do ficheiro, não restaurabilidade. A prova completa
+exige restaurar numa base descartável e comparar migrations, tabelas e
+contagens.
+
+## Arquitetura do BK
+
+Script npm → preflight → `postgres-tools` → dump/manifesto →
+`postgres-restore` → comparação → cleanup.
+
+## Ficheiros a criar/editar/rever
+
+Revê os scripts de backup/restore, o adapter PostgreSQL Compose, o
+`package.json`, o `.env.example` e os testes unitários/contratuais associados.
+
+## Cenários negativos mínimos
+
+Executa pelo menos 4 cenários negativos: manifesto/hash alterado; destino igual
+à origem; Docker ou client tools indisponíveis; e falha a meio com cleanup
+confirmado.
+
+## Validação final
+
+Regista separadamente os testes com doubles e o roundtrip PostgreSQL real. Sem
+Docker, base autorizada ou execução iniciada, o resultado é
+`BLOQUEADO_AMBIENTE`, nunca `PASS`.
 
 ## Changelog
 
-- `2026-07-10`: backup expandido para PostgreSQL+S3, cifra, retenção e restauro remoto com comparação.
+- `2026-07-13`: o percurso local passou a usar PostgreSQL e client tools
+  isolados em Docker Compose, através dos scripts públicos de `apps/api`.
+- `2026-07-12`: modo local manual passou a gate principal; S3, retenção e
+  restore remoto ficaram opcionais e explícitos, sem alegação de scheduler.
+- `2026-07-10`: backup expandido para PostgreSQL+S3, cifra, retenção e restauro
+  remoto com comparação.

@@ -60,3 +60,26 @@ o bloqueio persistir.
 Próxima ação: fornecer o ambiente remoto por canal seguro, instalar os client
 tools/browsers autorizados, atualizar Node e reexecutar os mesmos gates sem
 skips. Só uma reauditoria posterior pode fechar os findings dependentes.
+
+## Apêndice posterior — correção revalidada em 2026-07-13
+
+O bloqueio local descrito acima foi reduzido sem alterar a fotografia histórica:
+
+- PostgreSQL, client tools e restore locais passaram a ser fornecidos por
+  Docker Compose, com portas loopback e bases isoladas.
+- Setup, `21` migrations, seed/verify, integração `11/11`, sentinela `1/1` e
+  backup/verify/roundtrip passaram sem skips.
+- O roundtrip comparou as `69` entidades/tabelas e removeu temporários.
+- O Playwright normal passou `25/25` em três viewports e o seeded passou `3/3`.
+- API, web e audits de dependências passaram com as contagens registadas em
+  `EXECUCAO-DOCKER-COMPOSE-POSTGRESQL.md`.
+
+O teste externo foi realmente executado e continuou fail-closed sem
+`TEST_DATABASE_URL` remota, Redis e SMTP. O gate académico também foi executado,
+mas parou no preflight com Node `24.11.1`, abaixo de `>=24.17`; por isso não se
+alegam as fases posteriores. S3, SAF-T externo e browser compatibility continuam
+por provar.
+
+Decisão posterior: `CORRECAO_LOCAL_VALIDADA_COM_BLOQUEIOS_EXTERNOS_E_TOOLCHAIN`.
+Isto substitui o antigo bloqueio PostgreSQL/browser local, mas não transforma a
+decisão global em PASS.

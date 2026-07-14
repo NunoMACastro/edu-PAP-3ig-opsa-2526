@@ -2,6 +2,7 @@
  * @file Gate único que cria, descarrega e restaura um bundle completo de teste.
  */
 
+import { spawnSync } from "node:child_process";
 import { mkdtemp } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path, { resolve } from "node:path";
@@ -11,28 +12,49 @@ import {
     combineOperationAndCleanupError,
     removeLocalPathsAndConfirmAbsent,
 } from "../src/modules/storage/backupBundle.js";
-import { runDailyBackup } from "./run-daily-backup.mjs";
+import { resolveBackupMode, runDailyBackup } from "./run-daily-backup.mjs";
 import { verifyBackupRestore } from "./verify-backup-restore.mjs";
 
 /**
  * Executa o backup e o restauro no mesmo ambiente académico controlado.
  *
+ * @param {object} options - Seleção explícita do contrato a demonstrar.
+ * @param {"local" | "remote"} [options.mode] - Local por omissão.
+ * @param {NodeJS.ProcessEnv | Record<string, string | undefined>} [options.env] - Ambiente injetável.
+ * @param {typeof spawnSync} [options.runCommand] - Executor nativo ou Docker.
  * @returns {Promise<object>} Evidência agregada sem credenciais.
  */
-export async function runBackupRoundtrip() {
+export async function runBackupRoundtrip({
+    env = process.env,
+    mode = resolveBackupMode(process.argv.slice(2), env),
+    runCommand = spawnSync,
+} = {}) {
     const backupDir = await mkdtemp(path.join(tmpdir(), "opsa-backup-roundtrip-"));
     let operationError;
     try {
-        const backup = await runDailyBackup({ backupDir });
+        const backup = await runDailyBackup({
+            backupDir,
+            mode,
+            env,
+            runCommand,
+        });
         const restored = await verifyBackupRestore({
+            mode,
             bundle: backup,
+            env,
+            runCommand,
         });
         return {
+            mode,
             backup: {
-                objectCount: backup.objectCount,
-                objectBytes: backup.objectBytes,
                 databaseBytes: backup.sizeBytes,
-                retentionDays: backup.retentionDays,
+                ...(mode === "remote"
+                    ? {
+                          objectCount: backup.objectCount,
+                          objectBytes: backup.objectBytes,
+                          retentionDays: backup.retentionDays,
+                      }
+                    : { manifest: path.basename(backup.manifestPath) }),
             },
             restored,
         };

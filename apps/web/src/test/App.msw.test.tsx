@@ -67,6 +67,55 @@ afterEach(() => {
 afterAll(() => server.close());
 
 describe("App com transporte MSW", () => {
+  it("abre a inbox demo com código em memória e apresenta apenas a ligação", async () => {
+    let unlockBody: unknown;
+    server.use(
+      http.get("http://localhost/api/auth/me", () =>
+        HttpResponse.json(
+          { error: "UNAUTHORIZED", message: "Sem sessão" },
+          { status: 401 },
+        ),
+      ),
+      http.post("http://localhost/api/demo/email-inbox/unlock", async ({ request }) => {
+        unlockBody = await request.json();
+        return HttpResponse.json({
+          messages: [{
+            recipient: "aluna@example.test",
+            subject: "Recuperação de acesso OPSA",
+            type: "PASSWORD_RESET",
+            actionUrl: "http://localhost/recuperar-password#token=temporary-token",
+            createdAt: "2026-07-13T12:00:00.000Z",
+          }],
+        });
+      }),
+    );
+    const user = userEvent.setup();
+
+    render(
+      <MemoryRouter initialEntries={["/demo/email-inbox"]}>
+        <AuthProvider>
+          <App />
+        </AuthProvider>
+      </MemoryRouter>,
+    );
+
+    const accessKey = await screen.findByLabelText("Código de acesso da demo");
+    expect(accessKey).toHaveAttribute("type", "password");
+    await user.type(accessKey, "opsa-demo-2026");
+    await user.click(screen.getByRole("button", { name: "Abrir inbox" }));
+
+    expect(await screen.findByRole("heading", { name: "Recuperação de acesso OPSA" }))
+      .toBeInTheDocument();
+    expect(screen.getByText("aluna@example.test")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Abrir ligação temporária" }))
+      .toHaveAttribute(
+        "href",
+        "http://localhost/recuperar-password#token=temporary-token",
+      );
+    expect(unlockBody).toEqual({ accessKey: "opsa-demo-2026" });
+    expect(window.location.search).toBe("");
+  });
+
   it("hidrata sessão, permissões e listagem através do cliente HTTP real", async () => {
     render(
       <MemoryRouter initialEntries={["/companies"]}>

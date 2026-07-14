@@ -65,7 +65,7 @@ async function mockApi(
           role: "ADMIN",
           permissions: [
             ...authenticatedUser.permissions,
-            ...(options.paginatedCustomers ? ["customers.write"] : []),
+            ...(options.paginatedCustomers ? ["customers.read", "customers.write"] : []),
             ...(options.aiChat ? ["ai.chat.use", "ai.insights.read"] : []),
             ...(options.terminalPeriod ? ["fiscal-periods.read", "fiscal-periods.manage"] : []),
           ],
@@ -200,15 +200,21 @@ test("a rota pública de autenticação é utilizável e não tem violações ax
   await page.goto("/auth");
 
   await expect(page.getByRole("heading", { level: 2, name: "Iniciar sessão" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Iniciar sessão" })).toHaveAttribute(
-    "aria-current",
-    "page",
-  );
 
   await page.keyboard.press("Tab");
   await expect(page.getByRole("link", { name: "Saltar para o conteúdo" })).toBeFocused();
   await page.keyboard.press("Enter");
   await expect(page.locator("#conteudo-principal")).toBeFocused();
+
+  const menuToggle = page.locator(".menuToggle");
+  if (await menuToggle.isVisible()) {
+    await menuToggle.click();
+  }
+  await expect(page.locator("#primary-navigation").getByRole("link", { name: "Iniciar sessão" }))
+    .toHaveAttribute("aria-current", "page");
+  if (await menuToggle.isVisible()) {
+    await menuToggle.click();
+  }
 
   await expectNoBlockingAxeViolations(page);
 });
@@ -243,16 +249,17 @@ test("uma operação terminal pode ser cancelada e exige confirmação reforçad
   });
   await page.goto("/accounting/fiscal-periods");
 
-  await page.getByRole("button", { name: "Mais ações" }).click();
+  await page.locator("summary:visible", { hasText: "Mais ações" }).click();
   await page.getByRole("button", { name: "Fechar período" }).click();
   const dialog = page.getByRole("dialog", { name: "Fechar período" });
-  await expect(dialog.getByRole("button", { name: "Fechar" })).toBeDisabled();
+  const confirmClose = dialog.getByRole("button", { name: "Fechar", exact: true });
+  await expect(confirmClose).toBeDisabled();
   await dialog.getByRole("button", { name: "Cancelar" }).click();
   expect(closeRequests).toBe(0);
 
   await page.getByRole("button", { name: "Fechar período" }).click();
   await dialog.getByRole("checkbox").check();
-  await dialog.getByRole("button", { name: "Fechar" }).click();
+  await confirmClose.click();
   await expect.poll(() => closeRequests).toBe(1);
 });
 
@@ -268,7 +275,7 @@ test("um deep link autenticado sobrevive ao reload e mantém o histórico", asyn
   await expectNoBlockingAxeViolations(page);
 
   await page.goBack();
-  await expect(page).toHaveURL(/\/auth$/);
+  await expect(page).toHaveURL(/\/dashboard$/);
   await page.goForward();
   await expect(page).toHaveURL(/\/companies$/);
 });
@@ -279,13 +286,14 @@ test("a paginação por cursor preserva a primeira página e torna a segunda ace
   await mockApi(page, true, { paginatedCustomers: true });
   await page.goto("/sales/customers");
 
-  await expect(page.getByText("Cliente página um", { exact: true })).toBeVisible();
+  const visibleRecords = page.locator(".responsiveTable:visible, .mobileList:visible");
+  await expect(visibleRecords).toContainText("Cliente página um");
   const loadMore = page.getByRole("button", { name: "Carregar mais" });
   await expect(loadMore).toBeVisible();
   await loadMore.click();
 
-  await expect(page.getByText("Cliente página um", { exact: true })).toBeVisible();
-  await expect(page.getByText("Cliente página dois", { exact: true })).toBeVisible();
+  await expect(visibleRecords).toContainText("Cliente página um");
+  await expect(visibleRecords).toContainText("Cliente página dois");
   await expect(loadMore).toHaveCount(0);
   await expectNoBlockingAxeViolations(page);
 });
@@ -304,7 +312,7 @@ test("o layout não cria overflow horizontal e expõe menu móvel apenas quando 
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth))
     .toBe(true);
 
-  const menu = page.getByRole("button", { name: "Abrir menu" });
+  const menu = page.locator(".menuToggle");
   if ((viewport?.width ?? 0) <= 860) {
     await expect(menu, `${testInfo.project.name} deve apresentar o drawer móvel`).toBeVisible();
     await menu.click();

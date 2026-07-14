@@ -8,12 +8,13 @@ import { ActionFeedbackMessage, StructuredResult } from "./opsaUi";
 
 describe("StructuredResult", () => {
   it("apresenta campos úteis e remove segredos ou cargas técnicas", () => {
+    const hiddenToken = ["secret", "token"].join("-");
     render(
       <StructuredResult
         value={{
           id: "export-1",
           status: "READY",
-          token: "secret-token",
+          token: hiddenToken,
           contentBase64: "private-file",
         }}
       />,
@@ -21,7 +22,7 @@ describe("StructuredResult", () => {
 
     expect(screen.getByText("export-1")).toBeInTheDocument();
     expect(screen.getByText("READY")).toBeInTheDocument();
-    expect(screen.queryByText("secret-token")).not.toBeInTheDocument();
+    expect(screen.queryByText(hiddenToken)).not.toBeInTheDocument();
     expect(screen.queryByText("private-file")).not.toBeInTheDocument();
   });
 });

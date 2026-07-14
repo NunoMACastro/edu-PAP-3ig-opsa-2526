@@ -3,6 +3,7 @@
  */
 
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { resolveSession } from "../../src/modules/auth/authService.js";
 import {
@@ -16,6 +17,11 @@ import { upsertCompanyProfile } from "../../src/modules/company-profile/companyP
 import { searchCustomers } from "../../src/modules/customers/customerService.js";
 import { searchSuppliers } from "../../src/modules/suppliers/supplierService.js";
 import { createWarehouse } from "../../src/modules/warehouses/warehouseService.js";
+
+const companyNifMigrationUrl = new URL(
+    "../../prisma/migrations/20260713110000_sync_company_nif/migration.sql",
+    import.meta.url,
+);
 
 test("OPSA-E2E-P1-016: contratos de registo/reset limitam bcrypt a 72 bytes sem alterar login", () => {
     const resetToken = "r".repeat(32);
@@ -137,6 +143,11 @@ test("BK04/BK05: adapters reais não registam tokens, URLs secretas ou email com
 
 test("BK06: conflito de NIF é mapeado para NIF_ALREADY_EXISTS", async () => {
     const transactionClient = {
+        company: {
+            update: async () => {
+                throw new Error("company não deve atualizar após conflito");
+            },
+        },
         companyProfile: {
             findUnique: async () => null,
             upsert: async () => {
@@ -170,11 +181,21 @@ test("BK06: conflito de NIF é mapeado para NIF_ALREADY_EXISTS", async () => {
 });
 
 test("BK06: perfil e auditoria são persistidos na mesma transação", async () => {
-    const calls = { audit: [], transactions: 0 };
+    const calls = { audit: [], company: [], transactions: 0 };
     const transactionClient = {
+        company: {
+            update: async (args) => {
+                calls.company.push(args);
+                return { id: "company-1", nif: args.data.nif };
+            },
+        },
         companyProfile: {
             findUnique: async () => ({ id: "profile-1" }),
-            upsert: async ({ update }) => ({ id: "profile-1", ...update }),
+            upsert: async ({ update }) => ({
+                id: "profile-1",
+                nif: "123456789",
+                ...update,
+            }),
         },
         auditLog: {
             create: async (args) => {
@@ -199,6 +220,10 @@ test("BK06: perfil e auditoria são persistidos na mesma transação", async () 
     );
 
     assert.equal(calls.transactions, 1);
+    assert.deepEqual(calls.company[0], {
+        where: { id: "company-1" },
+        data: { nif: "123456789" },
+    });
     assert.deepEqual(calls.audit[0].data, {
         companyId: "company-1",
         userId: "user-1",
@@ -207,6 +232,17 @@ test("BK06: perfil e auditoria são persistidos na mesma transação", async () 
         entityId: "profile-1",
         details: { changedFields: ["city", "legalName"] },
     });
+});
+
+test("BK06: migration de NIF aborta colisões antes de sincronizar dados", async () => {
+    const migration = await readFile(companyNifMigrationUrl, "utf8");
+    const guardPosition = migration.indexOf("IF EXISTS");
+    const updatePosition = migration.indexOf('UPDATE "Company"');
+
+    assert.ok(guardPosition >= 0 && guardPosition < updatePosition);
+    assert.match(migration, /other_company\."id" <> profile\."companyId"/);
+    assert.match(migration, /RAISE EXCEPTION/);
+    assert.doesNotMatch(migration, /\b(?:DELETE|DROP|TRUNCATE|ALTER)\b/i);
 });
 
 test("BK09/BK10: pesquisa usa nome ou NIF sem alterar listagem base", async () => {

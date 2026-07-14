@@ -16,6 +16,24 @@ export type { CursorPage, CursorPagination } from "./cursorPagination";
 export type JsonBody = Record<string, unknown> | Array<unknown>;
 export type AccountingExportFormat = "csv" | "xlsx" | "pdf";
 
+export type ReceiptInput = {
+  treasuryAccountId: string;
+  amountCents: number;
+  receivedAt: string;
+  method: "CASH" | "BANK_TRANSFER" | "CARD" | "OTHER";
+  reference?: string;
+  notes?: string;
+};
+
+export type PaymentInput = {
+  treasuryAccountId: string;
+  amountCents: number;
+  paidAt: string;
+  method: "CASH" | "BANK_TRANSFER" | "CARD" | "OTHER";
+  reference?: string;
+  notes?: string;
+};
+
 export interface AuthUser {
   id: string;
   email: string;
@@ -69,6 +87,14 @@ export interface CompanyInvitation {
   expiresAt: string;
   acceptedAt: string | null;
   revokedAt: string | null;
+}
+
+export interface DemoEmailPreview {
+  recipient: string;
+  subject: string;
+  type: "COMPANY_INVITATION" | "PASSWORD_RESET";
+  actionUrl: string;
+  createdAt: string;
 }
 
 export interface ApiClientOptions {
@@ -367,6 +393,20 @@ export function createApiClient(options: ApiClientOptions = {}) {
     request,
     requestFile,
     requestSse,
+    demoEmailInbox: {
+      /**
+       * Abre a inbox local sem persistir o código no cliente ou no URL.
+       *
+       * @param accessKey - Código configurado apenas no ambiente de demo.
+       * @returns Convites e recuperações simulados ainda dentro das 24 horas.
+       */
+      unlock: (accessKey: string) =>
+        request<{ messages: DemoEmailPreview[] }>(
+          "POST",
+          "/demo/email-inbox/unlock",
+          { body: { accessKey } },
+        ),
+    },
     auth: {
       /**
        * Regista utilizador e recebe a sessão por cookie HttpOnly.
@@ -843,7 +883,7 @@ export function createApiClient(options: ApiClientOptions = {}) {
        * @param body - Payload do recebimento.
        * @returns Recebimento criado.
        */
-      registerReceipt: (id: string, body: JsonBody) =>
+      registerReceipt: (id: string, body: ReceiptInput) =>
         request("POST", `/sales/documents/${id}/receipts`, { body }),
       /**
        * Lista títulos de venda em aberto.
@@ -919,7 +959,7 @@ export function createApiClient(options: ApiClientOptions = {}) {
        * @param body - Payload do pagamento.
        * @returns Pagamento criado.
        */
-      registerPayment: (id: string, body: JsonBody) =>
+      registerPayment: (id: string, body: PaymentInput) =>
         request("POST", `/purchases/documents/${id}/payments`, { body }),
     },
     inventory: {

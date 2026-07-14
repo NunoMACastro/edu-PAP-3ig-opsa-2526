@@ -66,5 +66,11 @@ export function readSessionCookie(req) {
     );
 
     if (!sessionCookie) return null;
-    return decodeURIComponent(sessionCookie.slice(COOKIE_NAME.length + 1));
+    try {
+        return decodeURIComponent(sessionCookie.slice(COOKIE_NAME.length + 1));
+    } catch {
+        // Um cookie malformado é equivalente a não existir sessão. Esta fronteira
+        // nunca deve transformar input HTTP não fiável num erro interno 500.
+        return null;
+    }
 }

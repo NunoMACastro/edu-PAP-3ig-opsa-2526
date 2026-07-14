@@ -429,6 +429,7 @@ test(
                 redisClient,
                 objectStorage: {
                     checkHealth: async () => ({ ok: true }),
+                    checkReadiness: async () => true,
                 },
             });
 

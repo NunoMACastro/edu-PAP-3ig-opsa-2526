@@ -11,6 +11,7 @@ import { Permission } from "../permissions/permissions.js";
 import {
     createOperationalTask,
     listOperationalTasks,
+    listTaskAssignees,
     updateOperationalTaskStatus,
 } from "./taskService.js";
 
@@ -43,6 +44,15 @@ export function buildOperationalTaskRoutes({ prisma }) {
         requireCompanyContext(prisma),
         requirePermission(Permission.TASKS_WRITE),
     ];
+
+    router.get("/assignees", guards, async (req, res) => {
+        try {
+            const assignees = await listTaskAssignees(prisma, req.companyId);
+            return res.status(200).json({ assignees });
+        } catch (error) {
+            return sendError(res, error);
+        }
+    });
 
     router.get("/", guards, async (req, res) => {
         try {

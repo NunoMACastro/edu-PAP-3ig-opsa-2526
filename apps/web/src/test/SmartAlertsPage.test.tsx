@@ -58,6 +58,7 @@ describe("SmartAlertsPage", () => {
     });
 
     expect(screen.getByText(/QUEUED/)).toBeInTheDocument();
+    expect(screen.getByText(/A aguardar o worker de IA/)).toBeInTheDocument();
     expect(screen.getByText("Análise agendada para o worker.")).toBeInTheDocument();
 
     await act(async () => {

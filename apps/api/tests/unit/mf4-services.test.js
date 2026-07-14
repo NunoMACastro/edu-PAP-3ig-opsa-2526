@@ -12,7 +12,10 @@ import {
 } from "../../src/modules/ai/aiService.js";
 import { validateQuestionPayload } from "../../src/modules/ai/aiValidators.js";
 import { validateReminderPayload } from "../../src/modules/reminders/reminderValidators.js";
-import { createOperationalTask } from "../../src/modules/tasks/taskService.js";
+import {
+    createOperationalTask,
+    listTaskAssignees,
+} from "../../src/modules/tasks/taskService.js";
 import { validateTaskPayload } from "../../src/modules/tasks/taskValidators.js";
 import { recordIntegrationLog } from "../../src/modules/integrations/integrationLogService.js";
 
@@ -236,6 +239,35 @@ test("BK-MF4-07: tarefa não pode ser atribuída fora da empresa ativa", async (
             }),
         { code: "TASK_ASSIGNEE_NOT_IN_COMPANY" },
     );
+});
+
+test("BK-MF4-07: responsáveis incluem apenas membros ativos e dados mínimos", async () => {
+    let query;
+    const assignees = await listTaskAssignees(
+        {
+            companyMembership: {
+                findMany: async (receivedQuery) => {
+                    query = receivedQuery;
+                    return [
+                        { userId: "user-1", user: { name: "Ana" } },
+                        { userId: "user-2", user: { name: null } },
+                    ];
+                },
+            },
+        },
+        "company-1",
+    );
+
+    assert.deepEqual(query.where, { companyId: "company-1", isActive: true });
+    assert.deepEqual(query.select, {
+        userId: true,
+        user: { select: { name: true } },
+    });
+    assert.deepEqual(assignees, [
+        { id: "user-1", name: "Ana" },
+        { id: "user-2", name: "Utilizador sem nome" },
+    ]);
+    assert.equal(JSON.stringify(assignees).includes("email"), false);
 });
 
 test("BK-MF4-10: logs de integração redigem mensagens sensíveis", async () => {

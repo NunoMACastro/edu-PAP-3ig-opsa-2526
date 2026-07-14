@@ -7,7 +7,7 @@
 - `area`: `project`
 - `owner`: `Nuno`
 - `status`: `ativo`
-- `last_updated`: `2026-07-10`
+- `last_updated`: `2026-07-13`
 
 ## Objetivo e âmbito
 
@@ -44,7 +44,40 @@ Uma máquina fora deste intervalo não pode produzir evidence de release final. 
 - XLSX com `exceljs`, sujeito a limites de ficheiro, workbook, linhas, colunas, células e tempo.
 - OpenAI através do SDK oficial `openai`, usado apenas no backend para Responses API, streaming, function calling e Structured Outputs. `AI_PROVIDER_MODE=disabled` mantém o provider opcional e a aplicação determinística funcional.
 
-Os adapters locais, mocks e SMTP de log são permitidos apenas em desenvolvimento ou testes explícitos. Fora de development não existe fallback silencioso quando Redis, SMTP ou S3 estão ausentes.
+Os adapters locais/simulados são permitidos apenas em development/test. O
+provider de email simulado regista `SIMULATED`, nunca `SENT`, e não conserva o
+payload depois do processamento. Em production-like não existe fallback
+silencioso quando Redis, SMTP ou S3 estão ausentes.
+
+### Perfis de arranque
+
+- A demonstração académica local reutiliza `NODE_ENV=development`; não existe
+  uma segunda framework de perfis. PostgreSQL é obrigatório; Redis, S3 e SMTP
+  não são necessários com `REDIS_PROVIDER=local`, `STORAGE_PROVIDER=local` e
+  `EMAIL_PROVIDER=simulated`.
+- Docker Compose v2 fornece apenas a infraestrutura PostgreSQL local. O projeto
+  `opsa-real-dev` separa desenvolvimento (`5433`), integração (`5434`) e restore
+  descartável (`5435`), além de um serviço sem porta para as ferramentas
+  `pg_dump`, `pg_restore` e `psql`. API, workers e frontend continuam processos
+  Node.js separados no host.
+- Os alunos controlam este ciclo através dos scripts públicos
+  `db:local:check`, `start`, `status`, `logs`, `setup` e `stop`, executados com
+  `npm --prefix apps/api run <script>`. `db:local:stop` preserva dados;
+  `db:local:reset -- --confirm=opsa_dev` é a operação destrutiva e exige
+  confirmação explícita.
+- As bases de integração e restore têm comandos `db:test:*` e `db:restore:*`
+  próprios. Não partilham o volume da demo e nunca justificam usar produção.
+- Na demo, `AI_CHAT_ENABLED=true` e `AI_PROVIDER_MODE=disabled` mantêm o chat
+  funcional através das tools read-only internas, sem chamada à OpenAI.
+- O rate limiter local mantém HMAC, limites, janelas e reset num único processo;
+  quotas/locks distribuídos não são prometidos na demo. Storage local permanece
+  privado e o worker da outbox simula email sem rede.
+- `NODE_ENV=production` permanece fail-closed: HTTPS, PostgreSQL, Redis, chaves
+  não demonstrativas, `REDIS_PROVIDER=redis`, `EMAIL_PROVIDER=smtp` com TLS e
+  `STORAGE_PROVIDER=s3` completo com SSE são obrigatórios.
+- O percurso operacional e os comandos de migrations, seed, API, web e smoke
+  estão em `real_dev/README.md`; os caminhos públicos ensinados continuam os da
+  secção **Estrutura pública ensinada**.
 
 ## Frontend
 
@@ -68,7 +101,9 @@ Os adapters locais, mocks e SMTP de log são permitidos apenas em desenvolviment
 ### Web e browser
 
 - Vitest, Testing Library, `jest-dom`, `user-event` e MSW para testes unitários e de integração do frontend.
-- Playwright em Chromium, Edge e Firefox para E2E real.
+- Playwright com Chromium incluído para o gate E2E normal e três viewports.
+- Chrome, Edge e Firefox instalados no sistema pertencem a
+  `test:e2e:compat`, matriz opcional de compatibilidade.
 - `@axe-core/playwright` para a11y nas páginas críticas.
 - Provider OpenAI fake para testes do schema qualitativo, timeout, cancelamento, quotas, fallback e captura do payload canónico sem pergunta/valores; smoke live é sempre manual e sem dados reais.
 
@@ -105,6 +140,15 @@ Uma adaptação de pastas ou nomes não pode alterar RF/RNF, `bk_id`, owner, pri
 
 ## Changelog
 
+- `2026-07-13`: PostgreSQL local passou a ter um percurso Docker Compose
+  isolado para demo, integração, restore e client tools, controlado pelos
+  scripts públicos de `apps/api` sem containerizar a aplicação.
+- `2026-07-13`: Redis, S3 e SMTP passaram a adapters selecionados centralmente;
+  a demo usa rate limiting local, storage privado local e email `SIMULATED`,
+  preservando providers externos fail-closed em production-like.
+- `2026-07-12`: separado o arranque da demo local do percurso production-like,
+  mantendo chat determinístico ativo, PostgreSQL/Redis obrigatórios e providers
+  externos fora do bootstrap normal.
 - `2026-07-11`: acrescentados SDK oficial OpenAI opcional, contrato SSE/UI e provider fake da IA v2.
 - `2026-07-10`: substituída a assunção de scaffold futuro pelo contrato da referência atual; fixados toolchain, serviços externos, Router/AuthProvider, multipart e toolchain de testes.
 - `2026-06-01`: dependências técnicas diretas passam a ser bloqueantes e devem constar em `dependencias`.

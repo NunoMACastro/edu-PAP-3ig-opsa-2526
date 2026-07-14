@@ -6,7 +6,12 @@ import { FormEvent, ReactNode, useEffect, useState } from "react";
 import { useAuth } from "../auth/AuthProvider";
 import { PermissionGate } from "../auth/PermissionGate";
 import { Permission } from "../auth/permissions";
-import { apiClient, JsonBody } from "../lib/apiClient";
+import {
+  apiClient,
+  JsonBody,
+  type PaymentInput,
+  type ReceiptInput,
+} from "../lib/apiClient";
 import { accountingApi } from "../lib/accountingApi";
 import {
   collectCursorPages,
@@ -54,6 +59,48 @@ interface ListState {
 interface ReferenceOption {
   value: string;
   label: string;
+}
+
+interface TreasuryAccountOption {
+  id: string;
+  label: string;
+}
+
+/**
+ * Carrega apenas contas de tesouraria ativas da empresa selecionada.
+ *
+ * @returns Opções de conta e estado do carregamento para os movimentos financeiros.
+ */
+function useTreasuryAccountOptions() {
+  const [accounts, setAccounts] = useState<TreasuryAccountOption[]>([]);
+  const [busy, setBusy] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    void apiClient.treasury.listAccounts()
+      .then((response) => {
+        if (!active) return;
+        const rows = pickArray(response, "accounts");
+        setAccounts(rows.flatMap((row) => {
+          const account = asObject(row);
+          if (typeof account.id !== "string") return [];
+          const name = typeof account.name === "string" ? account.name : "Conta";
+          return [{ id: account.id, label: name }];
+        }));
+      })
+      .catch(() => {
+        if (active) setError("Não foi possível carregar as contas de tesouraria.");
+      })
+      .finally(() => {
+        if (active) setBusy(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  return { accounts, busy, error };
 }
 
 function toReferenceOptions(rows: ApiObject[]): ReferenceOption[] {
@@ -280,20 +327,49 @@ function DocumentSelect({
   name,
   label,
   documents,
+  value,
+  onChange,
 }: {
   name: string;
   label: string;
   documents: ApiObject[];
+  value?: string;
+  onChange?: (value: string) => void;
 }) {
   return (
     <label>
       <span>{label}</span>
-      <select name={name} required>
+      <select
+        name={name}
+        required
+        value={value}
+        onChange={onChange ? (event) => onChange(event.target.value) : undefined}
+      >
         <option value="">Selecionar documento</option>
         {documents.map((document) => (
           <option key={String(document.id)} value={String(document.id)}>
             {String(document.number ?? document.supplierNumber ?? document.id)}
           </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+/**
+ * Apresenta as contas ativas sem pedir ao utilizador que copie identificadores.
+ *
+ * @param props - Contas disponíveis para o movimento financeiro.
+ * @returns Seletor obrigatório de conta de tesouraria.
+ */
+function TreasuryAccountSelect({ accounts }: { accounts: TreasuryAccountOption[] }) {
+  return (
+    <label>
+      <span>Conta de tesouraria</span>
+      <select name="treasuryAccountId" required defaultValue="" disabled={accounts.length === 0}>
+        <option value="">Selecionar conta</option>
+        {accounts.map((account) => (
+          <option key={account.id} value={account.id}>{account.label}</option>
         ))}
       </select>
     </label>
@@ -528,16 +604,25 @@ function parsePurchaseDocument(form: FormData): JsonBody {
  * @param dateField - Nome do campo de data a preencher no payload.
  * @returns Payload normalizado de recebimento ou pagamento.
  */
-function parseMoneyMovement(form: FormData, dateField: "receivedAt" | "paidAt") {
+function parseMoneyMovement(form: FormData, dateField: "receivedAt"): ReceiptInput;
+function parseMoneyMovement(form: FormData, dateField: "paidAt"): PaymentInput;
+function parseMoneyMovement(
+  form: FormData,
+  dateField: "receivedAt" | "paidAt",
+): ReceiptInput | PaymentInput {
   assertMf5FormData(form, [{ name: dateField, required: true }]);
 
-  return {
+  const common = {
+    treasuryAccountId: requiredText(form.get("treasuryAccountId"), "Conta de tesouraria"),
     amountCents: toPositiveInteger(form.get("amountCents"), "Valor"),
-    [dateField]: requiredText(form.get(dateField), "Data"),
     method: requiredText(form.get("method"), "Metodo") as Method,
     reference: optionalText(form.get("reference")),
     notes: optionalText(form.get("notes")),
   };
+  const movementDate = requiredText(form.get(dateField), "Data");
+  return dateField === "receivedAt"
+    ? { ...common, receivedAt: movementDate }
+    : { ...common, paidAt: movementDate };
 }
 
 /**
@@ -601,7 +686,8 @@ export function VatRatesPage() {
    */
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const form = new FormData(event.currentTarget);
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
     const result = await action.run(
       () => {
         assertMf5FormData(form, [{ name: "rateBps", required: true }]);
@@ -615,7 +701,7 @@ export function VatRatesPage() {
       },
       "Taxa de IVA criada.",
     );
-    if (result) event.currentTarget.reset();
+    if (result) formElement.reset();
   }
 
   return (
@@ -696,6 +782,7 @@ export function SaleDocumentsPage() {
     ),
   );
   const action = useAction(list.reload);
+  const [issuedAt, setIssuedAt] = useState(toLocalDateInputValue());
   const { hasPermission } = useAuth();
   const references = useDocumentReferences(
     "customers",
@@ -710,12 +797,13 @@ export function SaleDocumentsPage() {
    */
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const form = new FormData(event.currentTarget);
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
     const result = await action.run(
       () => salesApi.createDocument(parseSaleDocument(form)),
       "Documento de venda criado.",
     );
-    if (result) event.currentTarget.reset();
+    if (result) formElement.reset();
   }
 
   return (
@@ -767,11 +855,17 @@ export function SaleDocumentsPage() {
           <ReferenceSelect name="customerId" label="Cliente" options={references.parties} />
           <label>
             <span>Data</span>
-            <input name="issuedAt" type="date" required defaultValue={toLocalDateInputValue()} />
+            <input
+              name="issuedAt"
+              type="date"
+              required
+              value={issuedAt}
+              onChange={(event) => setIssuedAt(event.target.value)}
+            />
           </label>
           <label>
             <span>Vencimento</span>
-            <input name="dueDate" type="date" />
+            <input name="dueDate" type="date" min={issuedAt || undefined} />
           </label>
           <DocumentLineFields items={references.items} vatRates={references.vatRates} />
         </div>
@@ -796,6 +890,12 @@ export function ReceiptsPage() {
     ),
   );
   const action = useAction(list.reload);
+  const treasury = useTreasuryAccountOptions();
+  const [selectedDocumentId, setSelectedDocumentId] = useState("");
+  const selectedDocument = list.rows.find((row) => row.id === selectedDocumentId);
+  const minimumDate = typeof selectedDocument?.issuedAt === "string"
+    ? selectedDocument.issuedAt.slice(0, 10)
+    : undefined;
 
   /**
    * Processa a submissão do formulário, valida campos locais e delega a operação na API.
@@ -805,7 +905,8 @@ export function ReceiptsPage() {
    */
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const form = new FormData(event.currentTarget);
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
     const result = await action.run(
       () =>
         receiptApi.register(
@@ -814,25 +915,50 @@ export function ReceiptsPage() {
         ),
       "Recebimento registado.",
     );
-    if (result) event.currentTarget.reset();
+    if (result) {
+      formElement.reset();
+      setSelectedDocumentId("");
+    }
   }
 
   return (
     <PageFrame title="Recebimentos">
-      <Feedback busy={list.busy || action.busy} error={list.error ?? action.error} message={action.message} />
+      <Feedback
+        busy={list.busy || action.busy || treasury.busy}
+        error={list.error ?? action.error ?? treasury.error}
+        message={action.message}
+      />
+      {!treasury.busy && !treasury.error && treasury.accounts.length === 0 ? (
+        <StatusMessage tone="neutral" title="Sem contas de tesouraria">
+          Cria primeiro uma conta bancária ou de caixa para registar recebimentos.
+        </StatusMessage>
+      ) : null}
       <DataTable rows={list.rows} columns={RECEIPT_COLUMNS} pagination={list} />
       <PermissionGate permission={Permission.SALES_WRITE}>
         <form className="operation" onSubmit={submit}>
         <h3>Registar recebimento</h3>
         <div className="fields">
-          <DocumentSelect name="id" label="Documento de venda" documents={list.rows} />
+          <DocumentSelect
+            name="id"
+            label="Documento de venda"
+            documents={list.rows}
+            value={selectedDocumentId}
+            onChange={setSelectedDocumentId}
+          />
+          <TreasuryAccountSelect accounts={treasury.accounts} />
           <label>
             <span>Valor em cêntimos</span>
             <input name="amountCents" type="number" min="1" required />
           </label>
           <label>
             <span>Data</span>
-            <input name="receivedAt" type="date" required defaultValue={toLocalDateInputValue()} />
+            <input
+              name="receivedAt"
+              type="date"
+              required
+              min={minimumDate}
+              defaultValue={toLocalDateInputValue()}
+            />
           </label>
           <MethodSelect />
           <label>
@@ -844,7 +970,7 @@ export function ReceiptsPage() {
             <input name="notes" />
           </label>
         </div>
-        <button type="submit" disabled={action.busy}>Registar</button>
+        <button type="submit" disabled={action.busy || treasury.busy || treasury.accounts.length === 0}>Registar</button>
         </form>
       </PermissionGate>
     </PageFrame>
@@ -1080,6 +1206,7 @@ export function PurchaseDocumentsPage() {
     ),
   );
   const action = useAction(list.reload);
+  const [issuedAt, setIssuedAt] = useState(toLocalDateInputValue());
   const [history, setHistory] = useState<unknown>(null);
   const { hasPermission } = useAuth();
   const references = useDocumentReferences(
@@ -1095,12 +1222,13 @@ export function PurchaseDocumentsPage() {
    */
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const form = new FormData(event.currentTarget);
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
     const result = await action.run(
       () => purchasesApi.createDocument(parsePurchaseDocument(form)),
       "Documento de compra criado.",
     );
-    if (result) event.currentTarget.reset();
+    if (result) formElement.reset();
   }
 
   async function loadHistory(id: string) {
@@ -1151,11 +1279,17 @@ export function PurchaseDocumentsPage() {
           </label>
           <label>
             <span>Data</span>
-            <input name="issuedAt" type="date" required defaultValue={toLocalDateInputValue()} />
+            <input
+              name="issuedAt"
+              type="date"
+              required
+              value={issuedAt}
+              onChange={(event) => setIssuedAt(event.target.value)}
+            />
           </label>
           <label>
             <span>Vencimento</span>
-            <input name="dueDate" type="date" />
+            <input name="dueDate" type="date" min={issuedAt || undefined} />
           </label>
           <DocumentLineFields cost items={references.items} vatRates={references.vatRates} />
         </div>
@@ -1181,6 +1315,12 @@ export function PaymentsPage() {
     ),
   );
   const action = useAction(list.reload);
+  const treasury = useTreasuryAccountOptions();
+  const [selectedDocumentId, setSelectedDocumentId] = useState("");
+  const selectedDocument = list.rows.find((row) => row.id === selectedDocumentId);
+  const minimumDate = typeof selectedDocument?.issuedAt === "string"
+    ? selectedDocument.issuedAt.slice(0, 10)
+    : undefined;
 
   /**
    * Processa a submissão do formulário, valida campos locais e delega a operação na API.
@@ -1190,7 +1330,8 @@ export function PaymentsPage() {
    */
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const form = new FormData(event.currentTarget);
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
     const result = await action.run(
       () =>
         paymentApi.register(
@@ -1199,24 +1340,49 @@ export function PaymentsPage() {
         ),
       "Pagamento registado.",
     );
-    if (result) event.currentTarget.reset();
+    if (result) {
+      formElement.reset();
+      setSelectedDocumentId("");
+    }
   }
 
   return (
     <PageFrame title="Pagamentos">
-      <Feedback busy={list.busy || action.busy} error={list.error ?? action.error} message={action.message} />
+      <Feedback
+        busy={list.busy || action.busy || treasury.busy}
+        error={list.error ?? action.error ?? treasury.error}
+        message={action.message}
+      />
+      {!treasury.busy && !treasury.error && treasury.accounts.length === 0 ? (
+        <StatusMessage tone="neutral" title="Sem contas de tesouraria">
+          Cria primeiro uma conta bancária ou de caixa para registar pagamentos.
+        </StatusMessage>
+      ) : null}
       <DataTable rows={list.rows} columns={PAYMENT_COLUMNS} pagination={list} />
       <form className="operation" onSubmit={submit}>
         <h3>Registar pagamento</h3>
         <div className="fields">
-          <DocumentSelect name="id" label="Documento de compra" documents={list.rows} />
+          <DocumentSelect
+            name="id"
+            label="Documento de compra"
+            documents={list.rows}
+            value={selectedDocumentId}
+            onChange={setSelectedDocumentId}
+          />
+          <TreasuryAccountSelect accounts={treasury.accounts} />
           <label>
             <span>Valor em cêntimos</span>
             <input name="amountCents" type="number" min="1" required />
           </label>
           <label>
             <span>Data</span>
-            <input name="paidAt" type="date" required defaultValue={toLocalDateInputValue()} />
+            <input
+              name="paidAt"
+              type="date"
+              required
+              min={minimumDate}
+              defaultValue={toLocalDateInputValue()}
+            />
           </label>
           <MethodSelect />
           <label>
@@ -1228,7 +1394,7 @@ export function PaymentsPage() {
             <input name="notes" />
           </label>
         </div>
-        <button type="submit" disabled={action.busy}>Registar</button>
+        <button type="submit" disabled={action.busy || treasury.busy || treasury.accounts.length === 0}>Registar</button>
       </form>
     </PageFrame>
   );

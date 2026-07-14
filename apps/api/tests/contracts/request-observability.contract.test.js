@@ -53,10 +53,9 @@ test("OPSA-E2E-P2-016: contrato terminal é único perante eventos concorrentes"
     res.emit("finish");
     logUnhandledRequestError(new Error("segredo tardio"), req);
 
-    const terminals = events.filter((event) => event.event !== "http.request.start");
-    assert.equal(terminals.length, 1);
-    assert.equal(terminals[0].event, "http.request.aborted");
-    assert.deepEqual(Object.keys(terminals[0].context).sort(), [
+    assert.equal(events.length, 1);
+    assert.equal(events[0].event, "http.request.aborted");
+    assert.deepEqual(Object.keys(events[0].context).sort(), [
         "durationMs",
         "method",
         "outcome",
@@ -64,9 +63,9 @@ test("OPSA-E2E-P2-016: contrato terminal é único perante eventos concorrentes"
         "routeTemplate",
         "statusCode",
     ]);
-    assert.match(terminals[0].context.requestId, /^[0-9a-f-]{36}$/i);
-    assert.equal(terminals[0].context.routeTemplate, "/api/tasks/:id");
-    assert.equal(terminals[0].context.statusCode, 202);
+    assert.match(events[0].context.requestId, /^[0-9a-f-]{36}$/i);
+    assert.equal(events[0].context.routeTemplate, "/api/tasks/:id");
+    assert.equal(events[0].context.statusCode, 202);
 });
 
 test("OPSA-E2E-P2-016: contrato de erro contém classificação e não mensagem", () => {
@@ -96,12 +95,10 @@ test("OPSA-E2E-P2-016: rejeição HTTPS precoce mantém request ID e terminal ú
     const response = await request(app).get("/api/auth/me").expect(403);
 
     assert.match(response.headers["x-request-id"], /^[0-9a-f-]{36}$/i);
-    assert.equal(events.filter((event) => event.event === "http.request.start").length, 1);
-    const terminals = events.filter((event) => event.event !== "http.request.start");
-    assert.equal(terminals.length, 1);
-    assert.equal(terminals[0].event, "http.request.finish");
-    assert.equal(terminals[0].context.statusCode, 403);
-    assert.equal(terminals[0].context.routeTemplate, "unmatched");
+    assert.equal(events.length, 1);
+    assert.equal(events[0].event, "http.request.finish");
+    assert.equal(events[0].context.statusCode, 403);
+    assert.equal(events[0].context.routeTemplate, "unmatched");
 });
 
 test("OPSA-E2E-P2-016: composição real monta observabilidade antes do transporte", () => {

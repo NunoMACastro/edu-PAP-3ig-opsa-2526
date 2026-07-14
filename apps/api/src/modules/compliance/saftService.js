@@ -1,10 +1,10 @@
 /**
  * @file Orquestração fail-closed de exportações SAF-T PT integrais.
  *
- * Este módulo nunca gera XML simplificado. O artefacto é sempre produzido pelo
- * gerador interno e só é persistido READY quando um validador externo atesta a
- * estrutura SAF-T 1.04_01 com um processador XSD 1.1, a reconciliação e a
- * revisão externa aprovada.
+ * O artefacto é sempre produzido pelo mesmo gerador interno. Em modo externo,
+ * só fica READY depois da atestação XSD/reconciliação/revisão já existente. Em
+ * modo académico, fica explicitamente marcado como não certificado e nunca é
+ * confundido com uma exportação legalmente validada.
  */
 
 import { createHash, randomUUID } from "node:crypto";
@@ -32,6 +32,86 @@ const READY_STATUS = "READY";
 const VALID_STATUS = "VALID";
 const APPROVED_STATUS = "APPROVED";
 const XSD_PROCESSOR_VERSION = "1.1";
+const ACADEMIC_MODE = "ACADEMIC";
+const EXTERNAL_MODE = "EXTERNAL";
+const NOT_VALIDATED_STATUS = "NOT_VALIDATED";
+const NOT_REVIEWED_STATUS = "NOT_REVIEWED";
+
+/**
+ * Normaliza o modo sem permitir que a demonstração académica seja usada em
+ * produção. O modo externo mantém-se como default compatível.
+ *
+ * @param {unknown} value - Valor de `SAFT_VALIDATION_MODE`.
+ * @param {boolean} [isProduction=false] - Indica runtime de produção.
+ * @returns {"ACADEMIC" | "EXTERNAL"} Modo validado.
+ */
+export function normalizeSaftValidationMode(value, isProduction = false) {
+    const normalized = String(value ?? "external").trim().toUpperCase();
+    if (![ACADEMIC_MODE, EXTERNAL_MODE].includes(normalized)) {
+        throw httpError(
+            503,
+            "SAFT_VALIDATION_MODE_INVALID",
+            "SAFT_VALIDATION_MODE deve ser academic ou external.",
+        );
+    }
+    if (isProduction && normalized === ACADEMIC_MODE) {
+        throw httpError(
+            503,
+            "SAFT_ACADEMIC_MODE_FORBIDDEN",
+            "A exportação SAF-T académica não está disponível em produção.",
+        );
+    }
+    return normalized;
+}
+
+/**
+ * Identifica o modo persistido sem promover runs antigos incompletos.
+ * Runs anteriores com todos os estados externos válidos continuam compatíveis.
+ *
+ * @param {object} run - SaftExportRun persistido.
+ * @returns {"ACADEMIC" | "EXTERNAL" | null} Modo reconhecido.
+ */
+function persistedValidationMode(run) {
+    const explicit = String(run?.validationDetails?.validationMode ?? "")
+        .trim()
+        .toUpperCase();
+    if ([ACADEMIC_MODE, EXTERNAL_MODE].includes(explicit)) return explicit;
+    if (
+        run?.xsdStatus === VALID_STATUS &&
+        run?.totalsStatus === VALID_STATUS &&
+        run?.externalReviewStatus === APPROVED_STATUS
+    ) {
+        return EXTERNAL_MODE;
+    }
+    return null;
+}
+
+/**
+ * Acrescenta uma advertência XML visível sem alterar o conteúdo fiscal gerado.
+ * Comentários são válidos em XML e o hash final é recalculado sobre estes bytes.
+ *
+ * @param {Buffer} artifact - XML Windows-1252 produzido internamente.
+ * @returns {Buffer} Cópia marcada como demonstração não certificada.
+ */
+function markAcademicArtifact(artifact) {
+    const declarationEnd = artifact.indexOf(Buffer.from("?>", "ascii"));
+    if (declarationEnd < 0) {
+        throw httpError(
+            500,
+            "SAFT_ARTIFACT_CONTRACT_MISMATCH",
+            "O artefacto SAF-T não contém declaração XML válida.",
+        );
+    }
+    const marker = Buffer.from(
+        "\n<!-- DEMONSTRACAO ACADEMICA - NAO CERTIFICADO -->",
+        "latin1",
+    );
+    return Buffer.concat([
+        artifact.subarray(0, declarationEnd + 2),
+        marker,
+        artifact.subarray(declarationEnd + 2),
+    ]);
+}
 
 /**
  * Formata uma data persistida como dia civil ISO.
@@ -372,21 +452,32 @@ function assertExternallyValidatedArtifact(
  * Confirma se uma execução tem todos os estados exigidos para download.
  *
  * @param {object} run - SaftExportRun persistido.
- * @returns {boolean} True apenas para artefacto íntegro e validado.
+ * @param {"ACADEMIC" | "EXTERNAL"} activeMode - Modo atualmente autorizado.
+ * @returns {boolean} True apenas para artefacto íntegro e compatível com o runtime.
  */
-function isDownloadReady(run) {
-    return (
+function isDownloadReady(run, activeMode = EXTERNAL_MODE) {
+    const persistedMode = persistedValidationMode(run);
+    const commonReady =
         run?.status === READY_STATUS &&
-        run?.xsdStatus === VALID_STATUS &&
         run?.totalsStatus === VALID_STATUS &&
-        run?.externalReviewStatus === APPROVED_STATUS &&
         typeof run?.storageKey === "string" &&
         Boolean(run.storageKey) &&
         typeof run?.sha256 === "string" &&
         /^[a-f0-9]{64}$/.test(run.sha256) &&
         Number.isInteger(run?.sizeBytes) &&
         run.sizeBytes > 0 &&
-        Boolean(run?.completedAt)
+        Boolean(run?.completedAt);
+    if (!commonReady || persistedMode !== activeMode) return false;
+    if (persistedMode === ACADEMIC_MODE) {
+        return (
+            run?.xsdStatus === NOT_VALIDATED_STATUS &&
+            run?.externalReviewStatus === NOT_REVIEWED_STATUS &&
+            run?.validationDetails?.certified === false
+        );
+    }
+    return (
+        run?.xsdStatus === VALID_STATUS &&
+        run?.externalReviewStatus === APPROVED_STATUS
     );
 }
 
@@ -394,9 +485,15 @@ function isDownloadReady(run) {
  * Constrói o payload público sem revelar storage key, empresa ou detalhes internos.
  *
  * @param {object} run - SaftExportRun persistido.
+ * @param {"ACADEMIC" | "EXTERNAL"} [activeMode="EXTERNAL"] - Modo autorizado.
  * @returns {object} Metadata segura para POST/GET.
  */
-function serializeSaftRun(run) {
+function serializeSaftRun(run, activeMode = EXTERNAL_MODE) {
+    const validationMode = persistedValidationMode(run);
+    const certified =
+        validationMode === EXTERNAL_MODE &&
+        run?.xsdStatus === VALID_STATUS &&
+        run?.externalReviewStatus === APPROVED_STATUS;
     return {
         id: run.id,
         type: run.type,
@@ -411,8 +508,10 @@ function serializeSaftRun(run) {
             totalsStatus: run.totalsStatus,
             externalReviewStatus: run.externalReviewStatus,
         },
+        validationMode,
+        certified,
         completedAt: optionalIso(run.completedAt),
-        downloadAvailable: isDownloadReady(run),
+        downloadAvailable: isDownloadReady(run, activeMode),
     };
 }
 
@@ -472,14 +571,14 @@ async function verifyDownloadedArtifact(object, run) {
 }
 
 /**
- * Cria uma exportação integral apenas depois de validação oficial e externa.
+ * Cria uma exportação integral externa ou uma demonstração académica marcada.
  *
- * Sem pipeline externo, XSD oficial ou qualquer precondição, a função falha antes
- * de escrever em object storage ou criar SaftExportRun.
+ * No modo externo, a ausência de pipeline/XSD continua a falhar antes de
+ * escrever em object storage ou criar SaftExportRun.
  *
  * @param {import("@prisma/client").PrismaClient} prisma - Cliente Prisma.
  * @param {object} objectStorage - Adapter privado S3/local.
- * @param {{ companyId: string, userId: string, type: "FULL", fiscalPeriodId: string, featureFlag: unknown }} input - Contexto e pedido normalizado.
+ * @param {{ companyId: string, userId: string, type: "FULL", fiscalPeriodId: string, featureFlag: unknown, validationMode?: unknown, isProduction?: boolean }} input - Contexto e pedido normalizado.
  * @param {{ externalPipeline?: object, loadOfficialSchema?: Function, verifySchema?: Function, now?: Date | string }} [dependencies] - Integrações explícitas.
  * @returns {Promise<object>} Metadata pública do run READY.
  */
@@ -503,13 +602,22 @@ export async function createSaftExport(
         throw new TypeError("Prisma transacional e object storage são obrigatórios.");
     }
 
-    const externalPipeline = requireExternalPipeline(dependencies.externalPipeline);
-    if (typeof dependencies.loadOfficialSchema !== "function") {
-        throw httpError(503, "SAFT_XSD_REQUIRED", "XSD oficial SAF-T indisponível.");
+    const validationMode = normalizeSaftValidationMode(
+        input.validationMode,
+        input.isProduction === true,
+    );
+    let externalPipeline = null;
+    let xsdBuffer = null;
+    let schemaIdentity = null;
+    if (validationMode === EXTERNAL_MODE) {
+        externalPipeline = requireExternalPipeline(dependencies.externalPipeline);
+        if (typeof dependencies.loadOfficialSchema !== "function") {
+            throw httpError(503, "SAFT_XSD_REQUIRED", "XSD oficial SAF-T indisponível.");
+        }
+        xsdBuffer = await dependencies.loadOfficialSchema();
+        const verifySchema = dependencies.verifySchema ?? assertOfficialSaftSchema;
+        schemaIdentity = await verifySchema(xsdBuffer);
     }
-    const xsdBuffer = await dependencies.loadOfficialSchema();
-    const verifySchema = dependencies.verifySchema ?? assertOfficialSaftSchema;
-    const schemaIdentity = await verifySchema(xsdBuffer);
     const period = await loadClosedFiscalPeriod(prisma, input);
     const sources = await loadReadinessSources(prisma, {
         companyId: input.companyId,
@@ -540,36 +648,54 @@ export async function createSaftExport(
         },
         createdAt: dependencies.now ?? new Date(),
     });
-    const validatorInput = {
-        fiscalPeriod: {
-            id: period.id,
-            fiscalYear: period.fiscalYear,
-            startDate: period.startDate,
-            endDate: period.endDate,
-        },
-        readiness: { ...readiness, sources: sourceReadiness },
-        // O adapter recebe cópias defensivas; não pode mutar o artefacto nem a
-        // reconciliação que serão guardados depois da atestação.
-        artifact: Buffer.from(generated.artifact),
-        artifactSha256: generated.artifactSha256,
-        reconciliation: structuredClone(generated.reconciliation),
-        reconciliationSha256: generated.reconciliationSha256,
-        officialXsd: Buffer.from(xsdBuffer),
-        schema: structuredClone(schemaIdentity),
-    };
-    const pipelineResult = typeof externalPipeline.validate === "function"
-        ? await externalPipeline.validate(validatorInput)
-        : await externalPipeline.generateAndValidate(validatorInput);
-    const validated = assertExternallyValidatedArtifact(
-        generated.artifact,
-        pipelineResult,
-        schemaIdentity,
-        generated.reconciliationSha256,
-    );
+    let validated;
+    if (validationMode === EXTERNAL_MODE) {
+        const validatorInput = {
+            fiscalPeriod: {
+                id: period.id,
+                fiscalYear: period.fiscalYear,
+                startDate: period.startDate,
+                endDate: period.endDate,
+            },
+            readiness: { ...readiness, sources: sourceReadiness },
+            // O adapter recebe cópias defensivas; não pode mutar o artefacto nem a
+            // reconciliação que serão guardados depois da atestação.
+            artifact: Buffer.from(generated.artifact),
+            artifactSha256: generated.artifactSha256,
+            reconciliation: structuredClone(generated.reconciliation),
+            reconciliationSha256: generated.reconciliationSha256,
+            officialXsd: Buffer.from(xsdBuffer),
+            schema: structuredClone(schemaIdentity),
+        };
+        const pipelineResult = typeof externalPipeline.validate === "function"
+            ? await externalPipeline.validate(validatorInput)
+            : await externalPipeline.generateAndValidate(validatorInput);
+        validated = assertExternallyValidatedArtifact(
+            generated.artifact,
+            pipelineResult,
+            schemaIdentity,
+            generated.reconciliationSha256,
+        );
+    } else {
+        const artifact = markAcademicArtifact(generated.artifact);
+        validated = {
+            artifact,
+            sha256: sha256Bytes(artifact),
+            validation: {
+                xsdStatus: NOT_VALIDATED_STATUS,
+                totalsStatus: VALID_STATUS,
+                externalReviewStatus: NOT_REVIEWED_STATUS,
+                validationMode: ACADEMIC_MODE,
+                certified: false,
+            },
+        };
+    }
 
     const runId = randomUUID();
     const safeNif = safeStorageSegment(sources.profile.nif);
-    const fileName = `saft-${safeNif}-${dateOnly(period.startDate)}-${dateOnly(period.endDate)}.xml`;
+    const fileName = validationMode === ACADEMIC_MODE
+        ? `saft-DEMO-NAO-CERTIFICADO-${safeNif}-${dateOnly(period.startDate)}-${dateOnly(period.endDate)}.xml`
+        : `saft-${safeNif}-${dateOnly(period.startDate)}-${dateOnly(period.endDate)}.xml`;
     const storageKey = `private/saft/${safeStorageSegment(input.companyId)}/${runId}.xml`;
     const stored = await objectStorage.putBuffer({
         key: storageKey,
@@ -577,12 +703,16 @@ export async function createSaftExport(
         contentType: CONTENT_TYPE,
         metadata: {
             sha256: validated.sha256,
-            "schema-sha256": schemaIdentity.sha256,
+            ...(schemaIdentity?.sha256
+                ? { "schema-sha256": schemaIdentity.sha256 }
+                : {}),
             "saft-version": SAFT_VERSION,
             "reconciliation-sha256": generated.reconciliationSha256,
-            "xsd-status": VALID_STATUS,
+            "validation-mode": validationMode,
+            "certified": validationMode === EXTERNAL_MODE ? "true" : "false",
+            "xsd-status": validated.validation.xsdStatus,
             "totals-status": VALID_STATUS,
-            "external-review-status": APPROVED_STATUS,
+            "external-review-status": validated.validation.externalReviewStatus,
         },
     });
     if (stored?.key !== storageKey || stored?.sizeBytes !== validated.artifact.length) {
@@ -615,17 +745,23 @@ export async function createSaftExport(
                     sha256: validated.sha256,
                     sizeBytes: validated.artifact.length,
                     status: READY_STATUS,
-                    xsdStatus: VALID_STATUS,
+                    xsdStatus: validated.validation.xsdStatus,
                     totalsStatus: VALID_STATUS,
-                    externalReviewStatus: APPROVED_STATUS,
+                    externalReviewStatus: validated.validation.externalReviewStatus,
                     validationDetails: {
+                        validationMode,
+                        certified: validationMode === EXTERNAL_MODE,
                         schema: {
-                            sha256: schemaIdentity.sha256,
-                            version: schemaIdentity.version ?? SAFT_VERSION,
-                            namespace: schemaIdentity.namespace ?? SAFT_NAMESPACE,
+                            ...(schemaIdentity?.sha256
+                                ? { sha256: schemaIdentity.sha256 }
+                                : {}),
+                            version: schemaIdentity?.version ?? SAFT_VERSION,
+                            namespace: schemaIdentity?.namespace ?? SAFT_NAMESPACE,
                             encoding: SAFT_ENCODING,
                         },
-                        validator: validated.validation,
+                        validator: validationMode === EXTERNAL_MODE
+                            ? validated.validation
+                            : null,
                         reconciliation: {
                             sha256: generated.reconciliationSha256,
                             ...generated.reconciliation,
@@ -644,12 +780,16 @@ export async function createSaftExport(
                 entity: "SaftExportRun",
                 entityId: created.id,
                 periodEndAt: period.endDate,
-                reason: "SAFT_EXPORT_VALIDATED",
+                reason: validationMode === EXTERNAL_MODE
+                    ? "SAFT_EXPORT_VALIDATED"
+                    : "SAFT_ACADEMIC_EXPORT_GENERATED",
             });
             await recordRetainedAuditLog(tx, {
                 companyId: input.companyId,
                 userId: input.userId,
-                action: "SAFT_EXPORT_VALIDATED",
+                action: validationMode === EXTERNAL_MODE
+                    ? "SAFT_EXPORT_VALIDATED"
+                    : "SAFT_ACADEMIC_EXPORT_GENERATED",
                 entity: "SaftExportRun",
                 entityId: created.id,
                 periodEndAt: period.endDate,
@@ -658,9 +798,11 @@ export async function createSaftExport(
                     fiscalPeriodId: period.id,
                     type: "FULL",
                     status: READY_STATUS,
-                    xsdStatus: VALID_STATUS,
+                    validationMode,
+                    certified: validationMode === EXTERNAL_MODE,
+                    xsdStatus: validated.validation.xsdStatus,
                     totalsStatus: VALID_STATUS,
-                    externalReviewStatus: APPROVED_STATUS,
+                    externalReviewStatus: validated.validation.externalReviewStatus,
                 },
             });
             await recordIntegrationLog(tx, {
@@ -674,7 +816,9 @@ export async function createSaftExport(
                 totalRows: readiness.totalRows,
                 successRows: readiness.totalRows,
                 errorRows: 0,
-                message: "Artefacto SAF-T validado externamente e guardado em storage privado.",
+                message: validationMode === EXTERNAL_MODE
+                    ? "Artefacto SAF-T validado externamente e guardado em storage privado."
+                    : "XML SAF-T académico não certificado guardado em storage privado.",
             });
             return created;
         });
@@ -683,18 +827,22 @@ export async function createSaftExport(
         throw error;
     }
 
-    return serializeSaftRun(run);
+    return serializeSaftRun(run, validationMode);
 }
 
 /**
  * Obtém metadata de uma exportação sem atravessar a empresa ativa.
  *
  * @param {import("@prisma/client").PrismaClient} prisma - Cliente Prisma.
- * @param {{ companyId: string, exportId: string, featureFlag: unknown }} input - Ownership backend.
+ * @param {{ companyId: string, exportId: string, featureFlag: unknown, validationMode?: unknown, isProduction?: boolean }} input - Ownership backend.
  * @returns {Promise<object>} Metadata pública.
  */
 export async function getSaftExportMetadata(prisma, input) {
     assertSaftExportEnabled(input?.featureFlag);
+    const validationMode = normalizeSaftValidationMode(
+        input?.validationMode,
+        input?.isProduction === true,
+    );
     assertOwnedRunContext(input);
     const run = await prisma.saftExportRun.findFirst({
         where: { id: input.exportId, companyId: input.companyId },
@@ -702,7 +850,7 @@ export async function getSaftExportMetadata(prisma, input) {
     if (!run) {
         throw httpError(404, "SAFT_EXPORT_NOT_FOUND", "Exportação SAF-T não encontrada.");
     }
-    return serializeSaftRun(run);
+    return serializeSaftRun(run, validationMode);
 }
 
 /**
@@ -710,11 +858,15 @@ export async function getSaftExportMetadata(prisma, input) {
  *
  * @param {import("@prisma/client").PrismaClient} prisma - Cliente Prisma.
  * @param {object} objectStorage - Adapter privado.
- * @param {{ companyId: string, exportId: string, featureFlag: unknown }} input - Ownership backend.
+ * @param {{ companyId: string, exportId: string, featureFlag: unknown, validationMode?: unknown, isProduction?: boolean }} input - Ownership backend.
  * @returns {Promise<{ export: object, object: object }>} Metadata e stream validados.
  */
 export async function getSaftExportDownload(prisma, objectStorage, input) {
     assertSaftExportEnabled(input?.featureFlag);
+    const validationMode = normalizeSaftValidationMode(
+        input?.validationMode,
+        input?.isProduction === true,
+    );
     assertOwnedRunContext(input);
     const run = await prisma.saftExportRun.findFirst({
         where: { id: input.exportId, companyId: input.companyId },
@@ -722,7 +874,7 @@ export async function getSaftExportDownload(prisma, objectStorage, input) {
     if (!run) {
         throw httpError(404, "SAFT_EXPORT_NOT_FOUND", "Exportação SAF-T não encontrada.");
     }
-    if (!isDownloadReady(run)) {
+    if (!isDownloadReady(run, validationMode)) {
         throw httpError(
             409,
             "SAFT_EXPORT_NOT_READY",
@@ -758,5 +910,5 @@ export async function getSaftExportDownload(prisma, objectStorage, input) {
         );
     }
     const verifiedObject = await verifyDownloadedArtifact(object, run);
-    return { export: serializeSaftRun(run), object: verifiedObject };
+    return { export: serializeSaftRun(run, validationMode), object: verifiedObject };
 }

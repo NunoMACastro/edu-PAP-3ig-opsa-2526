@@ -61,7 +61,13 @@ export async function main() {
     const namespace = profile === "verify"
         ? verificationNamespace()
         : profile === "load" ? LOAD_NAMESPACE : DEMO_NAMESPACE;
-    const prisma = new PrismaClient();
+    const seedDatabaseUrl = new URL(process.env.DATABASE_URL);
+    // O advisory lock é session-scoped; uma ligação única garante que acquire,
+    // todas as operações e release usam a mesma sessão PostgreSQL.
+    seedDatabaseUrl.searchParams.set("connection_limit", "1");
+    const prisma = new PrismaClient({
+        datasources: { db: { url: seedDatabaseUrl.toString() } },
+    });
     const objectStorage = createObjectStorage(process.env);
     let locked = false;
     try {

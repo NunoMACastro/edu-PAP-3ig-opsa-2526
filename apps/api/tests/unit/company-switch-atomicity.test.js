@@ -9,7 +9,7 @@ import { switchActiveCompany } from "../../src/modules/companies/companyService.
 test("troca de empresa valida membership, atualiza sessão e audita numa transação", async () => {
     const calls = [];
     const tx = {
-        $queryRaw: async () => {
+        $executeRaw: async () => {
             calls.push(["lock"]);
             return [{ locked: true }];
         },
@@ -74,7 +74,7 @@ test("troca de empresa valida membership, atualiza sessão e audita numa transa�
 test("sessão revogada não produz auditoria de troca de empresa", async () => {
     let auditCalled = false;
     const tx = {
-        $queryRaw: async () => [{ locked: true }],
+        $executeRaw: async () => 1,
         companyMembership: {
             findFirst: async () => ({
                 id: "membership-1",

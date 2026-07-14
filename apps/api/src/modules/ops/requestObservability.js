@@ -1,5 +1,5 @@
 /**
- * @file Request IDs e logging JSON de início/fim para Express.
+ * @file Request IDs e um único evento terminal JSON por pedido Express.
  *
  * O middleware não regista URL concreta, query string, headers, body, cookie ou
  * mensagem de erro. A rota é obtida apenas do template Express depois do
@@ -131,20 +131,6 @@ export function createRequestObservability(options = {}) {
         const startedAt = clock();
         req.requestId = requestId;
         res.set("X-Request-ID", requestId);
-
-        safelyWrite(
-            write,
-            createStructuredLogEvent({
-                level: "info",
-                event: "http.request.start",
-                module: "http",
-                requirement: "OPSA-E2E-P2-010",
-                context: {
-                    requestId,
-                    method: resolveMethod(req.method),
-                },
-            }),
-        );
 
         let terminalLogged = false;
         const listeners = {};

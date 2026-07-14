@@ -137,6 +137,13 @@ export async function createSaleDocument(prisma, companyId, userId, input) {
         code: "INVALID_DUE_DATE",
         field: "Data de vencimento",
     });
+    if (dueDate && dueDate < issuedAt) {
+        throw httpError(
+            400,
+            "DUE_DATE_BEFORE_ISSUE_DATE",
+            "A data de vencimento não pode ser anterior à data de emissão",
+        );
+    }
     const lines = Array.isArray(input.lines) ? input.lines.map(parseLine) : [];
     if (lines.length === 0) {
         throw httpError(400, "EMPTY_LINES", "Documento sem linhas");

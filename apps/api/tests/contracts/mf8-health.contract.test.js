@@ -9,34 +9,15 @@ import { buildHealthRoutes } from "../../src/modules/ops/healthRoutes.js";
 import { buildLiveness } from "../../src/modules/ops/healthService.js";
 
 function healthDependencies(overrides = {}) {
-    const redisState = new Map();
     return {
         version: "1.0.0",
         prisma: {
-            $transaction: async (callback) =>
-                callback({
-                    $executeRaw: async () => 0,
-                    $queryRaw: async () => [{
-                        schemaUsage: true,
-                        tableCount: 42,
-                        canSelect: true,
-                        canInsert: true,
-                        canUpdate: true,
-                        canDelete: true,
-                    }],
-                }),
+            $queryRaw: async () => [{ ready: 1 }],
         },
-        redisKeyPrefix: "opsa:test",
         redisClient: {
             ping: async () => "PONG",
-            set: async (key, value) => {
-                redisState.set(key, value);
-                return "OK";
-            },
-            get: async (key) => redisState.get(key),
-            del: async (key) => (redisState.delete(key) ? 1 : 0),
         },
-        objectStorage: { checkOperationalAccess: async () => true },
+        objectStorage: { checkReadiness: async () => true },
         ...overrides,
     };
 }
@@ -117,7 +98,7 @@ test("BK-MF8-02: servidor monta GET /api/health antes dos routers autenticados",
     assert.equal(healthMountIndex < authMountIndex, true);
     assert.match(
         serverSource,
-        /buildHealthRoutes\(\{\s*version: API_VERSION,\s*prisma,\s*redisClient,\s*redisKeyPrefix: apiEnv\.redisKeyPrefix,\s*objectStorage,\s*aiConfig: apiEnv\.ai,\s*\}\)/s,
+        /buildHealthRoutes\(\{\s*version: API_VERSION,\s*prisma,\s*redisClient,\s*redisMode: apiEnv\.providers\?\.redis[^,]+,\s*objectStorage,\s*isProduction,\s*aiConfig: apiEnv\.ai,\s*\}\)/s,
     );
 });
 
@@ -155,19 +136,12 @@ test("BK-MF8-02: falha sem versao configurada", () => {
 });
 
 test("BK-MF8-02: readiness devolve 503 quando Redis falha", async () => {
-    const state = new Map();
     const router = buildHealthRoutes(
         healthDependencies({
             redisClient: {
                 ping: async () => {
                     throw new Error("offline");
                 },
-                set: async (key, value) => {
-                    state.set(key, value);
-                    return "OK";
-                },
-                get: async (key) => state.get(key),
-                del: async (key) => (state.delete(key) ? 1 : 0),
             },
         }),
     );

@@ -14,6 +14,7 @@
     "build": "vite build",
     "test:unit": "vitest run",
     "test:e2e": "playwright test",
+    "test:e2e:compat": "playwright test --config playwright.compat.config.ts",
     "test:e2e:seeded": "playwright test --config playwright.seeded.config.ts",
     "test:mf1": "node scripts/check-mf1-pages.mjs",
     "test:mf2": "node scripts/check-mf2-pages.mjs",

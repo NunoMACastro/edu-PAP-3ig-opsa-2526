@@ -39,6 +39,9 @@ function applyIncrement(currentValue, operation) {
     if (operation && typeof operation === "object" && Number.isInteger(operation.increment)) {
         return currentValue + operation.increment;
     }
+    if (operation && typeof operation === "object" && Number.isInteger(operation.decrement)) {
+        return currentValue - operation.decrement;
+    }
     return Number(operation);
 }
 
@@ -55,6 +58,7 @@ function createMf1IntegrationPrisma() {
         status: "ISSUED",
         totalCents: 2460,
         amountPaidCents: 0,
+        issuedAt: new Date("2026-02-01T00:00:00.000Z"),
     };
     const purchaseDocument = {
         id: "purchase-1",
@@ -63,6 +67,13 @@ function createMf1IntegrationPrisma() {
         status: "APPROVED",
         totalCents: 1230,
         amountPaidCents: 0,
+        issuedAt: new Date("2026-02-01T00:00:00.000Z"),
+    };
+    const treasuryAccount = {
+        id: "treasury-1",
+        companyId: "company-1",
+        isActive: true,
+        currentBalanceCents: 5000,
     };
     const receipts = [];
     const payments = [];
@@ -73,6 +84,28 @@ function createMf1IntegrationPrisma() {
         fiscalPeriod: {
             findFirst: async ({ where }) => {
                 return where.companyId ? openFiscalPeriod(where.companyId) : null;
+            },
+        },
+        treasuryAccount: {
+            findFirst: async ({ where }) =>
+                where.id === treasuryAccount.id &&
+                where.companyId === treasuryAccount.companyId &&
+                (where.isActive === undefined || where.isActive === treasuryAccount.isActive)
+                    ? { ...treasuryAccount }
+                    : null,
+            updateMany: async ({ where, data }) => {
+                if (
+                    where.id !== treasuryAccount.id ||
+                    where.companyId !== treasuryAccount.companyId ||
+                    where.isActive !== treasuryAccount.isActive
+                ) {
+                    return { count: 0 };
+                }
+                treasuryAccount.currentBalanceCents = applyIncrement(
+                    treasuryAccount.currentBalanceCents,
+                    data.currentBalanceCents,
+                );
+                return { count: 1 };
             },
         },
         saleDocument: {
@@ -126,6 +159,7 @@ function createMf1IntegrationPrisma() {
                     purchaseDocument.amountPaidCents,
                     data.amountPaidCents,
                 );
+                purchaseDocument.status = data.status ?? purchaseDocument.status;
                 return { count: 1 };
             },
         },
@@ -170,6 +204,7 @@ function createMf1IntegrationPrisma() {
         payments,
         auditEntries,
         retentionHolds,
+        treasuryAccount,
     };
 }
 
@@ -182,14 +217,17 @@ test("MF1 integracao: recebimentos e pagamentos preservam empresa ativa e audito
         payments,
         auditEntries,
         retentionHolds,
+        treasuryAccount,
     } = createMf1IntegrationPrisma();
 
     const receipt = await registerReceipt(prisma, "company-1", "user-1", "sale-1", {
+        treasuryAccountId: "treasury-1",
         amountCents: 2460,
         receivedAt: "2026-02-10",
         method: "BANK_TRANSFER",
     });
     const payment = await registerPayment(prisma, "company-1", "user-1", "purchase-1", {
+        treasuryAccountId: "treasury-1",
         amountCents: 1230,
         paidAt: "2026-02-11",
         method: "BANK_TRANSFER",
@@ -197,17 +235,24 @@ test("MF1 integracao: recebimentos e pagamentos preservam empresa ativa e audito
 
     assert.equal(receipt.companyId, "company-1");
     assert.equal(receipt.saleDocumentId, "sale-1");
+    assert.equal(receipt.treasuryAccountId, "treasury-1");
     assert.equal(payment.companyId, "company-1");
     assert.equal(payment.purchaseDocumentId, "purchase-1");
+    assert.equal(payment.treasuryAccountId, "treasury-1");
     assert.equal(saleDocument.status, "SETTLED");
     assert.equal(saleDocument.amountPaidCents, 2460);
-    assert.equal(purchaseDocument.status, "APPROVED");
+    assert.equal(purchaseDocument.status, "PAID");
     assert.equal(purchaseDocument.amountPaidCents, 1230);
     assert.equal(receipts.length, 1);
     assert.equal(payments.length, 1);
+    assert.equal(treasuryAccount.currentBalanceCents, 6230);
     assert.deepEqual(
         auditEntries.map((entry) => entry.action),
         ["RECEIPT_REGISTERED", "PAYMENT_REGISTERED"],
+    );
+    assert.deepEqual(
+        auditEntries.map((entry) => entry.details.resultingTreasuryBalanceCents),
+        [7460, 6230],
     );
     assert.deepEqual(
         retentionHolds.map((hold) => hold.entity).sort(),
@@ -229,6 +274,7 @@ test("MF1 negativo: companyId errado nao liquida documento de outra empresa", as
     await assert.rejects(
         () =>
             registerReceipt(prisma, "company-2", "user-1", "sale-1", {
+                treasuryAccountId: "treasury-1",
                 amountCents: 100,
                 receivedAt: "2026-02-10",
                 method: "BANK_TRANSFER",

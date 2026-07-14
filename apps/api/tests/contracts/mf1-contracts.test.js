@@ -3,6 +3,7 @@
  */
 
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 import {
     hasPermission,
@@ -33,6 +34,22 @@ const session = {
         isActive: true,
     },
 };
+
+test("MF1: migration liga movimentos à tesouraria sem alterar dados históricos", () => {
+    const migration = readFileSync(
+        new URL(
+            "../../prisma/migrations/20260713120000_treasury_movements/migration.sql",
+            import.meta.url,
+        ),
+        "utf8",
+    );
+
+    assert.match(migration, /ALTER TABLE "Receipt" ADD COLUMN "treasuryAccountId" TEXT;/);
+    assert.match(migration, /ALTER TABLE "Payment" ADD COLUMN "treasuryAccountId" TEXT;/);
+    assert.match(migration, /Receipt_treasuryAccountId_fkey[\s\S]+ON DELETE RESTRICT/);
+    assert.match(migration, /Payment_treasuryAccountId_fkey[\s\S]+ON DELETE RESTRICT/);
+    assert.doesNotMatch(migration, /"treasuryAccountId" TEXT NOT NULL/);
+});
 
 /**
  * Cria um mock Prisma com permissões específicas para validar contratos de autorização.
@@ -194,6 +211,7 @@ test("MF1 HTTP: pagamento em compra rascunho devolve regra de estado", async () 
         path: "/purchase-1/payments",
         cookie: "sid=session-1",
         body: {
+            treasuryAccountId: "treasury-1",
             amountCents: 1000,
             paidAt: "2026-02-10",
             method: "BANK_TRANSFER",

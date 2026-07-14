@@ -4,6 +4,16 @@ Esta infraestrutura cria dados exclusivamente locais/de teste e está bloqueada 
 
 ## Comandos
 
+Na raiz do repositório, o percurso completo recomendado é:
+
+```bash
+npm --prefix real_dev/api run db:local:setup
+```
+
+O comando arranca o PostgreSQL de desenvolvimento, aplica todas as migrations,
+cria a seed demo e executa a verificação. Dentro de `real_dev/api`, os comandos
+granulares continuam disponíveis:
+
 ```bash
 npm run db:seed
 npm run db:seed:demo
@@ -46,8 +56,36 @@ Depois de selecionar a empresa:
 7. Em lançamentos manuais, descarregar o PDF privado criado e validado pelo seed.
 8. Trocar de empresa para demonstrar subscrições ativa mensal/anual, cancelada, expirada e inexistente.
 
+Os recebimentos e pagamentos demonstrativos ficam associados às contas de
+tesouraria da respetiva empresa e os saldos são verificados. Esta associação é
+apenas da seed: a migration mantém `treasuryAccountId=null` nos movimentos
+históricos, porque não existe informação segura para escolher uma conta.
+
+Antes da seed, a migration fiscal sincroniza `Company.nif` a partir de
+`CompanyProfile.nif`, a fonte canónica. Se o NIF canónico já pertencer a outra
+empresa, a migration aborta sem apagar nem adivinhar dados; a colisão deve ser
+resolvida manualmente antes de repetir `db:local:setup`.
+
 ## Perfis e integrações
 
 O perfil `demo` privilegia coerência de domínio e workflows acionáveis. O perfil `load` usa escrita bulk validada e, no tamanho `medium`, cria 1 000 clientes, 300 fornecedores, 2 000 artigos, 8 000 documentos, 20 000 movimentos e 5 000 logs.
 
-O object storage é exercitado de forma real, incluindo escrita, leitura e remoção de um objeto efémero. SAF-T, SMTP e Redis nunca são falsificados: o verificador apresenta `PASS`, `SKIPPED_EXTERNAL_PREREQUISITE` ou `FAIL_EXTERNAL_PREREQUISITE` conforme a evidência disponível. Os probes SMTP e Redis só são executados quando as respetivas variáveis de ambiente foram configuradas explicitamente.
+O adapter de storage ativo é exercitado com escrita, leitura e remoção de um
+objeto efémero. Na demo, Redis é substituído explicitamente pelo rate limiter
+local e o email é marcado `SIMULATED`; não se declara que houve Redis ou SMTP
+real. O verificador apresenta `PASS`, `SKIPPED_EXTERNAL_PREREQUISITE` ou
+`FAIL_EXTERNAL_PREREQUISITE` conforme a evidência disponível. Os probes de
+providers externos só são executados quando foram configurados explicitamente.
+
+## Ciclo de vida da base local
+
+```bash
+npm --prefix real_dev/api run db:local:status
+npm --prefix real_dev/api run db:local:logs
+npm --prefix real_dev/api run db:local:stop
+```
+
+`db:local:stop` preserva o volume. Para voltar deliberadamente a uma base vazia,
+usa `npm --prefix real_dev/api run db:local:reset -- --confirm=opsa_dev`; este
+comando remove apenas o volume local da OPSA e volta a aplicar migrations,
+seed e verificação. Nunca deve ser usado sobre uma base externa.

@@ -9,10 +9,13 @@ import { pathToFileURL } from "node:url";
 import express from "express";
 import { PrismaClient } from "@prisma/client";
 import { createClient } from "redis";
-import { loadApiEnv } from "./config/env.js";
+import { assertApiStartupEnv, loadApiEnv } from "./config/env.js";
 import { loadLocalEnvFile } from "./config/envFile.js";
 import { buildAuthRoutes } from "./modules/auth/authRoutes.js";
-import { createRedisRateLimiter } from "./modules/auth/redisRateLimit.js";
+import {
+    createLocalRateLimiter,
+    createRedisRateLimiter,
+} from "./modules/auth/redisRateLimit.js";
 import { buildPermissionsRoutes } from "./modules/permissions/permissionsRoutes.js";
 import { buildCompanyRoutes } from "./modules/companies/companyRoutes.js";
 import { buildCompanyUserRoutes } from "./modules/company-users/companyUserRoutes.js";
@@ -51,6 +54,7 @@ import { buildAiRoutes } from "./modules/ai/aiRoutes.js";
 import { buildReminderRoutes } from "./modules/reminders/reminderRoutes.js";
 import { buildOperationalTaskRoutes } from "./modules/tasks/taskRoutes.js";
 import { buildNotificationRoutes } from "./modules/notifications/notificationRoutes.js";
+import { buildDemoEmailInboxRoutes } from "./modules/demo-email-inbox/demoEmailInboxRoutes.js";
 import { createEmailOutbox } from "./runtimeDependencies.js";
 import { buildAuditLogRoutes } from "./modules/audit/auditLogRoutes.js";
 import { buildIntegrationLogRoutes } from "./modules/integrations/integrationLogRoutes.js";
@@ -76,11 +80,102 @@ import {
 } from "./modules/ops/structuredLogger.js";
 
 const API_VERSION = "1.0.0";
+const STARTUP_FAILURES = Object.freeze({
+    configuration: Object.freeze({
+        code: "CONFIGURATION_INVALID",
+        message: "Configuração inválida. Confirma a variável indicada e executa npm run config:check.",
+    }),
+    postgresql: Object.freeze({
+        code: "POSTGRESQL_UNAVAILABLE",
+        message: "PostgreSQL indisponível. Confirma DATABASE_URL, o serviço local e as migrations.",
+    }),
+    redis: Object.freeze({
+        code: "REDIS_UNAVAILABLE",
+        message: "Redis indisponível. Confirma REDIS_URL e se o serviço local está em execução.",
+    }),
+    storage: Object.freeze({
+        code: "STORAGE_UNAVAILABLE",
+        message: "Storage indisponível. Na demo, remove opções S3 e confirma OPSA_PRIVATE_STORAGE_ROOT.",
+    }),
+    listener: Object.freeze({
+        code: "LISTENER_UNAVAILABLE",
+        message: "A API não conseguiu abrir o listener. Confirma PORT e se a porta já está ocupada.",
+    }),
+    bootstrap: Object.freeze({
+        code: "BOOTSTRAP_FAILED",
+        message: "A composição da API falhou antes do arranque. Executa npm run config:check e consulta os logs.",
+    }),
+});
+const SAFE_CONFIG_NAMES = Object.freeze([
+    "NODE_ENV",
+    "PORT",
+    "APP_BASE_URL",
+    "DATABASE_URL",
+    "REDIS_PROVIDER",
+    "REDIS_URL",
+    "REDIS_KEY_PREFIX",
+    "RATE_LIMIT_HMAC_KEY",
+    "EMAIL_OUTBOX_ENCRYPTION_KEY",
+    "DEMO_EMAIL_INBOX_ACCESS_KEY",
+    "EMAIL_PROVIDER",
+    "AI_CHAT_ENABLED",
+    "AI_PROVIDER_MODE",
+    "AI_CHAT_ENCRYPTION_KEY",
+    "OPENAI_API_KEY",
+    "OPENAI_MODEL",
+    "SMTP_HOST",
+    "SMTP_PORT",
+    "SMTP_USER",
+    "SMTP_PASSWORD",
+    "STORAGE_PROVIDER",
+    "S3_ENDPOINT",
+    "S3_REGION",
+    "S3_BUCKET",
+    "S3_SSE",
+]);
+
+/**
+ * Produz um erro de arranque acionável sem copiar mensagens de providers, URLs,
+ * credenciais ou payloads para os logs.
+ *
+ * @param {unknown} error - Erro original, mantido apenas no fluxo interno.
+ * @returns {{ event: string, code: string, stage: string, configuration?: string, message: string }} Evento seguro.
+ */
+export function formatStartupFailure(error) {
+    const stage = Object.hasOwn(STARTUP_FAILURES, error?.startupStage)
+        ? error.startupStage
+        : "bootstrap";
+    const failure = STARTUP_FAILURES[stage];
+    const sourceMessage = typeof error?.message === "string" ? error.message : "";
+    const configuration =
+        stage === "configuration"
+            ? SAFE_CONFIG_NAMES.find((name) => sourceMessage.includes(name))
+            : undefined;
+    return {
+        event: "api.start_failed",
+        code: failure.code,
+        stage,
+        ...(configuration ? { configuration } : {}),
+        message: failure.message,
+    };
+}
+
+/** Associa apenas a fase segura ao erro original, preservando o seu tipo/código. */
+function tagStartupError(error, startupStage) {
+    const tagged = error instanceof Error ? error : new Error("Falha de arranque.");
+    if (!tagged.startupStage) {
+        Object.defineProperty(tagged, "startupStage", {
+            value: startupStage,
+            configurable: true,
+        });
+    }
+    return tagged;
+}
 
 /**
  * Compõe a aplicação HTTP sem efeitos laterais de infraestrutura.
  *
- * @param {{ prisma: object, apiEnv: object, rateLimiter: object, emailOutbox: object, redisClient: object, objectStorage: object, saftExternalPipeline?: { validate?: Function, generateAndValidate?: Function } | null }} deps - Dependências já configuradas.
+ * @param {{ prisma: object, apiEnv: object, rateLimiter: object, emailOutbox: object, redisClient?: object | null, objectStorage: object, saftExternalPipeline?: { validate?: Function, generateAndValidate?: Function } | null, environment?: NodeJS.ProcessEnv | Record<string, string | undefined> }} deps - Dependências já configuradas.
  * @returns {import("express").Express} Aplicação Express.
  */
 export function createApp({
@@ -91,10 +186,11 @@ export function createApp({
     redisClient,
     objectStorage,
     saftExternalPipeline = null,
+    environment = process.env,
 }) {
-    if (!prisma || !rateLimiter || !emailOutbox || !redisClient || !objectStorage) {
+    if (!prisma || !rateLimiter || !emailOutbox || !objectStorage) {
         throw new TypeError(
-            "Prisma, Redis, object storage, rate limiter e EmailOutbox são obrigatórios.",
+            "Prisma, object storage, rate limiter e EmailOutbox são obrigatórios.",
         );
     }
     const app = express();
@@ -115,11 +211,23 @@ export function createApp({
             version: API_VERSION,
             prisma,
             redisClient,
-            redisKeyPrefix: apiEnv.redisKeyPrefix,
+            redisMode: apiEnv.providers?.redis ?? (redisClient ? "redis" : "local"),
             objectStorage,
+            isProduction,
             aiConfig: apiEnv.ai,
         }),
     );
+    if (apiEnv.demoEmailInbox?.enabled) {
+        app.use(
+            "/api/demo",
+            buildDemoEmailInboxRoutes({
+                prisma,
+                rateLimiter,
+                accessKey: apiEnv.demoEmailInbox.accessKey,
+                encryptionKey: apiEnv.emailOutboxEncryptionKey,
+            }),
+        );
+    }
     app.use("/api/auth", buildAuthRoutes({
         prisma,
         isProduction,
@@ -174,6 +282,7 @@ export function createApp({
             prisma,
             objectStorage,
             externalPipeline: saftExternalPipeline,
+            env: environment,
         }),
     );
     app.use("/api/reports", buildOperationalReportRoutes({ prisma }));
@@ -236,7 +345,7 @@ export async function closeHttpServer(server, options = {}) {
 /**
  * Liga dependências operacionais e só depois abre o socket HTTP.
  *
- * @param {{ env?: NodeJS.ProcessEnv, logger?: Console, registerSignalHandlers?: boolean, shutdownTimeoutMs?: number, saftExternalPipeline?: { validate?: Function, generateAndValidate?: Function } | null }} options - Opções de processo/teste. O validador SAF-T é injetado explicitamente; sem ele o exportador permanece fail-closed.
+ * @param {{ env?: NodeJS.ProcessEnv, logger?: Console, registerSignalHandlers?: boolean, shutdownTimeoutMs?: number, saftExternalPipeline?: { validate?: Function, generateAndValidate?: Function } | null, runtime?: { prisma?: object, redisClient?: object, objectStorage?: object, rateLimiter?: object, emailOutbox?: object, listen?: Function } }} options - Opções de processo/teste. O validador SAF-T é injetado explicitamente; sem ele o exportador permanece fail-closed. `runtime` permite doubles focados sem alterar o caminho normal.
  * @returns {Promise<object>} Recursos e função idempotente de encerramento.
  */
 export async function startServer({
@@ -245,29 +354,59 @@ export async function startServer({
     registerSignalHandlers = true,
     shutdownTimeoutMs = 10_000,
     saftExternalPipeline = null,
+    runtime = {},
 } = {}) {
-    loadLocalEnvFile();
-    const apiEnv = loadApiEnv(env);
-    if (!apiEnv.emailOutboxEncryptionKey) {
-        throw new Error("EMAIL_OUTBOX_ENCRYPTION_KEY é obrigatória.");
-    }
-    const prisma = new PrismaClient();
-    const redisClient = createClient({ url: apiEnv.redisUrl });
-    const objectStorage = createObjectStorage(env);
-    redisClient.on("error", () => logger.error({ event: "redis.connection_error" }));
+    let startupStage = "configuration";
+    let prisma;
+    let redisClient;
+    let objectStorage;
     let server;
     let stopped = false;
     try {
-        await redisClient.connect();
+        if (env === process.env) loadLocalEnvFile();
+        const apiEnv = loadApiEnv(env);
+        assertApiStartupEnv(apiEnv);
+        startupStage = "bootstrap";
+        prisma = runtime.prisma ?? new PrismaClient();
+        redisClient =
+            apiEnv.providers.redis === "redis"
+                ? runtime.redisClient ?? createClient({ url: apiEnv.redisUrl })
+                : null;
+        startupStage = "configuration";
+        objectStorage =
+            runtime.objectStorage ??
+            createObjectStorage(env, { provider: apiEnv.providers.storage });
+        redisClient?.on?.("error", () =>
+            logger.error({ event: "redis.connection_error" }),
+        );
+
+        startupStage = "postgresql";
+        await prisma.$connect();
+        if (redisClient) {
+            startupStage = "redis";
+            await redisClient.connect();
+        }
+        startupStage = "storage";
         await objectStorage.checkHealth();
-        const rateLimiter = createRedisRateLimiter({
-            client: redisClient,
-            prefix: `${apiEnv.redisKeyPrefix}:auth-rate-limit`,
-            hmacKey: apiEnv.rateLimitHmacKey,
-        });
-        const emailOutbox = createEmailOutbox({
-            encryptionKey: apiEnv.emailOutboxEncryptionKey,
-        });
+        startupStage = "bootstrap";
+        const rateLimiter =
+            runtime.rateLimiter ??
+            (apiEnv.providers.redis === "redis"
+                ? createRedisRateLimiter({
+                      client: redisClient,
+                      prefix: `${apiEnv.redisKeyPrefix}:auth-rate-limit`,
+                      hmacKey: apiEnv.rateLimitHmacKey,
+                  })
+                : createLocalRateLimiter({
+                      nodeEnv: apiEnv.nodeEnv,
+                      prefix: `${apiEnv.redisKeyPrefix}:auth-rate-limit`,
+                      hmacKey: apiEnv.rateLimitHmacKey,
+                  }));
+        const emailOutbox =
+            runtime.emailOutbox ??
+            createEmailOutbox({
+                encryptionKey: apiEnv.emailOutboxEncryptionKey,
+            });
         const app = createApp({
             prisma,
             apiEnv,
@@ -276,11 +415,15 @@ export async function startServer({
             redisClient,
             objectStorage,
             saftExternalPipeline,
+            environment: env,
         });
-        server = await new Promise((resolve, reject) => {
-            const listener = app.listen(apiEnv.port, () => resolve(listener));
-            listener.once("error", reject);
-        });
+        startupStage = "listener";
+        server = runtime.listen
+            ? await runtime.listen(app, apiEnv.port)
+            : await new Promise((resolve, reject) => {
+                  const listener = app.listen(apiEnv.port, () => resolve(listener));
+                  listener.once("error", reject);
+              });
         const startupEvent = createStructuredLogEvent({
             level: "info",
             event: "api.started",
@@ -294,7 +437,7 @@ export async function startServer({
             if (stopped) return;
             stopped = true;
             await closeHttpServer(server, { timeoutMs: shutdownTimeoutMs });
-            if (redisClient.isOpen) await redisClient.quit();
+            if (redisClient?.isOpen) await redisClient.quit();
             await prisma.$disconnect();
         }
         if (registerSignalHandlers) {
@@ -324,9 +467,9 @@ export async function startServer({
         if (server?.listening) {
             await closeHttpServer(server, { timeoutMs: shutdownTimeoutMs });
         }
-        if (redisClient.isOpen) await redisClient.quit();
-        await prisma.$disconnect();
-        throw error;
+        if (redisClient?.isOpen) await redisClient.quit().catch(() => undefined);
+        if (prisma) await prisma.$disconnect().catch(() => undefined);
+        throw tagStartupError(error, startupStage);
     }
 }
 
@@ -334,7 +477,7 @@ const isDirectExecution =
     process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url;
 if (isDirectExecution) {
     startServer().catch((error) => {
-        console.error({ event: "api.start_failed", code: error?.code ?? "START_FAILED" });
+        console.error(formatStartupFailure(error));
         process.exitCode = 1;
     });
 }

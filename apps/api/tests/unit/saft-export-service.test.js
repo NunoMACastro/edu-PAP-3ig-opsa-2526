@@ -13,6 +13,7 @@ import {
     createSaftExport,
     getSaftExportDownload,
     getSaftExportMetadata,
+    normalizeSaftValidationMode,
 } from "../../src/modules/compliance/saftService.js";
 import {
     SAFT_NAMESPACE,
@@ -116,13 +117,14 @@ function buildCreationFixture() {
     return { prisma, createdRuns, integrationLogs, retentionHolds, auditLogs };
 }
 
-function creationInput(featureFlag = true) {
+function creationInput(featureFlag = true, validationMode = "external") {
     return {
         companyId: "company-1",
         userId: "user-1",
         type: "FULL",
         fiscalPeriodId: "period-1",
         featureFlag,
+        validationMode,
     };
 }
 
@@ -150,6 +152,53 @@ test("SAF-T exige pipeline externo mesmo com a flag ligada", async () => {
             }, creationInput(true)),
         { code: "SAFT_EXTERNAL_VALIDATION_REQUIRED", status: 503 },
     );
+});
+
+test("modo académico é explícito e proibido em produção", () => {
+    assert.equal(normalizeSaftValidationMode("academic", false), "ACADEMIC");
+    assert.equal(normalizeSaftValidationMode(undefined, false), "EXTERNAL");
+    assert.throws(
+        () => normalizeSaftValidationMode("academic", true),
+        { code: "SAFT_ACADEMIC_MODE_FORBIDDEN", status: 503 },
+    );
+    assert.throws(
+        () => normalizeSaftValidationMode("inventado", false),
+        { code: "SAFT_VALIDATION_MODE_INVALID", status: 503 },
+    );
+});
+
+test("SAF-T académico gera XML marcado sem fingir XSD ou revisão externa", async () => {
+    const { prisma, createdRuns, auditLogs, integrationLogs } = buildCreationFixture();
+    let stored;
+    const result = await createSaftExport(
+        prisma,
+        {
+            putBuffer: async (input) => {
+                stored = input;
+                return { key: input.key, sizeBytes: input.buffer.length };
+            },
+            deleteObject: async () => undefined,
+        },
+        creationInput(true, "academic"),
+        { now: new Date("2027-01-03T12:00:00.000Z") },
+    );
+
+    assert.equal(result.status, "READY");
+    assert.equal(result.validationMode, "ACADEMIC");
+    assert.equal(result.certified, false);
+    assert.equal(result.downloadAvailable, true);
+    assert.match(result.fileName, /DEMO-NAO-CERTIFICADO/);
+    assert.match(stored.buffer.toString("latin1"), /DEMONSTRACAO ACADEMICA - NAO CERTIFICADO/);
+    assert.equal(stored.metadata["validation-mode"], "ACADEMIC");
+    assert.equal(stored.metadata.certified, "false");
+    assert.equal("schema-sha256" in stored.metadata, false);
+    assert.equal(createdRuns[0].xsdStatus, "NOT_VALIDATED");
+    assert.equal(createdRuns[0].totalsStatus, "VALID");
+    assert.equal(createdRuns[0].externalReviewStatus, "NOT_REVIEWED");
+    assert.equal(createdRuns[0].validationDetails.certified, false);
+    assert.equal(createdRuns[0].validationDetails.validator, null);
+    assert.equal(auditLogs[0].action, "SAFT_ACADEMIC_EXPORT_GENERATED");
+    assert.match(integrationLogs[0].message, /não certificado/);
 });
 
 test("SAF-T só persiste READY com XSD, reconciliação, auditoria e retenção atestados", async () => {
@@ -526,6 +575,58 @@ test("download READY exige metadata de integridade igual ao run", async () => {
     const downloaded = [];
     for await (const chunk of result.object.body) downloaded.push(chunk);
     assert.equal(Buffer.concat(downloaded).equals(artifact), true);
+});
+
+test("download académico só fica disponível enquanto o runtime continua académico", async () => {
+    const artifact = Buffer.from(
+        '<?xml version="1.0" encoding="Windows-1252"?>\n<!-- DEMONSTRACAO ACADEMICA - NAO CERTIFICADO --><AuditFile/>',
+        "latin1",
+    );
+    const run = {
+        id: "academic-export-1",
+        companyId: "company-1",
+        type: "FULL",
+        fiscalPeriodId: "period-1",
+        status: "READY",
+        exportedAt: new Date("2026-07-09T00:00:00.000Z"),
+        fileName: "saft-DEMO-NAO-CERTIFICADO.xml",
+        storageKey: "private/saft/company-1/academic-export-1.xml",
+        sha256: sha256Bytes(artifact),
+        sizeBytes: artifact.length,
+        xsdStatus: "NOT_VALIDATED",
+        totalsStatus: "VALID",
+        externalReviewStatus: "NOT_REVIEWED",
+        validationDetails: { validationMode: "ACADEMIC", certified: false },
+        completedAt: new Date("2026-07-09T00:01:00.000Z"),
+    };
+    const prisma = { saftExportRun: { findFirst: async () => run } };
+    const storage = {
+        getObject: async () => ({
+            body: Readable.from([artifact]),
+            contentLength: artifact.length,
+            contentType: "application/xml",
+            metadata: { sha256: run.sha256 },
+        }),
+    };
+
+    const academic = await getSaftExportDownload(prisma, storage, {
+        companyId: "company-1",
+        exportId: run.id,
+        featureFlag: true,
+        validationMode: "academic",
+    });
+    assert.equal(academic.export.downloadAvailable, true);
+    assert.equal(academic.export.certified, false);
+
+    await assert.rejects(
+        () => getSaftExportDownload(prisma, storage, {
+            companyId: "company-1",
+            exportId: run.id,
+            featureFlag: true,
+            validationMode: "external",
+        }),
+        { code: "SAFT_EXPORT_NOT_READY", status: 409 },
+    );
 });
 
 test("download READY recalcula SHA-256 dos bytes e rejeita conteúdo adulterado", async () => {

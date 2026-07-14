@@ -66,6 +66,15 @@ test("BK-MF8-01: bloqueia chaves sensiveis no contexto", () => {
         "headers",
         "iban",
         "nif",
+        "email",
+        "accessToken",
+        "refresh_token",
+        "prompt",
+        "aiResponse",
+        "stackTrace",
+        "financialPayload",
+        "recipientEmail",
+        "sessionToken",
     ];
 
     for (const key of blockedKeys) {

@@ -77,3 +77,28 @@ prova runtime exigida.
 ## Decisao
 
 Decisao final: `BLOQUEADO_AMBIENTE_E_VALIDACAO_EXTERNA`.
+
+## Apêndice posterior — reexecução de 2026-07-13
+
+Esta secção não altera os resultados históricos de 2026-07-10. Regista a
+execução posterior após introduzir PostgreSQL local isolado em Docker Compose.
+
+| Área | Resultado posterior observado | Decisão |
+| --- | --- | --- |
+| Docker/Compose | Docker `29.6.1`, Compose `v5.2.0`, config PASS | `OK` |
+| PostgreSQL | imagem `postgres:17.10-alpine3.23`, digest `sha256:8189a1f6e40904781fc9e2612687877791d21679866db58b1de996b31fc312e4` | `OK_OBSERVADO` |
+| Setup | `SELECT 1` autenticado, `21` migrations, seed+verify e demo healthy em `127.0.0.1:5433` | `OK` |
+| Integração PostgreSQL | `11/11` PASS; seed/sentinela `1/1`, zero skips | `OK` |
+| Carga | `light` em `901 ms`; `medium` em `4485 ms` | `OK_LOCAL` |
+| Backup/restore | dump `429610` bytes; verify e roundtrip PASS; `21` migrations e `69` entidades/tabelas comparadas; cleanup | `OK_LOCAL` |
+| API | `407/407` unitários; `174/174` contratos; MF6/MF7/MF8 PASS | `OK` |
+| Web | `18` ficheiros/`55` testes; typecheck e build PASS | `OK` |
+| Browser normal | Playwright `25/25` em três viewports; seeded `3/3` | `OK` |
+| Dependências | npm audit API/web: `0` vulnerabilidades | `OK` |
+| Integração externa | executada e fail-closed sem base remota, Redis e SMTP | `BLOQUEADO_AMBIENTE` |
+| Gate académico | parou no preflight com Node `24.11.1`, abaixo de `>=24.17` | `BLOQUEADO_TOOLCHAIN` |
+
+S3, SAF-T externo e a matriz adicional Chrome/Edge/Firefox continuam externos.
+Como o gate académico não passou o preflight, nenhuma fase posterior desse gate
+é apresentada como executada. Decisão posterior:
+`PASS_LOCAL_COM_BLOQUEIOS_EXTERNOS_E_TOOLCHAIN`.

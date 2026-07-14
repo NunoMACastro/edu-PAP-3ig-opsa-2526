@@ -15,6 +15,12 @@ const DEFAULT_RATE_LIMIT_HMAC_KEY = "development-only-rate-limit-key-32-bytes";
 const DEFAULT_SMTP_HOST = "127.0.0.1";
 const DEFAULT_SMTP_PORT = 1025;
 const DEFAULT_SMTP_FROM = "OPSA <no-reply@opsa.local>";
+const SUPPORTED_NODE_ENVS = new Set(["development", "test", "production"]);
+const SUPPORTED_REDIS_PROVIDERS = new Set(["local", "redis"]);
+const SUPPORTED_STORAGE_PROVIDERS = new Set(["local", "s3"]);
+const SUPPORTED_EMAIL_PROVIDERS = new Set(["simulated", "smtp"]);
+const ACADEMIC_COMPOSE_DATABASE_USER = "opsa_app";
+const ACADEMIC_COMPOSE_DATABASE_PASSWORD = "opsa-local-postgres-2026";
 
 /**
  * Le uma variavel com fallback explicito.
@@ -39,7 +45,8 @@ function readEnv(env, key, fallback = undefined) {
  * @returns {number} Porta normalizada.
  */
 function parsePort(value) {
-    const parsed = Number.parseInt(value ?? String(DEFAULT_PORT), 10);
+    const normalized = value ?? String(DEFAULT_PORT);
+    const parsed = /^\d+$/.test(normalized) ? Number(normalized) : Number.NaN;
     if (!Number.isInteger(parsed) || parsed < 1 || parsed > 65535) {
         throw new Error("PORT deve estar entre 1 e 65535.");
     }
@@ -54,7 +61,8 @@ function parsePort(value) {
  * @returns {number} Inteiro validado.
  */
 function parseBoundedInteger(value, options) {
-    const parsed = Number.parseInt(value ?? String(options.fallback), 10);
+    const normalized = value ?? String(options.fallback);
+    const parsed = /^\d+$/.test(normalized) ? Number(normalized) : Number.NaN;
     if (!Number.isInteger(parsed) || parsed < options.min || parsed > options.max) {
         throw new Error(`${options.name} deve estar entre ${options.min} e ${options.max}.`);
     }
@@ -76,6 +84,53 @@ function parseBoolean(value, fallback = false) {
 }
 
 /**
+ * Valida um URL sem devolver ou interpolar o valor recebido em mensagens.
+ *
+ * @param {string} value - URL já normalizado.
+ * @param {{ name: string, protocols: string[], allowCredentials?: boolean }} options - Contrato seguro.
+ * @returns {URL} URL validado.
+ */
+function parseConfiguredUrl(value, options) {
+    let parsed;
+    try {
+        parsed = new URL(value);
+    } catch {
+        throw new Error(`${options.name} deve ser um URL válido.`);
+    }
+    if (!options.protocols.includes(parsed.protocol)) {
+        throw new Error(
+            `${options.name} deve usar ${options.protocols.join(" ou ")}.`,
+        );
+    }
+    if (!options.allowCredentials && (parsed.username || parsed.password)) {
+        throw new Error(`${options.name} não pode conter credenciais.`);
+    }
+    return parsed;
+}
+
+/**
+ * Impede que marcadores e chaves demonstrativas de baixa entropia sejam
+ * reutilizados num processo production-like.
+ *
+ * @param {string | undefined} value - Segredo recebido por ambiente.
+ * @returns {boolean} `true` quando o valor é reconhecidamente demonstrativo.
+ */
+function isUnsafeProductionSecret(value) {
+    const normalized = String(value ?? "").trim();
+    if (!normalized) return true;
+    if (/(?:development|demo|test|replace|change)[-_ ]?only/i.test(normalized)) {
+        return true;
+    }
+    try {
+        const decoded = Buffer.from(normalized, "base64");
+        if (decoded.length === 32 && new Set(decoded).size < 4) return true;
+    } catch {
+        // A validação de formato específica pertence ao consumidor do segredo.
+    }
+    return false;
+}
+
+/**
  * Carrega configuracao operacional da API.
  *
  * @param {NodeJS.ProcessEnv | Record<string, string | undefined>} env - Ambiente fonte.
@@ -83,7 +138,44 @@ function parseBoolean(value, fallback = false) {
  */
 export function loadApiEnv(env = process.env) {
     const nodeEnv = readEnv(env, "NODE_ENV", "development");
+    if (!SUPPORTED_NODE_ENVS.has(nodeEnv)) {
+        throw new Error("NODE_ENV deve ser development, test ou production.");
+    }
     const isProduction = nodeEnv === "production";
+    const redisProvider = readEnv(
+        env,
+        "REDIS_PROVIDER",
+        isProduction ? "redis" : "local",
+    );
+    const storageProvider = readEnv(
+        env,
+        "STORAGE_PROVIDER",
+        isProduction ? "s3" : "local",
+    );
+    const emailProvider = readEnv(
+        env,
+        "EMAIL_PROVIDER",
+        isProduction ? "smtp" : "simulated",
+    );
+    if (!SUPPORTED_REDIS_PROVIDERS.has(redisProvider)) {
+        throw new Error("REDIS_PROVIDER deve ser local ou redis.");
+    }
+    if (!SUPPORTED_STORAGE_PROVIDERS.has(storageProvider)) {
+        throw new Error("STORAGE_PROVIDER deve ser local ou s3.");
+    }
+    if (!SUPPORTED_EMAIL_PROVIDERS.has(emailProvider)) {
+        throw new Error("EMAIL_PROVIDER deve ser simulated ou smtp.");
+    }
+    if (
+        isProduction &&
+        (redisProvider !== "redis" ||
+            storageProvider !== "s3" ||
+            emailProvider !== "smtp")
+    ) {
+        throw new Error(
+            "Produção exige REDIS_PROVIDER=redis, STORAGE_PROVIDER=s3 e EMAIL_PROVIDER=smtp.",
+        );
+    }
     const appBaseUrl = readEnv(env, "APP_BASE_URL", DEFAULT_APP_BASE_URL);
     const databaseUrl = readEnv(env, "DATABASE_URL");
     const redisUrl = readEnv(env, "REDIS_URL", DEFAULT_REDIS_URL);
@@ -94,6 +186,16 @@ export function loadApiEnv(env = process.env) {
         DEFAULT_RATE_LIMIT_HMAC_KEY,
     );
     const emailOutboxEncryptionKey = readEnv(env, "EMAIL_OUTBOX_ENCRYPTION_KEY");
+    const demoEmailInboxAccessKey = readEnv(env, "DEMO_EMAIL_INBOX_ACCESS_KEY");
+    const saftExportEnabled = parseBoolean(
+        readEnv(env, "SAFT_EXPORT_ENABLED"),
+        false,
+    );
+    const saftValidationMode = readEnv(
+        env,
+        "SAFT_VALIDATION_MODE",
+        "external",
+    ).toLowerCase();
     const smtpHost = readEnv(env, "SMTP_HOST", DEFAULT_SMTP_HOST);
     const smtpFrom = readEnv(env, "EMAIL_FROM", DEFAULT_SMTP_FROM);
     const smtpUser = readEnv(env, "SMTP_USER");
@@ -131,15 +233,39 @@ export function loadApiEnv(env = process.env) {
         throw new Error("AI_CHAT_ENCRYPTION_KEY não pode reutilizar a chave da outbox de email.");
     }
 
-    if (!appBaseUrl) {
-        throw new Error("APP_BASE_URL e obrigatorio.");
+    let database = null;
+    if (databaseUrl) {
+        database = parseConfiguredUrl(databaseUrl, {
+            name: "DATABASE_URL",
+            protocols: ["postgresql:", "postgres:"],
+            allowCredentials: true,
+        });
+        if (!database.hostname || !database.pathname || database.pathname === "/") {
+            throw new Error("DATABASE_URL deve indicar host e base de dados.");
+        }
     }
-    const appUrl = new URL(appBaseUrl);
+    if (
+        isProduction &&
+        database &&
+        decodeURIComponent(database.username) === ACADEMIC_COMPOSE_DATABASE_USER &&
+        decodeURIComponent(database.password) === ACADEMIC_COMPOSE_DATABASE_PASSWORD
+    ) {
+        throw new Error(
+            "As credenciais PostgreSQL académicas do Docker Compose não são permitidas em produção.",
+        );
+    }
+    const appUrl = parseConfiguredUrl(appBaseUrl, {
+        name: "APP_BASE_URL",
+        protocols: ["http:", "https:"],
+    });
     if (isProduction && appUrl.protocol !== "https:") {
         throw new Error("APP_BASE_URL deve usar HTTPS em producao.");
     }
     if (isProduction && !databaseUrl) {
-        throw new Error("DATABASE_URL e obrigatorio em producao.");
+        throw new Error("DATABASE_URL é obrigatória em produção.");
+    }
+    if (isProduction && !emailOutboxEncryptionKey) {
+        throw new Error("EMAIL_OUTBOX_ENCRYPTION_KEY é obrigatória em produção.");
     }
     if (isProduction && !readEnv(env, "REDIS_URL")) {
         throw new Error("REDIS_URL e obrigatorio em producao.");
@@ -152,24 +278,57 @@ export function loadApiEnv(env = process.env) {
             "REDIS_KEY_PREFIX e RATE_LIMIT_HMAC_KEY sao obrigatorios em producao.",
         );
     }
-    if (isProduction && !emailOutboxEncryptionKey) {
-        throw new Error("EMAIL_OUTBOX_ENCRYPTION_KEY e obrigatoria em producao.");
-    }
     if (isProduction && aiChatEnabledRaw === undefined) {
         throw new Error("AI_CHAT_ENABLED é obrigatória em produção.");
     }
     if (isProduction && (!readEnv(env, "SMTP_HOST") || !readEnv(env, "EMAIL_FROM"))) {
         throw new Error("SMTP_HOST e EMAIL_FROM sao obrigatorios em producao.");
     }
-    const redisProtocol = new URL(redisUrl).protocol;
-    if (redisProtocol !== "redis:" && redisProtocol !== "rediss:") {
-        throw new Error("REDIS_URL deve usar redis:// ou rediss://.");
-    }
+    parseConfiguredUrl(redisUrl, {
+        name: "REDIS_URL",
+        protocols: ["redis:", "rediss:"],
+        allowCredentials: true,
+    });
     if (Boolean(smtpUser) !== Boolean(smtpPassword)) {
         throw new Error("SMTP_USER e SMTP_PASSWORD devem ser configurados em conjunto.");
     }
+    if (demoEmailInboxAccessKey && demoEmailInboxAccessKey.length < 12) {
+        throw new Error(
+            "DEMO_EMAIL_INBOX_ACCESS_KEY deve ter pelo menos 12 caracteres.",
+        );
+    }
+    if (isProduction && demoEmailInboxAccessKey) {
+        throw new Error(
+            "DEMO_EMAIL_INBOX_ACCESS_KEY não é permitida em produção.",
+        );
+    }
+    if (demoEmailInboxAccessKey && emailProvider !== "simulated") {
+        throw new Error(
+            "DEMO_EMAIL_INBOX_ACCESS_KEY exige EMAIL_PROVIDER=simulated.",
+        );
+    }
+    if (!["academic", "external"].includes(saftValidationMode)) {
+        throw new Error(
+            "SAFT_VALIDATION_MODE deve ser academic ou external.",
+        );
+    }
+    if (isProduction && saftValidationMode === "academic") {
+        throw new Error(
+            "SAFT_VALIDATION_MODE=academic não é permitido em produção.",
+        );
+    }
     if (isProduction && !smtpSecure && !smtpRequireTls) {
         throw new Error("SMTP deve exigir TLS em producao.");
+    }
+    if (
+        isProduction &&
+        (isUnsafeProductionSecret(rateLimitHmacKey) ||
+            isUnsafeProductionSecret(emailOutboxEncryptionKey) ||
+            (aiChatEnabled && isUnsafeProductionSecret(aiChatEncryptionKey)))
+    ) {
+        throw new Error(
+            "Chaves demonstrativas não são permitidas em produção.",
+        );
     }
 
     return {
@@ -187,7 +346,20 @@ export function loadApiEnv(env = process.env) {
         redisUrl,
         redisKeyPrefix,
         rateLimitHmacKey,
+        providers: {
+            redis: redisProvider,
+            storage: storageProvider,
+            email: emailProvider,
+        },
         emailOutboxEncryptionKey,
+        demoEmailInbox: {
+            enabled: Boolean(demoEmailInboxAccessKey),
+            accessKey: demoEmailInboxAccessKey ?? null,
+        },
+        saft: {
+            enabled: saftExportEnabled,
+            validationMode: saftValidationMode,
+        },
         notificationWorker: {
             intervalMs: parseBoundedInteger(
                 readEnv(env, "NOTIFICATION_WORKER_INTERVAL_MS"),
@@ -259,4 +431,22 @@ export function loadApiEnv(env = process.env) {
             from: smtpFrom,
         },
     };
+}
+
+/**
+ * Valida o subconjunto obrigatório para abrir a API. Mantém `loadApiEnv`
+ * reutilizável por workers e testes com dependências injetadas.
+ *
+ * @param {{ databaseUrlConfigured?: boolean, emailOutboxEncryptionKey?: string }} apiEnv - Configuração normalizada.
+ * @returns {void}
+ */
+export function assertApiStartupEnv(apiEnv) {
+    if (!apiEnv?.databaseUrlConfigured) {
+        throw new Error("DATABASE_URL é obrigatória para arrancar a API.");
+    }
+    if (!apiEnv.emailOutboxEncryptionKey) {
+        throw new Error(
+            "EMAIL_OUTBOX_ENCRYPTION_KEY é obrigatória para arrancar a API.",
+        );
+    }
 }

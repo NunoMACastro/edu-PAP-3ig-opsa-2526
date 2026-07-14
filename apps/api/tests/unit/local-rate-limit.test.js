@@ -4,7 +4,10 @@
 
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createLocalRateLimiter } from "../../src/modules/auth/redisRateLimit.js";
+import {
+    createLocalRateLimiter,
+    createRedisRateLimiter,
+} from "../../src/modules/auth/redisRateLimit.js";
 
 const HMAC_KEY = "local-test-key-with-at-least-thirty-two-bytes";
 
@@ -51,4 +54,30 @@ test("fallback local guarda apenas chave HMAC, aplica TTL e permite reset", asyn
         count: 1,
         remaining: 1,
     });
+});
+
+test("falha Redis em production-like não abre bypass de rate limit", async () => {
+    const limiter = createRedisRateLimiter({
+        hmacKey: HMAC_KEY,
+        client: {
+            async eval() {
+                throw new Error("Redis indisponível");
+            },
+            async del() {
+                throw new Error("Redis indisponível");
+            },
+        },
+    });
+
+    await assert.rejects(
+        limiter.consume("login-account", "user@example.test", {
+            limit: 5,
+            windowMs: 60_000,
+        }),
+        { code: "RATE_LIMIT_UNAVAILABLE", status: 503 },
+    );
+    await assert.rejects(
+        limiter.reset("login-account", "user@example.test"),
+        { code: "RATE_LIMIT_UNAVAILABLE", status: 503 },
+    );
 });

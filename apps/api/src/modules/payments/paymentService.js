@@ -15,7 +15,7 @@ const methods = new Set(["CASH", "BANK_TRANSFER", "CARD", "OTHER"]);
  * Valida payload de pagamento.
  *
  * @param {unknown} input - Payload JSON.
- * @returns {{ amountCents: number, paidAt: Date, method: string, reference: string | null, notes: string | null }} Pagamento validado.
+ * @returns {{ treasuryAccountId: string, amountCents: number, paidAt: Date, method: string, reference: string | null, notes: string | null }} Pagamento validado.
  */
 function parsePaymentInput(input) {
     if (!input || typeof input !== "object") {
@@ -23,6 +23,7 @@ function parsePaymentInput(input) {
     }
 
     const amountCents = Number(input.amountCents);
+    const treasuryAccountId = String(input.treasuryAccountId ?? "").trim();
     const paidAt = parseStrictDateOnly(input.paidAt, {
         code: "INVALID_DATE",
         field: "Data de pagamento",
@@ -32,11 +33,19 @@ function parsePaymentInput(input) {
     if (!Number.isInteger(amountCents) || amountCents <= 0) {
         throw httpError(400, "INVALID_AMOUNT", "Valor pago inválido");
     }
+    if (!treasuryAccountId) {
+        throw httpError(
+            400,
+            "TREASURY_ACCOUNT_REQUIRED",
+            "Conta de tesouraria obrigatória",
+        );
+    }
     if (!methods.has(method)) {
         throw httpError(400, "INVALID_METHOD", "Método de pagamento inválido");
     }
 
     return {
+        treasuryAccountId,
         amountCents,
         paidAt,
         method,
@@ -79,6 +88,13 @@ export async function registerPayment(
                 "Documento de compra não encontrado",
             );
         }
+        if (data.paidAt < document.issuedAt) {
+            throw httpError(
+                400,
+                "INVALID_PAYMENT_CHRONOLOGY",
+                "A data de pagamento não pode ser anterior à data do documento",
+            );
+        }
         if (document.kind === "SUPPLIER_CREDIT_NOTE") {
             throw httpError(
                 409,
@@ -106,6 +122,22 @@ export async function registerPayment(
             );
         }
 
+        const treasuryAccount = await tx.treasuryAccount.findFirst({
+            where: {
+                id: data.treasuryAccountId,
+                companyId,
+                isActive: true,
+            },
+            select: { id: true },
+        });
+        if (!treasuryAccount) {
+            throw httpError(
+                404,
+                "TREASURY_ACCOUNT_NOT_FOUND",
+                "Conta de tesouraria não encontrada",
+            );
+        }
+
         const nextPaid = document.amountPaidCents + data.amountCents;
         const updated = await tx.purchaseDocument.updateMany({
             where: {
@@ -116,6 +148,8 @@ export async function registerPayment(
             },
             data: {
                 amountPaidCents: { increment: data.amountCents },
+                status:
+                    nextPaid === document.totalCents ? "PAID" : document.status,
             },
         });
         if (updated.count !== 1) {
@@ -123,6 +157,36 @@ export async function registerPayment(
                 409,
                 "STALE_BALANCE",
                 "O saldo do documento foi alterado; tente novamente",
+            );
+        }
+
+
+        const accountUpdated = await tx.treasuryAccount.updateMany({
+            where: {
+                id: treasuryAccount.id,
+                companyId,
+                isActive: true,
+            },
+            data: {
+                currentBalanceCents: { decrement: data.amountCents },
+            },
+        });
+        if (accountUpdated.count !== 1) {
+            throw httpError(
+                409,
+                "TREASURY_ACCOUNT_UNAVAILABLE",
+                "A conta de tesouraria deixou de estar disponível; tente novamente",
+            );
+        }
+        const resultingAccount = await tx.treasuryAccount.findFirst({
+            where: { id: treasuryAccount.id, companyId },
+            select: { currentBalanceCents: true },
+        });
+        if (!resultingAccount) {
+            throw httpError(
+                409,
+                "TREASURY_ACCOUNT_UNAVAILABLE",
+                "A conta de tesouraria deixou de estar disponível; tente novamente",
             );
         }
 
@@ -146,8 +210,11 @@ export async function registerPayment(
             retentionReason: "PAYMENT_AUDIT_RETAINED",
             details: {
                 purchaseDocumentId,
+                treasuryAccountId: treasuryAccount.id,
                 amountCents: data.amountCents,
                 resultingAmountPaidCents: nextPaid,
+                resultingTreasuryBalanceCents:
+                    resultingAccount.currentBalanceCents,
             },
         });
 

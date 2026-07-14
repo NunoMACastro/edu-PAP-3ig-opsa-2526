@@ -1,9 +1,9 @@
 /**
  * @file Liveness e readiness reais da API OPSA.
  *
- * Liveness confirma apenas que o processo responde. Readiness testa as
- * dependências críticas sem revelar hosts, credenciais, nomes de bases ou
- * buckets. Cada prova tem timeout próprio para não pendurar o endpoint.
+ * Liveness confirma apenas que o processo responde. Readiness usa provas
+ * mínimas e read-only das dependências críticas, sem revelar configuração
+ * interna. As provas operacionais profundas ficam num comando explícito.
  */
 
 import { Prisma } from "@prisma/client";
@@ -30,7 +30,7 @@ function combineOperationalAndCleanupError(operationError, cleanupError, message
  * Executa uma prova com timeout e devolve apenas estado/duração seguros.
  *
  * @param {string} name - Nome público da dependência.
- * @param {() => Promise<unknown>} check - Prova assíncrona.
+ * @param {(signal: AbortSignal) => Promise<unknown>} check - Prova assíncrona.
  * @param {number} timeoutMs - Orçamento em milissegundos.
  * @returns {Promise<{name: string, status: "up" | "down", durationMs: number}>} Resultado seguro.
  */
@@ -82,6 +82,43 @@ async function timedDependencyCheck(name, check, timeoutMs) {
 }
 
 /**
+ * Confirma conectividade PostgreSQL com a query read-only mais barata.
+ *
+ * @param {object} prisma - PrismaClient já gerido pelo processo.
+ * @param {AbortSignal} [signal] - Sinal cooperativo de timeout.
+ * @returns {Promise<true>} Confirmação interna da prova.
+ */
+export async function checkPostgresReadiness(prisma, signal) {
+    throwIfAborted(signal);
+    if (typeof prisma?.$queryRaw !== "function") {
+        throw new TypeError("Prisma sem suporte a query de readiness.");
+    }
+    await prisma.$queryRaw(Prisma.sql`SELECT 1 AS "ready"`);
+    throwIfAborted(signal);
+    return true;
+}
+
+/**
+ * Confirma conectividade Redis sem criar, ler ou remover chaves.
+ *
+ * @param {object} redisClient - Cliente Redis já ligado.
+ * @param {AbortSignal} [signal] - Sinal cooperativo de timeout.
+ * @returns {Promise<true>} Confirmação interna da prova.
+ */
+export async function checkRedisReadiness(redisClient, signal) {
+    throwIfAborted(signal);
+    if (typeof redisClient?.ping !== "function") {
+        throw new TypeError("Cliente Redis sem suporte a PING.");
+    }
+    const pong = await redisClient.ping();
+    throwIfAborted(signal);
+    if (String(pong).toUpperCase() !== "PONG") {
+        throw new Error("Redis readiness sem PONG.");
+    }
+    return true;
+}
+
+/**
  * Cria o payload de liveness sem consultar serviços externos.
  *
  * @param {{ version: string, now?: Date }} options - Versão pública e relógio opcional.
@@ -113,7 +150,7 @@ export function buildLiveness(options) {
 export async function checkPostgresOperationalAccess(prisma, signal) {
     throwIfAborted(signal);
     if (typeof prisma?.$transaction !== "function") {
-        throw new TypeError("Prisma sem suporte transacional para readiness.");
+        throw new TypeError("Prisma sem suporte transacional para diagnóstico.");
     }
     await prisma.$transaction(async (transaction) => {
         throwIfAborted(signal);
@@ -121,7 +158,7 @@ export async function checkPostgresOperationalAccess(prisma, signal) {
             typeof transaction?.$executeRaw !== "function" ||
             typeof transaction?.$queryRaw !== "function"
         ) {
-            throw new TypeError("Transação Prisma incompleta para readiness.");
+            throw new TypeError("Transação Prisma incompleta para diagnóstico.");
         }
         await transaction.$executeRaw(Prisma.sql`SET TRANSACTION READ ONLY`);
         throwIfAborted(signal);
@@ -165,7 +202,7 @@ export async function checkPostgresOperationalAccess(prisma, signal) {
             permissions.canUpdate !== true ||
             permissions.canDelete !== true
         ) {
-            throw new Error("PostgreSQL readiness sem permissões operacionais.");
+            throw new Error("PostgreSQL sem permissões operacionais.");
         }
     });
     return true;
@@ -186,11 +223,11 @@ export async function checkRedisOperationalAccess(redisClient, keyPrefix, signal
         typeof redisClient?.get !== "function" ||
         typeof redisClient?.del !== "function"
     ) {
-        throw new TypeError("Cliente Redis incompleto para readiness.");
+        throw new TypeError("Cliente Redis incompleto para diagnóstico.");
     }
     const prefix = String(keyPrefix ?? "").trim();
     if (!prefix || prefix.length > 128 || /[\s\u0000-\u001f]/.test(prefix)) {
-        throw new TypeError("Prefixo Redis inválido para readiness.");
+        throw new TypeError("Prefixo Redis inválido para diagnóstico.");
     }
     const key = `${prefix}:health:${randomUUID()}`;
     const value = randomUUID();
@@ -236,9 +273,10 @@ export async function checkRedisOperationalAccess(redisClient, keyPrefix, signal
 }
 
 /**
- * Testa PostgreSQL, Redis e storage crítico em paralelo.
+ * Testa apenas as dependências compostas para o perfil ativo. As dependências
+ * opcionais são informativas e nunca tornam a instância indisponível.
  *
- * @param {{ prisma: object, redisClient: object, redisKeyPrefix: string, objectStorage: object, version: string, timeoutMs?: number, now?: Date }} deps - Dependências injetadas.
+ * @param {{ prisma: object, redisClient?: object | null, redisMode?: "local" | "redis", objectStorage: object, version: string, isProduction?: boolean, aiConfig?: object, timeoutMs?: number, now?: Date }} deps - Dependências injetadas.
  * @returns {Promise<{ httpStatus: 200 | 503, payload: object }>} Estado HTTP e payload seguro.
  */
 export async function checkReadiness(deps) {
@@ -246,48 +284,64 @@ export async function checkReadiness(deps) {
     if (!Number.isInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 10_000) {
         throw new TypeError("Timeout de readiness inválido.");
     }
+    const redisMode = deps?.redisMode ?? (deps?.redisClient ? "redis" : "local");
+    if (redisMode !== "local" && redisMode !== "redis") {
+        throw new TypeError("Modo Redis de readiness inválido.");
+    }
     if (
-        typeof deps?.prisma?.$transaction !== "function" ||
-        typeof deps?.redisClient?.ping !== "function" ||
-        typeof deps?.redisClient?.set !== "function" ||
-        typeof deps?.redisClient?.get !== "function" ||
-        typeof deps?.redisClient?.del !== "function" ||
-        !String(deps?.redisKeyPrefix ?? "").trim() ||
-        typeof deps?.objectStorage?.checkOperationalAccess !== "function"
+        typeof deps?.prisma?.$queryRaw !== "function" ||
+        typeof deps?.objectStorage?.checkReadiness !== "function" ||
+        (redisMode === "redis" && typeof deps?.redisClient?.ping !== "function")
     ) {
         throw new TypeError("Dependências de readiness incompletas.");
     }
 
-    const results = await Promise.all([
+    const checks = [
         timedDependencyCheck(
             "postgresql",
-            (signal) => checkPostgresOperationalAccess(deps.prisma, signal),
+            (signal) => checkPostgresReadiness(deps.prisma, signal),
             timeoutMs,
         ),
-        timedDependencyCheck(
+    ];
+    if (redisMode === "redis") {
+        checks.push(timedDependencyCheck(
             "redis",
-            (signal) =>
-                checkRedisOperationalAccess(
-                    deps.redisClient,
-                    deps.redisKeyPrefix,
-                    signal,
-                ),
+            (signal) => checkRedisReadiness(deps.redisClient, signal),
             timeoutMs,
-        ),
+        ));
+    }
+    checks.push(
         timedDependencyCheck(
             "storage",
-            (signal) => deps.objectStorage.checkOperationalAccess({ signal }),
+            (signal) => deps.objectStorage.checkReadiness({ signal }),
             timeoutMs,
         ),
-    ]);
-    if (deps.aiConfig?.chatEnabled) {
-        results.push({
-            name: "ai_chat",
-            status: deps.aiConfig.chatEncryptionKey ? "up" : "down",
+    );
+    const criticalResults = await Promise.all(checks);
+    const results = criticalResults.map((result) => ({
+        ...result,
+        required: true,
+    }));
+    if (redisMode === "local") {
+        results.splice(1, 0, {
+            name: "redis",
+            status: "local",
             durationMs: 0,
+            required: false,
         });
     }
-    const ready = results.every((result) => result.status === "up");
+    if (deps.aiConfig) {
+        results.push({
+            name: "openai",
+            status:
+                deps.aiConfig.providerMode === "openai"
+                    ? "optional"
+                    : "disabled",
+            durationMs: 0,
+            required: false,
+        });
+    }
+    const ready = criticalResults.every((result) => result.status === "up");
     const now = deps.now ?? new Date();
 
     return {
@@ -296,6 +350,7 @@ export async function checkReadiness(deps) {
             status: ready ? "ready" : "not_ready",
             service: "opsa-api",
             version: String(deps.version ?? "unknown"),
+            profile: deps.isProduction ? "production_like" : "demo",
             checkedAt: now.toISOString(),
             dependencies: results,
         },

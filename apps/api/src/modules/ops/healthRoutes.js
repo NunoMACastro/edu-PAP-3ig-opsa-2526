@@ -8,7 +8,7 @@ import { buildLiveness, checkReadiness } from "./healthService.js";
 /**
  * Monta `/live`, `/ready` e o alias `/` de readiness.
  *
- * @param {{ version: string, prisma: object, redisClient: object, redisKeyPrefix: string, objectStorage: object }} deps - Dependências críticas injetadas.
+ * @param {{ version: string, prisma: object, redisClient?: object | null, redisMode?: "local" | "redis", objectStorage: object, isProduction?: boolean, aiConfig?: object }} deps - Dependências críticas injetadas.
  * @returns {Router} Router Express.
  */
 export function buildHealthRoutes(deps) {
@@ -16,9 +16,8 @@ export function buildHealthRoutes(deps) {
     if (
         !deps?.version ||
         !deps.prisma ||
-        !deps.redisClient ||
-        !deps.redisKeyPrefix ||
-        !deps.objectStorage
+        !deps.objectStorage ||
+        (deps.redisMode === "redis" && !deps.redisClient)
     ) {
         throw new TypeError("Dependências de health-check incompletas.");
     }

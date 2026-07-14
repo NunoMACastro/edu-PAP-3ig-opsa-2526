@@ -3,7 +3,7 @@
  */
 
 import { FormEvent, ReactNode, useEffect, useState } from "react";
-import { apiClient, JsonBody } from "../lib/apiClient";
+import { JsonBody } from "../lib/apiClient";
 import { useAuth } from "../auth/AuthProvider";
 import { Permission } from "../auth/permissions";
 import {
@@ -32,6 +32,7 @@ import {
   getReminders,
   getSmartAlerts,
   getTasks,
+  getTaskAssignees,
   InAppNotificationItem,
   AlertPreferenceItem,
   InsightExplanation,
@@ -223,7 +224,12 @@ export function AiInsightsPage() {
           setExplanation(null);
         }}
       /> : null}
-      {runStatus ? <StatusMessage tone="neutral" title="Execução de análise">{runStatus}{runId ? ` · ${runId}` : ""}</StatusMessage> : null}
+      {runStatus ? <StatusMessage tone="neutral" title="Execução de análise">
+        {runStatus}{runId ? ` · ${runId}` : ""}
+        {["QUEUED", "RUNNING"].includes(runStatus)
+          ? " · A aguardar o worker de IA (npm --prefix real_dev/api run worker:ai)."
+          : ""}
+      </StatusMessage> : null}
       <SimpleList
         items={insights}
         render={(item) => (
@@ -438,7 +444,12 @@ export function SmartAlertsPage() {
         errorMessage="Nao foi possivel agendar os alertas."
         onSubmit={async (from, to) => { const run = await createAiAnalysisRun(from, to); setRunId(run.run.id); setRunRange({ from, to }); setRunStatus(run.run.status); setAlerts((await getSmartAlerts(from, to)).alerts); }}
       /> : null}
-      {runStatus ? <StatusMessage tone="neutral" title="Execução de análise">{runStatus}{runId ? ` · ${runId}` : ""}</StatusMessage> : null}
+      {runStatus ? <StatusMessage tone="neutral" title="Execução de análise">
+        {runStatus}{runId ? ` · ${runId}` : ""}
+        {["QUEUED", "RUNNING"].includes(runStatus)
+          ? " · A aguardar o worker de IA (npm --prefix real_dev/api run worker:ai)."
+          : ""}
+      </StatusMessage> : null}
       <SimpleList
         items={alerts}
         render={(item) => (
@@ -611,31 +622,10 @@ export function TasksPage() {
 
   useEffect(() => {
     let active = true;
-    void apiClient.companies
-      .users()
+    void getTaskAssignees()
       .then((response) => {
-        if (!active || !response || typeof response !== "object" || Array.isArray(response)) return;
-        const record = response as Record<string, unknown>;
-        const users = Array.isArray(record.items)
-          ? record.items
-          : Array.isArray(record.users)
-            ? record.users
-            : [];
-        setAssignees(
-          users.flatMap((value) => {
-            if (!value || typeof value !== "object" || Array.isArray(value)) return [];
-            const user = value as Record<string, unknown>;
-            const id = typeof user.userId === "string" ? user.userId : "";
-            if (!id) return [];
-            const label =
-              typeof user.name === "string" && user.name
-                ? user.name
-                : typeof user.email === "string"
-                  ? user.email
-                  : id;
-            return [{ id, label }];
-          }),
-        );
+        if (!active) return;
+        setAssignees(response.assignees.map(({ id, name }) => ({ id, label: name })));
       })
       .catch(() => {
         if (active) setAssigneesError("Não foi possível carregar os responsáveis disponíveis.");

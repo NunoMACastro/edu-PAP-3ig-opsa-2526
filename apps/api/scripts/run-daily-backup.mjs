@@ -19,9 +19,13 @@ import {
     createBackupObjectStorage,
     createObjectStorage,
 } from "../src/modules/storage/objectStorage.js";
-import { postgresCliConnection } from "./postgres-cli.mjs";
+import {
+    assertPostgresToolsAvailable,
+    createPostgresCommandRunner,
+    postgresCliConnection,
+} from "./postgres-cli.mjs";
 
-const DEFAULT_BACKUP_DIR = "./backups";
+const DEFAULT_BACKUP_DIR = "./private-storage/backups";
 const DEFAULT_BACKUP_PREFIX = "backups";
 const RESERVED_OPERATIONAL_PREFIXES = new Set([
     "exports",
@@ -31,6 +35,30 @@ const RESERVED_OPERATIONAL_PREFIXES = new Set([
     "quarantine",
     "restore-verification",
 ]);
+
+/**
+ * Resolve o modo sem permitir fallback remoto implícito.
+ *
+ * @param {string[]} args - Argumentos CLI.
+ * @param {NodeJS.ProcessEnv | Record<string, string | undefined>} env - Ambiente.
+ * @returns {"local" | "remote"} Modo explícito ou default académico local.
+ */
+export function resolveBackupMode(args = [], env = process.env) {
+    const hasLocal = args.includes("--local");
+    const hasRemote = args.includes("--remote");
+    if (hasLocal && hasRemote) {
+        throw new Error("Escolhe apenas um modo de backup: --local ou --remote.");
+    }
+    const mode = hasRemote
+        ? "remote"
+        : hasLocal
+          ? "local"
+          : String(env.OPSA_BACKUP_MODE ?? "local").trim().toLowerCase();
+    if (!new Set(["local", "remote"]).has(mode)) {
+        throw new Error("OPSA_BACKUP_MODE deve ser local ou remote.");
+    }
+    return mode;
+}
 
 /**
  * Valida o prefixo exclusivamente reservado ao bundle de backup.
@@ -141,6 +169,136 @@ function assertCommandSucceeded(result, commandName) {
 }
 
 /**
+ * Cria um dump PostgreSQL custom sem colocar a password ou a URL no argv.
+ *
+ * @param {object} input - Origem, destino e executor.
+ * @param {string} input.databaseUrl - Ligação recebida por ambiente.
+ * @param {string} input.backupPath - Destino privado do dump.
+ * @param {typeof spawnSync} input.runCommand - Executor PostgreSQL.
+ * @param {boolean} [input.preflight] - Se deve validar o executável nesta chamada.
+ * @returns {{ databaseName: string }} Identificação pública da origem.
+ */
+function createPostgresDump({ databaseUrl, backupPath, runCommand, preflight = true }) {
+    const connection = postgresCliConnection(databaseUrl);
+    if (preflight) assertPostgresToolsAvailable(["pg_dump"], runCommand);
+    const result = runCommand(
+        "pg_dump",
+        [
+            "--format=custom",
+            "--no-owner",
+            "--no-privileges",
+            "--file",
+            backupPath,
+            ...connection.args,
+        ],
+        {
+            encoding: "utf8",
+            stdio: "pipe",
+            env: connection.env,
+        },
+    );
+    assertCommandSucceeded(result, "pg_dump");
+    return { databaseName: connection.databaseName };
+}
+
+/**
+ * Cria o artefacto principal da demo num diretório privado e previsível.
+ * O dump, manifesto e checksum persistem após sucesso para permitirem a prova
+ * manual de restore; em falha, qualquer artefacto parcial é removido.
+ *
+ * @param {object} options - Configuração local e dependências de teste.
+ * @returns {Promise<object>} Manifesto público seguro com caminhos locais.
+ */
+async function runLocalBackup({
+    env = process.env,
+    backupDir = env.OPSA_BACKUP_DIR ?? DEFAULT_BACKUP_DIR,
+    databaseUrl = env.DATABASE_URL,
+    now = new Date(),
+    runCommand = spawnSync,
+} = {}) {
+    if (!databaseUrl) {
+        throw new Error("DATABASE_URL em falta para executar backup");
+    }
+
+    const postgresRunner = createPostgresCommandRunner({
+        env,
+        runCommand,
+        backupMode: "local",
+    });
+    const connection = postgresCliConnection(databaseUrl);
+    assertPostgresToolsAvailable(["pg_dump"], postgresRunner);
+    await mkdir(backupDir, { recursive: true, mode: 0o700 });
+    await chmod(backupDir, 0o700);
+
+    const stamp = now.toISOString().replaceAll(":", "-");
+    const backupPath = join(backupDir, `opsa-${stamp}.dump`);
+    const manifestPath = `${backupPath}.json`;
+    const manifestChecksumPath = `${manifestPath}.sha256`;
+    let operationError;
+    try {
+        createPostgresDump({
+            databaseUrl,
+            backupPath,
+            runCommand: postgresRunner,
+            preflight: false,
+        });
+        const backupInfo = await stat(backupPath);
+        if (backupInfo.size === 0) {
+            throw new Error("Backup falhou: ficheiro gerado sem conteudo");
+        }
+        await chmod(backupPath, 0o600);
+        const databaseSha256 = await sha256(backupPath);
+        const manifest = {
+            version: 1,
+            mode: "local",
+            file: basename(backupPath),
+            sizeBytes: backupInfo.size,
+            createdAt: now.toISOString(),
+            engine: "postgresql-pg_dump-custom",
+            sha256: databaseSha256,
+            database: connection.databaseName,
+            restoreVerificationRequired: true,
+        };
+        await writeFile(manifestPath, JSON.stringify(manifest, null, 2), {
+            mode: 0o600,
+            flag: "wx",
+        });
+        await chmod(manifestPath, 0o600);
+        const manifestSha256 = await sha256(manifestPath);
+        await writeFile(manifestChecksumPath, `${manifestSha256}\n`, {
+            mode: 0o600,
+            flag: "wx",
+        });
+        await chmod(manifestChecksumPath, 0o600);
+        return {
+            ...manifest,
+            backupPath,
+            manifestPath,
+            manifestChecksumPath,
+            manifestSha256,
+        };
+    } catch (error) {
+        operationError = error;
+        throw error;
+    } finally {
+        if (operationError) {
+            try {
+                await removeLocalPathsAndConfirmAbsent(
+                    [backupPath, manifestPath, manifestChecksumPath],
+                    "O cleanup do backup local parcial não pôde ser confirmado.",
+                );
+            } catch (cleanupError) {
+                throw combineOperationAndCleanupError(
+                    operationError,
+                    cleanupError,
+                    "O backup local falhou e persistem artefactos parciais.",
+                );
+            }
+        }
+    }
+}
+
+/**
  * Aplica retenção apenas depois de um bundle novo estar totalmente persistido.
  *
  * @param {{ backupStorage: object, retentionDays: number, now: Date, backupRootPrefix: string, protectedPrefix: string }} input - Política e bundle que nunca pode ser removido.
@@ -219,14 +377,15 @@ export async function pruneExpiredBackupObjects({
  * @returns {Promise<object>} Manifesto do backup criado.
  * @throws {Error} Quando falta configuracao, pg_dump falha ou o ficheiro fica vazio.
  */
-export async function runDailyBackup({
-    backupDir = process.env.OPSA_BACKUP_DIR ?? DEFAULT_BACKUP_DIR,
-    databaseUrl = process.env.DATABASE_URL,
+async function runRemoteBackup({
+    env = process.env,
+    backupDir = env.OPSA_BACKUP_DIR ?? DEFAULT_BACKUP_DIR,
+    databaseUrl = env.DATABASE_URL,
     now = new Date(),
     sourceStorage: sourceStorageOption,
     backupStorage: backupStorageOption,
-    retentionDays = Number.parseInt(process.env.BACKUP_RETENTION_DAYS ?? "", 10),
-    backupPrefix = process.env.BACKUP_S3_PREFIX ?? DEFAULT_BACKUP_PREFIX,
+    retentionDays = Number.parseInt(env.BACKUP_RETENTION_DAYS ?? "", 10),
+    backupPrefix = env.BACKUP_S3_PREFIX ?? DEFAULT_BACKUP_PREFIX,
     runCommand = spawnSync,
 } = {}) {
     if (!databaseUrl) {
@@ -235,9 +394,16 @@ export async function runDailyBackup({
     if (!Number.isInteger(retentionDays) || retentionDays < 1 || retentionDays > 3650) {
         throw new Error("BACKUP_RETENTION_DAYS deve estar entre 1 e 3650.");
     }
-    const sourceStorage = sourceStorageOption ?? createObjectStorage(process.env);
+    const postgresRunner = createPostgresCommandRunner({
+        env,
+        runCommand,
+        backupMode: "remote",
+    });
+    postgresCliConnection(databaseUrl);
+    assertPostgresToolsAvailable(["pg_dump"], postgresRunner);
+    const sourceStorage = sourceStorageOption ?? createObjectStorage(env);
     const backupStorage =
-        backupStorageOption ?? createBackupObjectStorage(process.env);
+        backupStorageOption ?? createBackupObjectStorage(env);
     const normalizedBackupPrefix = validateBackupPrefix(backupPrefix);
     assertStorageIsolation(sourceStorage, backupStorage);
 
@@ -253,25 +419,12 @@ export async function runDailyBackup({
     const uploadedKeys = [];
     let operationError;
     try {
-        const connection = postgresCliConnection(databaseUrl);
-        const result = runCommand(
-            "pg_dump",
-            [
-                "--format=custom",
-                "--no-owner",
-                "--no-privileges",
-                "--file",
-                backupPath,
-                ...connection.args,
-            ],
-            {
-                encoding: "utf8",
-                stdio: "pipe",
-                env: connection.env,
-            },
-        );
-
-        assertCommandSucceeded(result, "pg_dump");
+        const connection = createPostgresDump({
+            databaseUrl,
+            backupPath,
+            runCommand: postgresRunner,
+            preflight: false,
+        });
 
         const backupInfo = await stat(backupPath);
         if (backupInfo.size === 0) {
@@ -302,6 +455,8 @@ export async function runDailyBackup({
             });
 
             const manifest = {
+                version: 1,
+                mode: "remote",
                 file: basename(backupPath),
                 sizeBytes: backupInfo.size,
                 createdAt: now.toISOString(),
@@ -392,10 +547,25 @@ export async function runDailyBackup({
     }
 }
 
+/**
+ * Executa o contrato de backup selecionado. Local é o default da PAP; remoto
+ * só é ativado explicitamente e nunca faz fallback para local.
+ *
+ * @param {object} options - Opções comuns e específicas do modo.
+ * @param {"local" | "remote"} [options.mode] - Modo pretendido.
+ * @returns {Promise<object>} Evidência segura do backup criado.
+ */
+export async function runDailyBackup(options = {}) {
+    const mode = options.mode ?? resolveBackupMode([], options.env ?? process.env);
+    if (mode === "local") return runLocalBackup(options);
+    if (mode === "remote") return runRemoteBackup(options);
+    throw new Error("Modo de backup inválido: usa local ou remote.");
+}
+
 if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1])) {
     loadLocalEnvFile();
 
-    runDailyBackup()
+    runDailyBackup({ mode: resolveBackupMode(process.argv.slice(2), process.env) })
         .then((manifest) => console.log(JSON.stringify(manifest, null, 2)))
         .catch((error) => {
             console.error(error.message);

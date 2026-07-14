@@ -17,7 +17,7 @@ test("request ID externo só é aceite quando é UUID", () => {
     assert.match(resolveRequestId("<script>"), /^[0-9a-f-]{36}$/i);
 });
 
-test("middleware regista início/fim com route template e sem URL/body", () => {
+test("middleware regista um único terminal com route template e sem URL/body", () => {
     const events = [];
     const times = [10, 17];
     const middleware = createRequestObservability({
@@ -48,11 +48,11 @@ test("middleware regista início/fim com route template e sem URL/body", () => {
     logUnhandledRequestError(new Error("late secret"), req, (event) => events.push(event));
 
     assert.equal(nextCalled, true);
-    assert.equal(events.length, 2);
-    assert.equal(events[1].event, "http.request.finish");
-    assert.equal(events[1].context.outcome, "finished");
-    assert.equal(events[1].context.routeTemplate, "/api/customers/:id");
-    assert.equal(events[1].context.durationMs, 7);
+    assert.equal(events.length, 1);
+    assert.equal(events[0].event, "http.request.finish");
+    assert.equal(events[0].context.outcome, "finished");
+    assert.equal(events[0].context.routeTemplate, "/api/customers/:id");
+    assert.equal(events[0].context.durationMs, 7);
     const serialized = JSON.stringify(events);
     assert.equal(serialized.includes("customer-secret"), false);
     assert.equal(serialized.includes("password"), false);
@@ -83,10 +83,10 @@ test("OPSA-E2E-P2-016: pedido abortado emite um único terminal redigido", () =>
     res.emit("close");
     res.emit("finish");
 
-    assert.equal(events.length, 2);
-    assert.equal(events[1].event, "http.request.aborted");
-    assert.equal(events[1].level, "warn");
-    assert.deepEqual(events[1].context, {
+    assert.equal(events.length, 1);
+    assert.equal(events[0].event, "http.request.aborted");
+    assert.equal(events[0].level, "warn");
+    assert.deepEqual(events[0].context, {
         requestId: req.requestId,
         method: "POST",
         routeTemplate: "/api/imports/business-data",
@@ -120,10 +120,10 @@ test("OPSA-E2E-P2-016: close prematuro e finish posterior não duplicam terminal
     res.emit("close");
     res.emit("finish");
 
-    assert.equal(events.length, 2);
-    assert.equal(events[1].event, "http.request.close");
-    assert.equal(events[1].context.statusCode, 200);
-    assert.equal(events[1].context.durationMs, 3);
+    assert.equal(events.length, 1);
+    assert.equal(events[0].event, "http.request.close");
+    assert.equal(events[0].context.statusCode, 200);
+    assert.equal(events[0].context.durationMs, 3);
 });
 
 test("OPSA-E2E-P2-016: error boundary vence finish e não expõe a mensagem", () => {
@@ -151,11 +151,11 @@ test("OPSA-E2E-P2-016: error boundary vence finish e não expõe a mensagem", ()
     res.emit("finish");
     res.emit("close");
 
-    assert.equal(events.length, 2);
-    assert.equal(events[1].event, "http.request.error");
-    assert.equal(events[1].context.statusCode, 500);
-    assert.equal(events[1].context.durationMs, 6);
-    assert.equal(events[1].context.errorType, "UnknownError");
+    assert.equal(events.length, 1);
+    assert.equal(events[0].event, "http.request.error");
+    assert.equal(events[0].context.statusCode, 500);
+    assert.equal(events[0].context.durationMs, 6);
+    assert.equal(events[0].context.errorType, "UnknownError");
     assert.equal(JSON.stringify(events).includes("private"), false);
     assert.equal(JSON.stringify(events).includes("password=secret"), false);
 });

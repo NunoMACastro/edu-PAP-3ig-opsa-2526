@@ -39,11 +39,19 @@ test("aprovação de compra não cria histórico quando o claim concorrente falh
     let historyWrites = 0;
     let auditWrites = 0;
     const prisma = {
+        fiscalPeriod: {
+            findFirst: async () => ({
+                status: "OPEN",
+                startDate: new Date("2026-01-01T00:00:00.000Z"),
+                endDate: new Date("2026-12-31T00:00:00.000Z"),
+            }),
+        },
         purchaseDocument: {
             findFirst: async () => ({
                 id: "purchase-1",
                 companyId: "company-1",
                 status: "DRAFT",
+                issuedAt: new Date("2026-02-10T00:00:00.000Z"),
             }),
             updateMany: async () => ({ count: 0 }),
         },
@@ -72,7 +80,7 @@ test("publicação de contagem não ajusta stock nem audita quando perde o claim
     let auditWrites = 0;
     let locks = 0;
     const tx = {
-        $queryRaw: async () => { locks += 1; },
+        $executeRaw: async () => { locks += 1; },
         inventoryCount: {
             findFirst: async () => ({
                 id: "count-1",
@@ -99,7 +107,7 @@ test("publicação de contagem não ajusta stock nem audita quando perde o claim
 test("edição de linhas perde com STALE_STATE antes de substituir dados", async () => {
     let lineDeletes = 0;
     const tx = {
-        $queryRaw: async () => undefined,
+        $executeRaw: async () => undefined,
         inventoryCount: {
             findFirst: async () => ({
                 id: "count-1",
@@ -140,7 +148,7 @@ test("lifecycle de subscrição não audita quando o claim por versão perde", a
         updatedAt: new Date("2026-07-01T00:00:00.000Z"),
     };
     const tx = {
-        $queryRaw: async () => undefined,
+        $executeRaw: async () => undefined,
         companySubscription: {
             findUnique: async () => current,
             updateMany: async ({ where }) => {

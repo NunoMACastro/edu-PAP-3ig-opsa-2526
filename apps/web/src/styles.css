@@ -54,13 +54,11 @@
 }
 
 html {
-  min-width: 320px;
   background: var(--opsa-bg);
 }
 
 body {
   margin: 0;
-  min-width: 320px;
   background: var(--opsa-bg);
 }
 
@@ -353,7 +351,7 @@ nav a:hover {
 nav a[aria-current="page"] {
   border-color: var(--opsa-royal-green-light);
   background: var(--opsa-royal-green-light);
-  color: var(--opsa-royal-green);
+  color: #004a4f;
 }
 
 .skipLink {
@@ -1402,6 +1400,10 @@ tbody tr:hover {
   .mobileList {
     display: grid;
     gap: 0.85rem;
+  }
+
+  .operationGrid {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .lineEditor__row {

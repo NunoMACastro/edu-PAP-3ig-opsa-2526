@@ -14,6 +14,7 @@ import {
     createSaftExport,
     getSaftExportDownload,
     getSaftExportMetadata,
+    normalizeSaftValidationMode,
 } from "./saftService.js";
 import {
     validateSaftExportId,
@@ -98,6 +99,35 @@ export function buildSaftRoutes({
             loadOfficialSchema ?? (() => loadConfiguredOfficialSchema(env)),
         verifySchema,
     };
+    const isProduction = env.NODE_ENV === "production";
+    const validationMode = () =>
+        normalizeSaftValidationMode(env.SAFT_VALIDATION_MODE, isProduction);
+
+    router.get("/saft/status", guards, (req, res) => {
+        try {
+            const configuredMode = validationMode();
+            const enabled = env.SAFT_EXPORT_ENABLED === true ||
+                env.SAFT_EXPORT_ENABLED === "true";
+            const hasExternalPipeline = Boolean(
+                externalPipeline &&
+                (typeof externalPipeline.validate === "function" ||
+                    typeof externalPipeline.generateAndValidate === "function"),
+            );
+            const hasExternalSchema = typeof loadOfficialSchema === "function" ||
+                String(env.SAFT_XSD_PATH ?? "").trim() !== "";
+            const available = enabled && (
+                configuredMode === "ACADEMIC" ||
+                (hasExternalPipeline && hasExternalSchema)
+            );
+            return res.status(200).json({
+                mode: enabled ? configuredMode : "DISABLED",
+                available,
+                certifiedOutput: available && configuredMode === "EXTERNAL",
+            });
+        } catch (error) {
+            return sendError(res, error);
+        }
+    });
 
     router.post("/saft/exports", guards, async (req, res) => {
         try {
@@ -109,6 +139,8 @@ export function buildSaftRoutes({
                     companyId: req.companyId,
                     userId: req.user.id,
                     featureFlag: env.SAFT_EXPORT_ENABLED,
+                    validationMode: validationMode(),
+                    isProduction,
                     ...request,
                 },
                 serviceDependencies,
@@ -125,6 +157,8 @@ export function buildSaftRoutes({
                 companyId: req.companyId,
                 exportId: validateSaftExportId(req.params.exportId),
                 featureFlag: env.SAFT_EXPORT_ENABLED,
+                validationMode: validationMode(),
+                isProduction,
             });
             return res.status(200).json({ export: exportRun });
         } catch (error) {
@@ -144,6 +178,8 @@ export function buildSaftRoutes({
                         companyId: req.companyId,
                         exportId: validateSaftExportId(req.params.exportId),
                         featureFlag: env.SAFT_EXPORT_ENABLED,
+                        validationMode: validationMode(),
+                        isProduction,
                     },
                 );
                 const fileName = safeDownloadName(result.export.fileName);

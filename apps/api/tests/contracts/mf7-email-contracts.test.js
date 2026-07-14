@@ -9,6 +9,7 @@ import {
     TransactionalEmailReason,
     buildTransactionalEmailAdapter,
 } from "../../src/modules/notifications/transactionalEmailAdapter.js";
+import { buildSimulatedEmailProvider } from "../../src/modules/notifications/smtpEmailProvider.js";
 import { sendNotificationEmails } from "../../src/modules/notifications/notificationService.js";
 
 /**
@@ -45,6 +46,25 @@ describe("MF7 email transaccional", () => {
 
         assert.equal(result.status, "SENT");
         assert.equal(entries[0].emailDomain, "example.com");
+        assert.equal(JSON.stringify(entries).includes("sofia@example.com"), false);
+    });
+
+    it("provider de demo não usa rede nem declara entrega SMTP", async () => {
+        const { entries, logger } = captureLogger();
+        const adapter = buildTransactionalEmailAdapter({
+            logger,
+            provider: buildSimulatedEmailProvider(),
+        });
+
+        const result = await adapter.sendTransactionalEmail({
+            to: "sofia@example.com",
+            reason: TransactionalEmailReason.COMPANY_INVITATION,
+            subject: "Convite OPSA",
+            text: "Foi criado um convite de demonstração.",
+        });
+
+        assert.equal(result.status, "SIMULATED");
+        assert.equal(entries[0].event, "transactional_email_simulated");
         assert.equal(JSON.stringify(entries).includes("sofia@example.com"), false);
     });
 

@@ -2,7 +2,7 @@
  * @file Cliente de API específico para pagamentos de compras no frontend OPSA.
  */
 
-import { apiClient, JsonBody } from "./apiClient";
+import { apiClient, type PaymentInput } from "./apiClient";
 
 export const paymentApi = {
   /**
@@ -12,6 +12,6 @@ export const paymentApi = {
    * @param body - Corpo JSON enviado para a API.
    * @returns Resposta da API com o pagamento registado.
    */
-  register: (purchaseDocumentId: string, body: JsonBody) =>
+  register: (purchaseDocumentId: string, body: PaymentInput) =>
     apiClient.purchases.registerPayment(purchaseDocumentId, body),
 };

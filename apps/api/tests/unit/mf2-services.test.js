@@ -692,6 +692,10 @@ test("BK-MF2-04: publicação de contagem regista AuditLog com detalhes", async 
     let reads = 0;
     const rawQueries = [];
     const tx = {
+        $executeRaw: async (strings) => {
+            rawQueries.push(strings.join(" "));
+            return 1;
+        },
         $queryRaw: async (strings) => {
             const sql = strings.join(" ");
             rawQueries.push(sql);

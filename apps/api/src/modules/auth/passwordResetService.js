@@ -4,6 +4,7 @@
 
 import crypto from "node:crypto";
 import { httpError } from "../../lib/httpErrors.js";
+import { acquireTransactionLock } from "../../lib/postgresLocks.js";
 import { hashPassword } from "./password.js";
 import { recordSecurityAudit } from "../audit/securityAuditService.js";
 
@@ -96,7 +97,7 @@ export async function resetPassword(
     const passwordHash = await hashPassword(password);
 
     await prisma.$transaction(async (tx) => {
-        const resetToken = await tx.passwordResetToken.findUnique({
+        let resetToken = await tx.passwordResetToken.findUnique({
             where: { tokenHash },
         });
         if (!resetToken || resetToken.usedAt || resetToken.expiresAt <= now) {
@@ -107,19 +108,34 @@ export async function resetPassword(
             );
         }
 
-        const claimed = await tx.passwordResetToken.updateMany({
+        await acquireTransactionLock(tx, "password-reset", resetToken.userId);
+
+        // Outro token do mesmo utilizador pode ter sido consumido enquanto este
+        // pedido esperava pelo lock. A releitura impede reutilizações cruzadas.
+        resetToken = await tx.passwordResetToken.findUnique({
+            where: { tokenHash },
+        });
+        if (!resetToken || resetToken.usedAt || resetToken.expiresAt <= now) {
+            throw httpError(
+                400,
+                "INVALID_RESET_TOKEN",
+                "Token inválido ou expirado",
+            );
+        }
+
+        const invalidated = await tx.passwordResetToken.updateMany({
             where: {
-                id: resetToken.id,
+                userId: resetToken.userId,
                 usedAt: null,
                 expiresAt: { gt: now },
             },
             data: { usedAt: now },
         });
-        if (claimed.count !== 1) {
+        if (invalidated.count < 1) {
             throw httpError(
-                409,
-                "RESET_TOKEN_ALREADY_USED",
-                "O token já foi utilizado por outro pedido",
+                400,
+                "INVALID_RESET_TOKEN",
+                "Token inválido ou expirado",
             );
         }
 

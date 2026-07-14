@@ -190,11 +190,13 @@ checkout, cartão, invoice ou efeito contabilístico automático.
 ## Observabilidade, health e shutdown
 
 `GET /api/health/live` prova apenas que o processo responde.
-`GET /api/health/ready` testa PostgreSQL, Redis e storage e devolve 503 quando
-algum está indisponível. `GET /api/health` é alias de readiness.
+`GET /api/health/ready` usa probes mínimos e read-only: `SELECT 1`, `PING` e
+metadata/acesso do storage ativo. Devolve 503 quando uma dependência crítica
+está indisponível. `GET /api/health` é alias de readiness. Provas mutáveis de
+permissões ficam no comando explícito `health:deep-check`.
 
-Cada request recebe um ID e logs JSON de início/fim, duração, método, route
-template e estado, com erros redigidos. `SIGINT`/`SIGTERM` deixam de aceitar
+Cada request recebe um ID e exatamente um log JSON terminal com duração,
+método, route template e estado, com erros redigidos. `SIGINT`/`SIGTERM` deixam de aceitar
 trabalho, drenam HTTP com timeout, fecham Redis e executam
 `prisma.$disconnect()`.
 
@@ -225,3 +227,30 @@ na evidence corrente. Relatórios com o banner
 - Não guardar secrets, cookies, tokens, URLs autenticadas ou dados pessoais.
 - Não transformar build, scanner, skip ou teste com doubles em prova runtime.
 - Manter `NO_GO` enquanto existir um blocker crítico registado.
+
+## Apêndice posterior — runtime local observado em 2026-07-13
+
+A arquitetura local passou a incluir `real_dev/compose.yaml` apenas para
+PostgreSQL. API, workers e web continuam processos Node.js separados. O projeto
+Compose usa:
+
+- `postgres` persistente em `127.0.0.1:5433`;
+- `postgres-test` descartável em `127.0.0.1:5434`;
+- `postgres-restore` descartável em `127.0.0.1:5435`;
+- `postgres-tools` sem porta pública para `pg_dump`, `pg_restore` e `psql`.
+
+Foi observada a imagem `postgres:17.10-alpine3.23` com digest
+`sha256:8189a1f6e40904781fc9e2612687877791d21679866db58b1de996b31fc312e4`.
+Compose config, setup, `21` migrations, seed/verify e health do PostgreSQL
+passaram. A integração PostgreSQL passou `11/11`, com sentinela `1/1` e zero
+skips; backup/restore comparou `69` entidades/tabelas e fez cleanup.
+
+A regressão posterior terminou com API `407/407` unitários e `174/174`
+contratos, MF6/MF7/MF8 PASS, web `18` ficheiros/`55` testes, typecheck/build,
+Playwright `25/25` em três viewports e seeded `3/3`. Isto substitui os limites
+locais de PostgreSQL e Chromium descritos acima, mas não as dependências
+externas.
+
+O teste externo falhou fechado sem base remota, Redis e SMTP; S3 e SAF-T externo
+continuam por provar. O gate académico parou com Node `24.11.1`, abaixo de
+`>=24.17`; nenhuma fase posterior desse gate é declarada executada.

@@ -1171,7 +1171,8 @@ export function ManualJournalPage() {
    */
   async function addAttachment(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const form = new FormData(event.currentTarget);
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
     if (!activeJournalId) {
       await action.run(
         async () => {
@@ -1203,7 +1204,7 @@ export function ManualJournalPage() {
           },
         ]);
       }
-      event.currentTarget.reset();
+      formElement.reset();
     }
   }
 

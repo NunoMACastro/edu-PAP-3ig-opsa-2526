@@ -150,7 +150,7 @@ Sessões e mensagens preservam os arrays atuais e acrescentam `pageInfo`. A resp
 | `GET` | `/api/treasury/statement-imports` | `cursor` e `limit` opcionais. | Envelope paginado de importações. |
 | `GET` | `/api/treasury/statement-imports/:id` | ID pertencente à empresa ativa. | `{ statementImport }`. |
 
-O metadata fica em PostgreSQL; o binário fica em S3 compatível fora de development. Falhas entre quarentena, base de dados e promoção executam cleanup para não deixar metadata ou objetos órfãos.
+O metadata fica em PostgreSQL; o binário fica no adapter privado ativo (local na demo, S3 em production-like). Falhas entre quarentena, base de dados e promoção executam cleanup para não deixar metadata ou objetos órfãos.
 
 ## SAF-T
 
@@ -171,10 +171,10 @@ O exportador usa namespace e XSD oficial `1.04_01`, master files, tax table, doc
 | Método | Endpoint | Semântica |
 | --- | --- | --- |
 | `GET` | `/api/health/live` | Apenas prova que o processo HTTP responde; não consulta dependências. |
-| `GET` | `/api/health/ready` | Verifica PostgreSQL, Redis e object storage crítico; devolve `503` se algum estiver indisponível. |
+| `GET` | `/api/health/ready` | Executa `SELECT 1`, probe read-only do storage e `PING` apenas quando Redis remoto está ativo; em demo identifica Redis como `local` não crítico. Devolve `503` se uma dependência ativa obrigatória estiver indisponível. |
 | `GET` | `/api/health` | Alias de readiness, com a mesma semântica e os mesmos estados HTTP. |
 
-A API aceita ou cria request ID validado, emite logs JSON de início/fim, duração e route template, redige erros e drena HTTP antes de `prisma.$disconnect()` no shutdown. `TRUST_PROXY_HOPS` controla explicitamente os saltos confiáveis; o default é `0`.
+A API aceita ou cria request ID validado e emite exatamente um evento JSON terminal por pedido, com duração, método, estado e route template. Erros são classificados sem mensagem, payload ou stack trace. O diagnóstico profundo de permissões executa-se apenas com `npm --prefix real_dev/api run health:deep-check`; não pertence ao endpoint público. O shutdown drena HTTP antes de `prisma.$disconnect()`. `TRUST_PROXY_HOPS` controla explicitamente os saltos confiáveis; o default é `0`.
 
 ## Envelope de paginação
 
@@ -202,7 +202,7 @@ Aplicam-se envelopes paginados, pelo menos, a contas, clientes, fornecedores, it
 
 | Modelo/campo | Contrato atual |
 | --- | --- |
-| `EmailOutbox` | Payload cifrado AES-256-GCM, `dedupeKey`, estado, tentativas, `nextAttemptAt`, lease (`lockedAt`/`lockedBy`), erro redigido e `sentAt`. |
+| `EmailOutbox` | Payload cifrado AES-256-GCM, `dedupeKey`, estado, tentativas, `nextAttemptAt`, lease (`lockedAt`/`lockedBy`), erro redigido e `sentAt`. Estados terminais: `SENT` para SMTP real e `SIMULATED` para demo sem entrega externa. |
 | `SecurityAuditEvent` | Evento/outcome persistentes; `ipHash` e `subjectHash` sem email/IP em claro; detalhes sem segredos. |
 | `CompanyInvitation` | `acceptedById`, `acceptedAt` e `revokedAt`; o ator da revogação fica no `AuditLog` atómico. |
 | `JournalEntryRevision` | `snapshotBefore`, `snapshotAfter`, motivo, ator e número de revisão antes de substituir linhas manuais. |
@@ -254,14 +254,18 @@ Valores reais entram apenas por canal seguro. Evidence e exemplos nunca incluem 
 
 ### Redis e rate limiting
 
+- `REDIS_PROVIDER` (`local` em development/test por omissão; `redis` obrigatório em production-like)
 - `REDIS_URL`
 - `REDIS_KEY_PREFIX`
 - `RATE_LIMIT_HMAC_KEY`
 
-Fora de development, as três são obrigatórias e não existe store em memória como fallback.
+O adapter local só é válido em development/test e guarda identificadores apenas
+por HMAC. `REDIS_PROVIDER=redis` usa o adapter distribuído e falha fechado se o
+provider ficar indisponível; production-like nunca seleciona local.
 
 ### SMTP e outbox
 
+- `EMAIL_PROVIDER` (`simulated` em development/test por omissão; `smtp` obrigatório em production-like)
 - `SMTP_HOST`
 - `SMTP_PORT`
 - `SMTP_SECURE`
@@ -272,10 +276,13 @@ Fora de development, as três são obrigatórias e não existe store em memória
 - `EMAIL_OUTBOX_ENCRYPTION_KEY`
 - `NOTIFICATION_WORKER_INTERVAL_MS` (`300000` por omissão; mínimo `60000`, máximo `86400000`)
 
-Produção/configuração equivalente proíbe provider de log/mock e exige TLS conforme a política do sandbox/servidor.
+O provider simulated não usa rede e termina a outbox em `SIMULATED`, sem expor
+destinatário, conteúdo ou tokens. Produção/configuração equivalente proíbe-o e
+exige SMTP com TLS conforme a política do servidor.
 
 ### Object storage e backups
 
+- `STORAGE_PROVIDER` (`local` em development/test por omissão; `s3` obrigatório em production-like)
 - `S3_ENDPOINT`
 - `S3_REGION`
 - `S3_BUCKET`
@@ -289,7 +296,10 @@ Produção/configuração equivalente proíbe provider de log/mock e exige TLS c
 - `OPSA_BACKUP_MANIFEST_KEY`
 - `OPSA_BACKUP_MANIFEST_SHA256`
 
-O bucket de backup é distinto do bucket funcional. O adapter local é selecionável apenas em development através de `OPSA_PRIVATE_STORAGE_ROOT`.
+O bucket de backup é distinto do bucket funcional. O adapter local é
+selecionável em development/test explícito através de
+`OPSA_PRIVATE_STORAGE_ROOT`; qualquer configuração S3 parcial é erro e nunca
+origina fallback local.
 
 ### Runtime e SAF-T
 
@@ -330,7 +340,7 @@ Estas variáveis não pertencem ao contrato normal da aplicação. `OPSA_SKIP_PE
 
 ## Workers e processos operacionais
 
-API, materialização de notificações e envio SMTP são três processos separados. A API atende HTTP; o worker de notificações cria notificações e registos `EmailOutbox`; o worker de email é o único consumidor SMTP.
+API, materialização de notificações e processamento de email são três processos separados. A API atende HTTP; o worker de notificações cria notificações e registos `EmailOutbox`; o worker de email seleciona o único provider SMTP/simulated.
 
 ### Notificações
 
@@ -344,9 +354,9 @@ API, materialização de notificações e envio SMTP são três processos separa
 
 - Processo contínuo: `npm --prefix apps/api run worker:email`.
 - Drenagem finita para teste/encerramento controlado: `npm --prefix apps/api run worker:email:drain`.
-- O arranque verifica SMTP antes de consumir mensagens.
+- O arranque verifica o provider selecionado antes de consumir mensagens.
 - O worker reclama uma mensagem por lease atómico, recupera leases expirados, incrementa tentativas e usa backoff exponencial limitado.
-- Sucesso marca `SENT`; esgotar tentativas marca falha persistente sem registar payload ou destinatário.
+- SMTP entregue marca `SENT`; demo processada marca `SIMULATED`; esgotar tentativas marca falha persistente sem registar payload ou destinatário.
 - Um supervisor académico inicia API e worker separadamente, reinicia o worker após falha, envia `SIGTERM`, aguarda drenagem/desconexão e trata exit code não zero como blocker.
 
 ### IA

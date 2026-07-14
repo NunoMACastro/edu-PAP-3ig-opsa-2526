@@ -3,6 +3,10 @@
  */
 
 import { randomUUID } from "node:crypto";
+import {
+    cleanupExpiredDemoEmailPreviews,
+    DEMO_EMAIL_PREVIEW_TYPES,
+} from "../demo-email-inbox/demoEmailInboxService.js";
 import { decryptEmailOutboxPayload } from "./emailOutboxCrypto.js";
 
 const DEFAULT_MAX_ATTEMPTS = 5;
@@ -54,7 +58,7 @@ async function claimNextEmail(prisma, input) {
 /**
  * Cria worker controlável e sem logs de conteúdo das mensagens.
  *
- * @param {{ prisma: import("@prisma/client").PrismaClient, provider: { send(message: object): Promise<object> }, encryptionKey: string | Buffer, logger?: Console, intervalMs?: number, leaseMs?: number, maxAttempts?: number, unrefTimer?: boolean }} options - Dependências.
+ * @param {{ prisma: import("@prisma/client").PrismaClient, provider: { send(message: object): Promise<{status?: string}> }, encryptionKey: string | Buffer, logger?: Console, intervalMs?: number, leaseMs?: number, maxAttempts?: number, unrefTimer?: boolean }} options - Dependências.
  * @returns {{ runOnce(): Promise<boolean>, start(): void, stop(): void }} Worker.
  */
 export function createEmailOutboxWorker({
@@ -75,6 +79,11 @@ export function createEmailOutboxWorker({
         if (running) return false;
         running = true;
         try {
+            // O worker contínuo assegura a eliminação automática após 24 horas.
+            // O guard mantém doubles unitários mínimos compatíveis.
+            if (typeof prisma.emailOutbox?.updateMany === "function") {
+                await cleanupExpiredDemoEmailPreviews(prisma);
+            }
             const email = await claimNextEmail(prisma, {
                 workerId,
                 now: new Date(),
@@ -87,19 +96,30 @@ export function createEmailOutboxWorker({
                     email.encryptedPayload,
                     encryptionKey,
                 );
-                await provider.send(message);
+                const providerResult = await provider.send(message);
+                const simulated = providerResult?.status === "SIMULATED";
+                const retainDemoPreview =
+                    simulated && DEMO_EMAIL_PREVIEW_TYPES.includes(email.type);
                 await prisma.emailOutbox.update({
                     where: { id: email.id },
                     data: {
-                        status: "SENT",
-                        sentAt: new Date(),
-                        encryptedPayload: null,
+                        status: simulated ? "SIMULATED" : "SENT",
+                        sentAt: simulated ? null : new Date(),
+                        encryptedPayload: retainDemoPreview
+                            ? email.encryptedPayload
+                            : null,
                         lockedAt: null,
                         lockedBy: null,
                         lastError: null,
                     },
                 });
-                logger.info({ event: "email_outbox_sent", type: email.type });
+                logger.info({
+                    event: simulated
+                        ? "email_outbox_simulated"
+                        : "email_outbox_sent",
+                    type: email.type,
+                    status: simulated ? "SIMULATED" : "SENT",
+                });
             } catch (error) {
                 const exhausted = email.attempts >= maxAttempts;
                 const delayMs = Math.min(60 * 60 * 1000, 2 ** email.attempts * 1_000);

@@ -17,8 +17,10 @@ const COMPANY_MODELS = Object.freeze([
     "vatMapRun", "treasuryAccount", "treasuryBalanceSnapshot", "bankStatementImport",
     "bankStatementLine", "bankReconciliationSuggestion", "cashflowForecastRun",
     "businessImportRun", "saftExportRun", "operationalReportRun", "executiveKpiRun",
-    "aiInsight", "aiActionSuggestion", "aiQuestionRun", "smartAlert", "reminder",
-    "operationalTask", "inAppNotification", "alertPreference", "integrationLog",
+    "aiInsight", "aiActionSuggestion", "aiQuestionRun", "companyAiSettings",
+    "aiUserConsent", "aiChatSession", "aiUsageEvent", "aiRuleSetting",
+    "aiAnalysisRun", "aiDeletionAudit", "smartAlert", "reminder", "operationalTask",
+    "inAppNotification", "alertPreference", "integrationLog",
 ]);
 
 function assertion(condition, code, message, details = undefined) {
@@ -206,6 +208,9 @@ async function modelCoverage(prisma, companyIds, userIds) {
         JournalEntryLine: await prisma.journalEntryLine.count({ where: { journalEntry: { companyId: { in: companyIds } } } }),
         PurchaseDocumentLine: await prisma.purchaseDocumentLine.count({ where: { purchaseDocument: { companyId: { in: companyIds } } } }),
         InventoryCountLine: await prisma.inventoryCountLine.count({ where: { inventoryCount: { companyId: { in: companyIds } } } }),
+        AiChatMessage: await prisma.aiChatMessage.count({
+            where: { session: { companyId: { in: companyIds } } },
+        }),
     };
     for (const delegateName of COMPANY_MODELS) {
         const modelName = delegateName[0].toUpperCase() + delegateName.slice(1);
@@ -316,6 +321,11 @@ export async function verifySeedProfile(prisma, input) {
         assertion(coverage.Customer > 50, "PAGINATION_CUSTOMERS_MISSING", "O perfil demo nao exercita paginacao de clientes.");
         assertion(coverage.Item > 50, "PAGINATION_ITEMS_MISSING", "O perfil demo nao exercita paginacao de artigos.");
         assertion(coverage.AiInsight > 0 && coverage.SmartAlert > 0, "AI_DATA_MISSING", "Faltam insights ou alertas IA.");
+        assertion(
+            coverage.BankReconciliationSuggestion > 0,
+            "RECONCILIATION_DATA_MISSING",
+            "O perfil demo não contém uma sugestão de reconciliação demonstrável.",
+        );
         attachmentId = await verifyAttachment(prisma, main.companyId, input.objectStorage);
     }
     const gates = await externalGates(prisma, main.companyId);

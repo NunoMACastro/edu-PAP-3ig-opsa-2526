@@ -22,6 +22,7 @@ export function buildSmtpEmailProvider(config) {
     });
 
     return {
+        mode: "smtp",
         verify: () => transport.verify(),
         close: () => transport.close(),
         send: (message) =>
@@ -32,4 +33,42 @@ export function buildSmtpEmailProvider(config) {
                 text: message.text,
             }),
     };
+}
+
+/**
+ * Constrói o provider de demonstração sem transport, sockets ou retenção do
+ * destinatário/conteúdo. O resultado permite ao worker persistir um estado
+ * semanticamente distinto de entrega externa.
+ *
+ * @returns {{ mode: "simulated", send(message: object): Promise<{status: "SIMULATED"}>, verify(): Promise<boolean>, close(): void }} Provider local.
+ */
+export function buildSimulatedEmailProvider() {
+    return {
+        mode: "simulated",
+        async verify() {
+            return true;
+        },
+        close() {},
+        async send() {
+            return { status: "SIMULATED" };
+        },
+    };
+}
+
+/**
+ * Seleciona o provider no composition root do worker.
+ *
+ * @param {{ providers: { email: "simulated" | "smtp" }, smtp: object, isProduction: boolean }} apiEnv - Configuração central validada.
+ * @returns {ReturnType<typeof buildSmtpEmailProvider> | ReturnType<typeof buildSimulatedEmailProvider>} Provider selecionado.
+ */
+export function createEmailProvider(apiEnv) {
+    const mode = apiEnv?.providers?.email;
+    if (mode === "simulated") {
+        if (apiEnv.isProduction) {
+            throw new Error("Email simulated não é permitido em produção.");
+        }
+        return buildSimulatedEmailProvider();
+    }
+    if (mode === "smtp") return buildSmtpEmailProvider(apiEnv.smtp);
+    throw new Error("EMAIL_PROVIDER deve ser simulated ou smtp.");
 }

@@ -312,7 +312,18 @@ export async function createStockMovement(prisma, companyId, userId, input) {
                 { isolationLevel: "Serializable" },
             );
         } catch (error) {
-            if (error?.code !== "P2034" || attempt === maxAttempts) throw error;
+            const retryableSerializationFailure =
+                error?.code === "P2034" ||
+                (error?.code === "P2010" &&
+                    /could not serialize access/i.test(error?.meta?.message ?? ""));
+            if (!retryableSerializationFailure) throw error;
+            if (attempt === maxAttempts) {
+                throw httpError(
+                    409,
+                    "STALE_STATE",
+                    "Não foi possível serializar o movimento",
+                );
+            }
         }
     }
 

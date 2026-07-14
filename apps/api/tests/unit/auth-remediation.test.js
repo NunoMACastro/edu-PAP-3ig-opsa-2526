@@ -12,6 +12,7 @@ import { acceptInvitation } from "../../src/modules/invitations/invitationServic
 import { createInitialCompany } from "../../src/modules/onboarding/onboardingService.js";
 import { updateCompanyUserRole } from "../../src/modules/company-users/companyUserService.js";
 import { resetPassword } from "../../src/modules/auth/passwordResetService.js";
+import { readSessionCookie } from "../../src/modules/auth/sessionCookie.js";
 
 const KEY = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
 
@@ -37,7 +38,7 @@ test("EmailOutbox usa cifra autenticada e não persiste destinatário ou token",
 test("onboarding cria empresa, perfil, ADMIN, sessão e auditoria numa transação", async () => {
     const calls = [];
     const tx = {
-        $queryRaw: async () => calls.push("lock"),
+        $executeRaw: async () => calls.push("lock"),
         companyMembership: {
             count: async () => 0,
             create: async ({ data }) => {
@@ -75,7 +76,7 @@ test("onboarding cria empresa, perfil, ADMIN, sessão e auditoria numa transaç�
 test("aceitação reclama o convite e deriva email, user e role do servidor", async () => {
     const writes = [];
     const tx = {
-        $queryRaw: async () => {},
+        $executeRaw: async () => {},
         companyInvitation: {
             findUnique: async () => ({
                 id: "invite-1",
@@ -127,7 +128,7 @@ test("aceitação reclama o convite e deriva email, user e role do servidor", as
 test("alteração de role bloqueia a empresa antes do check e audita atomicamente", async () => {
     const calls = [];
     const tx = {
-        $queryRaw: async () => calls.push("lock"),
+        $executeRaw: async () => calls.push("lock"),
         companyMembership: {
             count: async () => 2,
             findFirst: async () => ({ role: "ADMIN" }),
@@ -160,6 +161,9 @@ test("reset de password reclama token e revoga todas as sessões na mesma transa
     const calls = [];
     const now = new Date("2026-07-10T00:00:00.000Z");
     const tx = {
+        $executeRaw: async () => {
+            calls.push("lock-user");
+        },
         passwordResetToken: {
             findUnique: async () => ({
                 id: "reset-1",
@@ -167,8 +171,13 @@ test("reset de password reclama token e revoga todas as sessões na mesma transa
                 usedAt: null,
                 expiresAt: new Date("2026-07-10T00:30:00.000Z"),
             }),
-            updateMany: async () => {
-                calls.push("claim-token");
+            updateMany: async ({ where }) => {
+                calls.push("invalidate-active-tokens");
+                assert.deepEqual(where, {
+                    userId: "user-1",
+                    usedAt: null,
+                    expiresAt: { gt: now },
+                });
                 return { count: 1 };
             },
         },
@@ -203,9 +212,47 @@ test("reset de password reclama token e revoga todas as sessões na mesma transa
         },
     );
     assert.deepEqual(calls, [
-        "claim-token",
+        "lock-user",
+        "invalidate-active-tokens",
         "password",
         "revoke-sessions",
         "security-audit",
     ]);
+});
+
+test("reset invalida também os restantes tokens ativos do utilizador", async () => {
+    const now = new Date("2026-07-10T00:00:00.000Z");
+    let reads = 0;
+    const tx = {
+        $executeRaw: async () => undefined,
+        passwordResetToken: {
+            findUnique: async () => {
+                reads += 1;
+                return {
+                    id: "reset-1",
+                    userId: "user-1",
+                    usedAt: null,
+                    expiresAt: new Date("2026-07-10T00:30:00.000Z"),
+                };
+            },
+            updateMany: async () => ({ count: 2 }),
+        },
+        user: { update: async () => ({}) },
+        session: { updateMany: async () => ({ count: 0 }) },
+        securityAuditEvent: { create: async () => ({}) },
+    };
+
+    await resetPassword(
+        { $transaction: async (callback) => callback(tx) },
+        { token: "b".repeat(64), password: "Nova-Password-123!", now },
+    );
+
+    assert.equal(reads, 2);
+});
+
+test("cookie sid com percent-encoding inválido é tratado como sessão ausente", () => {
+    assert.equal(
+        readSessionCookie({ headers: { cookie: "theme=dark; sid=%E0%A4%A" } }),
+        null,
+    );
 });

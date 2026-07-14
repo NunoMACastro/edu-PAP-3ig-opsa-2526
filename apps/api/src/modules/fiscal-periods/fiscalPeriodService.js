@@ -57,6 +57,86 @@ async function assertNoOverlap(prisma, companyId, startDate, endDate) {
 }
 
 /**
+ * Impede o fecho enquanto existirem documentos do período por decidir ou
+ * contabilizar. A verificação corre sob o mesmo lock das mutações fiscais.
+ *
+ * @param {import("@prisma/client").PrismaClient} tx - Transação Prisma.
+ * @param {{ companyId: string, startDate: Date, endDate: Date }} period - Período alvo.
+ * @returns {Promise<void>}
+ */
+async function assertNoPendingFiscalDocuments(tx, period) {
+    const dateRange = {
+        gte: period.startDate,
+        lte: period.endDate,
+    };
+
+    const pendingSaleDecisions = await tx.saleDocument.count({
+        where: {
+            companyId: period.companyId,
+            issuedAt: dateRange,
+            status: { in: ["SUBMITTED", "APPROVED"] },
+        },
+    });
+    if (pendingSaleDecisions > 0) {
+        throw httpError(
+            409,
+            "FISCAL_PERIOD_HAS_PENDING_DOCUMENTS",
+            "O período fiscal contém documentos pendentes",
+        );
+    }
+
+    const issuedSales = await tx.saleDocument.findMany({
+        where: {
+            companyId: period.companyId,
+            issuedAt: dateRange,
+            status: { in: ["ISSUED", "SETTLED"] },
+        },
+        select: { id: true },
+    });
+    if (issuedSales.length > 0) {
+        const postedSales = await tx.journalEntry.count({
+            where: {
+                companyId: period.companyId,
+                source: "SALE",
+                sourceId: { in: issuedSales.map(({ id }) => id) },
+            },
+        });
+        if (postedSales !== issuedSales.length) {
+            throw httpError(
+                409,
+                "FISCAL_PERIOD_HAS_PENDING_DOCUMENTS",
+                "O período fiscal contém documentos pendentes",
+            );
+        }
+    }
+
+    const approvedPurchases = await tx.purchaseDocument.findMany({
+        where: {
+            companyId: period.companyId,
+            issuedAt: dateRange,
+            status: { in: ["APPROVED", "PAID"] },
+        },
+        select: { id: true },
+    });
+    if (approvedPurchases.length > 0) {
+        const postedPurchases = await tx.journalEntry.count({
+            where: {
+                companyId: period.companyId,
+                source: "PURCHASE",
+                sourceId: { in: approvedPurchases.map(({ id }) => id) },
+            },
+        });
+        if (postedPurchases !== approvedPurchases.length) {
+            throw httpError(
+                409,
+                "FISCAL_PERIOD_HAS_PENDING_DOCUMENTS",
+                "O período fiscal contém documentos pendentes",
+            );
+        }
+    }
+}
+
+/**
  * Lista períodos fiscais da empresa ativa.
  *
  * @param {import("@prisma/client").PrismaClient} prisma - Cliente Prisma.
@@ -142,6 +222,8 @@ export async function closeFiscalPeriod(
                 "Período fiscal já está fechado",
             );
         }
+
+        await assertNoPendingFiscalDocuments(tx, period);
 
         const claimed = await tx.fiscalPeriod.updateMany({
             where: { id: period.id, companyId, status: "OPEN" },

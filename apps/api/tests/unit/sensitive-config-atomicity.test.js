@@ -239,7 +239,7 @@ test("metadata SAF-T de IVA só atualiza uma taxa EXEMPT da empresa", async () =
 test("abertura de período fiscal usa o lock e audita na mesma transação", async () => {
     const calls = [];
     const tx = {
-        $queryRaw: async () => {
+        $executeRaw: async () => {
             calls.push(["lock"]);
             return [{ locked: true }];
         },

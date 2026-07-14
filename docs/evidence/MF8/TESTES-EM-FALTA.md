@@ -70,3 +70,35 @@ Isto prova existência e classificação, não execução runtime. O próprio
 ## Decisao
 
 Decisao final: `BLOQUEADO_ATE_AMBIENTE_REMOTO_E_GATES_VERDES`.
+
+## Apêndice posterior — execução de 2026-07-13
+
+Este apêndice atualiza apenas o estado posterior; a fotografia de 2026-07-10
+acima é preservada como histórico.
+
+### Provas locais que deixaram de estar em falta
+
+- PostgreSQL Docker Compose: config `PASS`, demo healthy em
+  `127.0.0.1:5433`, `21` migrations, seed e verify.
+- Integração PostgreSQL: `11/11` PASS; seed idempotente/sentinela `1/1`, sem
+  skips.
+- Backup/verify/roundtrip: `429610` bytes, `21` migrations e todas as `69`
+  entidades/tabelas comparadas, com cleanup temporário.
+- API: `407/407` unitários, `174/174` contratos e MF6/MF7/MF8 em `PASS`.
+- Web: `18` ficheiros/`55` testes, typecheck e build em `PASS`.
+- Browser académico: Playwright normal `25/25` em três viewports e seeded
+  `3/3`.
+- Dependências: npm audit API e web com `0` vulnerabilidades.
+
+### Provas ainda em falta
+
+- Node `>=24.17 <25`; o gate académico parou no preflight com Node `24.11.1`.
+- `TEST_DATABASE_URL` remota, Redis e SMTP sandbox; o teste externo foi
+  executado e falhou fechado por estas ausências.
+- S3 e pipeline SAF-T externo.
+- Matriz adicional `test:e2e:compat` com Chrome, Edge e Firefox.
+
+A evidência detalhada está em
+`docs/evidence/MF8/EXECUCAO-DOCKER-COMPOSE-POSTGRESQL.md`. A decisão local passa
+a `PASS_LOCAL_COM_BLOQUEIOS_EXTERNOS_E_TOOLCHAIN`; não se declara o gate
+académico integral como PASS.

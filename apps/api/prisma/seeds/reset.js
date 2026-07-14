@@ -17,7 +17,7 @@ const LEGACY_COMPANIES = Object.freeze([
  * @returns {Promise<void>}
  */
 export async function acquireSeedLock(prisma, namespace) {
-    await prisma.$queryRaw`SELECT pg_advisory_lock(hashtext(${`opsa-seed:${namespace}`}))`;
+    await prisma.$executeRaw`SELECT pg_advisory_lock(hashtext(${`opsa-seed:${namespace}`}))`;
 }
 
 /**
@@ -28,7 +28,7 @@ export async function acquireSeedLock(prisma, namespace) {
  * @returns {Promise<void>}
  */
 export async function releaseSeedLock(prisma, namespace) {
-    await prisma.$queryRaw`SELECT pg_advisory_unlock(hashtext(${`opsa-seed:${namespace}`}))`;
+    await prisma.$executeRaw`SELECT pg_advisory_unlock(hashtext(${`opsa-seed:${namespace}`}))`;
 }
 
 /**
@@ -189,7 +189,6 @@ async function deleteCompanyGraph(tx, companyIds) {
     await tx.executiveKpiRun.deleteMany({ where });
     await tx.vatMapRun.deleteMany({ where });
     await tx.treasuryBalanceSnapshot.deleteMany({ where });
-    await tx.treasuryAccount.deleteMany({ where });
 
     await tx.inventoryCountLine.deleteMany({
         where: { inventoryCount: { companyId: { in: companyIds } } },
@@ -211,6 +210,7 @@ async function deleteCompanyGraph(tx, companyIds) {
 
     await tx.receipt.deleteMany({ where });
     await tx.payment.deleteMany({ where });
+    await tx.treasuryAccount.deleteMany({ where });
     await tx.purchaseApprovalHistory.deleteMany({ where });
     await tx.saleDocumentLine.deleteMany({
         where: { saleDocument: { companyId: { in: companyIds } } },
@@ -257,10 +257,42 @@ export async function resetSeedNamespace(prisma, input) {
         return { companiesDeleted: 0, usersDeleted: 0, objectsDeleted: 0 };
     }
     const userIds = await assertUsersAreNamespaceSafe(prisma, companyIds, input.namespace);
-    const attachments = await prisma.journalAttachment.findMany({
-        where: { companyId: { in: companyIds } },
-        select: { storageKey: true },
-    });
+    const [attachments, saftExports, invitations, resetTokens] = await Promise.all([
+        prisma.journalAttachment.findMany({
+            where: { companyId: { in: companyIds } },
+            select: { storageKey: true },
+        }),
+        prisma.saftExportRun.findMany({
+            where: {
+                companyId: { in: companyIds },
+                storageKey: { not: null },
+            },
+            select: { storageKey: true },
+        }),
+        prisma.companyInvitation.findMany({
+            where: { companyId: { in: companyIds } },
+            select: { id: true },
+        }),
+        prisma.passwordResetToken.findMany({
+            where: { userId: { in: userIds } },
+            select: { tokenHash: true },
+        }),
+    ]);
+    const prefix = input.namespace === LOAD_NAMESPACE ? "load:" : "demo:";
+    const outboxOwnershipFilters = [
+        { dedupeKey: { startsWith: prefix } },
+        ...invitations.map(({ id }) => ({
+            dedupeKey: { startsWith: `company-invitation:${id}:` },
+        })),
+        ...resetTokens.map(({ tokenHash }) => ({
+            dedupeKey: `password-reset:${tokenHash}`,
+        })),
+    ];
+    const storageKeys = new Set(
+        [...attachments, ...saftExports]
+            .map(({ storageKey }) => storageKey)
+            .filter(Boolean),
+    );
 
     await prisma.$transaction(async (tx) => {
         await deleteCompanyGraph(tx, companyIds);
@@ -268,14 +300,15 @@ export async function resetSeedNamespace(prisma, input) {
         await tx.passwordResetToken.deleteMany({ where: { userId: { in: userIds } } });
         await tx.securityAuditEvent.deleteMany({ where: { actorUserId: { in: userIds } } });
         await tx.user.deleteMany({ where: { id: { in: userIds } } });
-        const prefix = input.namespace === LOAD_NAMESPACE ? "load:" : "demo:";
-        await tx.emailOutbox.deleteMany({ where: { dedupeKey: { startsWith: prefix } } });
+        await tx.emailOutbox.deleteMany({
+            where: { OR: outboxOwnershipFilters },
+        });
     }, { timeout: 120_000 });
 
     let objectsDeleted = 0;
     if (input.objectStorage?.deleteObject) {
-        for (const attachment of attachments) {
-            await input.objectStorage.deleteObject(attachment.storageKey);
+        for (const storageKey of storageKeys) {
+            await input.objectStorage.deleteObject(storageKey);
             objectsDeleted += 1;
         }
     }

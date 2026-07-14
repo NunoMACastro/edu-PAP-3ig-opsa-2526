@@ -2,7 +2,11 @@
  * @file Smoke E2E sem mocks sobre a base demonstrativa real da OPSA.
  */
 
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
 import { expect, test } from "@playwright/test";
+
+const execFileAsync = promisify(execFile);
 
 const demoPassword = process.env.OPSA_DEMO_PASSWORD ?? "OpsaDemo2026!";
 const demoAnchorDate = process.env.OPSA_DEMO_ANCHOR_DATE ?? new Intl.DateTimeFormat("en-CA", {
@@ -26,11 +30,32 @@ async function loginDemoPersona(page: import("@playwright/test").Page, email: st
   await login.getByLabel("Palavra-passe").fill(demoPassword);
   await login.getByRole("button", { name: "Iniciar sessão" }).click();
   await expect(page).toHaveURL(/\/companies$/);
-  await page.getByRole("button", { name: "Mais ações" }).first().click();
+  await page.locator("summary:visible", { hasText: "Mais ações" }).first().click();
   await page.getByRole("button", { name: "Selecionar empresa" }).click();
   await page.getByRole("dialog", { name: "Selecionar empresa" })
     .getByRole("button", { name: "Selecionar" }).click();
-  await expect(page.getByText("OPSA Demo Comercio, Lda", { exact: true }).first()).toBeVisible();
+  await expect(
+    page.getByRole("banner").getByText("OPSA Demo Comercio, Lda", { exact: true }),
+  ).toBeVisible();
+}
+
+/**
+ * Abre explicitamente o grupo colapsável e segue uma ligação visível.
+ *
+ * @param page - Página autenticada.
+ * @param group - Rótulo do grupo principal.
+ * @param link - Rótulo da ligação de destino.
+ */
+async function followNavigationLink(
+  page: import("@playwright/test").Page,
+  group: string,
+  link: string,
+) {
+  const navigation = page.getByRole("navigation", { name: "Navegação principal" });
+  const summary = navigation.locator("summary").filter({ hasText: new RegExp(`^${group}$`) });
+  const disclosure = summary.locator("..");
+  if (await disclosure.getAttribute("open") === null) await summary.click();
+  await navigation.getByRole("link", { name: link, exact: true }).click();
 }
 
 test("seed demo suporta login, contexto, paginação e workflows críticos reais", async ({ page }) => {
@@ -42,25 +67,30 @@ test("seed demo suporta login, contexto, paginação e workflows críticos reais
 
   await expect(page).toHaveURL(/\/companies$/);
   await expect(page.getByRole("heading", { name: "Empresas e contexto" })).toBeVisible();
-  await page.getByRole("button", { name: "Mais ações" }).first().click();
+  await page.locator("summary:visible", { hasText: "Mais ações" }).first().click();
   await page.getByRole("button", { name: "Selecionar empresa" }).click();
   await page.getByRole("dialog", { name: "Selecionar empresa" })
     .getByRole("button", { name: "Selecionar" }).click();
-  await expect(page.getByText("OPSA Demo Comercio, Lda", { exact: true }).first()).toBeVisible();
+  await expect(
+    page.getByRole("banner").getByText("OPSA Demo Comercio, Lda", { exact: true }),
+  ).toBeVisible();
 
-  await page.getByRole("link", { name: "Clientes" }).click();
+  await followNavigationLink(page, "Vendas", "Clientes");
   await expect(page.getByRole("heading", { name: "Clientes" })).toBeVisible();
   const loadMore = page.getByRole("navigation", { name: "Paginação de Clientes" })
     .getByRole("button", { name: "Carregar mais" });
   await expect(loadMore).toBeVisible();
   await loadMore.click();
-  await expect(page.getByText("Cliente Demo 075", { exact: true })).toBeVisible();
+  await expect(page.getByRole("cell", { name: "Cliente Demo 060", exact: true })).toBeVisible();
 
   const workflow = await page.evaluate(async ({ anchorDate }) => {
     const request = async (path: string, init?: RequestInit) => {
       const response = await fetch(`/api${path}`, {
         credentials: "include",
-        headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },
+        headers: {
+          ...(init?.body ? { "Content-Type": "application/json" } : {}),
+          ...(init?.headers ?? {}),
+        },
         ...init,
       });
       const body = await response.json();
@@ -74,7 +104,7 @@ test("seed demo suporta login, contexto, paginação e workflows críticos reais
     );
     if (!approved) throw new Error("Venda APPROVED de ação não encontrada.");
     const issued = await request(`/sales/documents/${approved.id}/issue`, { method: "POST" });
-    await request(`/accounting/sale-postings/${issued.id}`, { method: "POST" });
+    await request(`/accounting/sale-postings/${issued.saleDocument.id}`, { method: "POST" });
 
     const purchases = await request("/purchases/documents?limit=100");
     const purchaseItems = purchases.items ?? purchases.purchaseDocuments ?? [];
@@ -83,16 +113,6 @@ test("seed demo suporta login, contexto, paginação e workflows críticos reais
     );
     if (!ready) throw new Error("Compra APPROVED de ação não encontrada.");
     await request(`/accounting/purchase-postings/${ready.id}`, { method: "POST" });
-    const payment = await request(`/purchases/documents/${ready.id}/payments`, {
-      method: "POST",
-      body: JSON.stringify({
-        amountCents: 100,
-        paidAt: anchorDate,
-        method: "BANK_TRANSFER",
-        reference: "E2E-SEED-PAYMENT",
-      }),
-    });
-
     const [itemsPage, warehouseResult] = await Promise.all([
       request("/items?limit=100"),
       request("/warehouses"),
@@ -163,9 +183,8 @@ test("seed demo suporta login, contexto, paginação e workflows críticos reais
     }
 
     return {
-      saleId: issued.id,
+      saleId: issued.saleDocument.id,
       purchaseId: ready.id,
-      paymentId: payment.payment.id,
       movementId: stock.movement.id,
       reconciliationCount: reconciliation.suggestions.length,
       insightCount: insights.insights.length,
@@ -174,20 +193,50 @@ test("seed demo suporta login, contexto, paginação e workflows críticos reais
   }, { anchorDate: demoAnchorDate });
   expect(workflow.saleId).toBeTruthy();
   expect(workflow.purchaseId).toBeTruthy();
-  expect(workflow.paymentId).toBeTruthy();
   expect(workflow.movementId).toBeTruthy();
   expect(workflow.reconciliationCount).toBeGreaterThan(0);
   expect(workflow.insightCount).toBeGreaterThan(0);
   expect(workflow.pdfSize).toBeGreaterThan(100);
 
-  for (const [link, heading] of [
-    ["Mapa de IVA", "Mapa de IVA"],
-    ["KPIs executivos", "KPIs executivos"],
-    ["Insights IA", "Insights IA"],
-    ["Alertas inteligentes", "Alertas inteligentes"],
-    ["Lançamentos manuais", "Lançamentos manuais"],
+  await followNavigationLink(page, "Vendas", "Recebimentos");
+  await expect(page.getByRole("heading", { name: "Recebimentos" })).toBeVisible();
+  const receiptForm = page.getByRole("heading", { name: "Registar recebimento" }).locator("..");
+  await receiptForm.getByLabel("Documento de venda").selectOption(workflow.saleId);
+  await receiptForm.getByLabel("Conta de tesouraria").selectOption({ index: 1 });
+  await receiptForm.getByLabel("Valor em cêntimos").fill("100");
+  await receiptForm.getByLabel("Data").fill(demoAnchorDate);
+  await receiptForm.getByLabel("Referência").fill("E2E-SEED-RECEIPT");
+  await receiptForm.getByRole("button", { name: "Registar" }).click();
+  await expect(page.getByText("Recebimento registado.")).toBeVisible();
+
+  await followNavigationLink(page, "Compras", "Pagamentos");
+  await expect(page.getByRole("heading", { name: "Pagamentos" })).toBeVisible();
+  const paymentForm = page.getByRole("heading", { name: "Registar pagamento" }).locator("..");
+  await paymentForm.getByLabel("Documento de compra").selectOption(workflow.purchaseId);
+  await paymentForm.getByLabel("Conta de tesouraria").selectOption({ index: 1 });
+  await paymentForm.getByLabel("Valor em cêntimos").fill("100");
+  await paymentForm.getByLabel("Data").fill(demoAnchorDate);
+  await paymentForm.getByLabel("Referência").fill("E2E-SEED-PAYMENT");
+  await paymentForm.getByRole("button", { name: "Registar" }).click();
+  await expect(page.getByText("Pagamento registado.")).toBeVisible();
+
+  await followNavigationLink(page, "IA e trabalho", "Tarefas");
+  await expect(page.getByRole("heading", { name: "Tarefas" })).toBeVisible();
+  const taskForm = page.getByRole("heading", { name: "Criar tarefa" }).locator("..");
+  await taskForm.getByLabel("Título").fill("Tarefa criada pelo E2E seeded");
+  await taskForm.getByLabel("Prazo").fill(demoAnchorDate);
+  await taskForm.getByLabel("Responsável (opcional)").selectOption({ index: 1 });
+  await taskForm.getByRole("button", { name: "Criar" }).click();
+  await expect(page.getByText("Tarefa criada pelo E2E seeded")).toBeVisible();
+
+  for (const [group, link, heading] of [
+    ["Contabilidade e fiscalidade", "Mapa de IVA", "Mapa de IVA"],
+    ["Relatórios", "KPIs executivos", "KPIs executivos"],
+    ["IA e trabalho", "Insights IA", "Insights automáticos"],
+    ["IA e trabalho", "Alertas inteligentes", "Alertas inteligentes"],
+    ["Contabilidade e fiscalidade", "Lançamentos manuais", "Lançamentos manuais"],
   ] as const) {
-    await page.getByRole("link", { name: link }).click();
+    await followNavigationLink(page, group, link);
     await expect(page.getByRole("heading", { name: heading })).toBeVisible();
   }
 });
@@ -210,12 +259,23 @@ test("as cinco contas demo concluem os fluxos permitidos e recebem 403 apenas em
       });
       const page = await context.newPage();
       await loginDemoPersona(page, persona.email);
+      const roleLabel = {
+        ADMIN: "Administrador",
+        GESTOR: "Gestor",
+        CONTABILISTA: "Contabilista",
+        OPERACIONAL: "Operacional",
+        AUDITOR: "Auditor",
+      }[persona.role];
+      await expect(page.getByRole("banner").getByText(roleLabel, { exact: true })).toBeVisible();
 
       const result = await page.evaluate(async ({ role, anchorDate }) => {
         async function request(path: string, init?: RequestInit) {
           const response = await fetch(`/api${path}`, {
             credentials: "include",
-            headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },
+            headers: {
+              ...(init?.body ? { "Content-Type": "application/json" } : {}),
+              ...(init?.headers ?? {}),
+            },
             ...init,
           });
           let body: Record<string, any> = {};
@@ -225,11 +285,6 @@ test("as cinco contas demo concluem os fluxos permitidos e recebem 403 apenas em
             body = {};
           }
           return { status: response.status, body };
-        }
-
-        const permissions = await request("/permissions/me");
-        if (permissions.status !== 200 || permissions.body.role !== role) {
-          throw new Error(`Permissões incoerentes para ${role}`);
         }
 
         if (role === "ADMIN") {
@@ -363,4 +418,45 @@ test("as cinco contas demo concluem os fluxos permitidos e recebem 403 apenas em
       await context.close();
     });
   }
+});
+
+test("recuperação de password conclui-se pela inbox simulada", async ({ page }) => {
+  const inboxAccessKey = process.env.DEMO_EMAIL_INBOX_ACCESS_KEY ?? "opsa-demo-2026";
+  const newPassword = "OpsaDemoReset2026!";
+
+  await page.goto("/recuperar-password/pedir");
+  await page.getByLabel("Email").fill("auditor@opsa.demo");
+  await page.getByRole("button", { name: "Pedir link" }).click();
+  await expect(page.getByText("Dados guardados e lista atualizada.")).toBeVisible();
+
+  await execFileAsync(
+    "npm",
+    ["--prefix", "../api", "run", "worker:email:drain"],
+    { cwd: process.cwd(), env: process.env },
+  );
+
+  await page.getByRole("navigation", { name: "Navegação principal" })
+    .getByRole("link", { name: "Inbox da demonstração" })
+    .click();
+  await page.getByLabel("Código de acesso da demo").fill(inboxAccessKey);
+  await page.getByRole("button", { name: "Abrir inbox" }).click();
+  const preview = page.getByText("auditor@opsa.demo").locator("..");
+  const resetLink = preview.getByRole("link", { name: "Abrir ligação temporária" });
+  await expect(resetLink).toBeVisible();
+  const href = await resetLink.getAttribute("href");
+  expect(href).toBeTruthy();
+  const target = new URL(href!);
+  await page.goto(`${target.pathname}${target.hash}`);
+
+  await page.getByLabel("Nova password", { exact: true }).fill(newPassword);
+  await page.getByLabel("Confirmar nova password").fill(newPassword);
+  await page.getByRole("button", { name: "Alterar password" }).click();
+  await expect(page.getByText("Password alterada. Inicia uma nova sessão.")).toBeVisible();
+
+  await page.getByRole("link", { name: "Ir para o login" }).click();
+  const login = page.getByRole("heading", { level: 3, name: "Iniciar sessão" }).locator("..");
+  await login.getByLabel("Email").fill("auditor@opsa.demo");
+  await login.getByLabel("Palavra-passe").fill(newPassword);
+  await login.getByRole("button", { name: "Iniciar sessão" }).click();
+  await expect(page).toHaveURL(/\/companies$/);
 });

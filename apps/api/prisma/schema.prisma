@@ -610,22 +610,25 @@ model SaleDocumentLine {
 }
 
 model Receipt {
-  id             String        @id @default(uuid())
-  companyId      String
-  saleDocumentId String
-  amountCents    Int
-  receivedAt     DateTime
-  method         ReceiptMethod
-  reference      String?
-  notes          String?
-  createdById    String
-  createdAt      DateTime      @default(now())
+  id                String        @id @default(uuid())
+  companyId         String
+  saleDocumentId    String
+  treasuryAccountId String?
+  amountCents       Int
+  receivedAt        DateTime
+  method            ReceiptMethod
+  reference         String?
+  notes             String?
+  createdById       String
+  createdAt         DateTime      @default(now())
 
-  company      Company      @relation(fields: [companyId], references: [id])
-  saleDocument SaleDocument @relation(fields: [saleDocumentId], references: [id])
+  company         Company          @relation(fields: [companyId], references: [id])
+  saleDocument    SaleDocument     @relation(fields: [saleDocumentId], references: [id])
+  treasuryAccount TreasuryAccount? @relation(fields: [treasuryAccountId], references: [id], onDelete: Restrict)
 
   @@index([companyId, receivedAt])
   @@index([saleDocumentId])
+  @@index([treasuryAccountId])
 }
 
 model JournalEntry {
@@ -737,6 +740,7 @@ model Payment {
   id                 String        @id @default(uuid())
   companyId          String
   purchaseDocumentId String
+  treasuryAccountId  String?
   amountCents        Int
   paidAt             DateTime
   method             PaymentMethod
@@ -747,9 +751,11 @@ model Payment {
 
   company          Company          @relation(fields: [companyId], references: [id])
   purchaseDocument PurchaseDocument @relation(fields: [purchaseDocumentId], references: [id])
+  treasuryAccount  TreasuryAccount? @relation(fields: [treasuryAccountId], references: [id], onDelete: Restrict)
 
   @@index([companyId, paidAt])
   @@index([purchaseDocumentId])
+  @@index([treasuryAccountId])
 }
 
 model AuditLog {
@@ -1042,6 +1048,8 @@ model TreasuryAccount {
   company          Company                   @relation(fields: [companyId], references: [id])
   createdBy        User                      @relation("UserTreasuryAccounts", fields: [createdById], references: [id])
   snapshots        TreasuryBalanceSnapshot[]
+  receipts         Receipt[]
+  payments         Payment[]
   statementImports BankStatementImport[]
   statementLines   BankStatementLine[]
 

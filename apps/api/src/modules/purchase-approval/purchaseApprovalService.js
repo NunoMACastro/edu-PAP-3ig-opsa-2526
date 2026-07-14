@@ -3,7 +3,9 @@
  */
 
 import { httpError } from "../../lib/httpErrors.js";
+import { acquireTransactionLock } from "../../lib/postgresLocks.js";
 import { postPurchaseDocumentInTransaction } from "../accounting/purchasePostingService.js";
+import { assertOpenFiscalPeriod } from "../fiscal-periods/fiscalPeriodService.js";
 import {
     parseApprovalReason,
     parseRejectionReason,
@@ -139,6 +141,11 @@ export async function approvePurchaseDocument(
     }
 
     return prisma.$transaction(async (tx) => {
+        await acquireTransactionLock(tx, "fiscal", companyId);
+        await assertOpenFiscalPeriod(tx, {
+            companyId,
+            documentDate: document.issuedAt,
+        });
         const updated = await claimPurchaseStatus(tx, {
             id,
             companyId,

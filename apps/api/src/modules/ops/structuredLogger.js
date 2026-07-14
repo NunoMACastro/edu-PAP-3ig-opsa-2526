@@ -7,18 +7,46 @@
 
 const ALLOWED_LEVELS = new Set(["info", "warn", "error", "audit"]);
 const BLOCKED_CONTEXT_KEYS = new Set([
+    "accesstoken",
     "apikey",
+    "airesponse",
     "authorization",
     "cookie",
+    "cookies",
     "documentlines",
+    "email",
+    "financialdata",
+    "financialpayload",
     "headers",
     "iban",
+    "idtoken",
     "nif",
     "password",
     "passwordhash",
     "privatekey",
+    "prompt",
+    "rawpayload",
+    "refreshtoken",
+    "response",
+    "secret",
+    "stack",
+    "stacktrace",
+    "token",
+]);
+const BLOCKED_CONTEXT_KEY_SUFFIXES = Object.freeze([
+    "authorization",
+    "cookie",
+    "credential",
+    "email",
+    "emailaddress",
+    "iban",
+    "nif",
+    "password",
+    "privatekey",
+    "prompt",
     "rawpayload",
     "secret",
+    "stack",
     "token",
 ]);
 
@@ -51,7 +79,12 @@ function assertSafeContextKey(key) {
     const normalizedKey = normalizeContextKey(key);
 
     // Comparar a chave normalizada evita que variações de escrita contornem a denylist.
-    if (BLOCKED_CONTEXT_KEYS.has(normalizedKey)) {
+    if (
+        BLOCKED_CONTEXT_KEYS.has(normalizedKey) ||
+        BLOCKED_CONTEXT_KEY_SUFFIXES.some((suffix) =>
+            normalizedKey.endsWith(suffix),
+        )
+    ) {
         throw new Error(`Campo proibido em contexto de log: ${key}`);
     }
 }

@@ -116,6 +116,7 @@ async function cleanupCompany(prisma, companyId, userId) {
     });
     await prisma.inventoryCount.deleteMany({ where: { companyId } });
     await prisma.journalAttachment.deleteMany({ where: { companyId } });
+    await prisma.journalEntryRevision.deleteMany({ where: { companyId } });
     await prisma.journalEntryLine.deleteMany({
         where: { journalEntry: { companyId } },
     });
@@ -125,6 +126,7 @@ async function cleanupCompany(prisma, companyId, userId) {
         where: { purchaseDocument: { companyId } },
     });
     await prisma.purchaseDocument.deleteMany({ where: { companyId } });
+    await prisma.retentionHold.deleteMany({ where: { companyId } });
     await prisma.auditLog.deleteMany({ where: { companyId } });
     await prisma.fiscalPeriod.deleteMany({ where: { companyId } });
     await prisma.account.deleteMany({ where: { companyId } });

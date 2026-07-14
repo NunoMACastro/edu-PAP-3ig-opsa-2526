@@ -5,12 +5,15 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { acquireTransactionLock } from "../../src/lib/postgresLocks.js";
-import { createStockMovementWithCostInTransaction } from "../../src/modules/inventory/stockMovementService.js";
+import {
+    createStockMovement,
+    createStockMovementWithCostInTransaction,
+} from "../../src/modules/inventory/stockMovementService.js";
 
 test("advisory lock usa namespace e identificadores sem interpolar SQL", async () => {
     const observed = [];
     const tx = {
-        $queryRaw: async (strings, ...values) => {
+        $executeRaw: async (strings, ...values) => {
             observed.push({ strings: [...strings], values });
             return [];
         },
@@ -26,12 +29,13 @@ test("advisory lock usa namespace e identificadores sem interpolar SQL", async (
 test("entrada de stock bloqueia artigo/armazém antes de atualizar saldo e FIFO", async () => {
     const events = [];
     const tx = {
+        $executeRaw: async (strings, key) => {
+            assert.match(strings.join(" "), /pg_advisory_xact_lock/);
+            events.push(`lock:${key}`);
+            return 1;
+        },
         $queryRaw: async (strings, key) => {
             const sql = strings.join(" ");
-            if (sql.includes("pg_advisory_xact_lock")) {
-                events.push(`lock:${key}`);
-                return [];
-            }
             assert.match(sql, /FROM "StockBalance"/);
             assert.match(sql, /FOR UPDATE/);
             events.push("balance-row-lock");
@@ -85,4 +89,32 @@ test("entrada de stock bloqueia artigo/armazém antes de atualizar saldo e FIFO"
         "balance",
         "fifo",
     ]);
+});
+
+test("serialização P2010 de raw SQL é repetida e termina em conflito estável", async () => {
+    let attempts = 0;
+    const prisma = {
+        async $transaction() {
+            attempts += 1;
+            throw {
+                code: "P2010",
+                meta: {
+                    message:
+                        "could not serialize access due to read/write dependencies among transactions",
+                },
+            };
+        },
+    };
+
+    await assert.rejects(
+        () => createStockMovement(prisma, "company-1", "user-1", {
+            type: "EXIT",
+            itemId: "item-1",
+            quantity: 1,
+            fromWarehouseId: "warehouse-1",
+            reason: "Concorrência",
+        }),
+        { status: 409, code: "STALE_STATE" },
+    );
+    assert.equal(attempts, 3);
 });

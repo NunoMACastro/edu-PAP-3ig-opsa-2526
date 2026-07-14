@@ -91,6 +91,7 @@ async function cleanupMf3Company(prisma, companyId, userId) {
     await prisma.saftExportRun.deleteMany({ where: { companyId } });
     await prisma.operationalReportRun.deleteMany({ where: { companyId } });
     await prisma.executiveKpiRun.deleteMany({ where: { companyId } });
+    await prisma.integrationLog.deleteMany({ where: { companyId } });
     await prisma.retentionHold.deleteMany({ where: { companyId } });
     await prisma.auditLog.deleteMany({ where: { companyId } });
     await prisma.receipt.deleteMany({ where: { companyId } });
@@ -387,8 +388,10 @@ test(
             assert.equal(vatMap.vatBalanceCents, 138);
             assert.equal(forecast.openingBalanceCents, 5000);
             assert.equal(businessImport.acceptedRows, 1);
-            assert.equal(operational.margin.totalCents, 738);
-            assert.equal(kpis.ebitdaCents, 738);
+            assert.equal(operational.margin.totalCents, null);
+            assert.equal(operational.margin.quality, "INSUFFICIENT_DATA");
+            assert.equal(kpis.ebitdaCents, null);
+            assert.equal(kpis.dataQuality, "INSUFFICIENT_DATA");
 
             assert.equal(await prisma.vatMapRun.count({ where: { companyId: company.id } }), 1);
             assert.equal(

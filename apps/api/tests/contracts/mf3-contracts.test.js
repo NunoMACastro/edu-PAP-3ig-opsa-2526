@@ -49,6 +49,7 @@ test("MF3: routers principais expõem endpoints canónicos", () => {
     assert.equal(hasRoute(buildCashflowForecastRoutes(deps), "get", "/forecast"), true);
     assert.equal(hasRoute(buildBusinessImportRoutes(deps), "post", "/business-data"), true);
     const saftRouter = buildSaftRoutes(deps);
+    assert.equal(hasRoute(saftRouter, "get", "/saft/status"), true);
     assert.equal(hasRoute(saftRouter, "post", "/saft/exports"), true);
     assert.equal(hasRoute(saftRouter, "get", "/saft/exports/:exportId"), true);
     assert.equal(

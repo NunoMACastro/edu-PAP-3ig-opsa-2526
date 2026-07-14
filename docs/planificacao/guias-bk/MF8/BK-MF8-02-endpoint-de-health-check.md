@@ -17,7 +17,7 @@
 - `core_or_reforco`: `Core`
 - `proximo_bk`: `BK-MF8-03`
 - `guia_path`: `docs/planificacao/guias-bk/MF8/BK-MF8-02-endpoint-de-health-check.md`
-- `last_updated`: `2026-07-10`
+- `last_updated`: `2026-07-13`
 
 ## Objetivo
 
@@ -46,6 +46,8 @@ As rotas são públicas, mas devolvem apenas estado agregado, versão segura e r
 
 - **Liveness** não consulta serviços externos; caso contrário uma falha remota força reinícios inúteis.
 - **Readiness** consulta dependências críticas com timeout curto e execução concorrente controlada.
+- Readiness normal usa apenas `SELECT 1`, `PING` e um probe read-only do storage; não escreve em tabelas, chaves Redis ou objetos.
+- Provas CRUD e respetivo cleanup pertencem ao comando explícito `npm run health:deep-check`, não ao endpoint monitorizado.
 - O alias `/api/health` tem exatamente a semântica de readiness, não um payload estático.
 - `createApp(...)` monta rotas sem abrir portas. `startServer()` é o único responsável pelo listener e shutdown.
 - Um timeout/falha é estado `not_ready`, não exceção com detalhes enviada ao cliente.
@@ -99,7 +101,7 @@ Monta o router em `/api/health` antes de routers autenticados, mas depois do mid
 
 ### Passo 4 - Integrar observabilidade
 
-Cada pedido recebe/gera um request ID válido. O middleware comum regista início e fim, duração, método, status e route template. O health pode usar sampling para reduzir ruído, mas falhas de readiness devem produzir um evento `warn` redigido.
+Cada pedido recebe/gera um request ID válido. O middleware comum emite um único evento terminal por pedido, com duração, método, status, outcome e route template. Não é necessário um evento de início sem consumidor operacional demonstrado.
 
 Nunca confies em IDs ou IP forwarded sem a configuração explícita `TRUST_PROXY_HOPS`.
 
@@ -111,10 +113,25 @@ Testes mínimos:
 - ready e alias devolvem `200` quando todos os probes passam;
 - falha isolada de PostgreSQL, Redis e storage devolve `503`;
 - timeout de cada probe devolve `503` dentro do budget;
+- readiness normal não chama transações de permissões, `SET/GET/DEL` nem `PUT/GET/DELETE`;
+- `npm run health:deep-check` mantém as provas mutáveis e confirma cleanup;
 - payload não contém URL, host, bucket, stack ou erro bruto;
 - request ID está presente e é redigido/validado;
 - importar `createApp` não abre listener;
 - erro inesperado não transforma readiness em falso positivo.
+
+Na demonstração local, prepara primeiro PostgreSQL sem instalar o servidor no
+host:
+
+```bash
+npm --prefix apps/api run db:local:check
+npm --prefix apps/api run db:local:start
+npm --prefix apps/api run db:local:status
+```
+
+O serviço `postgres` é exposto apenas em `127.0.0.1:5433`. Uma falha do
+container deve tornar readiness `not_ready`; não alteres liveness nem escondas
+a falha com um fallback de base de dados.
 
 ### Passo 6 - Testar shutdown
 
@@ -125,8 +142,10 @@ Durante shutdown, readiness passa a `503` antes de parar de aceitar ligações. 
 ```bash
 cd apps/api
 node --test tests/contracts/mf8-health.contract.test.js
+npm run health:deep-check
 npm run test:contracts
 npm run test:integration
+npm run test:integration:postgres-local
 ```
 
 Os resultados esperados são contagens observadas no momento da execução; não copies contagens históricas. Falhas por ausência de serviços são blockers ambientais, não PASS.
@@ -137,7 +156,7 @@ Os resultados esperados são contagens observadas no momento da execução; não
 - Readiness e o alias devolvem `503` perante cada dependência crítica indisponível.
 - App e listener estão separados.
 - Payload e logs não expõem configuração sensível.
-- Request ID e logs de início/fim estão integrados.
+- Request ID e exatamente um log terminal por pedido estão integrados.
 - Shutdown retira readiness e drena recursos.
 
 ## Evidence para PR/defesa
@@ -197,4 +216,6 @@ Entrega a `BK-MF8-03` uma API cuja prontidão é verificável antes de testar su
 
 ## Changelog
 
+- `2026-07-13`: acrescentado o percurso PostgreSQL Docker Compose local e o
+  teste de integração persistida, mantendo readiness read-only.
 - `2026-07-10`: health dividido em live/ready, alias de readiness, dependências reais e shutdown.

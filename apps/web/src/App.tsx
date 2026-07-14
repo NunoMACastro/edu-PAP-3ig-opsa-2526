@@ -28,6 +28,7 @@ import {
   JsonBody,
   type CompanyInvitation,
   type CompanyMember,
+  type DemoEmailPreview,
 } from "./lib/apiClient";
 import {
   EMPTY_PAGE_INFO,
@@ -729,6 +730,7 @@ function AuthPanel({
         {mode !== "login" ? <Link to="/auth">Já tenho conta</Link> : null}
         {mode !== "register" ? <Link to="/registar">Criar conta</Link> : null}
         {mode !== "request" ? <Link to="/recuperar-password/pedir">Recuperar palavra-passe</Link> : null}
+        <Link to="/demo/email-inbox">Inbox da demonstração</Link>
       </div>
     </section>
   );
@@ -984,6 +986,82 @@ function PasswordResetPage() {
       ) : null}
       <ActionFeedbackMessage feedback={action.feedback} />
       {completed ? <Link to="/auth">Ir para o login</Link> : null}
+    </PageFrame>
+  );
+}
+
+/**
+ * Mostra apenas os links temporários produzidos pelo provider simulado.
+ * O código de acesso e os resultados vivem exclusivamente no estado React.
+ *
+ * @returns Página pública da inbox académica local.
+ */
+function DemoEmailInboxPage() {
+  const action = useActionFeedback();
+  const [accessKey, setAccessKey] = useState("");
+  const [messages, setMessages] = useState<DemoEmailPreview[]>([]);
+
+  async function unlock(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    try {
+      await action.run(
+        async () => {
+          const response = await apiClient.demoEmailInbox.unlock(accessKey);
+          setMessages(response.messages);
+        },
+        {
+          startMessage: "A abrir a inbox...",
+          successMessage: "Inbox de demonstração atualizada.",
+          errorMessage: "Não foi possível abrir a inbox de demonstração.",
+        },
+      );
+    } catch {
+      // O código fica apenas em memória para permitir nova tentativa.
+    }
+  }
+
+  return (
+    <PageFrame
+      title="Inbox da demonstração"
+      description="Disponível apenas no perfil local com email simulado. Os links expiram da inbox após 24 horas."
+    >
+      <form className="operation" onSubmit={unlock}>
+        <label>
+          <span>Código de acesso da demo</span>
+          <input
+            name="accessKey"
+            type="password"
+            autoComplete="off"
+            value={accessKey}
+            onChange={(event) => setAccessKey(event.currentTarget.value)}
+            required
+          />
+        </label>
+        <button type="submit" disabled={action.busy || !accessKey.trim()}>
+          {action.busy ? "A abrir..." : "Abrir inbox"}
+        </button>
+      </form>
+      <ActionFeedbackMessage feedback={action.feedback} />
+      {messages.length === 0 && action.feedback.tone === "success" ? (
+        <p className="empty">Ainda não existem convites ou recuperações simulados.</p>
+      ) : null}
+      <div className="operationGrid">
+        {messages.map((message) => (
+          <article
+            className="operation"
+            key={`${message.type}-${message.recipient}-${message.createdAt}`}
+          >
+            <h3>{message.subject}</h3>
+            <p>{message.recipient}</p>
+            <p>
+              {message.type === "COMPANY_INVITATION" ? "Convite" : "Recuperação"}
+              {" · "}
+              {new Date(message.createdAt).toLocaleString("pt-PT")}
+            </p>
+            <a href={message.actionUrl}>Abrir ligação temporária</a>
+          </article>
+        ))}
+      </div>
     </PageFrame>
   );
 }
@@ -2370,6 +2448,7 @@ function AppContent() {
               <Link to="/auth" aria-current={location.pathname === "/auth" ? "page" : undefined}>Iniciar sessão</Link>
               <Link to="/registar" aria-current={location.pathname === "/registar" ? "page" : undefined}>Criar conta</Link>
               <Link to="/recuperar-password/pedir" aria-current={location.pathname === "/recuperar-password/pedir" ? "page" : undefined}>Recuperar palavra-passe</Link>
+              <Link to="/demo/email-inbox" aria-current={location.pathname === "/demo/email-inbox" ? "page" : undefined}>Inbox da demonstração</Link>
             </div>
           ) : !auth.snapshot?.activeCompanyId ? (
             <div className="navGroup">
@@ -2439,6 +2518,7 @@ function AppContent() {
         <Routes>
           <Route path="/aceitar-convite" element={<InvitationAcceptancePage />} />
           <Route path="/recuperar-password" element={<PasswordResetPage />} />
+          <Route path="/demo/email-inbox" element={<DemoEmailInboxPage />} />
           <Route
             path="/registar"
             element={auth.status === "authenticated" && auth.snapshot?.activeCompanyId

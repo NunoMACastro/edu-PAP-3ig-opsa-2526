@@ -15,7 +15,7 @@ const methods = new Set(["CASH", "BANK_TRANSFER", "CARD", "OTHER"]);
  * Valida payload de recebimento.
  *
  * @param {unknown} input - Payload JSON.
- * @returns {{ amountCents: number, receivedAt: Date, method: string, reference: string | null, notes: string | null }} Recebimento validado.
+ * @returns {{ treasuryAccountId: string, amountCents: number, receivedAt: Date, method: string, reference: string | null, notes: string | null }} Recebimento validado.
  */
 function parseReceiptInput(input) {
     if (!input || typeof input !== "object") {
@@ -23,6 +23,7 @@ function parseReceiptInput(input) {
     }
 
     const amountCents = Number(input.amountCents);
+    const treasuryAccountId = String(input.treasuryAccountId ?? "").trim();
     const receivedAt = parseStrictDateOnly(input.receivedAt, {
         code: "INVALID_DATE",
         field: "Data de recebimento",
@@ -32,11 +33,19 @@ function parseReceiptInput(input) {
     if (!Number.isInteger(amountCents) || amountCents <= 0) {
         throw httpError(400, "INVALID_AMOUNT", "Valor recebido inválido");
     }
+    if (!treasuryAccountId) {
+        throw httpError(
+            400,
+            "TREASURY_ACCOUNT_REQUIRED",
+            "Conta de tesouraria obrigatória",
+        );
+    }
     if (!methods.has(method)) {
         throw httpError(400, "INVALID_METHOD", "Método de recebimento inválido");
     }
 
     return {
+        treasuryAccountId,
         amountCents,
         receivedAt,
         method,
@@ -79,6 +88,13 @@ export async function registerReceipt(
                 "Documento de venda não encontrado",
             );
         }
+        if (data.receivedAt < document.issuedAt) {
+            throw httpError(
+                400,
+                "INVALID_RECEIPT_CHRONOLOGY",
+                "A data de recebimento não pode ser anterior à data do documento",
+            );
+        }
         if (document.kind === "CREDIT_NOTE") {
             throw httpError(
                 409,
@@ -110,6 +126,22 @@ export async function registerReceipt(
             );
         }
 
+        const treasuryAccount = await tx.treasuryAccount.findFirst({
+            where: {
+                id: data.treasuryAccountId,
+                companyId,
+                isActive: true,
+            },
+            select: { id: true },
+        });
+        if (!treasuryAccount) {
+            throw httpError(
+                404,
+                "TREASURY_ACCOUNT_NOT_FOUND",
+                "Conta de tesouraria não encontrada",
+            );
+        }
+
         const nextPaid = document.amountPaidCents + data.amountCents;
         const updated = await tx.saleDocument.updateMany({
             where: {
@@ -129,6 +161,35 @@ export async function registerReceipt(
                 409,
                 "STALE_BALANCE",
                 "O saldo do documento foi alterado; tente novamente",
+            );
+        }
+
+        const accountUpdated = await tx.treasuryAccount.updateMany({
+            where: {
+                id: treasuryAccount.id,
+                companyId,
+                isActive: true,
+            },
+            data: {
+                currentBalanceCents: { increment: data.amountCents },
+            },
+        });
+        if (accountUpdated.count !== 1) {
+            throw httpError(
+                409,
+                "TREASURY_ACCOUNT_UNAVAILABLE",
+                "A conta de tesouraria deixou de estar disponível; tente novamente",
+            );
+        }
+        const resultingAccount = await tx.treasuryAccount.findFirst({
+            where: { id: treasuryAccount.id, companyId },
+            select: { currentBalanceCents: true },
+        });
+        if (!resultingAccount) {
+            throw httpError(
+                409,
+                "TREASURY_ACCOUNT_UNAVAILABLE",
+                "A conta de tesouraria deixou de estar disponível; tente novamente",
             );
         }
 
@@ -152,8 +213,11 @@ export async function registerReceipt(
             retentionReason: "RECEIPT_AUDIT_RETAINED",
             details: {
                 saleDocumentId,
+                treasuryAccountId: treasuryAccount.id,
                 amountCents: data.amountCents,
                 resultingAmountPaidCents: nextPaid,
+                resultingTreasuryBalanceCents:
+                    resultingAccount.currentBalanceCents,
             },
         });
 

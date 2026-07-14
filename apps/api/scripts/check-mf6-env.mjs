@@ -27,9 +27,18 @@ const blockedSecretPatterns = [
     /sk_live_[A-Za-z0-9_]+/,
     /pk_live_[A-Za-z0-9_]+/,
     /LIVE_VALUE_DO_NOT_COMMIT/,
-    /(?:api[_-]?key|secret|token)\s*[:=]\s*["'][A-Za-z0-9][A-Za-z0-9_\-./=+]{12,}["']/i,
-    /(?:API_KEY|SECRET|TOKEN)\s*=\s*[^\s#]{12,}/,
+    /\b(?:[A-Za-z][A-Za-z0-9_]*(?:api[_-]?key|secret|token)[A-Za-z0-9_]*|API_KEY|SECRET|TOKEN)\s*[:=]\s*["'][^"'\r\n]{12,}["']/i,
 ];
+
+/**
+ * Indica se o conteúdo contém um segredo literal, ignorando expressões JS.
+ *
+ * @param {string} content - Código fonte a analisar.
+ * @returns {boolean} `true` apenas para um padrão bloqueado.
+ */
+function containsHardcodedSecret(content) {
+    return blockedSecretPatterns.some((pattern) => pattern.test(content));
+}
 
 /**
  * Lista ficheiros textuais relevantes para o scanner MF6 sem entrar em builds.
@@ -72,11 +81,7 @@ function assertNoHardcodedSecrets(files) {
         }
 
         const content = readFileSync(file, "utf8");
-        const matchedPattern = blockedSecretPatterns.find((pattern) =>
-            pattern.test(content),
-        );
-
-        if (matchedPattern) {
+        if (containsHardcodedSecret(content)) {
             throw new Error(
                 `Credencial provavel no codigo: ${relative(realDevRoot, file)}`,
             );
@@ -113,6 +118,17 @@ function assertLocalEnvFileLoading() {
 
 assertLocalEnvFileLoading();
 
+assert.equal(
+    containsHardcodedSecret(
+        "const DISPOSABLE_DATABASE_TOKEN = /(?:restore|test|audit|ci|demo)/i;",
+    ),
+    false,
+);
+assert.equal(
+    containsHardcodedSecret('const OPENAI_API_KEY = "valor-literal-longo-e-proibido";'),
+    true,
+);
+
 assert.throws(
     () =>
         loadApiEnv({
@@ -132,6 +148,26 @@ assert.throws(
     /DATABASE_URL/,
 );
 
+assert.throws(
+    () =>
+        loadApiEnv({
+            NODE_ENV: "production",
+            APP_BASE_URL: "https://opsa.example.test",
+            DATABASE_URL:
+                "postgresql://opsa_app:opsa-local-postgres-2026@127.0.0.1:5433/opsa_dev",
+            REDIS_URL: "rediss://redis.example.test:6379",
+            REDIS_KEY_PREFIX: "opsa:production",
+            RATE_LIMIT_HMAC_KEY: "production-smoke-key-with-32-bytes",
+            EMAIL_OUTBOX_ENCRYPTION_KEY:
+                "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=",
+            SMTP_HOST: "smtp.example.test",
+            SMTP_REQUIRE_TLS: "true",
+            EMAIL_FROM: "OPSA <no-reply@example.test>",
+            AI_CHAT_ENABLED: "false",
+        }),
+    /académicas do Docker Compose/,
+);
+
 const env = loadApiEnv({
     NODE_ENV: "production",
     PORT: "443",
@@ -141,7 +177,7 @@ const env = loadApiEnv({
     REDIS_KEY_PREFIX: "opsa:production",
     RATE_LIMIT_HMAC_KEY: "production-smoke-key-with-32-bytes",
     EMAIL_OUTBOX_ENCRYPTION_KEY:
-        "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+        "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=",
     SMTP_HOST: "smtp.example.test",
     SMTP_REQUIRE_TLS: "true",
     EMAIL_FROM: "OPSA <no-reply@example.test>",
@@ -153,6 +189,8 @@ assert.equal(env.databaseUrlConfigured, true);
 
 const example = readFileSync(new URL("../.env.example", import.meta.url), "utf8");
 assert.match(example, /DATABASE_URL=/);
+assert.match(example, /127\.0\.0\.1:5433\/opsa_dev/);
+assert.match(example, /OPSA_POSTGRES_CLI_MODE=compose/);
 assert.match(example, /OPSA_PRIVATE_STORAGE_ROOT=/);
 assert.match(example, /AI_CHAT_ENABLED=/);
 assert.match(example, /OPENAI_MODEL=/);
@@ -163,6 +201,8 @@ const testExample = readFileSync(
     "utf8",
 );
 assert.match(testExample, /TEST_DATABASE_URL=/);
+assert.match(testExample, /127\.0\.0\.1:5434\/opsa_test_ci/);
+assert.match(testExample, /127\.0\.0\.1:5435\/opsa_restore_test/);
 assert.match(testExample, /OPSA_SKIP_PERSISTENCE_TESTS=/);
 assert.match(testExample, /OPSA_SESSION_COOKIES_JSON/);
 

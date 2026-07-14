@@ -5,9 +5,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { loadApiEnv } from "../../src/config/env.js";
+import { encryptEmailOutboxPayload } from "../../src/modules/notifications/emailOutboxCrypto.js";
 import { createEmailOutbox } from "../../src/modules/notifications/emailOutboxService.js";
+import { createEmailOutboxWorker } from "../../src/modules/notifications/emailOutboxWorker.js";
 import { materializeCompanyNotifications } from "../../src/modules/notifications/notificationService.js";
 import { runNotificationWorkerCycle } from "../../src/modules/notifications/notificationWorker.js";
+import { createEmailProvider } from "../../src/modules/notifications/smtpEmailProvider.js";
 import { startEmailOutboxWorker } from "../../scripts/run-email-outbox-worker.mjs";
 import {
     createNotificationWorkerRuntime,
@@ -15,6 +18,56 @@ import {
 } from "../../scripts/run-notification-worker.mjs";
 
 const ENCRYPTION_KEY = Buffer.alloc(32, 7).toString("base64");
+
+/**
+ * Cria uma fila mínima em memória para exercitar um único claim do worker.
+ *
+ * @param {{ attempts?: number, type?: string }} options - Tentativas e tipo do email.
+ * @returns {{ prisma: object, updates: object[] }} Double Prisma e updates terminais.
+ */
+function createClaimedEmailPrisma({ attempts = 1, type = "PASSWORD_RESET" } = {}) {
+    let available = true;
+    const updates = [];
+    const email = {
+        id: "outbox-demo-1",
+        type,
+        status: "PENDING",
+        attempts,
+        encryptedPayload: encryptEmailOutboxPayload(
+            {
+                to: "person@example.test",
+                reason: "PASSWORD_RESET",
+                subject: "Recuperação OPSA",
+                text: "Use o token super-secret-token apenas uma vez.",
+            },
+            ENCRYPTION_KEY,
+        ),
+    };
+    const prisma = {
+        async $transaction(callback) {
+            return callback(prisma);
+        },
+        emailOutbox: {
+            async findFirst() {
+                if (!available) return null;
+                available = false;
+                return email;
+            },
+            async updateMany() {
+                return { count: 1 };
+            },
+            async findUnique() {
+                return email;
+            },
+            async update(query) {
+                updates.push(query.data);
+                return { ...email, ...query.data };
+            },
+        },
+        async $disconnect() {},
+    };
+    return { prisma, updates };
+}
 
 test("intervalo do worker de notificações tem default e limites explícitos", () => {
     assert.equal(loadApiEnv({}).notificationWorker.intervalMs, 300_000);
@@ -299,4 +352,76 @@ test("processo SMTP separado verifica o provider e drena uma fila vazia", async 
     );
     assert.equal(verified, 1);
     assert.equal(disconnected, 1);
+});
+
+test("provider simulated conserva cifrado apenas o preview temporário permitido", async () => {
+    const { prisma, updates } = createClaimedEmailPrisma();
+    const logs = [];
+    const result = await startEmailOutboxWorker({
+        env: {
+            NODE_ENV: "test",
+            EMAIL_OUTBOX_ENCRYPTION_KEY: ENCRYPTION_KEY,
+        },
+        prisma,
+        logger: {
+            info(entry) { logs.push(entry); },
+            warn(entry) { logs.push(entry); },
+        },
+        drain: true,
+        registerSignalHandlers: false,
+    });
+
+    assert.equal(result.processed, 1);
+    assert.equal(updates[0].status, "SIMULATED");
+    assert.equal(updates[0].sentAt, null);
+    assert.equal(typeof updates[0].encryptedPayload, "string");
+    const serializedLogs = JSON.stringify(logs);
+    assert.match(serializedLogs, /email_outbox_simulated/);
+    assert.equal(serializedLogs.includes("person@example.test"), false);
+    assert.equal(serializedLogs.includes("super-secret-token"), false);
+});
+
+test("provider simulated elimina payloads que não pertencem à inbox demo", async () => {
+    const { prisma, updates } = createClaimedEmailPrisma({
+        type: "PAYMENT_REMINDER",
+    });
+    const worker = createEmailOutboxWorker({
+        prisma,
+        provider: { async send() { return { status: "SIMULATED" }; } },
+        encryptionKey: ENCRYPTION_KEY,
+        logger: { info() {}, warn() {} },
+    });
+
+    assert.equal(await worker.runOnce(), true);
+    assert.equal(updates[0].encryptedPayload, null);
+});
+
+test("provider SMTP mantém retry e FAILED e simulated é impossível em produção", async () => {
+    for (const [attempts, expectedStatus] of [[1, "PENDING"], [5, "FAILED"]]) {
+        const { prisma, updates } = createClaimedEmailPrisma({ attempts });
+        const worker = createEmailOutboxWorker({
+            prisma,
+            provider: {
+                async send() {
+                    const error = new Error("SMTP indisponível");
+                    error.code = "ECONNECTION";
+                    throw error;
+                },
+            },
+            encryptionKey: ENCRYPTION_KEY,
+            logger: { info() {}, warn() {} },
+        });
+        assert.equal(await worker.runOnce(), true);
+        assert.equal(updates[0].status, expectedStatus);
+        assert.equal(updates[0].lastError, "ECONNECTION");
+    }
+
+    assert.throws(
+        () =>
+            createEmailProvider({
+                isProduction: true,
+                providers: { email: "simulated" },
+            }),
+        /não é permitido em produção/,
+    );
 });

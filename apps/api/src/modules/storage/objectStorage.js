@@ -1,9 +1,8 @@
 /**
- * @file Adapter privado de object storage S3 compatível e fallback local de desenvolvimento.
+ * @file Adapters privados de object storage S3 compatível e local.
  *
- * Produção e testes de integração exigem configuração S3. O adapter local só
- * pode ser selecionado automaticamente em `development` e nunca expõe pastas
- * via Express static.
+ * Produção exige S3. O adapter local é permitido apenas em development/test,
+ * usa permissões restritivas e nunca expõe pastas via Express static.
  */
 
 import {
@@ -17,8 +16,10 @@ import {
     S3Client,
 } from "@aws-sdk/client-s3";
 import { randomBytes, randomUUID } from "node:crypto";
-import { createReadStream } from "node:fs";
+import { constants, createReadStream } from "node:fs";
 import {
+    access,
+    chmod,
     copyFile,
     mkdir,
     readFile,
@@ -240,6 +241,16 @@ export class S3ObjectStorage {
         return true;
     }
 
+    /**
+     * Usa apenas metadata do bucket; não cria objetos no readiness normal.
+     *
+     * @param {{ signal?: AbortSignal }} [options] - Sinal cooperativo de timeout.
+     * @returns {Promise<true>} Confirmação read-only de acesso ao bucket.
+     */
+    async checkReadiness(options = {}) {
+        return this.checkHealth(options);
+    }
+
     async checkOperationalAccess(options = {}) {
         return checkObjectStorageOperationalAccess(this, options);
     }
@@ -416,6 +427,20 @@ export class LocalObjectStorage {
         return true;
     }
 
+    /**
+     * Confirma que a raiz já preparada pelo bootstrap continua acessível sem a
+     * criar nem escrever ficheiros durante um pedido de readiness.
+     *
+     * @param {{ signal?: AbortSignal }} [options] - Sinal cooperativo de timeout.
+     * @returns {Promise<true>} Confirmação read-only de acesso ao diretório.
+     */
+    async checkReadiness({ signal } = {}) {
+        throwIfAborted(signal);
+        await access(this.root, constants.R_OK | constants.W_OK);
+        throwIfAborted(signal);
+        return true;
+    }
+
     async checkOperationalAccess(options = {}) {
         return checkObjectStorageOperationalAccess(this, options);
     }
@@ -424,11 +449,13 @@ export class LocalObjectStorage {
         const target = this.resolve(key);
         await mkdir(path.dirname(target.filePath), { recursive: true, mode: 0o700 });
         await copyFile(sourcePath, target.filePath);
+        await chmod(target.filePath, 0o600);
         await writeFile(
             target.metadataPath,
             JSON.stringify({ contentType, metadata: normalizeMetadata(metadata) }),
             { mode: 0o600 },
         );
+        await chmod(target.metadataPath, 0o600);
         const info = await stat(target.filePath);
         return { key: target.normalized, sizeBytes: info.size, provider: this.provider };
     }
@@ -438,11 +465,13 @@ export class LocalObjectStorage {
         const target = this.resolve(key);
         await mkdir(path.dirname(target.filePath), { recursive: true, mode: 0o700 });
         await writeFile(target.filePath, buffer, { mode: 0o600 });
+        await chmod(target.filePath, 0o600);
         await writeFile(
             target.metadataPath,
             JSON.stringify({ contentType, metadata: normalizeMetadata(metadata) }),
             { mode: 0o600 },
         );
+        await chmod(target.metadataPath, 0o600);
         throwIfAborted(signal);
         return { key: target.normalized, sizeBytes: buffer.length, provider: this.provider };
     }
@@ -461,6 +490,7 @@ export class LocalObjectStorage {
         await mkdir(path.dirname(target.filePath), { recursive: true, mode: 0o700 });
         const { createWriteStream } = await import("node:fs");
         await pipeline(stream, createWriteStream(target.filePath, { mode: 0o600 }));
+        await chmod(target.filePath, 0o600);
         const info = await stat(target.filePath);
         if (info.size !== contentLength) {
             await rm(target.filePath, { force: true });
@@ -471,6 +501,7 @@ export class LocalObjectStorage {
             JSON.stringify({ contentType, metadata: normalizeMetadata(metadata) }),
             { mode: 0o600 },
         );
+        await chmod(target.metadataPath, 0o600);
         return { key: target.normalized, sizeBytes: info.size, provider: this.provider };
     }
 
@@ -482,8 +513,10 @@ export class LocalObjectStorage {
             mode: 0o700,
         });
         await copyFile(source.filePath, destination.filePath);
+        await chmod(destination.filePath, 0o600);
         try {
             await copyFile(source.metadataPath, destination.metadataPath);
+            await chmod(destination.metadataPath, 0o600);
         } catch (error) {
             if (error.code !== "ENOENT") throw error;
         }
@@ -581,10 +614,10 @@ export class LocalObjectStorage {
 }
 
 /**
- * Seleciona S3 ou desenvolvimento local sem fallback inseguro em test/prod.
+ * Seleciona S3 ou storage local privado sem fallback remoto silencioso.
  *
  * @param {NodeJS.ProcessEnv | Record<string, string | undefined>} env - Ambiente.
- * @param {{ localRoot?: string }} [options] - Raiz local explícita.
+ * @param {{ localRoot?: string, provider?: "local" | "s3" }} [options] - Provider centralmente selecionado e raiz local explícita.
  * @returns {S3ObjectStorage | LocalObjectStorage} Adapter configurado.
  */
 export function createObjectStorage(env = process.env, options = {}) {
@@ -606,6 +639,19 @@ export function createObjectStorage(env = process.env, options = {}) {
         requiredConnection.every((key) => String(env[key] ?? "").trim()) &&
         Boolean(String(bucketName ?? "").trim()) &&
         Boolean(String(env.S3_SSE ?? "").trim());
+    const selectedProvider = options.provider;
+    if (
+        selectedProvider !== undefined &&
+        selectedProvider !== "local" &&
+        selectedProvider !== "s3"
+    ) {
+        throw new Error("STORAGE_PROVIDER deve ser local ou s3.");
+    }
+    if (selectedProvider === "local" && hasAnyS3Value) {
+        throw new Error(
+            "STORAGE_PROVIDER=local não permite fallback quando existem opções S3; remove toda a configuração S3.",
+        );
+    }
     if (configured) {
         if (!["true", "false"].includes(String(env.S3_FORCE_PATH_STYLE ?? ""))) {
             throw new Error("S3_FORCE_PATH_STYLE deve ser true ou false.");
@@ -621,7 +667,25 @@ export function createObjectStorage(env = process.env, options = {}) {
             serverSideEncryption: remote.serverSideEncryption,
         });
     }
-    if (!hasAnyS3Value && (env.NODE_ENV ?? "development") === "development") {
+    if (hasAnyS3Value) {
+        throw new Error(
+            "Configuração S3 parcial não pode fazer fallback para storage local.",
+        );
+    }
+    if (selectedProvider === "s3") {
+        throw new Error(
+            "STORAGE_PROVIDER=s3 exige configuração S3 completa, incluindo S3_SSE.",
+        );
+    }
+    if (
+        !hasAnyS3Value &&
+        (selectedProvider === "local" ||
+            (selectedProvider === undefined &&
+                (env.NODE_ENV ?? "development") === "development"))
+    ) {
+        if ((env.NODE_ENV ?? "development") === "production") {
+            throw new Error("Storage local não é permitido em produção.");
+        }
         return new LocalObjectStorage(
             options.localRoot ?? env.OPSA_PRIVATE_STORAGE_ROOT ?? "private-storage",
         );
