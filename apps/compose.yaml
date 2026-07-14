@@ -1,0 +1,111 @@
+name: opsa-real-dev
+
+services:
+  postgres:
+    image: postgres:17.10-alpine3.23@sha256:8189a1f6e40904781fc9e2612687877791d21679866db58b1de996b31fc312e4
+    restart: "no"
+    shm_size: 128mb
+    environment:
+      POSTGRES_DB: opsa_dev
+      POSTGRES_USER: opsa_bootstrap
+      POSTGRES_PASSWORD: opsa-bootstrap-local-2026
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
+      OPSA_APP_DATABASE: opsa_dev
+      OPSA_APP_USER: opsa_app
+      OPSA_APP_PASSWORD: opsa-local-postgres-2026
+    command: ["postgres", "-c", "password_encryption=scram-sha-256"]
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - opsa-postgres-data:/var/lib/postgresql/data
+      - ./docker/postgres/init-app-role.sh:/docker-entrypoint-initdb.d/10-init-app-role.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U $$OPSA_APP_USER -d $$OPSA_APP_DATABASE"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+    security_opt:
+      - no-new-privileges:true
+
+  postgres-test:
+    image: postgres:17.10-alpine3.23@sha256:8189a1f6e40904781fc9e2612687877791d21679866db58b1de996b31fc312e4
+    restart: "no"
+    shm_size: 128mb
+    profiles: ["test"]
+    environment:
+      POSTGRES_DB: opsa_test_ci
+      POSTGRES_USER: opsa_bootstrap
+      POSTGRES_PASSWORD: opsa-bootstrap-local-2026
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
+      OPSA_APP_DATABASE: opsa_test_ci
+      OPSA_APP_USER: opsa_app
+      OPSA_APP_PASSWORD: opsa-local-postgres-2026
+    command: ["postgres", "-c", "password_encryption=scram-sha-256"]
+    ports:
+      - "127.0.0.1:5434:5432"
+    tmpfs:
+      - /var/lib/postgresql/data:rw,noexec,nosuid,size=512m
+    volumes:
+      - ./docker/postgres/init-app-role.sh:/docker-entrypoint-initdb.d/10-init-app-role.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U $$OPSA_APP_USER -d $$OPSA_APP_DATABASE"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+    security_opt:
+      - no-new-privileges:true
+
+  postgres-restore:
+    image: postgres:17.10-alpine3.23@sha256:8189a1f6e40904781fc9e2612687877791d21679866db58b1de996b31fc312e4
+    restart: "no"
+    shm_size: 128mb
+    profiles: ["restore"]
+    environment:
+      POSTGRES_DB: opsa_restore_test
+      POSTGRES_USER: opsa_bootstrap
+      POSTGRES_PASSWORD: opsa-bootstrap-local-2026
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
+      OPSA_APP_DATABASE: opsa_restore_test
+      OPSA_APP_USER: opsa_app
+      OPSA_APP_PASSWORD: opsa-local-postgres-2026
+    command: ["postgres", "-c", "password_encryption=scram-sha-256"]
+    ports:
+      - "127.0.0.1:5435:5432"
+    tmpfs:
+      - /var/lib/postgresql/data:rw,noexec,nosuid,size=512m
+    volumes:
+      - ./docker/postgres/init-app-role.sh:/docker-entrypoint-initdb.d/10-init-app-role.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U $$OPSA_APP_USER -d $$OPSA_APP_DATABASE"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+    security_opt:
+      - no-new-privileges:true
+
+  postgres-tools:
+    image: postgres:17.10-alpine3.23@sha256:8189a1f6e40904781fc9e2612687877791d21679866db58b1de996b31fc312e4
+    restart: "no"
+    profiles: ["tools"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGHOST: postgres
+      PGPORT: 5432
+      PGDATABASE: opsa_dev
+      PGUSER: opsa_app
+      PGPASSWORD: opsa-local-postgres-2026
+    command: ["postgres", "--version"]
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=32m
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  opsa-postgres-data:
+    name: opsa-real-dev-postgres-data
