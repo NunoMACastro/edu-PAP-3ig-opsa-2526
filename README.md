@@ -95,7 +95,110 @@ Fonte canónica RNF: [docs/RNF.md](docs/RNF.md).
 3. ativação progressiva da IA preditiva com explicabilidade;
 4. hardening operacional, auditoria e preparação final de entrega.
 
-## 9. Créditos, Licença e Changelog
+## 9. Como iniciar a aplicação localmente — passo a passo
+
+Os comandos seguintes devem ser executados a partir da raiz do repositório.
+A API está em `apps/api` e o frontend está em `apps/web`.
+
+### Pré-requisitos
+
+- Node.js `>=24.17 <25` e npm `>=11 <12`;
+- Docker Desktop, ou Docker Engine, com Docker Compose v2;
+- portas `3000`, `5173` e `5433` livres.
+
+Se utilizares `nvm`, a versão recomendada está definida em `apps/.nvmrc`:
+
+```bash
+cd apps
+nvm install
+nvm use
+cd ..
+```
+
+### Passo 1 — instalar as dependências
+
+```bash
+npm --prefix apps/api ci
+npm --prefix apps/web ci
+```
+
+### Passo 2 — preparar a base de dados e a configuração local
+
+```bash
+npm --prefix apps/api run db:local:setup
+npm --prefix apps/api run config:check
+```
+
+O primeiro comando:
+
+- cria `apps/api/.env` a partir de `.env.example`, caso ainda não exista;
+- inicia o PostgreSQL local através de Docker Compose;
+- gera o Prisma Client;
+- aplica as migrations;
+- cria e verifica os dados de demonstração.
+
+### Passo 3 — iniciar o servidor da API
+
+Num primeiro terminal, a partir da raiz do repositório:
+
+```bash
+npm --prefix apps/api run dev
+```
+
+A API fica disponível em `http://127.0.0.1:3000`. Para confirmar que está a
+responder:
+
+```bash
+curl -fsS http://127.0.0.1:3000/api/health/live
+```
+
+### Passo 4 — iniciar o frontend
+
+Mantém a API em execução e abre um segundo terminal:
+
+```bash
+npm --prefix apps/web run dev
+```
+
+Abre `http://127.0.0.1:5173` no browser. O Vite encaminha automaticamente os
+pedidos `/api` para o servidor em `http://127.0.0.1:3000`.
+
+### Passo 5 — iniciar sessão na demonstração
+
+Utiliza as credenciais locais criadas pela seed:
+
+- email: `admin@opsa.demo`;
+- password: `OpsaDemo2026!`.
+
+Depois do login, seleciona **OPSA Demo Comercio, Lda** em **Empresas e
+contexto**. Estas credenciais destinam-se apenas ao ambiente académico local.
+
+### Passo 6 — iniciar os workers opcionais
+
+Algumas funcionalidades assíncronas precisam de processos adicionais. Abre um
+terminal por worker que pretendas demonstrar:
+
+```bash
+# Processamento de IA
+npm --prefix apps/api run worker:ai
+
+# Processamento de email simulado
+npm --prefix apps/api run worker:email
+```
+
+### Parar a aplicação
+
+Usa `Ctrl+C` nos terminais da API, do frontend e dos workers. Para parar também
+o PostgreSQL sem eliminar os dados:
+
+```bash
+npm --prefix apps/api run db:local:stop
+```
+
+O guia operacional detalhado, incluindo testes, diagnóstico, backup e restore,
+está disponível em [apps/README.md](apps/README.md).
+
+## 10. Créditos, Licença e Changelog
 ### Créditos
 - Projeto: OPSA
 - Tipo: PAP - Curso Profissional de Informática de Gestão
@@ -107,4 +210,5 @@ Fonte canónica RNF: [docs/RNF.md](docs/RNF.md).
 Projeto académico para fins educativos.
 
 ### Changelog
+- 2026-07-16: adicionado o guia passo a passo para iniciar a API, o frontend e os workers opcionais a partir de `apps/`.
 - 2026-04-17: README reescrito integralmente com estrutura canónica e reforço do núcleo IA preditiva + separação clara entre recomendação e execução.

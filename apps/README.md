@@ -1,4 +1,4 @@
-# OPSA `real_dev` — arranque local
+# OPSA `apps` — arranque local
 
 Este é o percurso curto para a demonstração académica local. Mantém o chat de
 IA ativo em modo determinístico, sem contactar OpenAI, Redis, S3 ou SMTP.
@@ -19,9 +19,9 @@ como processos Node.js no host.
 A partir da raiz do repositório:
 
 ```bash
-npm --prefix real_dev/api ci
-npm --prefix real_dev/web ci
-npm --prefix real_dev/api run db:local:setup
+npm --prefix apps/api ci
+npm --prefix apps/web ci
+npm --prefix apps/api run db:local:setup
 ```
 
 `db:local:setup` cria o `.env` a partir do exemplo apenas quando ainda não
@@ -34,14 +34,14 @@ exclusivamente de demo e o backend bloqueia chaves demonstrativas quando
 Valida a configuração sem abrir ligações externas:
 
 ```bash
-npm --prefix real_dev/api run config:check
+npm --prefix apps/api run config:check
 ```
 
 Depois, o mesmo comando pode ser repetido de forma idempotente:
 
 ```bash
-npm --prefix real_dev/api run db:local:setup
-npm --prefix real_dev/web exec playwright install chromium
+npm --prefix apps/api run db:local:setup
+npm --prefix apps/web exec playwright install chromium
 ```
 
 Não cria Redis, SMTP, S3 nem um segundo stack de aplicação.
@@ -60,25 +60,25 @@ O Compose usa o projeto fixo `opsa-real-dev` e quatro serviços isolados:
 Terminal 1 — API:
 
 ```bash
-npm --prefix real_dev/api run dev
+npm --prefix apps/api run dev
 ```
 
 Terminal 2 — worker de IA:
 
 ```bash
-npm --prefix real_dev/api run worker:ai
+npm --prefix apps/api run worker:ai
 ```
 
 Terminal 3 — worker de email simulado:
 
 ```bash
-npm --prefix real_dev/api run worker:email
+npm --prefix apps/api run worker:email
 ```
 
 Terminal 4 — frontend:
 
 ```bash
-npm --prefix real_dev/web run dev
+npm --prefix apps/web run dev
 ```
 
 Abrir `http://127.0.0.1:5173`. O frontend continua a usar `/api`, encaminhado
@@ -91,7 +91,7 @@ as mensagens pendentes em `SIMULATED` para ficarem disponíveis na inbox local.
 ## Smoke curto
 
 ```bash
-npm --prefix real_dev/api run db:local:status
+npm --prefix apps/api run db:local:status
 curl -fsS http://127.0.0.1:3000/api/health/live
 curl -fsS http://127.0.0.1:3000/api/health/ready
 ```
@@ -117,7 +117,7 @@ e injeta o validador externo no arranque.
 Se não estiveres a executar o worker contínuo, podes processar a fila uma vez:
 
 ```bash
-npm --prefix real_dev/api run worker:email:drain
+npm --prefix apps/api run worker:email:drain
 ```
 
 A linha final indica quantas mensagens foram processadas. Notificações de email
@@ -127,28 +127,28 @@ a simulação.
 O E2E normal usa o Chromium incluído no Playwright:
 
 ```bash
-npm --prefix real_dev/web run test:e2e
+npm --prefix apps/web run test:e2e
 ```
 
 A matriz com Chrome, Edge e Firefox instalados no sistema é opcional:
 
 ```bash
-npm --prefix real_dev/web run test:e2e:compat
+npm --prefix apps/web run test:e2e:compat
 ```
 
 Para inspecionar PostgreSQL sem expor credenciais:
 
 ```bash
-npm --prefix real_dev/api run db:local:status
-npm --prefix real_dev/api run db:local:logs
+npm --prefix apps/api run db:local:status
+npm --prefix apps/api run db:local:logs
 ```
 
 No final, `db:local:stop` para os containers e preserva o volume. O reset é
 deliberadamente destrutivo e exige confirmação explícita:
 
 ```bash
-npm --prefix real_dev/api run db:local:stop
-npm --prefix real_dev/api run db:local:reset -- --confirm=opsa_dev
+npm --prefix apps/api run db:local:stop
+npm --prefix apps/api run db:local:reset -- --confirm=opsa_dev
 ```
 
 ## Falhas frequentes
@@ -172,12 +172,12 @@ externas autorizadas. O restore usa sempre a base isolada do serviço
 `postgres-restore`, nunca a origem.
 
 ```bash
-npm --prefix real_dev/api run db:restore:start
-npm --prefix real_dev/api run mf7:backup
-npm --prefix real_dev/api run mf7:backup:verify -- \
+npm --prefix apps/api run db:restore:start
+npm --prefix apps/api run mf7:backup
+npm --prefix apps/api run mf7:backup:verify -- \
   --manifest ./private-storage/backups/opsa-<timestamp>.dump.json
-npm --prefix real_dev/api run mf7:backup:roundtrip
-npm --prefix real_dev/api run db:restore:stop
+npm --prefix apps/api run mf7:backup:roundtrip
+npm --prefix apps/api run db:restore:stop
 ```
 
 O backup fica em `OPSA_BACKUP_DIR` com manifesto e SHA-256. O restore recusa a
@@ -194,7 +194,7 @@ Para testes de integração persistida existe uma base independente. O wrapper
 arranca-a, aplica o ambiente de teste e termina-a sem tocar no volume da demo:
 
 ```bash
-npm --prefix real_dev/api run test:integration:postgres-local
+npm --prefix apps/api run test:integration:postgres-local
 ```
 
 ## Production-like
